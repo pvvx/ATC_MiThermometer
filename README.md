@@ -32,3 +32,8 @@ You can then copy the folder "ATC_Thermometer" into the example folder and go in
 The newly created .bin file can then simply be flashed bei either the Web Flasher or the USB to UART method.
 
 Because of the OTA dual bank update method a firmware can be maximum 256kB in size.
+
+
+### Many thanks to:
+@danielkucera https://github.com/danielkucera/mi-standardauth/blob/master/provision.py
+@romanhosek https://twitter.com/romanhosek
