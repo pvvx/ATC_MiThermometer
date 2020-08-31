@@ -30,3 +30,5 @@ To build the custom firmware on your own follow the this guide to get a working 
 Try to "make" the blink example included in the SDK once to see if the compiling works as it should.
 You can then copy the folder "ATC_Thermometer" into the example folder and go into into that with the terminal now do a "make" and it will build the custom firmware.
 The newly created .bin file can then simply be flashed bei either the Web Flasher or the USB to UART method.
+
+Because of the OTA dual bank update method a firmware can be maximum 256kB in size.
