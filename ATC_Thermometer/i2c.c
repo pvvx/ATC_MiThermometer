@@ -1,0 +1,16 @@
+#include <stdint.h>
+#include "tl_common.h"
+#include "drivers.h"
+#include "vendor/common/user_config.h"
+#include "app_config.h"
+#include "drivers/8258/gpio_8258.h"
+
+void init_i2c(){
+	i2c_gpio_set(I2C_GPIO_GROUP_C2C3); 
+	i2c_master_init(0x78, (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*400000)) );
+}
+
+void send_i2c(uint8_t device_id, uint8_t *buffer, int dataLen){
+	i2c_set_id(device_id);
+	i2c_write_series(0, 0, (uint8_t*)buffer,dataLen);
+}
