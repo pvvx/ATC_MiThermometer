@@ -36,6 +36,8 @@ The newly created .bin file can then simply be flashed by either the Web Flasher
 Because of the OTA dual bank update method a firmware can be maximum 256kB in size.
 
 
-### Many thanks to:
+#### Many thanks to:
+
 @danielkucera https://github.com/danielkucera/mi-standardauth/blob/master/provision.py
+
 @romanhosek https://twitter.com/romanhosek
