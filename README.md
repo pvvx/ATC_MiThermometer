@@ -6,6 +6,8 @@ https://atc1441.github.io/TelinkFlasher.html
 
 The web flasher does work for many devices that uses the Telink TLSR82** MCUs and it can also be used to reflash the Stock firmware back to the device.
 
+### You can support my work via paypal: https://paypal.me/hoverboard1 this keeps projects like this comming.
+
 ## OTA
 ### How to flash the custom firmware:
 
