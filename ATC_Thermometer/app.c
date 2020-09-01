@@ -43,7 +43,7 @@ void main_loop (void)
 		}
 		
 		if((clock_time()-last_delay_min) > 60000*CLOCK_SYS_CLOCK_1MS){
-			set_adv_data(temp, humi, battery_level);
+			set_adv_data(temp, humi, battery_level, get_battery_mv());
 			last_delay_min = clock_time();
 		}
 		show_battery_symbol((battery_level<35)?1:0);

@@ -22,7 +22,7 @@ RAM	my_fifo_t	blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b,};
 RAM u8	tbl_scanRsp [] = {11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0', '0', '0'};
 
 RAM u8	advertising_data[] = {
- 0x0e, 0x16, 0x1a, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xaa, 0xbb, 0xcc, 0xff
+ 0x0a, 0x16, 0x1a, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xee
 };
 
 u8  mac_public[6];
@@ -149,12 +149,14 @@ bool ble_get_connected(){
 	return ble_connected;
 }
 
-void set_adv_data(uint16_t temp, uint16_t humi, uint8_t battery){
+void set_adv_data(uint16_t temp, uint16_t humi, uint8_t battery_level, uint16_t battery_mv){
 	advertising_data[10] = temp>>8;
 	advertising_data[11] = temp&0xff;
 	advertising_data[12] = humi&0xff;
-	advertising_data[13] = battery;
-	advertising_data[14]++;
+	advertising_data[13] = battery_level;
+	advertising_data[14] = battery_mv>>8;
+	advertising_data[15] = battery_mv&0xff;
+	advertising_data[16]++;
 	bls_ll_setAdvData( (u8 *)advertising_data, sizeof(advertising_data) );	
 }
 
