@@ -67,4 +67,4 @@ Byte 17 frame packet counter
 
 @danielkucera https://github.com/danielkucera/mi-standardauth/blob/master/provision.py
 
-@romanhosek https://twitter.com/romanhosek
+@romanhosek https://twitter.com/romanhosek https://github.com/hosek
