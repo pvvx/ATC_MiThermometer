@@ -1,5 +1,5 @@
 # ATC_MiThermometer
-Custom firmware for the Xiaomi Thermometer and Telink Flasher via USB to Serial converter
+Custom firmware for the Xiaomi Thermometer LYWSD03MMC and Telink Flasher via USB to Serial converter
 
 It is possible to update the Firmware of the Xiaomi Thermometer OTA with this WEB Tool i wrote:
 https://atc1441.github.io/TelinkFlasher.html
