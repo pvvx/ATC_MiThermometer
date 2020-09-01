@@ -19,8 +19,14 @@ RAM	my_fifo_t	blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b,};
 RAM u8 			blt_txfifo_b[40 * 16] = {0};
 RAM	my_fifo_t	blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b,};
 
-const u8	tbl_scanRsp [] = {0x04, 0x09, 'A', 'T', 'C'};
+RAM u8	tbl_scanRsp [] = {11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0', '0', '0'};
 
+RAM u8	advertising_data[] = {
+ 0x0e, 0x16, 0x1a, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xaa, 0xbb, 0xcc, 0xff
+};
+
+u8  mac_public[6];
+	
 u8 	ota_is_working = 0;
 
 void app_enter_ota_mode(void)
@@ -28,18 +34,6 @@ void app_enter_ota_mode(void)
 	ota_is_working = 1;
 	bls_ota_setTimeout(5 * 1000000);
 	show_smiley(1);
-}
-
-void show_ota_result(int result)
-{
-
-}
-
-_attribute_ram_code_ void ble_remote_set_sleep_wakeup (u8 e, u8 *p, int n)
-{
-	if( blc_ll_getCurrentState() == BLS_LINK_STATE_CONN && ((u32)(bls_pm_getSystemWakeupTick() - clock_time())) > 80 * CLOCK_16M_SYS_TIMER_CLK_1MS){
-		bls_pm_setWakeupSource(PM_WAKEUP_PAD);  //gpio pad wakeup suspend/deepsleep
-	}
 }
 
 void app_switch_to_indirect_adv(u8 e, u8 *p, int n)
@@ -67,13 +61,6 @@ void task_connect(u8 e, u8 *p, int n)
 	show_ble_symbol(1);
 }
 
-void ble_loop(){	
-	if(ota_is_working){
-		bls_pm_setSuspendMask(SUSPEND_DISABLE);
-		bls_pm_setManualLatency(0);
-	}
-}
-
 extern u32 blt_ota_start_tick;
 int otaWritePre(void * p)
 {
@@ -84,24 +71,42 @@ int otaWritePre(void * p)
 
 void task_conn_update_req(u8 e, u8 *p, int n)
 {
-
 }
 
 void task_conn_update_done(u8 e, u8 *p, int n)
 {
-
 }
 
 _attribute_ram_code_ void blt_pm_proc(void)
 {
-	bls_pm_setSuspendMask (SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
+	if(ota_is_working){
+		bls_pm_setSuspendMask(SUSPEND_DISABLE);
+		bls_pm_setManualLatency(0);
+	}else{
+		bls_pm_setSuspendMask (SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
+	}
 }
 
 void init_ble(){
 ////////////////// BLE stack initialization ////////////////////////////////////
-	u8  mac_public[6];
 	u8  mac_random_static[6];
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
+	
+	//Set the BLE Name to the last three MACs the first ones are always the same
+    const char* hex_ascii = {"0123456789ABCDEF"};	
+	tbl_scanRsp[6] = hex_ascii[mac_public[2]>>4];
+	tbl_scanRsp[7] = hex_ascii[mac_public[2] &0x0f];	
+	tbl_scanRsp[8] = hex_ascii[mac_public[1]>>4];
+	tbl_scanRsp[9] = hex_ascii[mac_public[1] &0x0f];		
+	tbl_scanRsp[10] = hex_ascii[mac_public[0]>>4];
+	tbl_scanRsp[11] = hex_ascii[mac_public[0] &0x0f];
+	
+	advertising_data[4] = mac_public[5];
+	advertising_data[5] = mac_public[4];
+	advertising_data[6] = mac_public[3];
+	advertising_data[7] = mac_public[2];
+	advertising_data[8] = mac_public[1];
+	advertising_data[9] = mac_public[0];
 	
 ////// Controller Initialization  //////////
 	blc_ll_initBasicMCU();                      //must
@@ -136,15 +141,21 @@ void init_ble(){
 	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
 
-	bls_app_registerEventCallback (BLT_EV_FLAG_SUSPEND_ENTER, &ble_remote_set_sleep_wakeup);
-
 	bls_ota_clearNewFwDataArea(); //must
-	bls_ota_registerStartCmdCb(app_enter_ota_mode);
-	bls_ota_registerResultIndicateCb(show_ota_result);
+	bls_ota_registerStartCmdCb(app_enter_ota_mode);	
 }
 
 bool ble_get_connected(){
 	return ble_connected;
+}
+
+void set_adv_data(uint16_t temp, uint16_t humi, uint8_t battery){
+	advertising_data[10] = temp>>8;
+	advertising_data[11] = temp&0xff;
+	advertising_data[12] = humi&0xff;
+	advertising_data[13] = battery;
+	advertising_data[14]++;
+	bls_ll_setAdvData( (u8 *)advertising_data, sizeof(advertising_data) );	
 }
 
 void ble_send_temp(u16 temp){
