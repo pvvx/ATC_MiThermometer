@@ -37,6 +37,7 @@ Because of the OTA dual bank update method a firmware can be maximum 256kB in si
 
 ### Getting the MAC of you Thermometer:
 On boot the custom firmware will show the last three bytes of the MAC Address in the humidity display part on the LCD for 2 seconds each, the first three bytes are always the same so not importand.
+Also the BLE name will include the last three bytes of the MAC Address
 
 ### Advertising format of the custom firmware:
 The custom firmware sends every minute an update of advertising data on the UUID 0x181A with the Tempereature, Humidity and Battery data.
