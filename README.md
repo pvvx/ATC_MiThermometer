@@ -2,6 +2,7 @@
 Custom firmware for the Xiaomi Thermometer LYWSD03MMC and Telink Flasher via USB to Serial converter
 
 This repo is made together with this explanation video:(click on it)
+
 [![YoutubeVideo](https://img.youtube.com/vi/NXKzFG61lNs/0.jpg)](https://www.youtube.com/watch?v=NXKzFG61lNs)
 
 It is possible to update the Firmware of the Xiaomi Thermometer OTA with this WEB Tool i wrote:
