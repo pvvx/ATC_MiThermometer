@@ -36,7 +36,7 @@ The newly created .bin file can then simply be flashed by either the Web Flasher
 Because of the OTA dual bank update method a firmware can be maximum 256kB in size.
 
 ### Getting the MAC of you Thermometer:
-On boot the custom firmware will show the last three bytes of the MAC Address in the humidity display part on the LCD for 2 seconds each, the first three bytes are always the same so not importand.
+On boot the custom firmware will show the last three bytes of the MAC Address in the humidity display part on the LCD for 2 seconds each, the first three bytes are always the same so not shown.
 Also the BLE name will include the last three bytes of the MAC Address
 
 ### Advertising format of the custom firmware:
