@@ -38,7 +38,7 @@ void app_enter_ota_mode(void)
 
 void app_switch_to_indirect_adv(u8 e, u8 *p, int n)
 {
-	bls_ll_setAdvParam( ADV_INTERVAL_1S, ADV_INTERVAL_1S+10, ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0,  NULL, BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
+	bls_ll_setAdvParam( ADVERTISING_INTERVAL, ADVERTISING_INTERVAL+50, ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0,  NULL, BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 	bls_ll_setAdvEnable(1);
 }
 
@@ -125,7 +125,7 @@ void init_ble(){
 	
 ///////////////////// USER application initialization ///////////////////
 	bls_ll_setScanRspData( (u8 *)tbl_scanRsp, sizeof(tbl_scanRsp));
-	bls_ll_setAdvParam(  ADV_INTERVAL_1S, ADV_INTERVAL_1S+10, ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0,  NULL, BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
+	bls_ll_setAdvParam(  ADVERTISING_INTERVAL, ADVERTISING_INTERVAL+50, ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0,  NULL, BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 	bls_ll_setAdvEnable(1);
 	user_set_rf_power(0, 0, 0);
 	bls_app_registerEventCallback (BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power);
