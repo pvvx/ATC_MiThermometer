@@ -36,6 +36,18 @@ The newly created .bin file can then simply be flashed by either the Web Flasher
 Because of the OTA dual bank update method a firmware can be maximum 256kB in size.
 
 
+### Advertising format of the custom firmware:
+The custom firmware sends every minute an update of advertising data on the UUID 0x181A with the Tempereature, Humidity and Battery data.
+
+The format is like this: 
+Byte 5-10 mac in correct order
+Byte 11-12 Temperature in uint16
+Byte 13 Humidity in percent
+Byte 14 Battery in percent
+Byte 15 frame packet counter
+0x0e, 0x16, 0x1a, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xaa, 0xbb, 0xcc, 0xff
+
+
 #### Many thanks to:
 
 @danielkucera https://github.com/danielkucera/mi-standardauth/blob/master/provision.py
