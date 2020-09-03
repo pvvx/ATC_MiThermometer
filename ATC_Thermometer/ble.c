@@ -69,6 +69,11 @@ int otaWritePre(void * p)
 	return 0;
 }
 
+int RxTxWrite(void * p)
+{
+	return 0;
+}
+
 void task_conn_update_req(u8 e, u8 *p, int n)
 {
 }

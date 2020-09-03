@@ -63,6 +63,13 @@ typedef enum
 	OTA_CMD_OUT_DP_H,						//UUID: telink ota uuid,  VALUE: otaData
 	OTA_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: otaName
 
+	//// Ota ////
+	/**********************************************************************************************/
+	RxTx_PS_H, 								//UUID: , 	VALUE: RxTx service uuid
+	RxTx_CMD_OUT_CD_H,						//UUID: , 	VALUE:  			Prop: read | write_without_rsp
+	RxTx_CMD_OUT_DP_H,						//UUID: RxTx uuid,  VALUE: RxTxData
+	RxTx_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: RxTxName
+
 	ATT_END_H,
 
 }ATT_HANDLE;

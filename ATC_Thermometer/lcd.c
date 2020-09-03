@@ -77,12 +77,18 @@ void show_atc_mac(){
 	sleep_ms(1800);
 }
 
-void show_big_number(uint16_t number, bool point){
+void show_big_number(int16_t number, bool point){
 	if(number >1999)return;	
+	if(number < -99)return;
 	display_buff[5] = (number > 999)?0x08:0x00; 
+	if(number < 0){
+		number = -number;
+		display_buff[5] = 2; 
+	}
 	display_buff[4] = point?0x08:0x00; 
 	if(number > 99)display_buff[5] |= display_numbers[number / 100 % 10] & 0xF7;
 	if(number > 9)display_buff[4] |= display_numbers[number / 10 % 10] & 0xF7;
+	if(number < 9)display_buff[4] |= display_numbers[0] & 0xF7;
     display_buff[3] = display_numbers[number %10] & 0xF7;
 }
 

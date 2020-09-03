@@ -63,7 +63,7 @@ static u8 batteryValueInCCC[2];
 RAM u8 my_batVal[1] 	= {100};
 
 //////////////////////// Temp /////////////////////////////////////////////////
-static const u16 my_tempServiceUUID        = 0x181A;
+static const u16 my_tempServiceUUID       = 0x181A;
 static const u16 my_tempCharUUID       	  = 0x2A1F;
 static const u16 my_humiCharUUID       	  = 0x2A6F;
 static u8 tempValueInCCC[2];
@@ -75,9 +75,13 @@ RAM u8 my_humiVal[2] 	= {0};
 static const  u8 my_OtaUUID[16]					    = TELINK_SPP_DATA_OTA;
 static const  u8 my_OtaServiceUUID[16]				= TELINK_OTA_UUID_SERVICE;
 static u8 my_OtaData 						        = 0x00;
-
 static const u8  my_OtaName[] = {'O', 'T', 'A'};
 
+// RxTx Char
+static const  u16 my_RxTxUUID				= 0x1f1f;
+static const  u16 my_RxTx_ServiceUUID		= 0x1f10;
+static u8 	  my_RxTx_Data 					= 0x00;
+static u8 RxTxValueInCCC[2];
 
 // Include attribute (Battery service)
 static const u16 include[3] = {BATT_PS_H, BATT_LEVEL_INPUT_CCB_H, SERVICE_UUID_BATTERY};
@@ -135,7 +139,15 @@ static const u8 my_OtaCharVal[19] = {
 	TELINK_SPP_DATA_OTA,
 };
 
+//// RxTx attribute values
+static const u8 my_RxTxCharVal[5] = {
+	CHAR_PROP_NOTIFY | CHAR_PROP_WRITE_WITHOUT_RSP,
+	U16_LO(RxTx_CMD_OUT_DP_H), U16_HI(RxTx_CMD_OUT_DP_H),
+	U16_LO(0x1f1f), U16_HI(0x1f1f)
+};
+
 extern int otaWritePre(void * p);
+extern int RxTxWrite(void * p);
 // TM : to modify
 static const attribute_t my_Attributes[] = {
 	{ATT_END_H - 1, 0,0,0,0,0},	// total num of attribute
@@ -174,6 +186,12 @@ static const attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_OtaCharVal),(u8*)(&my_characterUUID), (u8*)(my_OtaCharVal), 0},				//prop
 	{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(&my_OtaData), &otaWritePre, &otaRead},			//value
 	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_OtaName),(u8*)(&userdesc_UUID), (u8*)(my_OtaName), 0},
+	////////////////////////////////////// RxTx ////////////////////////////////////////////////////
+	// RxTx Communication
+	{4,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_RxTx_ServiceUUID), 0},
+	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_RxTxCharVal),(u8*)(&my_characterUUID), (u8*)(my_RxTxCharVal), 0},				//prop
+	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID),	(&my_RxTx_Data), &RxTxWrite},			//value
+	{0,ATT_PERMISSIONS_RDWR,2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(RxTxValueInCCC), 0},	//value
 };
 
 void my_att_init(void)
