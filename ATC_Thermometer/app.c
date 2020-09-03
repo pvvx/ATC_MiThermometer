@@ -32,7 +32,7 @@ void main_loop (void)
 		battery_level = get_battery_level();
 		read_sensor(&temp,&humi);		
 		
-		show_big_number(23,1);
+		show_big_number(temp,1);
 		show_temp_symbol(1);
 		show_small_number(humi,1);
 		update_lcd();	
