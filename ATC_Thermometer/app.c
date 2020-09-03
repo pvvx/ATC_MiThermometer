@@ -25,15 +25,22 @@ RAM u8 last_smiley;
 u16 temp = 0;
 u16 humi = 0;
 u8 battery_level;
+RAM bool temp_C_or_F;
 
 void main_loop (void)
 {	
 	if((clock_time()-last_delay) > 5000*CLOCK_SYS_CLOCK_1MS){		
 		battery_level = get_battery_level();
-		read_sensor(&temp,&humi);		
+		read_sensor(&temp,&humi,true);		
+		
+		if(temp_C_or_F){
+			temp = ((((temp*10)/5)*9)+3200)/10;//convert C to F
+			show_temp_symbol(2);
+		}else{
+			show_temp_symbol(1);
+		}
 		
 		show_big_number(temp,1);
-		show_temp_symbol(1);
 		show_small_number(humi,1);
 		update_lcd();	
 		if(ble_get_connected()){

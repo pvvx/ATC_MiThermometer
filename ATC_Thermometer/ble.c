@@ -69,8 +69,16 @@ int otaWritePre(void * p)
 	return 0;
 }
 
+extern bool temp_C_or_F;
 int RxTxWrite(void * p)
 {
+	rf_packet_att_data_t *req = (rf_packet_att_data_t*)p;
+	uint8_t inData = req->dat[0];
+	if(inData == 0xFF){
+		temp_C_or_F = 1;
+	}else if(inData == 0xCC){
+		temp_C_or_F = 0;
+	}	
 	return 0;
 }
 
