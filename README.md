@@ -51,12 +51,16 @@ The following settings can be send to the RxTx Characteristics 0x1F10/0x1f1f
 These settings will not get saved on power loss, maybe that will change in future but normaly the battery will be in there for a while
 ### Change display to °F or °C:
 0xFF = Lcd in °F
+
 0xCC = Lcd in °C <- Default
 
 ### Blinking smiles:
 0xA0 = Smiley off
+
 0xA1 = Smiley happy
+
 0xA2 = Smiley sad
+
 0xAB = Smiley bliking <- Default
 
 ### Advertising interval
