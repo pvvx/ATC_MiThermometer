@@ -83,6 +83,10 @@ static const  u16 my_RxTx_ServiceUUID		= 0x1f10;
 static u8 	  my_RxTx_Data 					= 0x00;
 static u8 RxTxValueInCCC[2];
 
+//0x95FE
+static const  u16 my_95FE_ServiceUUID		= 0x95FE;
+static const u8  my_MiName[] = {'M', 'i'};
+
 // Include attribute (Battery service)
 static const u16 include[3] = {BATT_PS_H, BATT_LEVEL_INPUT_CCB_H, SERVICE_UUID_BATTERY};
 
@@ -133,10 +137,11 @@ static const u8 my_humiCharVal[5] = {
 };
 
 //// OTA attribute values
+#define TELINK_SPP_DATA_OTA1 				0x12,0x2B,0x0d,0x0c,0x0b,0x0a,0x09,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00
 static const u8 my_OtaCharVal[19] = {
 	CHAR_PROP_READ | CHAR_PROP_WRITE_WITHOUT_RSP,
 	U16_LO(OTA_CMD_OUT_DP_H), U16_HI(OTA_CMD_OUT_DP_H),
-	TELINK_SPP_DATA_OTA,
+	TELINK_SPP_DATA_OTA1,
 };
 
 //// RxTx attribute values
@@ -192,6 +197,9 @@ static const attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_RxTxCharVal),(u8*)(&my_characterUUID), (u8*)(my_RxTxCharVal), 0},				//prop
 	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID),	(&my_RxTx_Data), &RxTxWrite},			//value
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(RxTxValueInCCC), 0},	//value
+	//Mi 0x95FE
+	{2,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_95FE_ServiceUUID), 0},
+	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_MiName),(u8*)(&userdesc_UUID), (u8*)(my_MiName), 0},
 };
 
 void my_att_init(void)

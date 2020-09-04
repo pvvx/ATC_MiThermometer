@@ -7,27 +7,33 @@
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
 
-RAM	u8	ble_connected = 0;
+RAM	uint8_t	ble_connected = 0;
 
-extern u8 my_tempVal[2];
-extern u8 my_humiVal[2];
-extern u8 my_batVal[1];
+extern uint8_t my_tempVal[2];
+extern uint8_t my_humiVal[2];
+extern uint8_t my_batVal[1];
 
-RAM u8 		 	blt_rxfifo_b[64 * 8] = {0};
+RAM uint8_t 		 	blt_rxfifo_b[64 * 8] = {0};
 RAM	my_fifo_t	blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b,};
 
-RAM u8 			blt_txfifo_b[40 * 16] = {0};
+RAM uint8_t 			blt_txfifo_b[40 * 16] = {0};
 RAM	my_fifo_t	blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b,};
 
-RAM u8	tbl_scanRsp [] = {11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0', '0', '0'};
+RAM uint8_t	tbl_scanRsp [] = {11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0', '0', '0'};
 
-RAM u8	advertising_data[] = {
+#ifdef WITH_MI//Mi like advertising
+RAM uint8_t	advertising_data[] = {
+ 0x10, 0x16, 0xfe, 0x95, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xaa, 0xbb, 0xcc, 0xdd, 0xdd, 0x00
+};
+#else
+RAM uint8_t	advertising_data[] = {
  0x10, 0x16, 0x1a, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xaa, 0xbb, 0xcc, 0xdd, 0xdd, 0x00
 };
+#endif
 
-u8  mac_public[6];
+uint8_t mac_public[6];
 	
-u8 	ota_is_working = 0;
+uint8_t ota_is_working = 0;
 
 void app_enter_ota_mode(void)
 {
@@ -36,29 +42,31 @@ void app_enter_ota_mode(void)
 	show_smiley(1);
 }
 
-void app_switch_to_indirect_adv(u8 e, u8 *p, int n)
+void app_switch_to_indirect_adv(uint8_t e, uint8_t *p, int n)
 {
 	bls_ll_setAdvParam( ADVERTISING_INTERVAL, ADVERTISING_INTERVAL+50, ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0,  NULL, BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 	bls_ll_setAdvEnable(1);
 }
 
-void ble_remote_terminate(u8 e,u8 *p, int n)
+void ble_remote_terminate(uint8_t e,uint8_t *p, int n)
 {
 	ble_connected = 0;
 	show_ble_symbol(0);
+	update_lcd();
 }
 
-_attribute_ram_code_ void user_set_rf_power (u8 e, u8 *p, int n)
+_attribute_ram_code_ void user_set_rf_power (uint8_t e, uint8_t *p, int n)
 {
 	rf_set_power_level_index (RF_POWER_P3p01dBm);
 }
 
-void task_connect(u8 e, u8 *p, int n)
+void task_connect(uint8_t e, uint8_t *p, int n)
 {
 	ble_connected = 1;
 //	bls_l2cap_requestConnParamUpdate (8, 8, 2, 30);  // 200mS
 	bls_l2cap_requestConnParamUpdate (8, 8, 99, 400);  //1S
 	show_ble_symbol(1);
+	update_lcd();
 }
 
 extern u32 blt_ota_start_tick;
@@ -69,24 +77,17 @@ int otaWritePre(void * p)
 	return 0;
 }
 
-extern bool temp_C_or_F;
 int RxTxWrite(void * p)
 {
-	rf_packet_att_data_t *req = (rf_packet_att_data_t*)p;
-	uint8_t inData = req->dat[0];
-	if(inData == 0xFF){
-		temp_C_or_F = 1;
-	}else if(inData == 0xCC){
-		temp_C_or_F = 0;
-	}	
+	cmd_parser(p);
 	return 0;
 }
 
-void task_conn_update_req(u8 e, u8 *p, int n)
+void task_conn_update_req(uint8_t e, uint8_t *p, int n)
 {
 }
 
-void task_conn_update_done(u8 e, u8 *p, int n)
+void task_conn_update_done(uint8_t e, uint8_t *p, int n)
 {
 }
 
@@ -102,7 +103,7 @@ _attribute_ram_code_ void blt_pm_proc(void)
 
 void init_ble(){
 ////////////////// BLE stack initialization ////////////////////////////////////
-	u8  mac_random_static[6];
+	uint8_t  mac_random_static[6];
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 	
 	//Set the BLE Name to the last three MACs the first ones are always the same
@@ -137,7 +138,7 @@ void init_ble(){
 	blc_smp_setSecurityLevel(No_Security);
 	
 ///////////////////// USER application initialization ///////////////////
-	bls_ll_setScanRspData( (u8 *)tbl_scanRsp, sizeof(tbl_scanRsp));
+	bls_ll_setScanRspData( (uint8_t *)tbl_scanRsp, sizeof(tbl_scanRsp));
 	bls_ll_setAdvParam(  ADVERTISING_INTERVAL, ADVERTISING_INTERVAL+50, ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0,  NULL, BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 	bls_ll_setAdvEnable(1);
 	user_set_rf_power(0, 0, 0);
@@ -163,6 +164,7 @@ bool ble_get_connected(){
 }
 
 void set_adv_data(uint16_t temp, uint16_t humi, uint8_t battery_level, uint16_t battery_mv){
+#ifdef WITH_MI//Mi like advertising
 	advertising_data[10] = temp>>8;
 	advertising_data[11] = temp&0xff;
 	advertising_data[12] = humi&0xff;
@@ -170,23 +172,32 @@ void set_adv_data(uint16_t temp, uint16_t humi, uint8_t battery_level, uint16_t 
 	advertising_data[14] = battery_mv>>8;
 	advertising_data[15] = battery_mv&0xff;
 	advertising_data[16]++;
-	bls_ll_setAdvData( (u8 *)advertising_data, sizeof(advertising_data) );	
+#else
+	advertising_data[10] = temp>>8;
+	advertising_data[11] = temp&0xff;
+	advertising_data[12] = humi&0xff;
+	advertising_data[13] = battery_level;
+	advertising_data[14] = battery_mv>>8;
+	advertising_data[15] = battery_mv&0xff;
+	advertising_data[16]++;
+#endif
+	bls_ll_setAdvData( (uint8_t *)advertising_data, sizeof(advertising_data));	
 }
 
-void ble_send_temp(u16 temp){
+void ble_send_temp(uint16_t temp){
 	my_tempVal[0] = temp & 0xFF;
 	my_tempVal[1] = temp >> 8;
 	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, my_tempVal, 2);
 }
 
-void ble_send_humi(u16 humi){
+void ble_send_humi(uint16_t humi){
 	humi*=100;
 	my_humiVal[0] = humi & 0xFF;
 	my_humiVal[1] = humi >> 8;
-	bls_att_pushNotifyData(HUMI_LEVEL_INPUT_DP_H, (u8 *)my_humiVal, 2);
+	bls_att_pushNotifyData(HUMI_LEVEL_INPUT_DP_H, (uint8_t *)my_humiVal, 2);
 }
 
-void ble_send_battery(u8 value){
+void ble_send_battery(uint8_t value){
 	my_batVal[0] = value;
-	bls_att_pushNotifyData(BATT_LEVEL_INPUT_DP_H, (u8 *)my_batVal, 1);
+	bls_att_pushNotifyData(BATT_LEVEL_INPUT_DP_H, (uint8_t *)my_batVal, 1);
 }

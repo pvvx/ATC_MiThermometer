@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"

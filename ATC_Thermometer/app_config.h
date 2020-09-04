@@ -4,6 +4,8 @@
 extern "C" {
 #endif
 
+//#define WITH_MI//Mi like advertising
+
 #define CLOCK_SYS_CLOCK_HZ  	16000000
 
 #define ADVERTISING_INTERVAL 3000
@@ -63,13 +65,17 @@ typedef enum
 	OTA_CMD_OUT_DP_H,						//UUID: telink ota uuid,  VALUE: otaData
 	OTA_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: otaName
 
-	//// Ota ////
+	//// RxTx ////
 	/**********************************************************************************************/
 	RxTx_PS_H, 								//UUID: , 	VALUE: RxTx service uuid
 	RxTx_CMD_OUT_CD_H,						//UUID: , 	VALUE:  			Prop: read | write_without_rsp
 	RxTx_CMD_OUT_DP_H,						//UUID: RxTx uuid,  VALUE: RxTxData
 	RxTx_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: RxTxName
-
+	
+	// Mi Advertising char
+	Mi_PS_H, 								//UUID: , 	VALUE: 0x95FE service uuid
+	Mi_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: Miname
+	
 	ATT_END_H,
 
 }ATT_HANDLE;
