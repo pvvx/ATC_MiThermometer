@@ -64,8 +64,6 @@ byte0 0xFE
 
 byte1 0x06 - value times 10 seconds = interval 60 seconds default.
 
-0 = delay from main_loop
-
 ### Temp and Humi offset
 byte0 0xFA = Temp offset
 
