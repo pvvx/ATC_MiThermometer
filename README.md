@@ -61,13 +61,18 @@ These settings will not get saved on power loss, maybe that will change in futur
 
 ### Advertising interval
 byte0 0xFE
+
 byte1 0x06 - value times 10 seconds = interval 60 seconds default.
+
 0 = delay from main_loop
 
 ### Temp and Humi offset
 byte0 0xFA = Temp offset
+
 byte0 0xFB = Humi offset
+
 byte1 as an int8_t
+
 so Temp = range -12,5 - + 12,5 °C offset
 Humi = range -50 - +50 % offset
 
