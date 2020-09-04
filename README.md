@@ -46,10 +46,33 @@ http://wiki.telink-semi.cn/doc/ds/DS_TLSR8258-E_Datasheet%20for%20Telink%20BLE+I
 On boot the custom firmware will show the last three bytes of the MAC Address in the humidity display part on the LCD for 2 seconds each, the first three bytes are always the same so not shown.
 Also the BLE name will include the last three bytes of the MAC Address
 
+## Settings in custom firmware:
+The following settings can be send to the RxTx Characteristics 0x1F10/0x1f1f
+These settings will not get saved on power loss, maybe that will change in future but normaly the battery will be in there for a while
 ### Change display to °F or °C:
-To set the LCD to show °F and not °C you can send an 0xFF to the RxTc Characteristics for °F or an 0xCC to get it back to °C, this setting is only in RAM so after putting a new battery in the display will be °C again, this setting style will may change in future.
+0xFF = Lcd in °F
+0xCC = Lcd in °C <- Default
 
-### Advertising format of the custom firmware:
+### Blinking smiles:
+0xA0 = Smiley off
+0xA1 = Smiley happy
+0xA2 = Smiley sad
+0xAB = Smiley bliking <- Default
+
+### Advertising interval
+byte0 0xFE
+byte1 0x06 - value times 10 seconds = interval 60 seconds default.
+0 = delay from main_loop
+
+### Temp and Humi offset
+byte0 0xFA = Temp offset
+byte0 0xFB = Humi offset
+byte1 as an int8_t
+so Temp = range -12,5 - + 12,5 °C offset
+Humi = range -50 - +50 % offset
+
+
+## Advertising format of the custom firmware:
 The custom firmware sends every minute an update of advertising data on the UUID 0x181A with the Tempereature, Humidity and Battery data.
 
 The format is like this: 
