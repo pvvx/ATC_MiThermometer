@@ -54,7 +54,7 @@ These settings will not get saved on power loss, maybe that will change in futur
 
 0xCC = Lcd in °C <- Default
 
-### Blinking smiles:
+### Blinking smiley:
 0xA0 = Smiley off
 
 0xA1 = Smiley happy
