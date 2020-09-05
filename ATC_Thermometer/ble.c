@@ -22,7 +22,7 @@ RAM	my_fifo_t	blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b,};
 RAM uint8_t	tbl_scanRsp [] = {11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0', '0', '0'};
 
 RAM uint8_t	advertising_data_Mi[] = {
- /*Description*/28, 0x16, 0x95, 0xfe,
+ /*Description*/25, 0x16, 0x95, 0xfe,
  /*Start*/0x50, 0x00, 
  /*Device id*/0xAB, 0xBE, 
  /*counter*/0x00,
