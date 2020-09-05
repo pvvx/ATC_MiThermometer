@@ -42,7 +42,7 @@ Because of the OTA dual bank update method a firmware can be maximum 256kB in si
 The MCU used in the Thermometer is the TLSR8251 but the datasheet from the TLSR8258 can be used and found here:
 http://wiki.telink-semi.cn/doc/ds/DS_TLSR8258-E_Datasheet%20for%20Telink%20BLE+IEEE802.15.4%20Multi-Standard%20Wireless%20SoC%20TLSR8258.pdf
 
-### Getting the MAC of you Thermometer:
+### Getting the MAC of your Thermometer:
 On boot the custom firmware will show the last three bytes of the MAC Address in the humidity display part on the LCD for 2 seconds each, the first three bytes are always the same so not shown.
 Also the BLE name will include the last three bytes of the MAC Address
 
