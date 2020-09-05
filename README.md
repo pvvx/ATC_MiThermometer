@@ -103,6 +103,9 @@ Byte 17 frame packet counter
 
 0x0e, 0x16, 0x1a, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xaa, 0xbb, 0xcc, 0xdd, 0xdd, 0x00
 
+### Battery level:
+The battery level will be shown on the LCD every 5-6secdonds indicated by the battery symbol at the humidity display.
+
 ### Stock firmware:
 Inside this .zip can be found the stock firmware to go back
 https://github.com/custom-components/sensor.mitemp_bt/files/4022697/d4135e135443ba86e403ecb2af2bf0af_upd_miaomiaoce.sensor_ht.t2.zip
