@@ -4,7 +4,7 @@
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
 
-RAM long long last_delay = 0xFFFFFFFF00000000, last_adv_delay = 0xFFFFFFFF00000000, last_battery_delay = 0xFFFFFFFF00000000;
+RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000;
 RAM bool last_smiley;
 uint16_t temp = 0;
 uint16_t humi = 0;
@@ -15,6 +15,7 @@ RAM bool show_batt_or_humi;
 //Settings
 RAM bool temp_C_or_F;
 RAM bool blinking_smiley = true;
+RAM bool show_batt_enabled = true;
 RAM uint8_t advertising_interval = 6;
 RAM int8_t temp_offset;
 RAM int8_t humi_offset;
@@ -57,6 +58,7 @@ void main_loop(){
 		
 		show_big_number(temp,1);
 		
+		if(!show_batt_enabled)show_batt_or_humi = true;
 		if(show_batt_or_humi){//Change between Humidity displaying and battery level
 			show_battery_symbol(0);
 			show_small_number(humi,1);	
