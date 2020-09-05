@@ -27,8 +27,7 @@ RAM uint8_t	advertising_data_Mi[] = {
  /*Device id*/0xAB, 0xBE, 
  /*counter*/0x00,
  /*MAC*/0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
- /*Temp*/0x04, 0x10, 0x02, 0x00, 0x00,
- /*Humi*/0x06, 0x10, 0x02, 0x00, 0x00,
+ /*Temp+Humi*/0x0D, 0x10, 0x04, 0x00, 0x00, 0x00, 0x00,
  /*BatL*/0x0A, 0x10, 0x01, 0x00
 };
 
@@ -188,13 +187,12 @@ if(advertising_type){
 	
 	advertising_data_Mi[8]++;
 	
-	advertising_data_Mi[18] = temp>>8;
-	advertising_data_Mi[19] = temp&0xff;
+	advertising_data_Mi[18] = temp&0xff;
+	advertising_data_Mi[19] = temp>>8;	
+	advertising_data_Mi[20] = humi&0xff;
+	advertising_data_Mi[21] = humi>>8;
 	
-	advertising_data_Mi[23] = humi>>8;
-	advertising_data_Mi[24] = humi&0xff;
-	
-	advertising_data_Mi[28] = battery_level;
+	advertising_data_Mi[25] = battery_level;
 	
 	bls_ll_setAdvData( (uint8_t *)advertising_data_Mi, sizeof(advertising_data_Mi));	
 }else{
