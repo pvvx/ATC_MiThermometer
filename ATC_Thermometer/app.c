@@ -57,17 +57,17 @@ void main_loop(){
 		
 		show_big_number(temp,1);
 		
-		if(show_batt_or_humi){
-			show_small_number(humi,1);	
+		if(show_batt_or_humi){//Change between Humidity displaying and battery level
 			show_battery_symbol(0);
+			show_small_number(humi,1);	
 		}else{
-			show_small_number((battery_level==100)?99:battery_level,1);
 			show_battery_symbol(1);
+			show_small_number((battery_level==100)?99:battery_level,1);
 		}
 		show_batt_or_humi = !show_batt_or_humi;
 		
 		update_lcd();	
-		if(ble_get_connected()){
+		if(ble_get_connected()){//If connected notify Sensor data
 			ble_send_temp(temp);
 			ble_send_humi(humi);
 			ble_send_battery(battery_level);
@@ -78,7 +78,7 @@ void main_loop(){
 			last_adv_delay = clock_time();
 		}
 		
-		if(blinking_smiley){
+		if(blinking_smiley){//If Smiley should blink do it
 		last_smiley=!last_smiley;
 		show_smiley(last_smiley);
 		}

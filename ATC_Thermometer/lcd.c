@@ -96,6 +96,6 @@ void show_small_number(uint16_t number, bool percent){
 	if(number >99)return;	
 	display_buff[0] = percent?0x08:0x00;
 	display_buff[1] = display_buff[1] & 0x08;
-	if(number > 9)display_buff[1] = display_numbers[number / 10 % 10] & 0xF7;
+	if(number > 9)display_buff[1] |= display_numbers[number / 10 % 10] & 0xF7;
     display_buff[0] |= display_numbers[number %10] & 0xF7;
 }
