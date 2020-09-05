@@ -71,7 +71,7 @@ typedef enum
 	RxTx_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: RxTxName
 	
 	// Mi Advertising char
-	Mi_PS_H, 								//UUID: , 	VALUE: 0x95FE service uuid
+	Mi_PS_H, 								//UUID: , 	VALUE: 0xFE95 service uuid
 	Mi_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: Miname
 	
 	ATT_END_H,

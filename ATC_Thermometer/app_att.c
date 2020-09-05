@@ -84,7 +84,7 @@ static u8 	  my_RxTx_Data 					= 0x00;
 static u8 RxTxValueInCCC[2];
 
 //0x95FE
-static const  u16 my_95FE_ServiceUUID		= 0x95FE;
+static const  u16 my_FE95_ServiceUUID		= 0xFE95;
 static const u8  my_MiName[] = {'M', 'i'};
 
 // Include attribute (Battery service)
@@ -198,7 +198,7 @@ static const attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID),	(&my_RxTx_Data), &RxTxWrite},			//value
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(RxTxValueInCCC), 0},	//value
 	//Mi 0x95FE
-	{2,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_95FE_ServiceUUID), 0},
+	{2,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_FE95_ServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_MiName),(u8*)(&userdesc_UUID), (u8*)(my_MiName), 0},
 };
 
