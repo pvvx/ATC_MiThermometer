@@ -4,7 +4,7 @@
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
 
-RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000;
+RAM long long last_delay = 0xFFFFFFFF00000000, last_adv_delay = 0xFFFFFFFF00000000, last_battery_delay = 0xFFFFFFFF00000000;
 RAM bool last_smiley;
 uint16_t temp = 0;
 uint16_t humi = 0;
