@@ -87,7 +87,7 @@ byte0 0xFB = Humi offset
 
 byte1 as an int8_t
 
-so Temp = range -12,5 - + 12,5 °C offset
+so Temp = range -12,8 - + 12,8 °C offset
 Humi = range -50 - +50 % offset
 
 
