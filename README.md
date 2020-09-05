@@ -63,6 +63,11 @@ These settings will not get saved on power loss, maybe that will change in futur
 
 0xAB = Smiley bliking <- Default
 
+### Advertising type:
+0xAE = Custom <- Default
+
+0xAF = Mi Like
+
 ### Advertising interval
 byte0 0xFE
 
