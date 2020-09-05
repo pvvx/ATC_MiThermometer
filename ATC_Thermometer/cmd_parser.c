@@ -3,6 +3,7 @@
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
 
+extern bool advertising_type;
 extern bool temp_C_or_F;
 extern bool blinking_smiley;
 extern uint8_t advertising_interval;
@@ -26,6 +27,10 @@ void cmd_parser(void * p){
 		show_smiley(2);//Smiley sad
 	}else if(inData == 0xAB){
 		blinking_smiley = true;//Smiley blinking
+	}else if(inData == 0xAE){
+		advertising_type = false;//Advertising type Custom
+	}else if(inData == 0xAF){
+		advertising_type = true;//Advertising type Mi Like
 	}else if(inData == 0xFE){
 		advertising_interval = req->dat[1];//Set advertising interval with second byte, value*10second / 0=main_delay
 	}else if(inData == 0xFA){

@@ -10,6 +10,7 @@ uint16_t temp = 0;
 uint16_t humi = 0;
 RAM uint8_t battery_level;
 RAM uint16_t battery_mv;
+RAM bool show_batt_or_humi;
 
 //Settings
 RAM bool temp_C_or_F;
@@ -55,7 +56,16 @@ void main_loop(){
 		}
 		
 		show_big_number(temp,1);
-		show_small_number(humi,1);
+		
+		if(show_batt_or_humi){
+			show_small_number(humi,1);	
+			show_battery_symbol(0);
+		}else{
+			show_small_number((battery_level==100)?99:battery_level,1);
+			show_battery_symbol(1);
+		}
+		show_batt_or_humi = !show_batt_or_humi;
+		
 		update_lcd();	
 		if(ble_get_connected()){
 			ble_send_temp(temp);
@@ -67,7 +77,6 @@ void main_loop(){
 			set_adv_data(temp, humi, battery_level, battery_mv);
 			last_adv_delay = clock_time();
 		}
-		show_battery_symbol((battery_level<35)?1:0);		
 		
 		if(blinking_smiley){
 		last_smiley=!last_smiley;

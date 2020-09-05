@@ -4,8 +4,6 @@
 extern "C" {
 #endif
 
-//#define WITH_MI//Mi like advertising
-
 #define CLOCK_SYS_CLOCK_HZ  	24000000
 
 #define ADVERTISING_INTERVAL 3000
