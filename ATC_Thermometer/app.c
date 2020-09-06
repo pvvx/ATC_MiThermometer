@@ -16,6 +16,7 @@ RAM bool show_batt_or_humi;
 RAM bool temp_C_or_F;
 RAM bool blinking_smiley = true;
 RAM bool show_batt_enabled = true;
+RAM bool advertising_type = false;//Custom or Mi Advertising
 RAM uint8_t advertising_interval = 6;
 RAM int8_t temp_offset;
 RAM int8_t humi_offset;
@@ -74,7 +75,7 @@ void main_loop(){
 			ble_send_battery(battery_level);
 		}
 		
-		if((clock_time()-last_adv_delay) > advertising_interval*10000*CLOCK_SYS_CLOCK_1MS){//Advetise data delay
+		if((clock_time()-last_adv_delay) > advertising_interval*(advertising_type?5000:10000)*CLOCK_SYS_CLOCK_1MS){//Advetise data delay
 			set_adv_data(temp, humi, battery_level, battery_mv);
 			last_adv_delay = clock_time();
 		}

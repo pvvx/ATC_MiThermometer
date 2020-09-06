@@ -59,7 +59,7 @@ void app_switch_to_indirect_adv(uint8_t e, uint8_t *p, int n)
 	bls_ll_setAdvEnable(1);
 }
 
-void ble_remote_terminate(uint8_t e,uint8_t *p, int n)
+void ble_disconnect_callback(uint8_t e,uint8_t *p, int n)
 {
 	ble_connected = 0;
 	show_ble_symbol(0);
@@ -71,10 +71,9 @@ _attribute_ram_code_ void user_set_rf_power (uint8_t e, uint8_t *p, int n)
 	rf_set_power_level_index (RF_POWER_P3p01dBm);
 }
 
-void task_connect(uint8_t e, uint8_t *p, int n)
+void ble_connect_callback(uint8_t e, uint8_t *p, int n)
 {
 	ble_connected = 1;
-//	bls_l2cap_requestConnParamUpdate (8, 8, 2, 30);  // 200mS
 	bls_l2cap_requestConnParamUpdate (8, 8, 99, 400);  //1S
 	show_ble_symbol(1);
 	update_lcd();
@@ -92,14 +91,6 @@ int RxTxWrite(void * p)
 {
 	cmd_parser(p);
 	return 0;
-}
-
-void task_conn_update_req(uint8_t e, uint8_t *p, int n)
-{
-}
-
-void task_conn_update_done(uint8_t e, uint8_t *p, int n)
-{
 }
 
 _attribute_ram_code_ void blt_pm_proc(void)
@@ -161,10 +152,8 @@ void init_ble(){
 	bls_ll_setAdvEnable(1);
 	user_set_rf_power(0, 0, 0);
 	bls_app_registerEventCallback (BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power);
-	bls_app_registerEventCallback (BLT_EV_FLAG_CONNECT, &task_connect);
-	bls_app_registerEventCallback (BLT_EV_FLAG_TERMINATE, &ble_remote_terminate);
-	bls_app_registerEventCallback (BLT_EV_FLAG_CONN_PARA_REQ, &task_conn_update_req);
-	bls_app_registerEventCallback (BLT_EV_FLAG_CONN_PARA_UPDATE, &task_conn_update_done);
+	bls_app_registerEventCallback (BLT_EV_FLAG_CONNECT, &ble_connect_callback);
+	bls_app_registerEventCallback (BLT_EV_FLAG_TERMINATE, &ble_disconnect_callback);
 	
 ///////////////////// Power Management initialization///////////////////
 	blc_ll_initPowerManagement_module();
@@ -181,51 +170,48 @@ bool ble_get_connected(){
 	return ble_connected;
 }
 
-RAM bool advertising_type;//Custom or Mi Advertising
+extern bool advertising_type;//Custom or Mi Advertising
 void set_adv_data(uint16_t temp, uint16_t humi, uint8_t battery_level, uint16_t battery_mv){
-if(advertising_type){//Mi Like Advertising
-	humi = humi * 10;
-	
-	advertising_data_Mi[8]++;
-	
-	if(show_temp_humi_Mi){
-	//advertising_data_Mi[0] = 21;
-	advertising_data_Mi[15] = 0x0d;
-	advertising_data_Mi[17] = 0x04;	
-	
-	advertising_data_Mi[18] = temp&0xff;
-	advertising_data_Mi[19] = temp>>8;	
-	advertising_data_Mi[20] = humi&0xff;
-	advertising_data_Mi[21] = humi>>8;
-	}else{
-	//advertising_data_Mi[0] = 18;
-	advertising_data_Mi[15] = 0x0a;
-	advertising_data_Mi[17] = 0x01;	
-	
-	advertising_data_Mi[18] = battery_level;
-	advertising_data_Mi[19] = 0x00;
-	advertising_data_Mi[20] = 0x00;
-	advertising_data_Mi[21] = 0x00;
+	if(advertising_type){//Mi Like Advertising
+		humi = humi * 10;
+		
+		advertising_data_Mi[8]++;
+		
+		if(show_temp_humi_Mi){//Alternate between Sensor and Battery level
+			advertising_data_Mi[15] = 0x0d;
+			advertising_data_Mi[17] = 0x04;	
+		
+			advertising_data_Mi[18] = temp&0xff;
+			advertising_data_Mi[19] = temp>>8;	
+			advertising_data_Mi[20] = humi&0xff;
+			advertising_data_Mi[21] = humi>>8;
+		}else{
+			advertising_data_Mi[15] = 0x0a;
+			advertising_data_Mi[17] = 0x01;	
+		
+			advertising_data_Mi[18] = battery_level;
+			advertising_data_Mi[19] = 0x00;
+			advertising_data_Mi[20] = 0x00;
+			advertising_data_Mi[21] = 0x00;
+		}	
+		show_temp_humi_Mi = !show_temp_humi_Mi;
+		
+		bls_ll_setAdvData( (uint8_t *)advertising_data_Mi, sizeof(advertising_data_Mi));	
+	}else{//Custom advertising type
+		advertising_data[10] = temp>>8;
+		advertising_data[11] = temp&0xff;
+		
+		advertising_data[12] = humi&0xff;
+		
+		advertising_data[13] = battery_level;
+		
+		advertising_data[14] = battery_mv>>8;
+		advertising_data[15] = battery_mv&0xff;
+		
+		advertising_data[16]++;
+		
+		bls_ll_setAdvData( (uint8_t *)advertising_data, sizeof(advertising_data));	
 	}
-	
-	show_temp_humi_Mi = !show_temp_humi_Mi;
-	
-	bls_ll_setAdvData( (uint8_t *)advertising_data_Mi, sizeof(advertising_data_Mi));	
-}else{//Custom advertising type
-	advertising_data[10] = temp>>8;
-	advertising_data[11] = temp&0xff;
-	
-	advertising_data[12] = humi&0xff;
-	
-	advertising_data[13] = battery_level;
-	
-	advertising_data[14] = battery_mv>>8;
-	advertising_data[15] = battery_mv&0xff;
-	
-	advertising_data[16]++;
-	
-	bls_ll_setAdvData( (uint8_t *)advertising_data, sizeof(advertising_data));	
-}
 }
 
 void ble_send_temp(uint16_t temp){
