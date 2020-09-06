@@ -68,7 +68,6 @@ void main_loop(){
 		}
 		show_batt_or_humi = !show_batt_or_humi;
 		
-		update_lcd();	
 		if(ble_get_connected()){//If connected notify Sensor data
 			ble_send_temp(temp);
 			ble_send_humi(humi);

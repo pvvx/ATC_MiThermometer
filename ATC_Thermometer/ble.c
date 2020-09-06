@@ -19,16 +19,17 @@ RAM	my_fifo_t	blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b,};
 RAM uint8_t 			blt_txfifo_b[40 * 16] = {0};
 RAM	my_fifo_t	blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b,};
 
-RAM uint8_t	tbl_scanRsp [] = {11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0', '0', '0'};
+RAM uint8_t	ble_name[] = {11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0', '0', '0'};
+
+RAM bool show_temp_humi_Mi = true;
 
 RAM uint8_t	advertising_data_Mi[] = {
- /*Description*/25, 0x16, 0x95, 0xfe,
+ /*Description*/21, 0x16, 0x95, 0xfe,
  /*Start*/0x50, 0x30, 
  /*Device id*/0x5B, 0x05, 
  /*counter*/0x00,
  /*MAC*/0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
- /*Temp+Humi*/0x0D, 0x10, 0x04, 0x00, 0x00, 0x00, 0x00,
- /*BatL*/0x0A, 0x10, 0x01, 0x00
+ /*Temp+Humi*//*BatL alternating*/0x0D, 0x10, 0x04, 0x00, 0x00, 0x00, 0x00,
 };
 
 RAM uint8_t	advertising_data[] = {
@@ -118,12 +119,12 @@ void init_ble(){
 	
 	//Set the BLE Name to the last three MACs the first ones are always the same
     const char* hex_ascii = {"0123456789ABCDEF"};	
-	tbl_scanRsp[6] = hex_ascii[mac_public[2]>>4];
-	tbl_scanRsp[7] = hex_ascii[mac_public[2] &0x0f];	
-	tbl_scanRsp[8] = hex_ascii[mac_public[1]>>4];
-	tbl_scanRsp[9] = hex_ascii[mac_public[1] &0x0f];		
-	tbl_scanRsp[10] = hex_ascii[mac_public[0]>>4];
-	tbl_scanRsp[11] = hex_ascii[mac_public[0] &0x0f];
+	ble_name[6] = hex_ascii[mac_public[2]>>4];
+	ble_name[7] = hex_ascii[mac_public[2] &0x0f];	
+	ble_name[8] = hex_ascii[mac_public[1]>>4];
+	ble_name[9] = hex_ascii[mac_public[1] &0x0f];		
+	ble_name[10] = hex_ascii[mac_public[0]>>4];
+	ble_name[11] = hex_ascii[mac_public[0] &0x0f];
 	
 	advertising_data[4] = mac_public[5];
 	advertising_data[5] = mac_public[4];
@@ -155,7 +156,7 @@ void init_ble(){
 	blc_smp_setSecurityLevel(No_Security);
 	
 ///////////////////// USER application initialization ///////////////////
-	bls_ll_setScanRspData( (uint8_t *)tbl_scanRsp, sizeof(tbl_scanRsp));
+	bls_ll_setScanRspData( (uint8_t *)ble_name, sizeof(ble_name));
 	bls_ll_setAdvParam(  ADVERTISING_INTERVAL, ADVERTISING_INTERVAL+50, ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0,  NULL, BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 	bls_ll_setAdvEnable(1);
 	user_set_rf_power(0, 0, 0);
@@ -182,20 +183,35 @@ bool ble_get_connected(){
 
 RAM bool advertising_type;//Custom or Mi Advertising
 void set_adv_data(uint16_t temp, uint16_t humi, uint8_t battery_level, uint16_t battery_mv){
-if(advertising_type){
+if(advertising_type){//Mi Like Advertising
 	humi = humi * 10;
 	
 	advertising_data_Mi[8]++;
+	
+	if(show_temp_humi_Mi){
+	//advertising_data_Mi[0] = 21;
+	advertising_data_Mi[15] = 0x0d;
+	advertising_data_Mi[17] = 0x04;	
 	
 	advertising_data_Mi[18] = temp&0xff;
 	advertising_data_Mi[19] = temp>>8;	
 	advertising_data_Mi[20] = humi&0xff;
 	advertising_data_Mi[21] = humi>>8;
+	}else{
+	//advertising_data_Mi[0] = 18;
+	advertising_data_Mi[15] = 0x0a;
+	advertising_data_Mi[17] = 0x01;	
 	
-	advertising_data_Mi[25] = battery_level;
+	advertising_data_Mi[18] = battery_level;
+	advertising_data_Mi[19] = 0x00;
+	advertising_data_Mi[20] = 0x00;
+	advertising_data_Mi[21] = 0x00;
+	}
+	
+	show_temp_humi_Mi = !show_temp_humi_Mi;
 	
 	bls_ll_setAdvData( (uint8_t *)advertising_data_Mi, sizeof(advertising_data_Mi));	
-}else{
+}else{//Custom advertising type
 	advertising_data[10] = temp>>8;
 	advertising_data[11] = temp&0xff;
 	
