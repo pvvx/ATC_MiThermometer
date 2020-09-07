@@ -98,7 +98,7 @@ The format is like this:
 
 Byte 5-10 mac in correct order
 
-Byte 11-12 Temperature in uint16
+Byte 11-12 Temperature in int16
 
 Byte 13 Humidity in percent
 
