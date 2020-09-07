@@ -6,8 +6,10 @@
 
 RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000;
 RAM bool last_smiley;
-uint16_t temp = 0;
+int16_t temp = 0;
 uint16_t humi = 0;
+RAM int16_t last_temp;
+RAM uint16_t last_humi;
 RAM uint8_t battery_level;
 RAM uint16_t battery_mv;
 RAM bool show_batt_or_humi;
@@ -79,6 +81,9 @@ void main_loop(){
 			set_adv_data(temp, humi, battery_level, battery_mv);
 			last_adv_delay = clock_time();
 		}
+		
+		last_temp = temp;
+		last_humi = humi;
 		
 		if(blinking_smiley){//If Smiley should blink do it
 		last_smiley=!last_smiley;

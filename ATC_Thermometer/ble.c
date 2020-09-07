@@ -171,7 +171,7 @@ bool ble_get_connected(){
 }
 
 extern bool advertising_type;//Custom or Mi Advertising
-void set_adv_data(uint16_t temp, uint16_t humi, uint8_t battery_level, uint16_t battery_mv){
+void set_adv_data(int16_t temp, uint16_t humi, uint8_t battery_level, uint16_t battery_mv){
 	if(advertising_type){//Mi Like Advertising
 		humi = humi * 10;
 		
