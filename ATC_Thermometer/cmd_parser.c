@@ -10,6 +10,8 @@ extern bool show_batt_enabled;
 extern uint8_t advertising_interval;
 extern int8_t temp_offset;
 extern int8_t humi_offset;
+extern uint8_t temp_alarm_point;
+extern uint8_t humi_alarm_point;
 void cmd_parser(void * p){
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*)p;
 	uint8_t inData = req->dat[0];
@@ -44,5 +46,12 @@ void cmd_parser(void * p){
 		humi_offset = req->dat[1];//Set humi offset, -50 - +50 %
 		if(humi_offset<-50)humi_offset=-50;
 		if(humi_offset>50)humi_offset=50;
+	}else if(inData == 0xFC){
+		temp_alarm_point = req->dat[1];//Set temp alarm point value divided by 10 for temp in °C
+		if(temp_alarm_point==0)temp_alarm_point = 1;
+	}else if(inData == 0xFD){
+		humi_alarm_point = req->dat[1];//Set humi alarm point
+		if(humi_alarm_point==0)humi_alarm_point = 1;
+		if(humi_alarm_point>50)humi_alarm_point = 50;
 	}
 }

@@ -19,9 +19,11 @@ RAM bool temp_C_or_F;
 RAM bool blinking_smiley = true;
 RAM bool show_batt_enabled = true;
 RAM bool advertising_type = false;//Custom or Mi Advertising
-RAM uint8_t advertising_interval = 6;
+RAM uint8_t advertising_interval = 6;//multiply by 10 for value
 RAM int8_t temp_offset;
 RAM int8_t humi_offset;
+RAM uint8_t temp_alarm_point = 5;//divide by ten for value
+RAM uint8_t humi_alarm_point = 5;
 
 void user_init_normal(void){//this will get executed one time after power up
 	random_generator_init();  //must
@@ -82,6 +84,9 @@ void main_loop(){
 			last_adv_delay = clock_time();
 		}
 		
+		if((temp-last_temp > temp_alarm_point)||(last_temp-temp > temp_alarm_point)||(humi-last_humi > humi_alarm_point)||(last_humi-humi > humi_alarm_point)){// instant advertise on to much sensor difference
+			set_adv_data(temp, humi, battery_level, battery_mv);
+		}
 		last_temp = temp;
 		last_humi = humi;
 		
