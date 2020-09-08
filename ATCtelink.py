@@ -14,7 +14,7 @@ ports = serial.tools.list_ports.comports()
 usedCom = ports[0].device  # select the first available comport
 usedBaud = 230400  # 921600
 resetTime = 1
-print('Using port: ' + usedCom)
+print('Using port: {}'.format(usedCom))
 
 serialPort = serial.Serial(usedCom, usedBaud, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
 serialPort.timeout = 100 * 12 / usedBaud
@@ -135,13 +135,13 @@ while curr_addr < len(bytes):
         outbuffer[x] = bytes[curr_addr + x]
     flash_write_enable()
     flash_write_addr(curr_addr, outbuffer)
-    print('now at: ' + hex(curr_addr) + ' from: ' + hex(len(bytes)))
+    print('now at: {} from: {}'.format(hex(curr_addr), hex(len(bytes))))
     curr_addr += pkt_length
     i -= pkt_length
 
 # serialPort.write(sws_wr_addr(0x0602, [0x88]))  # Run CPU
 serialPort.write(sws_wr_addr(0x006f, [0x22]))  # Reset CPU
 
-print('This took: ' + str(time.time() - t1))
+print('This took: {}'.format(str(time.time() - t1)))
 
 serialPort.close()
