@@ -120,22 +120,22 @@ flash_write_enable()
 flash_erase_all()
 time.sleep(15)
 
-bytes = open(sys.argv[1], 'rb').read()
+bytes_ = open(sys.argv[1], 'rb').read()
 
-i = len(bytes)
+i = len(bytes_)
 curr_addr = 0
 pkt_length = 0
-while curr_addr < len(bytes):
+while curr_addr < len(bytes_):
     outbuffer = bytearray(0x100)
     if i >= 0x100:
         pkt_length = 0x100
     else:
         pkt_length = i
     for x in range(pkt_length):
-        outbuffer[x] = bytes[curr_addr + x]
+        outbuffer[x] = bytes_[curr_addr + x]
     flash_write_enable()
     flash_write_addr(curr_addr, outbuffer)
-    print('now at: {} from: {}'.format(hex(curr_addr), hex(len(bytes))))
+    print('now at: {} from: {}'.format(hex(curr_addr), hex(len(bytes_))))
     curr_addr += pkt_length
     i -= pkt_length
 
