@@ -59,8 +59,8 @@ def sws_wr_addr(addr, data):
 
 def flash_send_cmds(data):
     serialPort.write(sws_wr_addr(0x0d, bytearray([0x00])))  # cns low
-    for x in range(len(data)):
-        serialPort.write(sws_wr_addr(0x0c, bytearray([data[x]])))
+    for b in data:
+        serialPort.write(sws_wr_addr(0x0c, bytearray([b])))
     serialPort.write(sws_wr_addr(0x0d, bytearray([0x01])))  # cns high
 
 
@@ -89,7 +89,7 @@ serialPort.setRTS(False)
 blk = sws_wr_addr(0x0602, bytearray([0x85]))  # Stop CPU
 t1 = time.time()
 
-while time.time() - t1 < resetTime:  # Seding Activate MSG
+while time.time() - t1 < resetTime:  # Sending Activate MSG
     for i in range(5):
         serialPort.write(blk)
     serialPort.reset_input_buffer()
