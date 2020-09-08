@@ -5,13 +5,8 @@
 ###    Edited: Aaron Christophel ATCnetz.de    ###
 
 import sys
-import struct
-import serial
-import platform
 import time
-import argparse
-import os
-import io
+
 import serial.tools.list_ports
 
 ports = serial.tools.list_ports.comports()
