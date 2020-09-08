@@ -144,4 +144,4 @@ serialPort.write(sws_wr_addr(0x006f, [0x22]))  # Reset CPU
 
 print('This took: ' + str(time.time() - t1))
 
-serialPort.close
+serialPort.close()
