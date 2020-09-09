@@ -82,9 +82,7 @@ void main_loop(){
 		if((clock_time()-last_adv_delay) > advertising_interval*(advertising_type?5000:10000)*CLOCK_SYS_CLOCK_1MS){//Advetise data delay
 			set_adv_data(temp, humi, battery_level, battery_mv);
 			last_adv_delay = clock_time();
-		}
-		
-		if((temp-last_temp > temp_alarm_point)||(last_temp-temp > temp_alarm_point)||(humi-last_humi > humi_alarm_point)||(last_humi-humi > humi_alarm_point)){// instant advertise on to much sensor difference
+		}else if((temp-last_temp > temp_alarm_point)||(last_temp-temp > temp_alarm_point)||(humi-last_humi > humi_alarm_point)||(last_humi-humi > humi_alarm_point)){// instant advertise on to much sensor difference
 			set_adv_data(temp, humi, battery_level, battery_mv);
 		}
 		last_temp = temp;
