@@ -11,14 +11,15 @@ RAM	volatile unsigned int adc_dat_buf[8];
 _attribute_ram_code_ void adc_bat_init(void)
 {
 	adc_power_on_sar_adc(0);
-	gpio_set_output_en(GPIO_PB7, 1);
-	gpio_write(GPIO_PB7, 1);
+	gpio_set_output_en(GPIO_PB5, 1);
+	gpio_set_input_en(GPIO_PB5, 0);
+	gpio_write(GPIO_PB5, 1);
 	adc_set_sample_clk(5);
 	adc_set_left_right_gain_bias(GAIN_STAGE_BIAS_PER100, GAIN_STAGE_BIAS_PER100);
 	adc_set_chn_enable_and_max_state_cnt(ADC_MISC_CHN, 2);
 	adc_set_state_length(240, 0, 10);
 	analog_write (anareg_adc_res_m, RES14 | FLD_ADC_EN_DIFF_CHN_M);
-	adc_set_ain_chn_misc(B7P, GND);
+	adc_set_ain_chn_misc(B5P, GND);
 	adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_1P2V);
 	adc_set_tsample_cycle_chn_misc(SAMPLING_CYCLES_6);
 	adc_set_ain_pre_scaler(ADC_PRESCALER_1F8);

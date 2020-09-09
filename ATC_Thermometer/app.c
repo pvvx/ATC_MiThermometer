@@ -65,11 +65,11 @@ void main_loop(){
 		
 		if(!show_batt_enabled)show_batt_or_humi = true;
 		if(show_batt_or_humi){//Change between Humidity displaying and battery level
-			show_battery_symbol(0);
 			show_small_number(humi,1);	
+			show_battery_symbol(0);
 		}else{
-			show_battery_symbol(1);
 			show_small_number((battery_level==100)?99:battery_level,1);
+			show_battery_symbol(1);
 		}
 		show_batt_or_humi = !show_batt_or_humi;
 		
