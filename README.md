@@ -12,6 +12,9 @@ The web flasher does work for many devices that uses the Telink TLSR82** MCUs an
 
 ### You can support my work via PayPal: https://paypal.me/hoverboard1 this keeps projects like this coming.
 
+Tutorial in spanish: https://domoticaencasa.es/tutorial-custom-firmware-termohigrometro-xiaomi-lywsd03mmc
+Thanks to Eduardo Ruiz
+
 ## OTA
 ### How to flash the custom firmware:
 
