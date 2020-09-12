@@ -54,7 +54,12 @@ The following settings can be send to the RxTx Characteristics 0x1F10/0x1f1f
 These settings will not get saved on power loss, maybe that will change in future but normaly the battery will be in there for a while
 
 ### Show battery level in LCD :
+
+Will show Humidity% or Battery% flipping back and forth every 5~6 seconds, with battery symbol at bottom indicated it's battery level
+
+
 The battery level will be shown on the LCD every 5-6secdonds indicated by the battery symbol at the humidity display.
+
 0xB1 = Enabled <- Default
 
 0xB0 = Disabled
