@@ -33,6 +33,11 @@ void user_init_normal(void){//this will get executed one time after power up
 	show_atc_mac();
 	battery_mv = get_battery_mv();
 	battery_level = get_battery_level(get_battery_mv());
+	
+	uint8_t read=0x00;#//ERASE THE MI ID to prevent blocking :D
+	flash_write_page(0x78000, 1, read);
+	if(read != 0xff)
+	flash_erase_sector(0x78000);
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void){//after sleep this will get executed
