@@ -76,6 +76,8 @@ The battery level will be shown on the LCD every 5-6secdonds indicated by the ba
 
 0xA2 = Smiley sad
 
+0xA3 = Comfort Indicator
+
 0xAB = Smiley bliking <- Default
 
 ### Advertising type:

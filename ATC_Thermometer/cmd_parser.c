@@ -6,6 +6,7 @@
 extern bool advertising_type;
 extern bool temp_C_or_F;
 extern bool blinking_smiley;
+extern bool comfort_smiley;
 extern bool show_batt_enabled;
 extern uint8_t advertising_interval;
 extern int8_t temp_offset;
@@ -25,13 +26,19 @@ void cmd_parser(void * p){
 		show_batt_enabled = false;//Disable battery on LCD
 	}else if(inData == 0xA0){
 		blinking_smiley = false;
+		comfort_smiley = false;
 		show_smiley(0);//Smiley off
 	}else if(inData == 0xA1){
 		blinking_smiley = false;
+		comfort_smiley = false;
 		show_smiley(1);//Smiley happy
-	}else if(inData == 0xA2){
+	}else if(inData == 0xA2){ 
 		blinking_smiley = false;
+		comfort_smiley = false;
 		show_smiley(2);//Smiley sad
+	}else if(inData == 0xA3){
+		blinking_smiley = false;
+		comfort_smiley = true; // Comfort Indicator
 	}else if(inData == 0xAB){
 		blinking_smiley = true;//Smiley blinking
 	}else if(inData == 0xAE){
