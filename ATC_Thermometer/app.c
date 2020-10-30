@@ -16,7 +16,8 @@ RAM bool show_batt_or_humi;
 
 //Settings
 RAM bool temp_C_or_F;
-RAM bool blinking_smiley = true;
+RAM bool blinking_smiley = false;
+RAM bool comfort_smiley = true;
 RAM bool show_batt_enabled = true;
 RAM bool advertising_type = false;//Custom or Mi Advertising
 RAM uint8_t advertising_interval = 6;//multiply by 10 for value
@@ -24,6 +25,26 @@ RAM int8_t temp_offset;
 RAM int8_t humi_offset;
 RAM uint8_t temp_alarm_point = 5;//divide by ten for value
 RAM uint8_t humi_alarm_point = 5;
+
+RAM int16_t comfort_x[] = {2000, 2560, 2700, 2500, 2050, 1700, 1600, 1750};
+RAM uint16_t comfort_y[] = {2000, 1980, 3200, 6000, 8200, 8600, 7700, 3800};
+
+_attribute_ram_code_ bool is_comfort(int16_t t, uint16_t h) {
+    bool c = 0;
+    uint8_t npol = sizeof(comfort_x);
+    for (uint8_t i = 0, j = npol - 1; i < npol; j = i++) 
+    {
+      if ((
+        (comfort_y[i] < comfort_y[j]) && (comfort_y[i] <= h) && (h <= comfort_y[j]) &&
+        ((comfort_y[j] - comfort_y[i]) * (t - comfort_x[i]) > (comfort_x[j] - comfort_x[i]) * (h - comfort_y[i]))
+      ) || (
+        (comfort_y[i] > comfort_y[j]) && (comfort_y[j] <= h) && (h <= comfort_y[i]) &&
+        ((comfort_y[j] - comfort_y[i]) * (t - comfort_x[i]) < (comfort_x[j] - comfort_x[i]) * (h - comfort_y[i]))
+      ))
+        c = !c;
+    }
+    return c;
+}
 
 void user_init_normal(void){//this will get executed one time after power up
 	random_generator_init();  //must
@@ -89,6 +110,14 @@ void main_loop(){
 		last_temp = temp;
 		last_humi = humi;
 		
+		if(comfort_smiley) {
+			if(is_comfort(temp * 10, humi * 100)){
+				show_smiley(1);
+			} else {
+				show_smiley(2);
+			}
+		}
+
 		if(blinking_smiley){//If Smiley should blink do it
 		last_smiley=!last_smiley;
 		show_smiley(last_smiley);
