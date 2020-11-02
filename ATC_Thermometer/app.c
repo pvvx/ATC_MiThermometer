@@ -77,13 +77,13 @@ void main_loop(){
 		humi += humi_offset;
 		
 		if(temp_C_or_F){
-			temp = ((((temp*10)/5)*9)+3200)/10;//convert C to F
 			show_temp_symbol(2);
+			show_big_number(((((temp*10)/5)*9)+3200)/10,1);//convert C to F
 		}else{
 			show_temp_symbol(1);
+			show_big_number(temp,1);
 		}
 		
-		show_big_number(temp,1);
 		
 		if(!show_batt_enabled)show_batt_or_humi = true;
 		if(show_batt_or_humi){//Change between Humidity displaying and battery level
