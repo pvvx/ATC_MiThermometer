@@ -18,8 +18,8 @@ RAM bool show_batt_or_humi;
 RAM bool temp_C_or_F;
 RAM bool blinking_smiley = false;
 RAM bool comfort_smiley = true;
-RAM bool show_batt_enabled = true;
-RAM bool advertising_type = false;//Custom or Mi Advertising
+RAM bool show_batt_enabled = false;
+RAM bool advertising_type = false;//Custom or Mi Advertising (true)
 RAM uint8_t advertising_interval = 6;//multiply by 10 for value
 RAM int8_t temp_offset;
 RAM int8_t humi_offset;
@@ -85,7 +85,14 @@ void main_loop(){
 		}
 		
 		
-		if(!show_batt_enabled)show_batt_or_humi = true;
+		if(!show_batt_enabled){
+			show_batt_or_humi = true;
+			if(battery_level <= 15) {
+			    show_battery_symbol(1);
+			}else{
+			    show_battery_symbol(0);
+			}
+		}
 		if(show_batt_or_humi){//Change between Humidity displaying and battery level
 			show_small_number(humi,1);	
 			show_battery_symbol(0);
