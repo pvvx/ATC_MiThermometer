@@ -77,6 +77,6 @@ return batt_vol_mv;
 uint8_t get_battery_level(uint16_t battery_mv){
 	uint8_t battery_level = (battery_mv-2200)/(31-22);
 	if(battery_level>100)battery_level=100;
-	if(battery_level<0)battery_level=0;
+	if(battery_mv<2200)battery_level=0;
 	return battery_level;
 }
