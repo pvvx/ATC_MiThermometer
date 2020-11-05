@@ -8,7 +8,7 @@ RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_
 RAM bool last_smiley;
 int16_t temp = 0;
 uint16_t humi = 0;
-AM uint8_t adv_count = 0;
+RAM uint8_t adv_count = 0;
 RAM int16_t last_temp;
 RAM uint16_t last_humi;
 RAM uint8_t battery_level;
