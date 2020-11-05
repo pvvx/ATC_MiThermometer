@@ -4,8 +4,9 @@
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
 
-RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000;
+RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000, last_battsym_delay = 0xFFFF0000;
 RAM bool last_smiley;
+RAM bool last_batt;
 int16_t temp = 0;
 uint16_t humi = 0;
 RAM uint8_t adv_count = 0;
@@ -21,11 +22,11 @@ RAM bool blinking_smiley = false;
 RAM bool comfort_smiley = true;
 RAM bool show_batt_enabled = false;
 RAM bool advertising_type = false;//Custom or Mi Advertising (true)
-RAM uint8_t advertising_interval = 6;//multiply by 10 for value
+RAM uint8_t advertising_interval = 20;//multiply by 10 for value
 RAM int8_t temp_offset;
 RAM int8_t humi_offset;
-RAM uint8_t temp_alarm_point = 5;//divide by ten for value
-RAM uint8_t humi_alarm_point = 5;
+RAM uint8_t temp_alarm_point = 50;//divide by ten for value
+RAM uint8_t humi_alarm_point = 50;
 
 RAM int16_t comfort_x[] = {2000, 2560, 2700, 2500, 2050, 1700, 1600, 1750};
 RAM uint16_t comfort_y[] = {2000, 1980, 3200, 6000, 8200, 8600, 7700, 3800};
@@ -65,7 +66,15 @@ _attribute_ram_code_ void user_init_deepRetn(void){//after sleep this will get e
 }
 
 void main_loop(){	
-	if((clock_time()-last_delay) > 5000*CLOCK_SYS_CLOCK_1MS){//main loop delay
+/*	if((clock_time()-last_battsym_delay) > 400*CLOCK_SYS_CLOCK_1MS){  //batt blinking delay
+	    if((battery_level < 25) && (battery_level > 15) && (!show_batt_enabled)) {
+		last_batt=!last_batt;
+		show_battery_symbol(last_batt);
+		update_lcd();
+		last_battsym_delay = clock_time();
+	    }
+	}
+*/	if((clock_time()-last_delay) > 5000*CLOCK_SYS_CLOCK_1MS){//main loop delay
 	
 		if((clock_time()-last_battery_delay) > 5*60000*CLOCK_SYS_CLOCK_1MS){//Read battery delay
 			battery_mv = get_battery_mv();
@@ -84,10 +93,15 @@ void main_loop(){
 			show_temp_symbol(1);
 			show_big_number(temp,1);
 		}
+
+		if(!show_batt_enabled) show_batt_or_humi = true;
 		
+<<<<<<< Updated upstream
 		
 		if(!show_batt_enabled) show_batt_or_humi = true;
 		
+=======
+>>>>>>> Stashed changes
 		if(show_batt_or_humi){//Change between Humidity displaying and battery level if show_batt_enabled=true
 			show_small_number(humi,1);	
 			if(battery_level <= 15) {
@@ -99,7 +113,11 @@ void main_loop(){
 			show_small_number((battery_level==100)?99:battery_level,1);
 			show_battery_symbol(1);
 		}
+<<<<<<< Updated upstream
 
+=======
+		
+>>>>>>> Stashed changes
 		show_batt_or_humi = !show_batt_or_humi;
 		
 		if(ble_get_connected()){//If connected notify Sensor data
