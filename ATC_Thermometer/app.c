@@ -8,6 +8,7 @@ RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_
 RAM bool last_smiley;
 int16_t temp = 0;
 uint16_t humi = 0;
+AM uint8_t adv_count = 0;
 RAM int16_t last_temp;
 RAM uint16_t last_humi;
 RAM uint8_t battery_level;
@@ -107,9 +108,13 @@ void main_loop(){
 			ble_send_battery(battery_level);
 		}
 		
-		if((clock_time()-last_adv_delay) > advertising_interval*(advertising_type?5000:10000)*CLOCK_SYS_CLOCK_1MS){//Advetise data delay
+		if((clock_time() - last_adv_delay) > (advertising_type?5000:10000)*CLOCK_SYS_CLOCK_1MS){//Advetise data delay
+		    if(adv_count >= advertising_interval){
 			set_adv_data(temp, humi, battery_level, battery_mv);
 			last_adv_delay = clock_time();
+			adv_count=0;
+		    }
+		    adv_count++;
 		}else if((temp-last_temp > temp_alarm_point)||(last_temp-temp > temp_alarm_point)||(humi-last_humi > humi_alarm_point)||(last_humi-humi > humi_alarm_point)){// instant advertise on to much sensor difference
 			set_adv_data(temp, humi, battery_level, battery_mv);
 		}
