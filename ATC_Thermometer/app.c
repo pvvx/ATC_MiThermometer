@@ -96,12 +96,6 @@ void main_loop(){
 
 		if(!show_batt_enabled) show_batt_or_humi = true;
 		
-<<<<<<< Updated upstream
-		
-		if(!show_batt_enabled) show_batt_or_humi = true;
-		
-=======
->>>>>>> Stashed changes
 		if(show_batt_or_humi){//Change between Humidity displaying and battery level if show_batt_enabled=true
 			show_small_number(humi,1);	
 			if(battery_level <= 15) {
@@ -113,11 +107,7 @@ void main_loop(){
 			show_small_number((battery_level==100)?99:battery_level,1);
 			show_battery_symbol(1);
 		}
-<<<<<<< Updated upstream
 
-=======
-		
->>>>>>> Stashed changes
 		show_batt_or_humi = !show_batt_or_humi;
 		
 		if(ble_get_connected()){//If connected notify Sensor data
