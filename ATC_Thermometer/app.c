@@ -23,7 +23,7 @@ RAM bool comfort_smiley = true;
 RAM bool show_batt_enabled = true;
 RAM bool advertising_type = false;//Custom or Mi Advertising (true)
 RAM uint8_t advertising_interval = 6;//advise new values - multiply by 10 for value
-RAM uint8_t measure_interval = 25;//time = sensor advertising interval * factor (def: 2s * X)
+RAM uint8_t measure_interval = 10;//time = loop interval * factor (def: about 7 * X)
 RAM int8_t temp_offset;
 RAM int8_t humi_offset;
 RAM uint8_t temp_alarm_point = 5;//divide by ten for value
