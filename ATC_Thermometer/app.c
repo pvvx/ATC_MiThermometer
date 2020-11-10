@@ -4,9 +4,8 @@
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
 
-RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000, last_battsym_delay = 0xFFFF0000;
+RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000;
 RAM bool last_smiley;
-RAM bool last_batt;
 int16_t temp = 0;
 uint16_t humi = 0;
 RAM uint8_t adv_count = 0;
@@ -21,7 +20,7 @@ RAM bool show_batt_or_humi;
 RAM bool temp_C_or_F;
 RAM bool blinking_smiley = false;
 RAM bool comfort_smiley = true;
-RAM bool show_batt_enabled = false;
+RAM bool show_batt_enabled = true;
 RAM bool advertising_type = false;//Custom or Mi Advertising (true)
 RAM uint8_t advertising_interval = 6;//advise new values - multiply by 10 for value
 RAM uint8_t measure_interval = 25;//time = sensor advertising interval * factor (def: 2s * X)
@@ -68,15 +67,7 @@ _attribute_ram_code_ void user_init_deepRetn(void){//after sleep this will get e
 }
 
 void main_loop(){	
-/*	if((clock_time()-last_battsym_delay) > 400*CLOCK_SYS_CLOCK_1MS){  //batt blinking delay
-	    if((battery_level < 25) && (battery_level > 15) && (!show_batt_enabled)) {
-		last_batt=!last_batt;
-		show_battery_symbol(last_batt);
-		update_lcd();
-		last_battsym_delay = clock_time();
-	    }
-	}
-*/	if((clock_time()-last_delay) > 5000*CLOCK_SYS_CLOCK_1MS){//main loop delay
+	if((clock_time()-last_delay) > 5000*CLOCK_SYS_CLOCK_1MS){//main loop delay
 	
 		if((clock_time()-last_battery_delay) > 5*60000*CLOCK_SYS_CLOCK_1MS){//Read battery delay
 			battery_mv = get_battery_mv();
@@ -110,11 +101,7 @@ void main_loop(){
 		
 		if(show_batt_or_humi){//Change between Humidity displaying and battery level if show_batt_enabled=true
 			show_small_number(last_humi,1);	
-			if(battery_level <= 15) {
-			    show_battery_symbol(1);
-			}else{
-			    show_battery_symbol(0);   
-			}
+		    show_battery_symbol(0);   
 		}else{
 			show_small_number((battery_level==100)?99:battery_level,1);
 			show_battery_symbol(1);
