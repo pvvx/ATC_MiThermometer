@@ -3,6 +3,7 @@
 #include "drivers.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
+#include "main.h"
 
 RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000;
 RAM bool last_smiley;
@@ -69,14 +70,14 @@ _attribute_ram_code_ void user_init_deepRetn(void){//after sleep this will get e
 void main_loop(){	
 	if((clock_time()-last_delay) > 5000*CLOCK_SYS_CLOCK_1MS){//main loop delay
 	
-		if((clock_time()-last_battery_delay) > 5*60000*CLOCK_SYS_CLOCK_1MS){//Read battery delay
+		if((clock_time()-last_battery_delay) > 2u*60000u*CLOCK_SYS_CLOCK_1MS){// Read battery delay, max 2.98 minutes
 			battery_mv = get_battery_mv();
 			battery_level = get_battery_level(get_battery_mv());
 			last_battery_delay = clock_time();
 		}
 
 		if(meas_count >= measure_interval){
-			read_sensor(&temp,&humi,true);		
+			read_sensor(&temp,&humi);
 			temp += temp_offset;
 			humi += humi_offset;
 			meas_count=0;

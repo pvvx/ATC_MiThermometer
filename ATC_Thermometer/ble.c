@@ -6,6 +6,7 @@
 #include "drivers/8258/gpio_8258.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
+#include "main.h"
 
 RAM	uint8_t	ble_connected = 0;
 

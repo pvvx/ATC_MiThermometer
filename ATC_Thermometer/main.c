@@ -3,6 +3,7 @@
 #include "drivers.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/user_config.h"
+#include "main.h"
 
 extern void user_init_normal();
 extern void user_init_deepRetn();

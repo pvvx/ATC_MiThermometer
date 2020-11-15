@@ -2,6 +2,7 @@
 #include "tl_common.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
+#include "main.h"
 
 extern bool advertising_type;
 extern bool temp_C_or_F;

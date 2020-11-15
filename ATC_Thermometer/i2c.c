@@ -4,6 +4,7 @@
 #include "vendor/common/user_config.h"
 #include "app_config.h"
 #include "drivers/8258/gpio_8258.h"
+#include "main.h"
 
 RAM bool i2c_sending;
 
@@ -13,7 +14,7 @@ void init_i2c(){
 	reg_i2c_mode |= FLD_I2C_HOLD_MASTER;// Enable clock stretching for Sensor
 }
 
-void send_i2c(uint8_t device_id, uint8_t *buffer, int dataLen){
+void send_i2c(uint8_t device_id, const uint8_t *buffer, int dataLen){
 	if(i2c_sending)return;
 	i2c_sending=true;
 	i2c_set_id(device_id);

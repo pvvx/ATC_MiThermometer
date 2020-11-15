@@ -4,6 +4,7 @@
 #include "vendor/common/user_config.h"
 #include "app_config.h"
 #include "drivers/8258/gpio_8258.h"
+#include "main.h"
 
 const uint8_t sens_wakeup[] = {0x35,0x17};
 const uint8_t sens_sleep[] = {0xB0,0x98};
