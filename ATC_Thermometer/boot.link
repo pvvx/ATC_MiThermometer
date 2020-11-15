@@ -1,0 +1,100 @@
+/********************************************************************************************************
+ * @file     boot.link
+ *
+ * @brief    This file tells the linker how to link the compiled object files and libraries
+ *
+ * @author   junwei.lu@telink-semi.com
+ * @date     May 8, 2018
+ *
+ * @par      Copyright (c) 2018, Telink Semiconductor (Shanghai) Co., Ltd.
+ *           All rights reserved.
+ *           
+ * ** Reorganize code: 11/2020 pvvx
+ *           
+ *******************************************************************************************************/
+/* to tell the linker the program begin from __start label in cstartup.s, thus do not treat it as a unused symbol */
+ENTRY(__start)
+
+SECTIONS
+{
+    . = 0x0;
+        .vectors :
+        {
+        *(.vectors)
+        *(.vectors.*)	/* MUST as follows, when compile with -ffunction-sections -fdata-sections, session name may changed */
+        }
+        .ram_code :
+        {
+        *(.ram_code)
+        *(.ram_code.*)
+        }
+        
+    . = (((. + 3) / 4)*4);
+    _rstored_ = ABSOLUTE(.);
+
+/*    . = __RAM_RETENTION_SIZE; 	*/
+INCLUDE "rrs.link"
+    . = (((. + 255) / 256)*256);
+
+        .text :
+        {
+        _start_text_ = ABSOLUTE(.);
+        *(.text)
+        *(.text.*)
+        _end_text_ = ABSOLUTE(.);
+        }
+        .rodata :
+        {
+        _start_rodata_ = ABSOLUTE(.);
+        *(.rodata)
+        *(.rodata.*)
+        _end_rodata_ = ABSOLUTE(.);
+        }
+
+    . = (((. + 3) / 4)*4);
+    PROVIDE(_dstored_ = .);
+    PROVIDE(_code_size_ = .);
+
+ 	. = (__RAM_START_ADDR + (_rstored_));
+        .retention_data :
+          AT ( _rstored_ )
+        {
+        _retention_data_start_ = ABSOLUTE(.);
+        *(.retention_data)
+        *(.retention_data.*)
+        }        
+        _retention_data_end_ = ABSOLUTE(.);
+	. = (((. + 15) / 16)*16);
+	PROVIDE(_icload_size_div_16_ = (. - __RAM_START_ADDR) / 16);
+
+	. = __RAM_START_ADDR + _start_text_; 
+	
+	PROVIDE(_ictag_addr_div_256_ = (. - __RAM_START_ADDR) / 256);
+	 
+    PROVIDE(_ictag_start_ = . );
+	. = . + 0x100;
+    PROVIDE(_ictag_end_ = .);
+	. = . + 0x800;
+	PROVIDE(_icdata_end_ = .);
+        .data :
+          AT ( _dstored_ )
+         {
+    . = (((. + 3) / 4)*4);
+         PROVIDE(_start_data_ = . );
+         *(.data);
+         *(.data.*);
+    . = (((. + 3) / 4)*4);
+         PROVIDE(_end_data_ = . );
+         }
+        .bss :
+        {
+	PROVIDE(_start_bss_ = .);
+        *(.sbss)
+        *(.sbss.*)
+        *(.bss)
+        *(.bss.*)
+        }
+    PROVIDE(_end_bss_ = .);
+
+    PROVIDE(_bin_size_ = _code_size_ + _end_data_ - _start_data_);
+}
