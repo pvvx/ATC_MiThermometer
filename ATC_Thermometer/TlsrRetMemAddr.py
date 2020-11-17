@@ -13,9 +13,9 @@ import subprocess
 import os
 import io
 
-__progname__ = "TLSR825x RetentionMemInfo"
-__filename__ = "TlsrRetMemInfo"
-__version__ = "12.11.20"
+__progname__ = "TLSR825x Check RetentionMem Address"
+__filename__ = "TlsrRetMemAddr"
+__version__ = "20.11.20"
 
 SRAM_BASE_ADDR = 0x840000
 
@@ -70,18 +70,20 @@ class ELFFile:
 
 def main():
 
-	signal.signal(signal.SIGINT, signal_handler)
-	parser = argparse.ArgumentParser(description='%s version %s' % (__progname__, __version__), prog=__filename__)
-	parser.add_argument('elffname', help='Name of elf file')		
-	args = parser.parse_args()
+	signal.signal(signal.SIGINT, signal_handler);
+	parser = argparse.ArgumentParser(description='%s version %s' % (__progname__, __version__), prog=__filename__);
+	parser.add_argument('-o','--output', help='Name of elf file', default = 'out.elf');
+	args = parser.parse_args();
 
-	e = ELFFile(args.elffname);
+	e = ELFFile(args.output);
 	rrs = e.get_symbol_addr(b"_retention_data_end_");
+	if rrs == 0:
+		rrs = e.get_symbol_addr(b"_ictag_start_");
 	if rrs > 0:
 		rrs = (rrs + 255) & 0x0001ff00;
-		print(". = 0x%x;" % rrs);
+		print("0x%x" % rrs);
 	else:
-		print(". = 0x8000;");
+		print("0x8000");
 	sys.exit(0);
 	
 

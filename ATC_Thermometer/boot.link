@@ -32,10 +32,9 @@ SECTIONS
     . = (((. + 3) / 4)*4);
     _rstored_ = ABSOLUTE(.);
 
-/*    . = __RAM_RETENTION_SIZE; 	*/
-INCLUDE "rrs.link"
-    . = (((. + 255) / 256)*256);
-
+    . = __RAM_RETENTION_SIZE;
+/* Usage: tc32-elf-ld [-Ttext address] ...
+ * address = __RAM_RETENTION_SIZE, Aligned(256) */
         .text :
         {
         _start_text_ = ABSOLUTE(.);

@@ -66,7 +66,6 @@ endif
 LST_FILE := $(OUT_PATH)/$(PROJECT_NAME).lst
 BIN_FILE := $(OUT_PATH)/../$(PROJECT_NAME).bin
 ELF_FILE := $(OUT_PATH)/$(PROJECT_NAME).elf
-RRS_FILE := $(OUT_PATH)/rrs.link
 
 SIZEDUMMY := sizedummy
 
@@ -79,11 +78,9 @@ main-build: $(ELF_FILE) secondary-outputs
 # Tool invocations
 $(ELF_FILE): $(OBJS) $(USER_OBJS)
 	@echo 'Building Standard target: $@'
-	@echo '. = 0x4000;' > $(RRS_FILE)
 	@tc32-elf-ld --gc-sections -L $(TEL_PATH)/components/proj_lib -L $(OUT_PATH) -T $(LS_FLAGS) -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
-	@python3 $(PROJECT_PATH)/TlsrRetMem.py $(ELF_FILE) > $(RRS_FILE)
 	@echo 'Building Reduced target: $@'
-	@tc32-elf-ld --gc-sections -L $(TEL_PATH)/components/proj_lib -L $(OUT_PATH) -T $(LS_FLAGS) -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
+	@tc32-elf-ld --gc-sections -Ttext `python3 $(PROJECT_PATH)/TlsrRetMemAddr.py -o $(ELF_FILE)` -L $(TEL_PATH)/components/proj_lib -L $(OUT_PATH) -T $(LS_FLAGS) -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
