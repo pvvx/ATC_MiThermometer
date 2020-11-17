@@ -17,7 +17,8 @@ void init_lcd(){
 	gpio_set_input_en(GPIO_PB6, 1); 
 	gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K);
 	
-	sleep_us(50000);
+//	sleep_us(50000);
+	cpu_stall_wakeup_by_timer0(50*CLOCK_SYS_CLOCK_1MS);
 	
 	send_i2c(0x78,lcd_init_cmd, sizeof(lcd_init_cmd));
 	send_to_lcd_long(0x00,0x00,0x00,0x00,0x00,0x00);	
@@ -75,15 +76,20 @@ void show_atc(){
 void show_atc_mac(){
 	extern u8  mac_public[6];
 	send_to_lcd(display_numbers[mac_public[2] &0x0f],display_numbers[mac_public[2]>>4],0x05,0xc2,0xe2,0x77);
-	sleep_ms(1800);
+	//sleep_ms(1800);
+	cpu_stall_wakeup_by_timer0(1800*CLOCK_SYS_CLOCK_1MS);
 	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
-	sleep_ms(200);
+	//sleep_ms(200);
+	cpu_stall_wakeup_by_timer0(200*CLOCK_SYS_CLOCK_1MS);
 	send_to_lcd(display_numbers[mac_public[1] &0x0f],display_numbers[mac_public[1]>>4],0x05,0xc2,0xe2,0x77);
-	sleep_ms(1800);
+	//sleep_ms(1800);
+	cpu_stall_wakeup_by_timer0(1800*CLOCK_SYS_CLOCK_1MS);
 	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
-	sleep_ms(200);
+	//sleep_ms(200);
+	cpu_stall_wakeup_by_timer0(200*CLOCK_SYS_CLOCK_1MS);
 	send_to_lcd(display_numbers[mac_public[0] &0x0f],display_numbers[mac_public[0]>>4],0x05,0xc2,0xe2,0x77);
-	sleep_ms(1800);
+	//sleep_ms(1800);
+	cpu_stall_wakeup_by_timer0(1800*CLOCK_SYS_CLOCK_1MS);
 }
 
 void show_big_number(int16_t number, bool point){
