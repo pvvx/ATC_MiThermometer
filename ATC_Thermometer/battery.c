@@ -11,7 +11,7 @@ RAM	volatile unsigned int adc_dat_buf[8];
 
 _attribute_ram_code_ void adc_bat_init(void)
 {
-	adc_power_on_sar_adc(0);
+//	adc_power_on_sar_adc(0);
 	gpio_set_output_en(GPIO_PB5, 1);
 	gpio_set_input_en(GPIO_PB5, 0);
 	gpio_write(GPIO_PB5, 1);
@@ -24,7 +24,7 @@ _attribute_ram_code_ void adc_bat_init(void)
 	adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_1P2V);
 	adc_set_tsample_cycle_chn_misc(SAMPLING_CYCLES_6);
 	adc_set_ain_pre_scaler(ADC_PRESCALER_1F8);
-	adc_power_on_sar_adc(1);
+//	adc_power_on_sar_adc(1);
 }
 
 _attribute_ram_code_ uint16_t get_battery_mv()
@@ -35,6 +35,7 @@ _attribute_ram_code_ uint16_t get_battery_mv()
 		adc_hw_initialized = 1;
 		adc_bat_init();
 	}
+	adc_power_on_sar_adc(1);	// + 0.4 mA
 	adc_reset_adc_module();
 	u32 t0 = clock_time();
 
@@ -70,7 +71,7 @@ _attribute_ram_code_ uint16_t get_battery_mv()
 	u32 adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4] + adc_sample[5])/4;
 	adc_result = adc_average;
 	batt_vol_mv  = (adc_result * adc_vref_cfg.adc_vref)>>10;
-	
+	adc_power_on_sar_adc(0); // - 0.4 mA
 	
 return batt_vol_mv;
 }
