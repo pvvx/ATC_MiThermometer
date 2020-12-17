@@ -1,0 +1,14 @@
+# generated output
+out/*
+ATC_Thermometer.bin
+
+# QtCreator project files
+ATC_Thermometer.cflags
+ATC_Thermometer.config
+ATC_Thermometer.creator
+ATC_Thermometer.cxxflags
+ATC_Thermometer.files
+ATC_Thermometer.includes
+
+# KDE show hidden dir marker
+.directory

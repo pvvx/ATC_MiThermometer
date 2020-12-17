@@ -1,4 +1,12 @@
 # ATC_MiThermometer
+
+
+Forked from https://github.com/atc1441/ATC_MiThermometer
+
+Testing different options. 
+Global revision. Test only!
+
+
 Custom firmware for the Xiaomi Thermometer LYWSD03MMC and Telink Flasher via USB to Serial converter
 
 This repo is made together with this explanation video:(click on it)
