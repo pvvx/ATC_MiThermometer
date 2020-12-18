@@ -296,7 +296,7 @@ def activate(serialPort, tact_ms):
 
 def FlashReadBlock(serialPort, stream, offset = 0, size = 0x80000):
 	offset &= 0x00ffffff
-	rdsize = 0x10
+	rdsize = 0x100
 	while size > 0:
 		if rdsize > size:
 			rdsize = size
