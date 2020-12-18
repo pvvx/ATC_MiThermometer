@@ -17,7 +17,7 @@ import io
 import serial.tools.list_ports
 
 __progname__ = 'TLSR825x Flasher'
-__version__ = "00.00.02"
+__version__ = "00.00.04"
 
 COMPORT_MIN_BAUD_RATE=340000
 COMPORT_DEF_BAUD_RATE=921600
@@ -108,6 +108,7 @@ def wr_usbcom_blk(serialPort, blk):
 			if l - i < s:
 				s = l - i
 			i += serialPort.write(blk[i:i+s])
+			serialPort.flush()
 		return i
 	return serialPort.write(blk)
 # send and receive block to USB-COM
@@ -128,8 +129,8 @@ def rd_sws_fifo_wr_usbcom(serialPort, addr, data):
 	rd_sws_wr_addr_usbcom(serialPort, 0x00b3, bytearray([0x00])) # [0xb3]=0x00 ext.SWS into normal(ram) mode
 # send and receive swire command read to USB-COM
 def sws_read_data(serialPort, addr, size = 1):
-	# A serialPort.timeout must be set !
-	serialPort.timeout = 0.005
+	time.sleep(0.05)
+	serialPort.reset_input_buffer()
 	# send addr and flag read
 	rd_wr_usbcom_blk(serialPort, sws_rd_addr(addr))
 	out = []
@@ -205,7 +206,7 @@ def set_sws_auto_speed(serialPort):
 	# serialPort.baudrate = 460800..3000000 bits/s
 	# register[0x00b2] = swsdiv = 10..208
 	#---------------------------------------------------
-	serialPort.timeout = 0.01 # A serialPort.timeout must be set !
+	#serialPort.timeout = 0.01 # A serialPort.timeout must be set !
 	if debug:
 		swsdiv_def = int(round(24000000*2/serialPort.baudrate))
 		print('Debug: default swdiv for 24 MHz = %d (0x%02x)' % (swsdiv_def, swsdiv_def))
@@ -238,7 +239,19 @@ def set_sws_auto_speed(serialPort):
 			if debug:
 				print('Debug (check data):')
 				hex_dump(swsdiv+0xccc00, sws_encode_blk([swsdiv]))
+				print('bit mask: 0x%02x' % (bit8m))
 			if (blk[0]&bit8m) == bit8m and blk[1] == cmp[2] and blk[2] == cmp[3] and blk[4] == cmp[5] and blk[6] == cmp[7] and blk[7] == cmp[8]:
+				'''
+				swsdiv += 1	
+				rd_sws_wr_addr_usbcom(serialPort, 0x00b2, bytearray([swsdiv]))
+				data = sws_read_data(serialPort, 0x00b2, 1)
+				if data == None or data[0] != swsdiv:
+					swsdiv -= 1
+					if debug:
+						print('swsdiv:', swsdiv)
+					break
+				rd_sws_wr_addr_usbcom(serialPort, 0x00b2, bytearray([swsdiv]))
+				'''
 				print('UART-SWS %d baud. SW-CLK ~%.1f MHz(?)' % (int(serialPort.baudrate/10), serialPort.baudrate*swsdiv/2000000))
 				return True
 		swsdiv += 1
@@ -282,9 +295,8 @@ def activate(serialPort, tact_ms):
 	serialPort.reset_input_buffer()
 
 def FlashReadBlock(serialPort, stream, offset = 0, size = 0x80000):
-	serialPort.reset_input_buffer()
 	offset &= 0x00ffffff
-	rdsize = 0x1000
+	rdsize = 0x10
 	while size > 0:
 		if rdsize > size:
 			rdsize = size
@@ -295,26 +307,25 @@ def FlashReadBlock(serialPort, stream, offset = 0, size = 0x80000):
 		rd_sws_wr_addr_usbcom(serialPort, 0x0c, bytearray([0x03, (offset >> 16) & 0xffff, (offset >> 8) & 0xff, offset & 0xff, 0]))
 		rd_sws_wr_addr_usbcom(serialPort, 0x0d, bytearray([0x0A]))  # [0x0d]=0x0a SPI set auto read mode & cns low
 		# read all data from one register (not increment address - fifo mode)
-		data = bytearray(sws_read_data(serialPort, 0x0c, rdsize))
+		data = sws_read_data(serialPort, 0x0c, rdsize)
 		rd_sws_wr_addr_usbcom(serialPort, 0x0d, bytearray([0x01]))  # SPI set cns high
 		rd_sws_wr_addr_usbcom(serialPort, 0x0b3, bytearray([0x00])) # [0xb3]=0x00 ext.SWS into normal(ram) mode
 		if data == None or len(data) != rdsize:
 			print('\rError Read Flash data at 0x%06x! ' % offset)
 			return False
-		stream.write(data)
+		stream.write(bytearray(data))
 		size -= rdsize
 		offset += rdsize
 	print('\r                               \r',  end = '')
 	return True
 def FlashReady(serialPort, count = 33):
-	serialPort.reset_input_buffer()
 	for _ in range(count):
 		rd_sws_wr_addr_usbcom(serialPort, 0x0d, bytearray([0x00]))  # SPI set cns low
 		rd_sws_wr_addr_usbcom(serialPort, 0x0c, bytearray([0x05]))  # Flash cmd rd status
 		data = sws_read_data(serialPort, 0x0c)
 		rd_sws_wr_addr_usbcom(serialPort, 0x0d, bytearray([0x01]))  # SPI set cns high
 		if data == None:
-			print('\rError Read Flash Status!     ')
+			print('\rError Read Flash Status! (%d)  ' %(_))
 			return False
 		if (data[0] & 0x01) == 0:
 			return True
@@ -471,7 +482,7 @@ def main():
 	try:
 		serialPort = serial.Serial(args.port,args.baud)
 		serialPort.reset_input_buffer()
-		serialPort.timeout = 0.05
+		serialPort.timeout = 0.01
 	except:
 		print ('Error: Open %s, %d baud!' % (args.port, args.baud))
 		sys.exit(1)
@@ -492,7 +503,7 @@ def main():
 						if not set_sws_speed(serialPort, 48000000):
 							print('Chip sleep? -> Use reset chip (RTS-RST): see option --tact')
 							sys.exit(1)
-	serialPort.timeout = 0.05 # SerialPort.timeout must be set for the following operations!
+	#serialPort.timeout = 0.01 # SerialPort.timeout must be set for the following operations!
 	if args.operation == 'rf':
 		offset = args.address & 0x00ffffff
 		size = args.size & 0x00ffffff
