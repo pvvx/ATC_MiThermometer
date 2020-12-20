@@ -1,0 +1,24 @@
+#Sun Nov 15 06:31:55 MSK 2020
+eclipse.preferences.version=1
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/CWD/delimiter=;
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/CWD/operation=replace
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/CWD/value=E\:\\Telink\\TB-04\\wk\\Termometr\\${ProjName}
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/PWD/delimiter=;
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/PWD/operation=replace
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/PWD/value=E\:\\Telink\\TB-04\\wk\\Termometr\\${ProjName}
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/SDK/delimiter=;
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/SDK/operation=append
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/SDK/value=Telink_825X_SDK
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/append=true
+environment/project/com.telink.tc32eclipse.configuration.app.debug.1166174376/appendContributed=true
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/CWD/delimiter=;
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/CWD/operation=replace
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/CWD/value=E\:\\Telink\\TB-04\\wk\\Termometr\\${ProjName}
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/PWD/delimiter=;
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/PWD/operation=replace
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/PWD/value=E\:\\Telink\\TB-04\\wk\\Termometr\\${ProjName}
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/SDK/delimiter=;
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/SDK/operation=append
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/SDK/value=Telink_825X_SDK
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/append=true
+environment/project/com.telink.tc32eclipse.configuration.app.release.2062992677/appendContributed=true

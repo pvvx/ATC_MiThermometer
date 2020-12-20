@@ -39,16 +39,12 @@ RAM uint8_t advertising_data[] = {
 /*BatM*/0xdd, 0xdd,
 /*Counter*/0x00 };
 
-extern bool advertising_type; // Custom or Mi Advertising
-extern uint32_t tim_connect_meas; //
-
 uint8_t mac_public[6];
-
 uint8_t ota_is_working = 0;
 
 _attribute_ram_code_ void app_enter_ota_mode(void) {
 	ota_is_working = 1;
-	bls_ota_setTimeout(40 * 1000000); // set OTA timeout  15 seconds
+	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
 	show_smiley(1);
 }
 
@@ -64,7 +60,14 @@ _attribute_ram_code_ void user_set_rf_power(uint8_t e, uint8_t *p, int n) {
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 1;
-	bls_l2cap_requestConnParamUpdate(16, 16, 99, 800); // 2 sec
+/*
+ * interval_ms = (interval * 125) / 10;
+ * latency_ms = (latency + 1) * interval_ms;
+ * timeout_ms = timeout * 10;
+*/
+	u16 timeout = (cfg.connect_latency + 1) * 8; // default = 800 -> 800*10 ms = 8 sec (max 32 sec?)
+	if(timeout > 32*100) timeout = 32*100;
+	bls_l2cap_requestConnParamUpdate(16, 16, cfg.connect_latency, timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
 	show_ble_symbol(1);
 }
 
@@ -210,7 +213,6 @@ void ble_send_temp(int16_t temp) {
 }
 
 void ble_send_humi(uint16_t humi) {
-	humi *= 100;
 	my_humiVal[0] = humi & 0xFF;
 	my_humiVal[1] = humi >> 8;
 	bls_att_pushNotifyData(HUMI_LEVEL_INPUT_DP_H, (uint8_t *) my_humiVal, 2);

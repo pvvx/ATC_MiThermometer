@@ -1,0 +1,12 @@
+#Sun Nov 15 06:36:49 MSK 2020
+eclipse.preferences.version=1
+environment/buildEnvironmentInclude/com.telink.tc32eclipse.configuration.app.debug.1166174376/CPATH/delimiter=;
+environment/buildEnvironmentInclude/com.telink.tc32eclipse.configuration.app.debug.1166174376/CPATH/operation=remove
+environment/buildEnvironmentInclude/com.telink.tc32eclipse.configuration.app.debug.1166174376/C_INCLUDE_PATH/delimiter=;
+environment/buildEnvironmentInclude/com.telink.tc32eclipse.configuration.app.debug.1166174376/C_INCLUDE_PATH/operation=remove
+environment/buildEnvironmentInclude/com.telink.tc32eclipse.configuration.app.debug.1166174376/append=true
+environment/buildEnvironmentInclude/com.telink.tc32eclipse.configuration.app.debug.1166174376/appendContributed=true
+environment/buildEnvironmentLibrary/com.telink.tc32eclipse.configuration.app.debug.1166174376/LIBRARY_PATH/delimiter=;
+environment/buildEnvironmentLibrary/com.telink.tc32eclipse.configuration.app.debug.1166174376/LIBRARY_PATH/operation=remove
+environment/buildEnvironmentLibrary/com.telink.tc32eclipse.configuration.app.debug.1166174376/append=true
+environment/buildEnvironmentLibrary/com.telink.tc32eclipse.configuration.app.debug.1166174376/appendContributed=true

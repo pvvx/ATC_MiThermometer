@@ -7,7 +7,6 @@
 #include "flash_eep.h"
 #include "battery.h"
 #include "ble.h"
-#include "flash.h"
 #include "lcd.h"
 #include "sensor.h"
 #include "app.h"
@@ -15,11 +14,11 @@
 RAM bool last_smiley;
 RAM bool show_batt_or_humi;
 
-RAM int16_t last_temp;
-RAM uint16_t last_humi;
+RAM int16_t last_temp; // x0.1 C
+RAM uint16_t last_humi; // x0.1 %
 
-RAM uint8_t battery_level;
-RAM uint16_t battery_mv;
+RAM uint8_t battery_level; // %
+RAM uint16_t battery_mv; // mV
 
 RAM volatile uint8_t loop_read_measure;
 RAM volatile uint8_t start_measure; // start measure all
@@ -45,9 +44,8 @@ static cfg_t def_cfg = {
 	.flg.advertising_type = false,
 	.advertising_interval = 32, // multiply by 62.5 ms  (2 sec)
 	.measure_interval = 5, // * advertising_interval (10 sec)
-	.temp_alarm_point = 5, // 0.5 C
-	.humi_alarm_point = 5, // 5%
-	.rf_tx_power = RF_POWER_P3p01dBm
+	.rf_tx_power = RF_POWER_P3p01dBm,
+	.connect_latency = 99
 };
 RAM cfg_t cfg;
 
@@ -72,15 +70,8 @@ _attribute_ram_code_ bool is_comfort(int16_t t, uint16_t h) {
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
 	read_sensor_cb();
-/*
-	if ((new_temp - last_temp > cfg.temp_alarm_point) || (last_temp - new_temp
-			> cfg.temp_alarm_point) || (new_humi - last_humi > cfg.humi_alarm_point)
-			|| (last_humi - new_humi > cfg.humi_alarm_point)) {	// instant advertise on to much sensor difference
-		set_adv_data(new_temp, new_humi, battery_level, battery_mv);
-	}
-*/
-	last_temp = new_temp;
-	last_humi = new_humi;
+	last_temp = new_temp/10;
+	last_humi = new_humi/100;
 	set_adv_data(last_temp, last_humi, battery_level, battery_mv);
 	end_measure = 1;
 	wrk_measure = 0;
@@ -204,8 +195,8 @@ void main_loop() {
 					if (end_measure) {
 						end_measure = 0;
 						ble_send_battery(battery_level);
-						ble_send_temp(last_temp);
-						ble_send_humi(last_humi);
+						ble_send_temp(new_temp);
+						ble_send_humi(new_humi);
 					}
 				}
 				uint32_t new = clock_time();

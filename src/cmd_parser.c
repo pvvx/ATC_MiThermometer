@@ -68,15 +68,7 @@ void cmd_parser(void * p) {
 		if (cfg.humi_offset > 50)
 			cfg.humi_offset = 50;
 	} else if (inData == 0xFC) {
-		cfg.temp_alarm_point = req->dat[1]; // Set temp alarm point value divided by 10 for temp in °C
-		if (cfg.temp_alarm_point == 0)
-			cfg.temp_alarm_point = 1;
 	} else if (inData == 0xFD) {
-		cfg.humi_alarm_point = req->dat[1]; // Set humi alarm point
-		if (cfg.humi_alarm_point == 0)
-			cfg.humi_alarm_point = 1;
-		if (cfg.humi_alarm_point > 50)
-			cfg.humi_alarm_point = 50;
 	}
 	flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 }

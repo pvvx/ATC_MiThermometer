@@ -67,7 +67,7 @@ _attribute_ram_code_ void read_sensor_cb(void) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	_temp |= reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
-	new_temp = ((1750*_temp)>>16) - 450 + temp_offset;
+	new_temp = ((int32_t)(17500*_temp) >> 16) - 4500 + temp_offset; // x 0.1 C
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	(void)reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
@@ -77,7 +77,7 @@ _attribute_ram_code_ void read_sensor_cb(void) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	_humi |= reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_STOP;
-	new_humi = ((100*_humi) >> 16) + humi_offset;
+	new_humi = ((uint32_t)(10000*_humi) >> 16) + humi_offset; // x 0.1 %
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 
 	send_sensor(SHTC3_GO_SLEEP); // Sleep command of the sensor
