@@ -70,7 +70,7 @@ _attribute_ram_code_ uint16_t get_battery_mv()
 	dfifo_disable_dfifo2();
 	u32 adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4] + adc_sample[5])/4;
 	adc_result = adc_average;
-	batt_vol_mv  = (adc_result * adc_vref_cfg.adc_vref)>>10;
+	batt_vol_mv  = (adc_result * adc_vref_cfg.adc_vref) >> 10;
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	
 	

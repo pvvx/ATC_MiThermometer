@@ -9,6 +9,7 @@
 
 #include "i2c.h"
 #include "sensor.h"
+#include "app.h"
 
 #define SHTC3_WAKEUP		0x1735 // Wake-up command of the sensor
 #define SHTC3_SOFT_RESET	0x5d80 // Soft reset command
@@ -18,8 +19,8 @@
 RAM int8_t temp_offset;
 RAM int8_t humi_offset;
 RAM uint32_t timer_measure_cb;
-RAM int32_t temp;
-RAM uint32_t humi;
+RAM int16_t new_temp;
+RAM uint16_t new_humi;
 
 _attribute_ram_code_ void send_sensor(uint16_t cmd) {
 	if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
@@ -66,7 +67,7 @@ _attribute_ram_code_ void read_sensor_cb(void) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	_temp |= reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
-	temp = ((1750*_temp)>>16) - 450 + temp_offset;
+	new_temp = ((1750*_temp)>>16) - 450 + temp_offset;
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	(void)reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
@@ -76,7 +77,7 @@ _attribute_ram_code_ void read_sensor_cb(void) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	_humi |= reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_STOP;
-	humi = ((100*_humi) >> 16) + humi_offset;
+	new_humi = ((100*_humi) >> 16) + humi_offset;
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 
 	send_sensor(SHTC3_GO_SLEEP); // Sleep command of the sensor

@@ -4,26 +4,20 @@
 extern "C" {
 #endif
 
-/*
-#define PC3_FUNC	AS_GPIO
-#define PC3_DATA_OUT	0
-#define PC3_OUTPUT_ENABLE	0
-#define PC3_INPUT_ENABLE	1
-*/
-#define PC2_INPUT_ENABLE	1
-#define PC3_INPUT_ENABLE	1
+//#define PC2_INPUT_ENABLE	1
+//#define PC3_INPUT_ENABLE	1
+//#define PB6_INPUT_ENABLE	1
 
-#define CLOCK_SYS_CLOCK_HZ  	16000000 // 24000000
-
-#define ADVERTISING_INTERVAL 3000
-
-#define RAM _attribute_data_retention_ // short version, this is needed to keep the values in ram after sleep
-
+#define CLOCK_SYS_CLOCK_HZ  	24000000
 enum{
 	CLOCK_SYS_CLOCK_1S = CLOCK_SYS_CLOCK_HZ,
 	CLOCK_SYS_CLOCK_1MS = (CLOCK_SYS_CLOCK_1S / 1000),
 	CLOCK_SYS_CLOCK_1US = (CLOCK_SYS_CLOCK_1S / 1000000),
 };
+
+#define TIME_UPDATE_LCD			(1500 * CLOCK_16M_SYS_TIMER_CLK_1MS) // min 1.5 sec
+
+#define RAM _attribute_data_retention_ // short version, this is needed to keep the values in ram after sleep
 
 ///////////////////////////////////// ATT  HANDLER define ///////////////////////////////////////
 typedef enum

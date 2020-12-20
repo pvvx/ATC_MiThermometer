@@ -30,8 +30,8 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	reg_clk_en0 = 0 //FLD_CLK0_I2C_EN
 //			| FLD_CLK0_UART_EN
 			| FLD_CLK0_SWIRE_EN;
-	reg_clk_en1 = FLD_CLK1_ZB_EN | FLD_CLK1_SYS_TIMER_EN | FLD_CLK1_DMA_EN | FLD_CLK1_ALGM_EN;
-	reg_clk_en2 = FLD_CLK2_DFIFO_EN | FLD_CLK2_MC_EN | FLD_CLK2_MCIC_EN;
+//	reg_clk_en1 = FLD_CLK1_ZB_EN | FLD_CLK1_SYS_TIMER_EN | FLD_CLK1_DMA_EN | FLD_CLK1_ALGM_EN;
+//	reg_clk_en2 = FLD_CLK2_DFIFO_EN | FLD_CLK2_MC_EN | FLD_CLK2_MCIC_EN;
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	lpc_power_down();
 	blc_app_loadCustomizedParameters();

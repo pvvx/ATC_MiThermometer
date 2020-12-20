@@ -27,8 +27,8 @@
 	.code	16
 
 	.equ __RAM_START_ADDR, 		0x00840000	@ all chips tlsr825x
-	.equ __RAM_SIZE_MAX, 		(32*1024)	@ 32k, 48k, 64k
-	.equ __RAM_RETENTION_SIZE,  (16*1024)	@ 4..64k
+	.equ __RAM_SIZE_MAX, 		(64*1024)	@ 32k, 48k, 64k
+	.equ __RAM_RETENTION_SIZE,  (32*1024)	@ 4..32k
 	.equ IRQ_STK_SIZE,	0x180
 
 	.global __RAM_START_ADDR
@@ -60,8 +60,7 @@ __start:					@ MUST,  referenced by boot.link
 
 	.org 0x0
 	tj	__reset
-	.short	(0x0001)		@ BUILD_VERSION
-	.word	(0x78767670)	@ BUILD_VERSION
+
 	.org 0x8
 	.word	(0x544c4e4b)
 	.word	(0x00880000 + _icload_size_div_16_)

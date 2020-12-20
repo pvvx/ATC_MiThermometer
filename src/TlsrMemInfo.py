@@ -88,9 +88,9 @@ def main():
 	parser = argparse.ArgumentParser(description='%s version %s' % (__progname__, __version__), prog=__filename__)
 	parser.add_argument(
 		"--size", "-s",
-		help="Chip SRAM Size (default: 49152)",
+		help="Chip SRAM Size (default: 65536)",
 		type=arg_auto_int, 
-		default=49152)
+		default=65536)
 	parser.add_argument('elffname', help='Name of elf file')		
 	args = parser.parse_args()
 

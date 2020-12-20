@@ -10,14 +10,11 @@
 
 const uint8_t lcd_init_cmd[] = {0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
 RAM uint8_t display_buff[6];
+RAM uint8_t display_cmp_buff[6];
 const uint8_t display_numbers[16] = {0xF5,0x05,0xD3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7,0x77,0xe6,0xf0,0xc7,0xf2,0x72};
 
 void init_lcd(){	
-
-	gpio_set_func(GPIO_PB6, AS_GPIO);//LCD on low temp needs this, its an unknown pin going to the LCD controller chip
-	gpio_set_output_en(GPIO_PB6, 0);
-	gpio_set_input_en(GPIO_PB6, 1); 
-	gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K);
+	gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 	
 	WaitMs(50);
 	
@@ -36,7 +33,9 @@ void send_to_lcd(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uin
 }
 
 void update_lcd(){
-	send_to_lcd(display_buff[0],display_buff[1],display_buff[2],display_buff[3],display_buff[4],display_buff[5]);
+	if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff)))
+		send_to_lcd(display_buff[0],display_buff[1],display_buff[2],display_buff[3],display_buff[4],display_buff[5]);
+	memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
 }
 
 void show_number(uint8_t position,uint8_t number){
@@ -44,7 +43,7 @@ void show_number(uint8_t position,uint8_t number){
     display_buff[position] = display_numbers[number] & 0xF7;
 }
 
-void show_temp_symbol(uint8_t symbol){/*1 = C, 2 = F*/
+void show_temp_symbol(uint8_t symbol){ /*1 = C, 2 = F*/
 	display_buff[2] &= ~0xE0;
 	if(symbol==1)display_buff[2]|=0xA0;
 	else if(symbol==2)display_buff[2]|=0x60;
@@ -64,7 +63,7 @@ void show_battery_symbol(bool state){
 		display_buff[1] &= ~0x08;
 }
 
-void show_smiley(uint8_t state){/*0=off, 1=happy, 2=sad*/
+void show_smiley(uint8_t state){ /*0=off, 1=happy, 2=sad*/
 	display_buff[2] &= ~0x07;
 	if(state==1)display_buff[2]|=0x05;
 	else if(state==2)display_buff[2]|=0x06;

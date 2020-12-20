@@ -4,11 +4,12 @@
 #include <stdint.h>
 
 uint8_t ota_is_working;
+uint8_t ble_connected;
 
 void init_ble();
-void set_adv_data(int16_t temp, uint16_t humi, uint8_t battery_level, uint16_t battery_mv);
+void set_adv_data(int32_t temp, uint32_t humi, uint8_t battery_level, uint32_t battery_mv);
 bool ble_get_connected();
-void ble_send_temp(uint16_t temp);
+void ble_send_temp(int16_t temp);
 void ble_send_humi(uint16_t humi);
 void ble_send_battery(uint8_t value);
-void blt_pm_proc(void);
+void user_set_rf_power(uint8_t e, uint8_t *p, int n);

@@ -7,7 +7,7 @@ $(OUT_PATH)/i2c.o \
 $(OUT_PATH)/lcd.o \
 $(OUT_PATH)/sensor.o \
 $(OUT_PATH)/cmd_parser.o \
-$(OUT_PATH)/flash.o \
+$(OUT_PATH)/flash_eep.o \
 $(OUT_PATH)/main.o
 
 

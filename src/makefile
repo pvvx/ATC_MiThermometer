@@ -72,6 +72,9 @@ SIZEDUMMY := sizedummy
 # All Target
 all: clean pre-build main-build
 
+flash: $(BIN_FILE)
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM3 -a2000 -m -w we 0 $(BIN_FILE)
+
 # Main-build Target
 main-build: $(ELF_FILE) secondary-outputs
 
