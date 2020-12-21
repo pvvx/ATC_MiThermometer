@@ -19,8 +19,8 @@
 RAM int8_t temp_offset;
 RAM int8_t humi_offset;
 RAM uint32_t timer_measure_cb;
-RAM int16_t new_temp;
-RAM uint16_t new_humi;
+RAM int16_t new_temp; // x 0.01 C
+RAM uint16_t new_humi; // x 0.01 %
 
 _attribute_ram_code_ void send_sensor(uint16_t cmd) {
 	if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
@@ -67,7 +67,7 @@ _attribute_ram_code_ void read_sensor_cb(void) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	_temp |= reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
-	new_temp = ((int32_t)(17500*_temp) >> 16) - 4500 + temp_offset; // x 0.1 C
+	new_temp = ((int32_t)(17500*_temp) >> 16) - 4500 + temp_offset; // x 0.01 C
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	(void)reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
@@ -77,7 +77,7 @@ _attribute_ram_code_ void read_sensor_cb(void) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	_humi |= reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_STOP;
-	new_humi = ((uint32_t)(10000*_humi) >> 16) + humi_offset; // x 0.1 %
+	new_humi = ((uint32_t)(10000*_humi) >> 16) + humi_offset; // x 0.01 %
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 
 	send_sensor(SHTC3_GO_SLEEP); // Sleep command of the sensor
