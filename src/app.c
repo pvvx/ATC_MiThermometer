@@ -14,11 +14,11 @@
 RAM bool last_smiley;
 RAM bool show_batt_or_humi;
 
-RAM int16_t last_temp; // x0.1 C
-RAM uint16_t last_humi; // x0.1 %
+RAM measured_data_t measured_data;
 
+RAM int16_t last_temp; // x0.1 C
+RAM uint16_t last_humi; // %
 RAM uint8_t battery_level; // %
-RAM uint16_t battery_mv; // mV
 
 RAM volatile uint8_t loop_read_measure;
 RAM volatile uint8_t start_measure; // start measure all
@@ -36,12 +36,13 @@ RAM int16_t comfort_x[] = {2000, 2560, 2700, 2500, 2050, 1700, 1600, 1750};
 RAM uint16_t comfort_y[] = {2000, 1980, 3200, 6000, 8200, 8600, 7700, 3800};
 
 // Settings
-static cfg_t def_cfg = {
+static const cfg_t def_cfg = {
 	.flg.temp_C_or_F = false,
 	.flg.blinking_smiley = false,
 	.flg.comfort_smiley = true,
 	.flg.show_batt_enabled = false,
 	.flg.advertising_type = false,
+	.flg.tx_measure = true,
 	.advertising_interval = 32, // multiply by 62.5 ms  (2 sec)
 	.measure_interval = 5, // * advertising_interval (10 sec)
 	.rf_tx_power = RF_POWER_P3p01dBm,
@@ -49,7 +50,20 @@ static cfg_t def_cfg = {
 };
 RAM cfg_t cfg;
 
-#define EEP_ID_CFG 0xCFCC
+void test_config(void) {
+	if (cfg.humi_offset < -50)
+		cfg.humi_offset = -50;
+	if (cfg.humi_offset > 50)
+		cfg.humi_offset = 50;
+	if (cfg.measure_interval == 0)
+		cfg.measure_interval = 1; // x1
+	else if (cfg.measure_interval > 10)
+		cfg.measure_interval = 10; // x10
+	if(!cfg.flg.blinking_smiley && !cfg.flg.comfort_smiley)
+		show_smiley(cfg.flg.smiley);
+	adv_interval = cfg.advertising_interval * 100; // t = adv_interval * 0.625 ms
+	measurement_step_time = adv_interval * cfg.measure_interval * 625 * sys_tick_per_us;
+}
 
 _attribute_ram_code_ bool is_comfort(int16_t t, uint16_t h) {
 	bool c = 0;
@@ -70,9 +84,9 @@ _attribute_ram_code_ bool is_comfort(int16_t t, uint16_t h) {
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
 	read_sensor_cb();
-	last_temp = new_temp/10;
-	last_humi = new_humi/100;
-	set_adv_data(last_temp, last_humi, battery_level, battery_mv);
+	last_temp = measured_data.temp/10;
+	last_humi = measured_data.humi/100;
+	set_adv_data(last_temp, last_humi, battery_level, measured_data.battery_mv);
 	end_measure = 1;
 	wrk_measure = 0;
 }
@@ -111,13 +125,12 @@ void user_init_normal(void) {//this will get executed one time after power up
 	if (flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg)) {
 		memcpy(&cfg, &def_cfg, sizeof(cfg));
 	}
-	adv_interval = cfg.advertising_interval * 100; // t = adv_interval * 0.625 ms
-	measurement_step_time = adv_interval * cfg.measure_interval * 625 * sys_tick_per_us;
+	test_config();
 	init_ble();
 	init_sensor();
-	battery_mv = get_battery_mv();
-	battery_level = get_battery_level(get_battery_mv());
-	if(battery_mv < 1950) {
+	measured_data.battery_mv = get_battery_mv();
+	battery_level = get_battery_level(measured_data.battery_mv);
+	if(measured_data.battery_mv < 1950) {
 		init_lcd();
 		show_big_number(0, 1);
 		show_small_number(0, 1);
@@ -142,14 +155,14 @@ _attribute_ram_code_ void user_init_deepRetn(void) {//after sleep this will get 
 void lcd(void) {
 	if (cfg.flg.temp_C_or_F) {
 		show_temp_symbol(2);
-		show_big_number(((((last_temp * 10) / 5) * 9) + 3200) / 10, 1); // convert C to F
+		show_big_number((((measured_data.temp / 5) * 9) + 3200) / 10, 1); // convert C to F
 	} else {
 		show_temp_symbol(1);
 		show_big_number(last_temp, 1);
 	}
 
 	if (cfg.flg.comfort_smiley) {
-		if (is_comfort(last_temp * 10, last_humi * 100)) {
+		if (is_comfort(measured_data.temp, measured_data.humi)) {
 			show_smiley(1);
 		} else {
 			show_smiley(2);
@@ -187,16 +200,17 @@ void main_loop() {
 			wrk_measure = 1;
 			start_measure = 0;
 			read_sensor_deep_sleep();
-			battery_mv = get_battery_mv();
-			battery_level = get_battery_level(get_battery_mv());
+			measured_data.battery_mv = get_battery_mv();
+			battery_level = get_battery_level(measured_data.battery_mv);
 		} else {
 			if(!wrk_measure) {
-				if(ble_connected) { // If connected notify Sensor data
+				if(ble_connected & 2) {
 					if (end_measure) {
 						end_measure = 0;
 						ble_send_battery(battery_level);
-						ble_send_temp(new_temp);
-						ble_send_humi(new_humi);
+						ble_send_temp(last_temp);
+						ble_send_humi(measured_data.humi);
+						if(cfg.flg.tx_measure) ble_send_all();
 					}
 				}
 				uint32_t new = clock_time();

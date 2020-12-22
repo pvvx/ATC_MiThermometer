@@ -10,65 +10,66 @@
 
 void cmd_parser(void * p) {
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*) p;
-	uint8_t inData = req->dat[0];
-	if (inData == 0xFF) {
-		cfg.flg.temp_C_or_F = true; // Temp in F
-	} else if (inData == 0xCC) {
-		cfg.flg.temp_C_or_F = false; // Temp in C
-	} else if (inData == 0xB1) {
-		cfg.flg.show_batt_enabled = true; // Enable battery on LCD
-	} else if (inData == 0xB0) {
-		cfg.flg.show_batt_enabled = false; // Disable battery on LCD
-	} else if (inData == 0xA0) {
-		cfg.flg.blinking_smiley = false;
-		cfg.flg.comfort_smiley = false;
-		show_smiley(0); // Smiley off
-	} else if (inData == 0xA1) {
-		cfg.flg.blinking_smiley = false;
-		cfg.flg.comfort_smiley = false;
-		show_smiley(1); // Smiley happy
-	} else if (inData == 0xA2) {
-		cfg.flg.blinking_smiley = false;
-		cfg.flg.comfort_smiley = false;
-		show_smiley(2); // Smiley sad
-	} else if (inData == 0xA3) {
-		cfg.flg.blinking_smiley = false;
-		cfg.flg.comfort_smiley = true; // Comfort Indicator
-	} else if (inData == 0xAB) {
-		cfg.flg.blinking_smiley = true; // Smiley blinking
-	} else if (inData == 0xAE) {
-		cfg.flg.advertising_type = false; // Advertising type Custom
-	} else if (inData == 0xAF) {
-		cfg.flg.advertising_type = true; // Advertising type Mi Like
-	} else if (inData == 0xFE) {
-		cfg.advertising_interval = req->dat[1]; // Set advertising interval with second byte, value * 62.5 ms / 0=main_delay
-		if (cfg.advertising_interval == 0)
-			cfg.advertising_interval = 1; // 62.5 ms
-		else if (cfg.advertising_interval > 160)
-			cfg.advertising_interval = 160; // 10 sec
-		adv_interval = cfg.advertising_interval * 100; // t = adv_interval * 0.625 ms
-		measurement_step_time = adv_interval * cfg.measure_interval * 625 * sys_tick_per_us;
-		ev_adv_timeout(0,0,0);
-	} else if (inData == 0xF8) {
-		cfg.rf_tx_power = req->dat[1];
-		user_set_rf_power(0, 0, 0);
-	} else if (inData == 0xF9) {
-		cfg.measure_interval = req->dat[1]; // Set advertising interval with second byte, value * 62.5 ms / 0=main_delay
-		if (cfg.measure_interval == 0)
-			cfg.measure_interval = 1; // x1
-		else if (cfg.measure_interval > 10)
-			cfg.measure_interval = 10; // x10
-		measurement_step_time = adv_interval * cfg.measure_interval * 625 * sys_tick_per_us;
-	} else if (inData == 0xFA) {
-		cfg.temp_offset = req->dat[1]; // Set temp offset, -12,5 - +12,5 °C
-	} else if (inData == 0xFB) {
-		cfg.humi_offset = req->dat[1]; // Set humi offset, -50 - +50 %
-		if (cfg.humi_offset < -50)
-			cfg.humi_offset = -50;
-		if (cfg.humi_offset > 50)
-			cfg.humi_offset = 50;
-	} else if (inData == 0xFC) {
-	} else if (inData == 0xFD) {
+	uint32_t len = req->l2cap - 3;
+	if(len) {
+		uint8_t cmd = req->dat[0];
+#if 1
+		if (cmd == 0x55) {
+			if(--len > sizeof(cfg)) len = sizeof(cfg);
+			if(len)
+				memcpy(&cfg, &req->dat[1], len);
+			my_RxTx_Data[0] = 0x55;
+			memcpy(&my_RxTx_Data[1], &cfg, sizeof(cfg));
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg));
+			test_config();
+	//		user_set_rf_power(0, 0, 0);
+			ev_adv_timeout(0, 0, 0);
+			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
+		}
+#else
+		if (cmd == 0xFF) {
+			cfg.flg.temp_C_or_F = true; // Temp in F
+		} else if (cmd == 0xCC) {
+			cfg.flg.temp_C_or_F = false; // Temp in C
+		} else if (cmd == 0xB1) {
+			cfg.flg.show_batt_enabled = true; // Enable battery on LCD
+		} else if (cmd == 0xB0) {
+			cfg.flg.show_batt_enabled = false; // Disable battery on LCD
+		} else if (cmd == 0xA0) {
+			cfg.flg.blinking_smiley = false;
+			cfg.flg.comfort_smiley = false;
+		} else if (cmd == 0xA1) {
+			cfg.flg.blinking_smiley = false;
+			cfg.flg.comfort_smiley = false;
+		} else if (cmd == 0xA2) {
+			cfg.flg.blinking_smiley = false;
+			cfg.flg.comfort_smiley = false;
+		} else if (cmd == 0xA3) {
+			cfg.flg.blinking_smiley = false;
+			cfg.flg.comfort_smiley = true; // Comfort Indicator
+		} else if (cmd == 0xAB) {
+			cfg.flg.blinking_smiley = true; // Smiley blinking
+		} else if (cmd == 0xAE) {
+			cfg.flg.advertising_type = false; // Advertising type Custom
+		} else if (cmd == 0xAF) {
+			cfg.flg.advertising_type = true; // Advertising type Mi Like
+		} else if (cmd == 0xF8) {
+			cfg.rf_tx_power = req->dat[1];
+		} else if (cmd == 0xF9) {
+			cfg.measure_interval = req->dat[1]; // Set advertising interval with second byte, value * 62.5 ms / 0=main_delay
+		} else if (cmd == 0xFA) {
+			cfg.temp_offset = req->dat[1]; // Set temp offset, -12,5 - +12,5 °C
+		} else if (cmd == 0xFB) {
+			cfg.humi_offset = req->dat[1]; // Set humi offset, -50 - +50 %
+		} else if (cmd == 0xFC) {
+		} else if (cmd == 0xFD) {
+		} else if (cmd == 0xFE) {
+			cfg.advertising_interval = req->dat[1]; // Set advertising interval with second byte, value * 62.5 ms / 0=main_delay
+		}
+		test_config();
+//		user_set_rf_power(0, 0, 0);
+		ev_adv_timeout(0, 0, 0);
+		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
+#endif
 	}
-	flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 }

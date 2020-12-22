@@ -135,6 +135,7 @@
 		<input type="radio" name='rm1' id="FixNone"/>
 		<label for="FixNone">Float</label>
 		<input type="button" id="butSave" value="Save data.csv"><br>
+		<span id='info'>?</span>
 	<div id='labdiv' style=></div>
 	</div>
   </body>
@@ -294,8 +295,7 @@ function ResponsePkt(head, value) {
 // Кэш объекта выбранного устройства
 let deviceCache = null;
 // Кэш объекта характеристики
-var characteristicTemp = null;
-var characteristicHumi = null;
+var characteristicVTH = null;
 // Запустить выбор Bluetooth устройства и подключиться к выбранному
 function connect() {
 	return (deviceCache ? Promise.resolve(deviceCache) :
@@ -308,7 +308,7 @@ function requestBluetoothDevice() {
 	log('Requesting bluetooth device...');
 	return navigator.bluetooth.requestDevice({
 	filters: [{namePrefix: 'ATC'}],
-		optionalServices: ['0000181a-0000-1000-8000-00805f9b34fb']
+		optionalServices: ['00001f10-0000-1000-8000-00805f9b34fb']
 	}).
 	then(device => {
 		log('"' + device.name + '" bluetooth device selected');
@@ -335,36 +335,21 @@ function handleDisconnection(event) {
 }
 // Подключение к определенному устройству, получение сервиса и характеристики
 function connectDeviceAndCacheCharacteristic(device) {
-  if (device.gatt.connected && characteristicTemp && characteristicHumi) { // 
+  if (device.gatt.connected && characteristicTemp && characteristicVTH) { // 
 	return Promise.resolve(null);
   }
   log('Connecting to GATT server...');
   return device.gatt.connect().
 	then(server => {
 		log('GATT server connected, getting service...');
-		return server.getPrimaryService(0x181A); // (0x180F);
+		return server.getPrimaryService(0x1F10); // (0x180F);
 	}).
 	then(service => {
-		log('Service found, getting Humidity characteristic...');
-		service.getCharacteristic(0x2A6F).
-		  then(characteristic => {
-			log('Characteristic Humi found');
-			characteristicHumi = characteristic;
-			return characteristicHumi.startNotifications().
-			then(() => {
-				characteristicHumi.addEventListener('characteristicvaluechanged', event => {
-					var value = event.target.value;
-					humi = value.getInt16(0, true) / 100.0;
-					log('Humi: '+humi+ '%');
-					ShowGrf();
-				});
-	  	  	});
-  		});
-		log('Getting Temp characteristic...');
-		return service.getCharacteristic(0x2A1F); // (0x2A19)
+		log('Service found, getting characteristic...');
+		return service.getCharacteristic(0x1F1F); // (0x2A19)
 	}).
 	then(characteristic => {
-		log('Characteristic Temp found');
+		log('Characteristic found');
 		characteristicTemp = characteristic;
 		devcnn = 1;
 		ShowConnect();
@@ -372,10 +357,16 @@ function connectDeviceAndCacheCharacteristic(device) {
 		then(() => {
 			characteristicTemp.addEventListener('characteristicvaluechanged', event => {
 				var value = event.target.value;
-				temp = value.getInt16(0, true) / 10.0;
-				log('Temp: '+temp+ '°C');
+				if(value.getUint8(0) == 0x33) {
+					temp = value.getInt16(3, true) / 100.0;
+					humi = value.getInt16(5, true) / 100.0;
+					let s = 'Vbat: '+value.getInt16(1, true)+' mV , Temp: '+temp+'°C, Humi: '+humi+'%';
+					$('info').innerHTML = s;
+					log(s);
+					ShowGrf();
+				};
 			});
-	  	});
+		});
 	});
 }
 // Отключиться от подключенного устройства
@@ -385,24 +376,10 @@ function disconnect() {
 		log('Disconnecting from "' + deviceCache.name + '" bluetooth device...');
 		deviceCache.removeEventListener('gattserverdisconnected', handleDisconnection);
 		if (deviceCache.gatt.connected) {
-			if (characteristicTemp) {
-				characteristicTemp.stopNotifications()
+			if (characteristicVTH) {
+				characteristicVTH.stopNotifications()
 				.then(_ => {
-					log('Notifications Temp stopped');
-				})
-				.catch(error => { log(error);
-					if (characteristicHumi) {
-						characteristicHumi.removeEventListener('characteristicvaluechanged', handleCharacteristicValueChanged);
-						characteristicHumi = null;
-					}
-					deviceCache = null;
-					ShowConnect();
-				});
-			};
-			if (characteristicHumi) {
-				characteristicHumi.stopNotifications()
-				.then(_ => {
-					log('Notifications Humi stopped');
+					log('Notifications stopped');
 				  	if (deviceCache.gatt.connected) {
 						deviceCache.gatt.disconnect();
 						log('"' + deviceCache.name + '" bluetooth device disconnected');
@@ -411,9 +388,9 @@ function disconnect() {
 					ShowConnect();
 				})
 				.catch(error => { log(error); 
-					if (characteristicHumi) {
-						characteristicHumi.removeEventListener('characteristicvaluechanged', handleCharacteristicValueChanged);
-						characteristicHumi = null;
+					if (characteristicVTH) {
+						characteristicVTH.removeEventListener('characteristicvaluechanged', handleCharacteristicValueChanged);
+						characteristicVTH = null;
 					}
 					deviceCache = null;
 					ShowConnect();

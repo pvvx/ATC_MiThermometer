@@ -15,6 +15,8 @@ enum{
 	CLOCK_SYS_CLOCK_1US = (CLOCK_SYS_CLOCK_1S / 1000000),
 };
 
+#define StallWaitMs(t) cpu_stall_wakeup_by_timer0(t*CLOCK_SYS_CLOCK_1MS);
+
 #define TIME_UPDATE_LCD			(1500 * CLOCK_16M_SYS_TIMER_CLK_1MS) // min 1.5 sec
 
 #define RAM _attribute_data_retention_ // short version, this is needed to keep the values in ram after sleep
@@ -71,7 +73,7 @@ typedef enum
 	RxTx_PS_H, 								//UUID: , 	VALUE: RxTx service uuid
 	RxTx_CMD_OUT_CD_H,						//UUID: , 	VALUE:  			Prop: read | write_without_rsp
 	RxTx_CMD_OUT_DP_H,						//UUID: RxTx uuid,  VALUE: RxTxData
-	RxTx_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: RxTxName
+	RxTx_CMD_OUT_DESC_H,					//UUID: 2901, 	VALUE: RxTxName
 	
 	// Mi Advertising char
 	Mi_PS_H, 								//UUID: , 	VALUE: 0xFE95 service uuid

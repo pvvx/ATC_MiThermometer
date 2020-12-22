@@ -57,7 +57,6 @@ _attribute_ram_code_ void user_set_rf_power(uint8_t e, uint8_t *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
-
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 1;
 /*
@@ -71,12 +70,22 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	show_ble_symbol(1);
 }
 
+int app_conn_param_update_response(u8 id, u16  result) {
+/*
+	if(result == CONN_PARAM_UPDATE_ACCEPT) {
+	} else if(result == CONN_PARAM_UPDATE_REJECT) {	}
+*/
+	ble_connected |= 2;
+	return 0;
+}
+/*
 extern u32 blt_ota_start_tick;
 int otaWritePre(void * p) {
 	blt_ota_start_tick = clock_time() | 1;
 	otaWrite(p);
 	return 0;
 }
+*/
 
 int RxTxWrite(void * p) {
 	cmd_parser(p);
@@ -147,17 +156,18 @@ void init_ble() {
 
 	///////////////////// Power Management initialization///////////////////
 	blc_ll_initPowerManagement_module();
+///*
 	bls_pm_setSuspendMask(
 			SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN
 					| DEEPSLEEP_RETENTION_CONN);
+//*/
 	blc_pm_setDeepsleepRetentionThreshold(95, 95);
 	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
 
 	bls_ota_clearNewFwDataArea(); //must
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
-
-//	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
+	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 }
 
 void set_adv_data(int32_t temp, uint32_t humi, uint8_t battery_level,
@@ -215,10 +225,18 @@ void ble_send_temp(int16_t temp) {
 void ble_send_humi(uint16_t humi) {
 	my_humiVal[0] = humi & 0xFF;
 	my_humiVal[1] = humi >> 8;
-	bls_att_pushNotifyData(HUMI_LEVEL_INPUT_DP_H, (uint8_t *) my_humiVal, 2);
+	bls_att_pushNotifyData(HUMI_LEVEL_INPUT_DP_H, my_humiVal, 2);
 }
 
 void ble_send_battery(uint8_t value) {
 	my_batVal[0] = value;
-	bls_att_pushNotifyData(BATT_LEVEL_INPUT_DP_H, (uint8_t *) my_batVal, 1);
+	bls_att_pushNotifyData(BATT_LEVEL_INPUT_DP_H, my_batVal, 1);
 }
+
+uint8_t send_buf[16];
+void ble_send_all(void) {
+	send_buf[0] = 0x33;
+	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);
+}
+

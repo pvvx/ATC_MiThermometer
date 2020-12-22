@@ -1,6 +1,7 @@
 #include "tl_common.h"
 
 #include "stack/ble/ble.h"
+#include "ble.h"
 
 typedef struct
 {
@@ -80,7 +81,7 @@ static const u8  my_OtaName[] = {'O', 'T', 'A'};
 // RxTx Char
 static const  u16 my_RxTxUUID				= 0x1f1f;
 static const  u16 my_RxTx_ServiceUUID		= 0x1f10;
-static u8 	  my_RxTx_Data 					= 0x00;
+RAM u8 my_RxTx_Data[16];
 static u8 RxTxValueInCCC[2];
 
 //0x95FE
@@ -151,8 +152,6 @@ static const u8 my_RxTxCharVal[5] = {
 	U16_LO(0x1f1f), U16_HI(0x1f1f)
 };
 
-extern int otaWritePre(void * p);
-extern int RxTxWrite(void * p);
 // TM : to modify
 static const attribute_t my_Attributes[] = {
 	{ATT_END_H - 1, 0,0,0,0,0},	// total num of attribute
@@ -187,23 +186,22 @@ static const attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof(humiValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(humiValueInCCC), 0},	//value
 	////////////////////////////////////// OTA /////////////////////////////////////////////////////
 	// 002e - 0031
-	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_OtaServiceUUID), 0},
+	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID), (u8*)(&my_OtaServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_OtaCharVal),(u8*)(&my_characterUUID), (u8*)(my_OtaCharVal), 0},				//prop
-	{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(&my_OtaData), &otaWrite, &otaRead},			//value
+	{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID), (&my_OtaData), &otaWrite, &otaRead},			//value
 	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_OtaName),(u8*)(&userdesc_UUID), (u8*)(my_OtaName), 0},
 	////////////////////////////////////// RxTx ////////////////////////////////////////////////////
 	// RxTx Communication
-	{4,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_RxTx_ServiceUUID), 0},
+	{4,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), (u8*)(&my_RxTx_ServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_RxTxCharVal),(u8*)(&my_characterUUID), (u8*)(my_RxTxCharVal), 0},				//prop
-	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID),	(&my_RxTx_Data), &RxTxWrite},			//value
-	{0,ATT_PERMISSIONS_RDWR,2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(RxTxValueInCCC), 0},	//value
+	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID),	(u8*)(&my_RxTx_Data), &RxTxWrite},			//value
+	{0,ATT_PERMISSIONS_RDWR,2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), (u8*)(RxTxValueInCCC), 0},	//value
 	//Mi 0x95FE
 	{2,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_FE95_ServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_MiName),(u8*)(&userdesc_UUID), (u8*)(my_MiName), 0},
 };
 
-void my_att_init(void)
-{
+void my_att_init(void) {
 	bls_att_setAttributeTable ((u8 *)my_Attributes);
 }
 

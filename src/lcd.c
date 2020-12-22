@@ -16,7 +16,7 @@ const uint8_t display_numbers[16] = {0xF5,0x05,0xD3,0x97,0x27,0xb6,0xf6,0x15,0xf
 void init_lcd(){	
 	gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 	
-	WaitMs(50);
+	StallWaitMs(50);
 	
 	send_i2c(0x78,(uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd));
 	send_to_lcd_long(0x00,0x00,0x00,0x00,0x00,0x00);	
@@ -76,15 +76,15 @@ void show_atc(){
 void show_atc_mac(){
 	extern u8  mac_public[6];
 	send_to_lcd(display_numbers[mac_public[2] &0x0f],display_numbers[mac_public[2]>>4],0x05,0xc2,0xe2,0x77);
-	WaitMs(1800);
+	StallWaitMs(1800);
 	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
-	WaitMs(200);
+	StallWaitMs(200);
 	send_to_lcd(display_numbers[mac_public[1] &0x0f],display_numbers[mac_public[1]>>4],0x05,0xc2,0xe2,0x77);
-	WaitMs(1800);
+	StallWaitMs(1800);
 	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
-	WaitMs(200);
+	StallWaitMs(200);
 	send_to_lcd(display_numbers[mac_public[0] &0x0f],display_numbers[mac_public[0]>>4],0x05,0xc2,0xe2,0x77);
-	WaitMs(1800);
+	StallWaitMs(1800);
 }
 
 void show_big_number(int16_t number, bool point){
