@@ -175,7 +175,7 @@ function customAction() {
 						addLog(s);
 						CustomConfig();
                    	} else if(blkid == 0x33) {
-						let vbat = value.getInt16(1, true) / 100.0;
+						let vbat = value.getInt16(1, true);
 						let temp = value.getInt16(3, true) / 100.0;
 						let humi = value.getInt16(5, true) / 100.0;
 						let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%';
