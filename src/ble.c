@@ -11,7 +11,7 @@
 #include "lcd.h"
 #include "app.h"
 
-RAM uint8_t ble_connected = 0;
+RAM uint8_t ble_connected;
 
 extern uint8_t my_tempVal[2];
 extern uint8_t my_humiVal[2];
@@ -78,14 +78,13 @@ int app_conn_param_update_response(u8 id, u16  result) {
 	ble_connected |= 2;
 	return 0;
 }
-/*
+
 extern u32 blt_ota_start_tick;
 int otaWritePre(void * p) {
 	blt_ota_start_tick = clock_time() | 1;
 	otaWrite(p);
 	return 0;
 }
-*/
 
 int RxTxWrite(void * p) {
 	cmd_parser(p);
@@ -238,5 +237,12 @@ void ble_send_all(void) {
 	send_buf[0] = 0x33;
 	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);
+}
+
+void ble_send_cfg(void) {
+	my_RxTx_Data[0] = 0x55;
+	my_RxTx_Data[1] = VERSION;
+	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg) + 2);
 }
 

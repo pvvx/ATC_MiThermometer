@@ -1,4 +1,4 @@
-<!-- Copyright: Aaron Christophel / Atc1441 https://atcnetz.de -->
+<!-- Copyright: Aaron Christophel / Atc1441 https://atcnetz.de, + peoples' edition :) -->
 <html class="telFlasherClass"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Telink Flasher</title>
@@ -18,7 +18,9 @@ var state = 0,
     connectTrys = 0;
 //Custom firmware
 var customEnabled;
-var settingsCharacteristics;
+var settingsCharacteristics = null;
+// Custom config
+var cfg = {ver: 0, flg: 4, temp_offset: 0, humi_offset: 0, advertising_interval: 32, measure_interval: 5, rf_tx_power: 191, connect_latency: 99};
 //Mi values
 var miEnabled = false,
     miConnected = false,
@@ -28,12 +30,12 @@ var mi_random_key, mi_random_key_recv, mi_device_info_recv, mi_device_info_send,
 //Activation values
 var keypair, is_activated, own_public_key, device_public_key, shared_key, derived_key, mi_write_did;
 var device_new_id = "00626c742e332e31323976" + makeRandomID(6) + "415443";
-
 function resetVariables() {
     busy = false;
     gattServer = null;
     Theservice = null;
     writeCharacteristic = null;
+    settingsCharacteristics = null;
     miConnected = false;
     is_logged_in = false;
 }
@@ -137,8 +139,8 @@ function miAction() {
                     var value = event.target.value;
                     var temp = (value.getUint8(1) << 8 | value.getUint8(0)) / 100;
                     var hum = value.getUint8(2);
-                    var tempTempString = "Temp/Humi: " + temp + "캜 / " + hum + "%";
-                    document.getElementById("tempHumiData").innerHTML = tempTempString;
+                    var tempTempString = "Temp/Humi: " + temp + "째C / " + hum + "%";
+                    document.getElementById("tempHumiData").innerHTML = '<hr>'+tempTempString;
                     addClog(tempTempString);
                 });
                 miAuthorization()
@@ -155,6 +157,36 @@ function customAction() {
         }).then(characteristic => {
             addClog("Found custom write characteristic");
             settingsCharacteristics = characteristic;
+            return settingsCharacteristics.startNotifications().then(() => {
+                settingsCharacteristics.addEventListener('characteristicvaluechanged', event => {
+                    var value = event.target.value;
+                   	let blkid = value.getUint8(0);
+                   	if(blkid == 0x55) {
+                   		cfg.ver = value.getUint8(1);
+                   		cfg.flg = value.getUint8(2);
+                   		cfg.temp_offset = value.getInt8(3);
+                   		cfg.humi_offset = value.getInt8(4);
+                   		cfg.advertising_interval = value.getUint8(5);
+                   		cfg.measure_interval = value.getUint8(6);
+                   		cfg.rf_tx_power = value.getUint8(7);
+						cfg.connect_latency = value.getUint8(8);
+						let s = 'DevVersion: '+cfg.ver+', Custom config: ['+cfg.flg+', '+cfg.temp_offset+', '+cfg.humi_offset+', '+cfg.advertising_interval+', '+cfg.measure_interval+', '+cfg.rf_tx_power+', '+cfg.connect_latency+']';
+						addClog(s);
+						addLog(s);
+						CustomConfig();
+                   	} else if(blkid == 0x33) {
+						let vbat = value.getInt16(1, true) / 100.0;
+						let temp = value.getInt16(3, true) / 100.0;
+						let humi = value.getInt16(5, true) / 100.0;
+						let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'째C, Humi: '+humi+'%';
+						document.getElementById("tempHumiData").innerHTML = s;
+	                    addClog(s);
+                    } else {
+						addClog('Custom (0x1f1f) Notifications id: '+blkid);
+                    }
+                });
+                
+            });
         }).catch(handleError);
 }
 
@@ -349,11 +381,13 @@ function detectMi() {
         if (miEnabled) {
             addLog("Detected Mi Thermometer");
             setStatus("Detected Mi Thermometer");
+			document.getElementById("custcfg").innerHTML = 'Device known id:<br><input size="40" type="text" id="known_id" value=""><br>Mi Token:<br><input size="40" type="text" id="mi_token" value=""><br>Mi Bind Key:<br><input size="40" type="text" id="mi_bind_key" value=""><br><br>When doing an activation here the device is needed to be activated in the Mi app again when wanted to use there.<br>';
             miAction();
         } else if (customEnabled) {
             addLog("Detected custom Firmware");
             setStatus("Detected custom Firmware");
             customAction();
+			document.getElementById("custcfg").innerHTML = '<button type="button" onclick="sendCustomSetting(&quot;55&quot;);">Get Config</button><br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br>';
         } else {
             addLog("Connected");
             setStatus("Connected")
@@ -677,6 +711,71 @@ function do_login_generate() {
     mi_device_info_send = sjcl.codec.hex.fromBits(new sjcl.misc.hmac(sjcl.codec.hex.toBits(derived_key.substring(32, 64))).mac(sjcl.codec.hex.toBits(bytesToHex(salt))));
     mainCharSend("00000100", enc_19);
 }
+
+function CustomConfig() {
+	let is = '<br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br><br>';
+	is += 'Temperature: <select id="cfg_flg_cf"><option value="0">째C</option><option value="1">째F</option></select><br><br>';
+	is += 'Smiley: <select id="cfg_smiley"><option value="0">Off</option><option value="1">Happy</option><option value="2">Sad</option></select>';
+	is += ' Blinking: <input type="checkbox" id="cfg_flg_blinking">';
+	is += ' Comfort: <input type="checkbox" id="cfg_flg_comfort">';
+	is += ', Show batt: <input type="checkbox" id="cfg_flg_show_batt"><br><br>';
+	is += 'Tx measures: <input type="checkbox" id="cfg_cfg_tx_meas"><br><br>';
+	is += 'Temperature offset: <input title="-125..125 (-12.5..12.5째), default 0" id="cfg_tmp_off" maxlength="5" value="0"> x0.1째';
+	is += ', Humidity offset: <input title="-125..125 (-12.5..12.5%), default 0" id="cfg_hm_off" maxlength="5" value="0"> x0.1%<br><br>';
+	is += 'Advertising type: <select id="cfg_flg_adv_type"><option value="0">Custom</option><option value="1">Mi</option></select><br><br>';
+	is += 'Advertising interval: <input title="1..160 (62.5 ms .. 10 sec), default 32 (2 sec)" id="cfg_adv_int" maxlength="5" value="32"> x62.5 ms<br><br>';
+	is += 'Connect latency: <input title="0..200 (20 ms .. 4 sec), default 99 (2 sec)" id="cfg_con_lat" maxlength="5" value="99"> x20 ms<br><br>';
+	is += 'Measure interval: <input title="2..10 (125 ms .. 100 sec), default 5 (10 sec)" id="cfg_meas_int" maxlength="5" value="5"> x(Advertising interval or Connect latency)<br><br>';
+	is += 'RF TX Power: <select id="cfg_rf_tx"><option value="191">+3.01 dbm</option><option value="189">+2.81 dbm</option><option value="187">+2.61 dbm</option><option value="185">+2.39 dbm</option><option value="182">+1.99 dbm</option><option value="180">+1.73 dbm</option><option value="178">+1.45 dbm</option><option value="176">+1.17 dbm</option><option value="174">+0.90 dbm</option><option value="172">+0.58 dbm</option><option value="169">+0.04 dbm</option><option value="168">-0.14 dbm</option><option value="164">-0.97 dbm</option><option value="162">-1.42 dbm</option><option value="160">-1.89 dbm</option><option value="158">-2.48 dbm</option><option value="156">-3.03 dbm</option><option value="154">-3.61 dbm</option><option value="152">-4.26 dbm</option><option value="150">-5.03 dbm</option><option value="148">-5.81 dbm</option><option value="146">-6.67 dbm</option><option value="144">-7.65 dbm</option><option value="142">-8.65 dbm</option><option value="140">-9.89 dbm</option><option value="138">-11.4 dbm</option><option value="136">-13.29 dbm</option><option value="134">-15.88 dbm</option><option value="132">-19.27 dbm</option><option value="130">-25.18 dbm</option></select><br><br>';	is += '<button type="button" onclick="SendCustomConfig()">Send Custom Config</button><br><br>';
+	document.getElementById("custcfg").innerHTML = is;
+	document.getElementById("cfg_smiley").value = cfg.flg&3;
+	document.getElementById("cfg_flg_comfort").checked = (cfg.flg&4) != 0;
+	document.getElementById("cfg_flg_blinking").checked = (cfg.flg&8) != 0;
+   	document.getElementById("cfg_flg_cf").value = ((cfg.flg&16) != 0 ? 1 : 0);
+	document.getElementById("cfg_flg_show_batt").checked = (cfg.flg&32) != 0;
+	document.getElementById("cfg_flg_adv_type").value = ((cfg.flg&64) != 0 ? 1 : 0);
+	document.getElementById("cfg_cfg_tx_meas").checked = (cfg.flg&128) != 0;
+	document.getElementById("cfg_tmp_off").value = String(cfg.temp_offset);
+	document.getElementById("cfg_hm_off").value = String(cfg.humi_offset);
+	document.getElementById("cfg_adv_int").value = String(cfg.advertising_interval);
+	document.getElementById("cfg_meas_int").value = String(cfg.measure_interval);
+	document.getElementById("cfg_rf_tx").value = String(cfg.rf_tx_power);
+	document.getElementById("cfg_con_lat").value =String(cfg.connect_latency);
+}
+function hex(number, length) {
+    var str = (number.toString(16)).toUpperCase();
+    while (str.length < length) str = '0' + str;
+    return str;
+} 
+function SendCustomConfig() {
+	cfg.flg = (parseInt(document.getElementById("cfg_smiley").value) & 3) + 
+	((document.getElementById("cfg_flg_comfort").checked) ? 4 : 0) +
+	((document.getElementById("cfg_flg_blinking").checked) ? 8 : 0) +
+   	((document.getElementById("cfg_flg_cf").value != 0) ? 16 : 0) +
+	((document.getElementById("cfg_flg_show_batt").checked) ? 32 : 0) +
+	((document.getElementById("cfg_flg_adv_type").value != 0) ? 64 : 0) +
+	((document.getElementById("cfg_cfg_tx_meas").checked) ? 128 : 0);
+	cfg.temp_offset = parseInt(document.getElementById("cfg_tmp_off").value);
+	if(cfg.temp_offset < -125) cfg.temp_offset = -125;
+	else if(cfg.temp_offset > 125) cfg.temp_offset = 125;
+	cfg.humi_offset = parseInt(document.getElementById("cfg_hm_off").value);
+	if(cfg.humi_offset < -125) cfg.humi_offset = -125;
+	else if(cfg.humi_offset > 125) cfg.humi_offset = 125;
+	cfg.advertising_interval = parseInt(document.getElementById("cfg_adv_int").value);
+	if(cfg.advertising_interval < 2 || cfg.advertising_interval > 160) cfg.advertising_interval = 32;
+	cfg.measure_interval = parseInt(document.getElementById("cfg_meas_int").value);
+	if(cfg.measure_interval < 2 || cfg.measure_interval > 10) cfg.measure_interval = 5;
+	cfg.rf_tx_power = parseInt(document.getElementById("cfg_rf_tx").value);
+	if(cfg.rf_tx_power < 130 || cfg.rf_tx_power > 191) cfg.rf_tx_power = 191;
+	cfg.connect_latency = parseInt(document.getElementById("cfg_con_lat").value);
+	if(cfg.connect_latency < 0 || cfg.connect_latency > 200) cfg.connect_latency = 99;
+	let s = 'New custom config: ['+cfg.flg+', '+cfg.temp_offset+', '+cfg.humi_offset+', '+cfg.advertising_interval+', '+cfg.measure_interval+', '+cfg.rf_tx_power+', '+cfg.connect_latency+']';
+	addClog(s);
+	addLog(s);
+	sendCustomSetting('55'+hex(cfg.flg,2)+hex(cfg.temp_offset&0xff,2)+hex(cfg.humi_offset&0xff,2)+hex(cfg.advertising_interval,2)+hex(cfg.measure_interval,2)+hex(cfg.rf_tx_power,2)+hex(cfg.connect_latency,2));
+	document.getElementById("custcfg").innerHTML = '<button type="button" onclick="sendCustomSetting(&quot;55&quot;);">Get Config</button><br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br>';
+}
+
 </script>
 <big><big>Telink Flasher for Mi Thermostat</big></big><br>
 Copyright: Aaron Christophel / Atc1441  <a href="https://atcnetz.de">https://ATCnetz.de</a><br>
@@ -693,83 +792,13 @@ Copyright: Aaron Christophel / Atc1441  <a href="https://atcnetz.de">https://ATC
 Please select a .bin file you want to flash to a Telink BLE device.<br><br>
   Select Firmware: <input type="file" accept=".bin" id="file"/><br>
  <div id="percent">Status: waiting for you to connect a device</div><hr>
- <div id="tempHumiData">Temp/Humi: waiting for data, this will not change on devices with custom firmware, only on stock firmware</div><hr>
-  <div id="MAC">#enable-experimental-web-platform-features may be needed to read MAC</div><hr>
-  Device known id:<br>
-  <input size="40" type="text" id="known_id" value=""><br>
-  Mi Token:<br>
-  <input size="40" type="text" id="mi_token" value=""><br>
-  Mi Bind Key:<br>
-  <input size="40" type="text" id="mi_bind_key" value=""><br>
-  <br>
-  When doing an activation here the device is needed to be activated in the Mi app again when wanted to use there.
-  <hr>
- Send settings to custom firmware:<br>
-  <input type="text" id="cmdTXT" value="">
-  <button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button>
-  <br><br>
-  Smiley:
-  <button type="button" onclick="sendCustomSetting(&quot;A0&quot;);">Off</button>
-  <button type="button" onclick="sendCustomSetting(&quot;A1&quot;);">Happy</button>
-  <button type="button" onclick="sendCustomSetting(&quot;A2&quot;);">Sad</button>
-  <button type="button" onclick="sendCustomSetting(&quot;AB&quot;);">Blinking</button>
-  <br><br>
-  Advertising Type:
-  <button type="button" onclick="sendCustomSetting(&quot;AE&quot;);">Custom</button>
-  <button type="button" onclick="sendCustomSetting(&quot;AF&quot;);">Mi Like</button>
-  <br><br>
-  Sensor display:
-  <button type="button" onclick="sendCustomSetting(&quot;CC&quot;);">In 캜</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FF&quot;);">In 캟</button>
-  <br><br>
-  Show battery in LCD:
-  <button type="button" onclick="sendCustomSetting(&quot;B1&quot;);">Enabled</button>
-  <button type="button" onclick="sendCustomSetting(&quot;B0&quot;);">Disabled</button>
-  <br><br>
-  Advertising interval:
-  <button type="button" onclick="sendCustomSetting(&quot;FE10&quot;);">1 Seconds</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FE20&quot;);">2 Seconds</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FE30&quot;);">3 Seconds</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FE40&quot;);">4 Seconds</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FE50&quot;);">5 Seconds</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FE60&quot;);">6 Seconds</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FE70&quot;);">7 Seconds</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FE80&quot;);">8 Seconds</button>
-  <br><br>
-  Measurement step (in advertising intervals):
-  <button type="button" onclick="sendCustomSetting(&quot;F902&quot;);">x2</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F903&quot;);">x3</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F904&quot;);">x4</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F905&quot;);">x5</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F906&quot;);">x6</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F907&quot;);">x7</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F908&quot;);">x8</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F909&quot;);">x9</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F90A&quot;);">x10</button>
-  <br><br>
-  RF TX Power:
-  <button type="button" onclick="sendCustomSetting(&quot;F8A9&quot;);">0.04 dbm</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F8AE&quot;);">0.90 dbm</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F8B6&quot;);">1.99 dbm</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F8BF&quot;);">3.01 dbm</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F81B&quot;);">4.57 dbm</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F81F&quot;);">5.65 dbm</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F825&quot;);">7.02 dbm</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F82F&quot;);">8.73 dbm</button>
-  <button type="button" onclick="sendCustomSetting(&quot;F83F&quot;);">10.46 dbm</button>
-  <br><br>
-  Sensor offset:
-  <button type="button" onclick="sendCustomSetting(&quot;FA00&quot;);">Temp 0캜 offset</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FB00&quot;);">Humi 0% offset</button><br>
-  To set a precise offset use the text input field with FA+offset for Temp and FB+offset for Humiditiy convert an int8 to hex.
-  <br><br>
-  Sensor instant Advertising:
-  <button type="button" onclick="sendCustomSetting(&quot;FC05&quot;);">Temp 0,5캜 instant alarm</button>
-  <button type="button" onclick="sendCustomSetting(&quot;FD05&quot;);">Humi 5% instant alarm</button><br>
-  To set other values use the text input with FC+temp alarm or FD+humi alarm with uint8_t values.
-  This can be used to get instant advertising if the sensor data changes to fast. Temp divided by 10
-  <br>
-  <hr>
+ <div id="tempHumiData">Temp/Humi: waiting for data after connecting</div><hr>
+ <div id="MAC">#enable-experimental-web-platform-features may be needed to read MAC (copy link:
+  <a href=chrome://flags/#enable-experimental-web-platform-features>Chrome<a>,
+  <a href=opera://flags/#enable-experimental-web-platform-features>Opera<a>,
+  <a href=edge://flags/#enable-experimental-web-platform-features>Edge<a>)
+  </div>
+  <hr><div id="custcfg"></div><hr>
  <div id="log">Log:<br></div>
  <div id="result"></div>
 </body></html>

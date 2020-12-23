@@ -18,13 +18,17 @@ void cmd_parser(void * p) {
 			if(--len > sizeof(cfg)) len = sizeof(cfg);
 			if(len)
 				memcpy(&cfg, &req->dat[1], len);
-			my_RxTx_Data[0] = 0x55;
-			memcpy(&my_RxTx_Data[1], &cfg, sizeof(cfg));
-			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg));
 			test_config();
-	//		user_set_rf_power(0, 0, 0);
 			ev_adv_timeout(0, 0, 0);
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
+			ble_send_cfg();
+		} if (cmd == 0x33) {
+			if(len >= 2)
+				tx_measures = req->dat[1];
+			else
+				tx_measures = 1;
+		} if (cmd == 0x11) {
+			bls_l2cap_requestConnParamUpdate(8, 8, 99, 800);
 		}
 #else
 		if (cmd == 0xFF) {

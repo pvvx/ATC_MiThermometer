@@ -18,7 +18,7 @@ typedef struct _cfg_t {
 		uint8_t temp_C_or_F			: 1;
 		uint8_t show_batt_enabled	: 1;
 		uint8_t advertising_type	: 1; // Custom or Mi Advertising (true)
-		uint8_t tx_measure			: 1;
+		uint8_t tx_measures			: 1;
 	} flg;
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -50 - +50 %
@@ -35,6 +35,7 @@ typedef struct _measured_data_t {
 	int16_t		humi; // x 0.01 %
 } measured_data_t;
 extern measured_data_t measured_data;
+extern volatile uint8_t tx_measures;
 
 extern uint32_t adv_interval;
 extern uint32_t measurement_step_time;

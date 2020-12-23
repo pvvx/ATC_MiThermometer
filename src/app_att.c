@@ -60,16 +60,16 @@ static const u8 my_PnPtrs [] = {0x02, 0x8a, 0x24, 0x66, 0x82, 0x01, 0x00};
 //////////////////////// Battery /////////////////////////////////////////////////
 static const u16 my_batServiceUUID        = SERVICE_UUID_BATTERY;
 static const u16 my_batCharUUID       	  = CHARACTERISTIC_UUID_BATTERY_LEVEL;
-static u8 batteryValueInCCC[2];
+RAM u8 batteryValueInCCC[2];
 RAM u8 my_batVal[1] 	= {100};
 
 //////////////////////// Temp /////////////////////////////////////////////////
 static const u16 my_tempServiceUUID       = 0x181A;
 static const u16 my_tempCharUUID       	  = 0x2A1F;
 static const u16 my_humiCharUUID       	  = 0x2A6F;
-static u8 tempValueInCCC[2];
+RAM u8 tempValueInCCC[2];
 RAM u8 my_tempVal[2] 	= {0};
-static u8 humiValueInCCC[2];
+RAM u8 humiValueInCCC[2];
 RAM u8 my_humiVal[2] 	= {0};
 
 /////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ static const u8  my_OtaName[] = {'O', 'T', 'A'};
 static const  u16 my_RxTxUUID				= 0x1f1f;
 static const  u16 my_RxTx_ServiceUUID		= 0x1f10;
 RAM u8 my_RxTx_Data[16];
-static u8 RxTxValueInCCC[2];
+RAM u8 RxTxValueInCCC[2];
 
 //0x95FE
 static const  u16 my_FE95_ServiceUUID		= 0xFE95;
@@ -188,7 +188,7 @@ static const attribute_t my_Attributes[] = {
 	// 002e - 0031
 	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID), (u8*)(&my_OtaServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_OtaCharVal),(u8*)(&my_characterUUID), (u8*)(my_OtaCharVal), 0},				//prop
-	{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID), (&my_OtaData), &otaWrite, &otaRead},			//value
+	{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID), (&my_OtaData), &otaWritePre, &otaRead},			//value
 	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_OtaName),(u8*)(&userdesc_UUID), (u8*)(my_OtaName), 0},
 	////////////////////////////////////// RxTx ////////////////////////////////////////////////////
 	// RxTx Communication

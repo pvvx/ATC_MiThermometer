@@ -15,6 +15,7 @@ RAM bool last_smiley;
 RAM bool show_batt_or_humi;
 
 RAM measured_data_t measured_data;
+RAM volatile uint8_t tx_measures;
 
 RAM int16_t last_temp; // x0.1 C
 RAM uint16_t last_humi; // %
@@ -42,7 +43,7 @@ static const cfg_t def_cfg = {
 	.flg.comfort_smiley = true,
 	.flg.show_batt_enabled = false,
 	.flg.advertising_type = false,
-	.flg.tx_measure = true,
+	.flg.tx_measures = true,
 	.advertising_interval = 32, // multiply by 62.5 ms  (2 sec)
 	.measure_interval = 5, // * advertising_interval (10 sec)
 	.rf_tx_power = RF_POWER_P3p01dBm,
@@ -61,6 +62,8 @@ void test_config(void) {
 		cfg.measure_interval = 10; // x10
 	if(!cfg.flg.blinking_smiley && !cfg.flg.comfort_smiley)
 		show_smiley(cfg.flg.smiley);
+	if(cfg.flg.tx_measures)
+		tx_measures = 1;
 	adv_interval = cfg.advertising_interval * 100; // t = adv_interval * 0.625 ms
 	measurement_step_time = adv_interval * cfg.measure_interval * 625 * sys_tick_per_us;
 }
@@ -204,13 +207,17 @@ void main_loop() {
 			battery_level = get_battery_level(measured_data.battery_mv);
 		} else {
 			if(!wrk_measure) {
-				if(ble_connected & 2) {
+				if(ble_connected) {
 					if (end_measure) {
 						end_measure = 0;
-						ble_send_battery(battery_level);
-						ble_send_temp(last_temp);
-						ble_send_humi(measured_data.humi);
-						if(cfg.flg.tx_measure) ble_send_all();
+						if(tx_measures && (RxTxValueInCCC[0] | RxTxValueInCCC[1]))
+							ble_send_all();
+						if(batteryValueInCCC[0] | batteryValueInCCC[1])
+							ble_send_battery(battery_level);
+						if(tempValueInCCC[0] | tempValueInCCC[1])
+							ble_send_temp(last_temp);
+						if(humiValueInCCC[0] | humiValueInCCC[1])
+							ble_send_humi(measured_data.humi);
 					}
 				}
 				uint32_t new = clock_time();
