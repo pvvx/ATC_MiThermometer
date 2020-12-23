@@ -200,7 +200,7 @@ function ShowGrf() {
 				series : { 'H(%)': { axis: 'y2' } },
 				axes: {
 					x: {valueFormatter: function(x){return this.getLabels()[0] + ': '+ x.toPrecision(5);}}},
-					labels: ['T(sec)', 'T(C°)', 'H(%)'],
+					labels: ['T(sec)', 'T(°C)', 'H(%)'],
 					labelsDiv: $('labdiv'),
 					legend: 'always',  // "follow"
 					digitsAfterDecimal: 3,
@@ -296,11 +296,18 @@ function ResponsePkt(head, value) {
 let deviceCache = null;
 // Кэш объекта характеристики
 var characteristicVTH = null;
+function DevConnected() {
+		devcnn = 1;
+		log('Device connected ok.');
+		ShowConnect()
+       	stage_read = 0;
+		setTimeout(WaitConnection, 20000);
+}
 // Запустить выбор Bluetooth устройства и подключиться к выбранному
 function connect() {
 	return (deviceCache ? Promise.resolve(deviceCache) :
 		requestBluetoothDevice()).
-			then(device => connectDeviceAndCacheCharacteristic(device)).
+		then(device => connectDeviceAndCacheCharacteristic(device)).
 		catch(error => { log(error); ShowConnect();});
 }
 // Запрос выбора Bluetooth устройства
@@ -308,7 +315,7 @@ function requestBluetoothDevice() {
 	log('Requesting bluetooth device...');
 	return navigator.bluetooth.requestDevice({
 	filters: [{namePrefix: 'ATC'}],
-		optionalServices: ['00001f10-0000-1000-8000-00805f9b34fb']
+		optionalServices: ['00001f10-0000-1000-8000-00805f9b34fb','00001f1f-0000-1000-8000-00805f9b34fb']
 	}).
 	then(device => {
 		log('"' + device.name + '" bluetooth device selected');
@@ -324,18 +331,13 @@ function handleDisconnection(event) {
 	if(devcnn != 0) {
 		log('"' + device.name + '" bluetooth device disconnected, trying to reconnect...');
 		connectDeviceAndCacheCharacteristic(device).
-			then(characteristic => {
-				devcnn = 1;
-		        ShowConnect()
-        		stage_read = 0;
-				setTimeout(WaitConnection, 20000);
-			}).
+			then(_ => Connected()).
 			catch(error => log(error));
 	}
 }
 // Подключение к определенному устройству, получение сервиса и характеристики
 function connectDeviceAndCacheCharacteristic(device) {
-  if (device.gatt.connected && characteristicTemp && characteristicVTH) { // 
+  if (device.gatt.connected && characteristicVTH && characteristicVTH) { // 
 	return Promise.resolve(null);
   }
   log('Connecting to GATT server...');
@@ -350,22 +352,29 @@ function connectDeviceAndCacheCharacteristic(device) {
 	}).
 	then(characteristic => {
 		log('Characteristic found');
-		characteristicTemp = characteristic;
+		characteristicVTH = characteristic;
 		devcnn = 1;
 		ShowConnect();
-		return characteristicTemp.startNotifications().
-		then(() => {
-			characteristicTemp.addEventListener('characteristicvaluechanged', event => {
+		log('Start Notifications...');
+		return characteristicVTH.startNotifications().
+		then(_ => {
+			log('Notifications Started');
+			characteristicVTH.addEventListener('characteristicvaluechanged', event => {
 				var value = event.target.value;
 				if(value.getUint8(0) == 0x33) {
+					let vbat = value.getUint16(1, true);
 					temp = value.getInt16(3, true) / 100.0;
 					humi = value.getInt16(5, true) / 100.0;
-					let s = 'Vbat: '+value.getInt16(1, true)+' mV , Temp: '+temp+'°C, Humi: '+humi+'%';
+					let count = value.getUint16(7, true);
+					let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%, Count: '+count;
 					$('info').innerHTML = s;
 					log(s);
 					ShowGrf();
 				};
 			});
+			DevConnected();
+			log('Send command tx-measures on (0x33)...');
+			return characteristicVTH.writeValue(new Uint8Array([0x33]));
 		});
 	});
 }
@@ -374,16 +383,16 @@ function disconnect() {
 	devcnn = 0;
 	if (deviceCache) {
 		log('Disconnecting from "' + deviceCache.name + '" bluetooth device...');
-		deviceCache.removeEventListener('gattserverdisconnected', handleDisconnection);
 		if (deviceCache.gatt.connected) {
 			if (characteristicVTH) {
 				characteristicVTH.stopNotifications()
-				.then(_ => {
+                .then(_ => {
 					log('Notifications stopped');
+					characteristicVTH = null;
 				  	if (deviceCache.gatt.connected) {
 						deviceCache.gatt.disconnect();
-						log('"' + deviceCache.name + '" bluetooth device disconnected');
 					}
+					deviceCache.removeEventListener('gattserverdisconnected', handleDisconnection);
 					deviceCache = null;
 					ShowConnect();
 				})
@@ -392,6 +401,7 @@ function disconnect() {
 						characteristicVTH.removeEventListener('characteristicvaluechanged', handleCharacteristicValueChanged);
 						characteristicVTH = null;
 					}
+					deviceCache.removeEventListener('gattserverdisconnected', handleDisconnection);
 					deviceCache = null;
 					ShowConnect();
 				});

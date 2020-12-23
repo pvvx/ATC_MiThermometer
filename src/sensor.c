@@ -75,7 +75,7 @@ _attribute_ram_code_ void read_sensor_cb(void) {
 	reg_i2c_ctrl = FLD_I2C_CMD_STOP;
 	measured_data.humi = ((uint32_t)(10000*_humi) >> 16) + cfg.humi_offset * 100; // x 0.01 %
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-
+	measured_data.count++;
 	send_sensor(SHTC3_GO_SLEEP); // Sleep command of the sensor
 }
 

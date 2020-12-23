@@ -51,6 +51,8 @@ _attribute_ram_code_ void app_enter_ota_mode(void) {
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 0;
 	show_ble_symbol(0);
+	if(!cfg.flg.tx_measures)
+		tx_measures = 0;
 }
 
 _attribute_ram_code_ void user_set_rf_power(uint8_t e, uint8_t *p, int n) {

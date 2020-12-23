@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <!-- Copyright: Aaron Christophel / Atc1441 https://atcnetz.de, + peoples' edition :) -->
 <html class="telFlasherClass"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -157,7 +158,8 @@ function customAction() {
         }).then(characteristic => {
             addClog("Found custom write characteristic");
             settingsCharacteristics = characteristic;
-            return settingsCharacteristics.startNotifications().then(() => {
+            addClog("Start Notifications (0x1f1f)");
+            return settingsCharacteristics.startNotifications().then(_ => {
                 settingsCharacteristics.addEventListener('characteristicvaluechanged', event => {
                     var value = event.target.value;
                    	let blkid = value.getUint8(0);
@@ -175,17 +177,17 @@ function customAction() {
 						addLog(s);
 						CustomConfig();
                    	} else if(blkid == 0x33) {
-						let vbat = value.getInt16(1, true);
+						let vbat = value.getUint16(1, true);
 						let temp = value.getInt16(3, true) / 100.0;
 						let humi = value.getInt16(5, true) / 100.0;
-						let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%';
+						let count = value.getUint16(7, true);
+						let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%, Count: '+count;
 						document.getElementById("tempHumiData").innerHTML = s;
 	                    addClog(s);
                     } else {
 						addClog('Custom (0x1f1f) Notifications id: '+blkid);
                     }
                 });
-                
             });
         }).catch(handleError);
 }
@@ -387,7 +389,7 @@ function detectMi() {
             addLog("Detected custom Firmware");
             setStatus("Detected custom Firmware");
             customAction();
-			document.getElementById("custcfg").innerHTML = '<button type="button" onclick="sendCustomSetting(&quot;55&quot;);">Get Config</button><br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br>';
+			document.getElementById("custcfg").innerHTML = '<button type="button" onclick="sendCustomSetting(&quot;55&quot;);">Get Config</button> <button type="button" onclick="sendCustomSetting(&quot;33&quot;);">Start Measure</button><br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br>';
         } else {
             addLog("Connected");
             setStatus("Connected")
@@ -719,7 +721,7 @@ function CustomConfig() {
 	is += ' Blinking: <input type="checkbox" id="cfg_flg_blinking">';
 	is += ' Comfort: <input type="checkbox" id="cfg_flg_comfort">';
 	is += ', Show batt: <input type="checkbox" id="cfg_flg_show_batt"><br><br>';
-	is += 'Tx measures: <input type="checkbox" id="cfg_cfg_tx_meas"><br><br>';
+	is += 'Tx measures: <input type="checkbox" id="cfg_cfg_tx_meas"> <button type="button" onclick="sendCustomSetting(&quot;33&quot;);">Start Measure</button><br><br>';
 	is += 'Temperature offset: <input title="-125..125 (-12.5..12.5°), default 0" id="cfg_tmp_off" maxlength="5" value="0"> x0.1°';
 	is += ', Humidity offset: <input title="-125..125 (-12.5..12.5%), default 0" id="cfg_hm_off" maxlength="5" value="0"> x0.1%<br><br>';
 	is += 'Advertising type: <select id="cfg_flg_adv_type"><option value="0">Custom</option><option value="1">Mi</option></select><br><br>';

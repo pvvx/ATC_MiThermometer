@@ -8,7 +8,7 @@ extern "C" {
 //#define PC3_INPUT_ENABLE	1
 //#define PB6_INPUT_ENABLE	1
 
-#define VERSION 0x01
+#define VERSION 0x02
 
 #define CLOCK_SYS_CLOCK_HZ  	24000000
 enum{
