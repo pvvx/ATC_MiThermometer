@@ -9,10 +9,12 @@ extern "C" {
 //#define PB6_INPUT_ENABLE	1
 
 #define VERSION 0x03
-/* average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
+/* Average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
  * 16 MHz - 17.43 uA
  * 24 MHz - 17.28 uA
  * 32 MHz - 17.36 uA
+ * Average consumption Original Xiaomi LYWSD03MMC (advertising 1700 ms, measure 6800 ms):
+ * 18.64 uA
  */
 #define CLOCK_SYS_CLOCK_HZ  	24000000 // 16000000, 24000000, 32000000, 48000000
 enum{

@@ -8,6 +8,86 @@
 #include "flash_eep.h"
 #include "ble.h"
 
+RAM uint8_t mi_key_stage;
+RAM uint8_t mi_key_chk_cnt;
+RAM uint8_t keybuf[0x20];
+
+uint8_t find_mi_keys(uint16_t chk_id, uint8_t cnt, uint8_t *pbuf) {
+	uint8_t * p = (uint8_t *)(0x78000);
+	uint16_t id;
+	uint8_t len;
+	do {
+		id = p[0] | (p[1] << 8);
+		len = p[2];
+		p += 3;
+		if(len <= 0x20 && len >= 0x04
+			&& id == chk_id
+			&& --cnt == 0) {
+				pbuf[1] = len;
+				memcpy(&pbuf[2], p, len);
+				return len;
+		}
+		p += len;
+	} while(id != 0xffff || len != 0xff || p < (uint8_t *)(0x79000));
+	return 0;
+}
+
+uint8_t send_mi_key(void) {
+	if (blc_ll_getTxFifoNumber() < 9) {
+		while(keybuf[1] > 16) {
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, keybuf, 16 +2);
+			keybuf[1] -= 16;
+			if(keybuf[1])
+				memcpy(&keybuf[2], &keybuf[16+2], keybuf[1]);
+		};
+		if(keybuf[1])
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, keybuf, keybuf[1] +2);
+		return 1;
+	};
+	return 0;
+}
+void send_mi_no_key(void) {
+	keybuf[1] = 0;
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, keybuf, 2);
+}
+uint8_t get_mi_keys(uint8_t chk_stage) {
+	if(keybuf[1]) {
+		if(!send_mi_key())
+			return chk_stage;
+	};
+	switch(chk_stage) {
+	case 1:
+		if(find_mi_keys(0x10, 1, keybuf)) {
+			send_mi_key();
+			chk_stage = 2;
+		} else {
+			send_mi_no_key();
+			chk_stage = 0;
+		}
+		break;
+	case 2:
+		if(find_mi_keys(0, ++mi_key_chk_cnt, keybuf)) {
+			send_mi_key();
+		} else {
+			send_mi_no_key();
+			chk_stage = 0;
+		}
+		break;
+	default:
+		keybuf[0] = 0x11;
+		mi_key_chk_cnt = 0;
+		if(find_mi_keys(1, 1, keybuf)) {
+			send_mi_key();
+			chk_stage = 1;
+		} else {
+			send_mi_no_key();
+			chk_stage = 0;
+		}
+		break;
+	};
+	return chk_stage;
+}
+
 void cmd_parser(void * p) {
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*) p;
 	uint32_t len = req->l2cap - 3;
@@ -29,8 +109,10 @@ void cmd_parser(void * p) {
 				end_measure = 1;
 				tx_measures = 0xff;
 			}
-		} if (cmd == 0x11) { //test
-			bls_l2cap_requestConnParamUpdate(8, 8, 99, 800);
+		} if (cmd == 0x22) { // test
+			blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, 128); // 234
+		} if (cmd == 0x11) { // test
+			mi_key_stage = get_mi_keys(0);
 		}
 #else // Atc1441 variant
 		if (cmd == 0xFF) {

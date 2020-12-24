@@ -4,12 +4,15 @@
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
 
+#include "cmd_parser.h"
 #include "flash_eep.h"
 #include "battery.h"
 #include "ble.h"
 #include "lcd.h"
 #include "sensor.h"
 #include "app.h"
+
+RAM uint8_t get_keys;
 
 RAM bool last_smiley;
 RAM bool show_batt_or_humi;
@@ -220,6 +223,9 @@ _attribute_ram_code_ void main_loop() {
 						ble_send_temp(last_temp);
 					if(humiValueInCCC[0] | humiValueInCCC[1])
 						ble_send_humi(measured_data.humi);
+				}
+				else if(mi_key_stage) {
+					mi_key_stage = get_mi_keys(mi_key_stage);;
 				}
 			}
 			uint32_t new = clock_time();
