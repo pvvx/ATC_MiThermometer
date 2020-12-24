@@ -242,9 +242,6 @@ void ble_send_all(void) {
 }
 
 void ble_send_cfg(void) {
-	my_RxTx_Data[0] = 0x55;
-	my_RxTx_Data[1] = VERSION;
-	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg) + 2);
 }
 

@@ -149,6 +149,34 @@ function miAction() {
         }).catch(handleError);
 }
 
+function CustomBlkParse(value) {
+	let blkid = value.getUint8(0);
+	if(blkid == 0x55) {
+		cfg.ver = value.getUint8(1);
+		cfg.flg = value.getUint8(2);
+		cfg.temp_offset = value.getInt8(3);
+		cfg.humi_offset = value.getInt8(4);
+		cfg.advertising_interval = value.getUint8(5);
+		cfg.measure_interval = value.getUint8(6);
+		cfg.rf_tx_power = value.getUint8(7);
+		cfg.connect_latency = value.getUint8(8);
+		let s = 'Device Version: '+(cfg.ver>>4)+'.'+(cfg.ver&0x0f)+', Custom config: ['+cfg.flg+', '+cfg.temp_offset+', '+cfg.humi_offset+', '+cfg.advertising_interval+', '+cfg.measure_interval+', '+cfg.rf_tx_power+', '+cfg.connect_latency+']';
+		addClog(s);
+		addLog(s);
+		CustomConfig();
+	} else if(blkid == 0x33) {
+		let vbat = value.getUint16(1, true);
+		let temp = value.getInt16(3, true) / 100.0;
+		let humi = value.getInt16(5, true) / 100.0;
+		let count = value.getUint16(7, true);
+		let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%, Count: '+count;
+		document.getElementById("tempHumiData").innerHTML = s;
+	    addClog(s);
+	} else {
+		addClog('Custom (0x1f1f) Notifications id: '+blkid);
+	}
+}
+
 function customAction() {
     gattServer.getPrimaryService('00001f10-0000-1000-8000-00805f9b34fb')
         .then(service => {
@@ -156,39 +184,22 @@ function customAction() {
             ServiceMain = service;
             return ServiceMain.getCharacteristic('00001f1f-0000-1000-8000-00805f9b34fb');
         }).then(characteristic => {
-            addClog("Found custom write characteristic");
+            addClog("Found custom read-write characteristic");
             settingsCharacteristics = characteristic;
-            addClog("Start Notifications (0x1f1f)");
-            return settingsCharacteristics.startNotifications().then(_ => {
-                settingsCharacteristics.addEventListener('characteristicvaluechanged', event => {
-                    var value = event.target.value;
-                   	let blkid = value.getUint8(0);
-                   	if(blkid == 0x55) {
-                   		cfg.ver = value.getUint8(1);
-                   		cfg.flg = value.getUint8(2);
-                   		cfg.temp_offset = value.getInt8(3);
-                   		cfg.humi_offset = value.getInt8(4);
-                   		cfg.advertising_interval = value.getUint8(5);
-                   		cfg.measure_interval = value.getUint8(6);
-                   		cfg.rf_tx_power = value.getUint8(7);
-						cfg.connect_latency = value.getUint8(8);
-						let s = 'DevVersion: '+cfg.ver+', Custom config: ['+cfg.flg+', '+cfg.temp_offset+', '+cfg.humi_offset+', '+cfg.advertising_interval+', '+cfg.measure_interval+', '+cfg.rf_tx_power+', '+cfg.connect_latency+']';
-						addClog(s);
-						addLog(s);
-						CustomConfig();
-                   	} else if(blkid == 0x33) {
-						let vbat = value.getUint16(1, true);
-						let temp = value.getInt16(3, true) / 100.0;
-						let humi = value.getInt16(5, true) / 100.0;
-						let count = value.getUint16(7, true);
-						let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%, Count: '+count;
-						document.getElementById("tempHumiData").innerHTML = s;
-	                    addClog(s);
-                    } else {
-						addClog('Custom (0x1f1f) Notifications id: '+blkid);
-                    }
-                });
-            });
+            settingsCharacteristics.startNotifications().
+            then(_ => {
+	            addClog("Start Notifications (0x1f1f)");
+                settingsCharacteristics.addEventListener('characteristicvaluechanged', event => CustomBlkParse(event.target.value));
+	            addClog("Read Characteristics (0x1f1f)");
+                settingsCharacteristics.readValue()
+                .then(value => {
+            		addClog("Send cmd (0x33): Query current measurements");
+                	settingsCharacteristics.writeValue(new Uint8Array([0x33])).then(_ => {
+					  addClog('Send cmd ok');
+					})
+					.catch(error => ddClog(error));
+                }).catch(error => ddClog(error));
+	        }).catch(error => ddClog(error));
         }).catch(handleError);
 }
 
@@ -242,7 +253,6 @@ function miAuthorization() {
                                 device_known_id += value.substring(4);
                                 device_new_id = device_known_id.substring(8);
                                 document.getElementById("known_id").value = hex2ascii(device_known_id.substring(10));
-
                                 mainCharSend("00000100", enc_19).then(function(character) {
                                     mainCharSend("15000000", enc_10).then(function(character) {
                                         mainCharSend("000000030400", enc_19);
@@ -389,7 +399,7 @@ function detectMi() {
             addLog("Detected custom Firmware");
             setStatus("Detected custom Firmware");
             customAction();
-			document.getElementById("custcfg").innerHTML = '<button type="button" onclick="sendCustomSetting(&quot;55&quot;);">Get Config</button> <button type="button" onclick="sendCustomSetting(&quot;33&quot;);">Start Measure</button><br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br>';
+			document.getElementById("custcfg").innerHTML = '<button type="button" onclick="sendCustomSetting(&quot;55&quot;);">Get Config</button> <button type="button" onclick="sendCustomSetting(&quot;33&quot;);">Get Measure</button><br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br>';
         } else {
             addLog("Connected");
             setStatus("Connected")
@@ -721,7 +731,9 @@ function CustomConfig() {
 	is += ' Blinking: <input type="checkbox" id="cfg_flg_blinking">';
 	is += ' Comfort: <input type="checkbox" id="cfg_flg_comfort">';
 	is += ', Show batt: <input type="checkbox" id="cfg_flg_show_batt"><br><br>';
-	is += 'Tx measures: <input type="checkbox" id="cfg_cfg_tx_meas"> <button type="button" onclick="sendCustomSetting(&quot;33&quot;);">Start Measure</button><br><br>';
+	is += 'Tx measures: <input title="When connected, start transferring measurements" type="checkbox" id="cfg_cfg_tx_meas">'; 
+	is += ' <button type="button" title="Start transferring measurements. Only in the current connection." onclick="sendCustomSetting(&quot;3301&quot;);">Start Tx Measure</button>';
+	is += ' <button type="button" title="Stop transferring measurements. Only in the current connection." onclick="sendCustomSetting(&quot;3300&quot;);">Stop Tx Measure</button><br><br>';
 	is += 'Temperature offset: <input title="-125..125 (-12.5..12.5°), default 0" id="cfg_tmp_off" maxlength="5" value="0"> x0.1°';
 	is += ', Humidity offset: <input title="-125..125 (-12.5..12.5%), default 0" id="cfg_hm_off" maxlength="5" value="0"> x0.1%<br><br>';
 	is += 'Advertising type: <select id="cfg_flg_adv_type"><option value="0">Custom</option><option value="1">Mi</option></select><br><br>';

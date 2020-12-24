@@ -21,7 +21,6 @@ RAM int16_t last_temp; // x0.1 C
 RAM uint16_t last_humi; // %
 RAM uint8_t battery_level; // %
 
-RAM volatile uint8_t loop_read_measure;
 RAM volatile uint8_t start_measure; // start measure all
 RAM volatile uint8_t wrk_measure;
 RAM volatile uint8_t end_measure;
@@ -66,6 +65,9 @@ void test_config(void) {
 		tx_measures = 1;
 	adv_interval = cfg.advertising_interval * 100; // t = adv_interval * 0.625 ms
 	measurement_step_time = adv_interval * cfg.measure_interval * 625 * sys_tick_per_us;
+	my_RxTx_Data[0] = 0x55;
+	my_RxTx_Data[1] = VERSION;
+	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 }
 
 _attribute_ram_code_ bool is_comfort(int16_t t, uint16_t h) {
@@ -194,42 +196,41 @@ void lcd(void) {
 
 void main_loop() {
 	blt_sdk_main_loop();
-	if(loop_read_measure) {
-		loop_read_measure = 0;
-		WakeupLowPowerCb(0);
-	}
-	if(!ota_is_working){
-		if(start_measure) {
+	if((!ota_is_working)&&(!wrk_measure)) {
+		if (start_measure) {
 			wrk_measure = 1;
 			start_measure = 0;
 			read_sensor_deep_sleep();
 			measured_data.battery_mv = get_battery_mv();
 			battery_level = get_battery_level(measured_data.battery_mv);
 		} else {
-			if(!wrk_measure) {
-				if(ble_connected) {
-					if (end_measure) {
-						end_measure = 0;
-						if(tx_measures && (RxTxValueInCCC[0] | RxTxValueInCCC[1]))
+			if(ble_connected) {
+				if (end_measure) {
+					end_measure = 0;
+					if(tx_measures) {
+						if(tx_measures == 0xff) {
 							ble_send_all();
-						if(batteryValueInCCC[0] | batteryValueInCCC[1])
-							ble_send_battery(battery_level);
-						if(tempValueInCCC[0] | tempValueInCCC[1])
-							ble_send_temp(last_temp);
-						if(humiValueInCCC[0] | humiValueInCCC[1])
-							ble_send_humi(measured_data.humi);
+							tx_measures = 0;
+						} else if((RxTxValueInCCC[0] | RxTxValueInCCC[1]))
+							ble_send_all();
 					}
+					if(batteryValueInCCC[0] | batteryValueInCCC[1])
+						ble_send_battery(battery_level);
+					if(tempValueInCCC[0] | tempValueInCCC[1])
+						ble_send_temp(last_temp);
+					if(humiValueInCCC[0] | humiValueInCCC[1])
+						ble_send_humi(measured_data.humi);
 				}
-				uint32_t new = clock_time();
-				if(new - tim_measure >= measurement_step_time) {
-					start_measure = 1;
-					tim_measure = new;
-				}
-				if (new - tim_last_chow >= TIME_UPDATE_LCD) {
-					lcd();
-					update_lcd();
-					tim_last_chow = new;
-				}
+			}
+			uint32_t new = clock_time();
+			if(new - tim_measure >= measurement_step_time) {
+				start_measure = 1;
+				tim_measure = new;
+			}
+			if (new - tim_last_chow >= TIME_UPDATE_LCD) {
+				lcd();
+				update_lcd();
+				tim_last_chow = new;
 			}
 		}
 	}

@@ -373,8 +373,8 @@ function connectDeviceAndCacheCharacteristic(device) {
 				};
 			});
 			DevConnected();
-			log('Send command tx-measures on (0x33)...');
-			return characteristicVTH.writeValue(new Uint8Array([0x33]));
+			log('Send command tx-measures on (0x33,0x01)...');
+			return characteristicVTH.writeValue(new Uint8Array([0x33,0x01]));
 		});
 	});
 }

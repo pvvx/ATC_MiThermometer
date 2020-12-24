@@ -25,12 +25,14 @@ void cmd_parser(void * p) {
 		} if (cmd == 0x33) {
 			if(len >= 2)
 				tx_measures = req->dat[1];
-			else
-				tx_measures = 1;
-		} if (cmd == 0x11) {
+			else {
+				end_measure = 1;
+				tx_measures = 0xff;
+			}
+		} if (cmd == 0x11) { //test
 			bls_l2cap_requestConnParamUpdate(8, 8, 99, 800);
 		}
-#else
+#else // Atc1441 variant
 		if (cmd == 0xFF) {
 			cfg.flg.temp_C_or_F = true; // Temp in F
 		} else if (cmd == 0xCC) {

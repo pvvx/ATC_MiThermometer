@@ -37,6 +37,10 @@ typedef struct _measured_data_t {
 } measured_data_t;
 extern measured_data_t measured_data;
 extern volatile uint8_t tx_measures;
+extern volatile uint8_t start_measure; // start measure all
+extern volatile uint8_t wrk_measure;
+extern volatile uint8_t end_measure;
+extern uint32_t tim_measure;
 
 extern uint32_t adv_interval;
 extern uint32_t measurement_step_time;
