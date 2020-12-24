@@ -2,7 +2,7 @@ TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258
 
 LIBS :=  -llt_8258
 
-#TEL_PATH ?= ../..
+TEL_PATH ?= ../..
 
 PROJECT_NAME := ATC_Thermometer
 

@@ -88,7 +88,7 @@ int otaWritePre(void * p) {
 	return 0;
 }
 
-int RxTxWrite(void * p) {
+_attribute_ram_code_ int RxTxWrite(void * p) {
 	cmd_parser(p);
 	return 0;
 }
@@ -171,7 +171,7 @@ void init_ble() {
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 }
 
-void set_adv_data(int32_t temp, uint32_t humi, uint8_t battery_level,
+_attribute_ram_code_ void set_adv_data(int32_t temp, uint32_t humi, uint8_t battery_level,
 		uint32_t battery_mv) {
 	if (cfg.flg.advertising_type) { // Mi Like Advertising
 		humi = humi * 10;
@@ -235,7 +235,7 @@ void ble_send_battery(uint8_t value) {
 }
 
 uint8_t send_buf[16];
-void ble_send_all(void) {
+_attribute_ram_code_ void ble_send_all(void) {
 	send_buf[0] = 0x33;
 	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);

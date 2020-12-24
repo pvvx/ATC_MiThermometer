@@ -124,7 +124,7 @@ _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	start_measure = 1;
 }
 
-void user_init_normal(void) {//this will get executed one time after power up
+_attribute_ram_code_ void user_init_normal(void) {//this will get executed one time after power up
 	random_generator_init(); //must
 	// Read config
 	if (flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg)) {
@@ -157,7 +157,7 @@ _attribute_ram_code_ void user_init_deepRetn(void) {//after sleep this will get 
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 }
 
-void lcd(void) {
+_attribute_ram_code_ void lcd(void) {
 	if (cfg.flg.temp_C_or_F) {
 		show_temp_symbol(2);
 		show_big_number((((measured_data.temp / 5) * 9) + 3200) / 10, 1); // convert C to F
@@ -194,7 +194,7 @@ void lcd(void) {
 	show_batt_or_humi = !show_batt_or_humi;
 }
 
-void main_loop() {
+_attribute_ram_code_ void main_loop() {
 	blt_sdk_main_loop();
 	if((!ota_is_working)&&(!wrk_measure)) {
 		if (start_measure) {

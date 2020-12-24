@@ -26,6 +26,10 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	clock_init(SYS_CLK_16M_Crystal);
 #elif (CLOCK_SYS_CLOCK_HZ == 24000000)
 	clock_init(SYS_CLK_24M_Crystal);
+#elif (CLOCK_SYS_CLOCK_HZ == 32000000)
+	clock_init(SYS_CLK_32M_Crystal);
+#elif (CLOCK_SYS_CLOCK_HZ == 48000000)
+	clock_init(SYS_CLK_48M_Crystal);
 #endif
 	reg_clk_en0 = 0 //FLD_CLK0_I2C_EN
 //			| FLD_CLK0_UART_EN

@@ -9,8 +9,12 @@ extern "C" {
 //#define PB6_INPUT_ENABLE	1
 
 #define VERSION 0x03
-
-#define CLOCK_SYS_CLOCK_HZ  	24000000
+/* average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
+ * 16 MHz - 17.43 uA
+ * 24 MHz - 17.28 uA
+ * 32 MHz - 17.36 uA
+ */
+#define CLOCK_SYS_CLOCK_HZ  	24000000 // 16000000, 24000000, 32000000, 48000000
 enum{
 	CLOCK_SYS_CLOCK_1S = CLOCK_SYS_CLOCK_HZ,
 	CLOCK_SYS_CLOCK_1MS = (CLOCK_SYS_CLOCK_1S / 1000),

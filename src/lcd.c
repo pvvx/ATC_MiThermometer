@@ -22,54 +22,54 @@ void init_lcd(){
 	send_to_lcd_long(0x00,0x00,0x00,0x00,0x00,0x00);	
 }
 	
-void send_to_lcd_long(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5, uint8_t byte6){
+_attribute_ram_code_ void send_to_lcd_long(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5, uint8_t byte6){
     uint8_t lcd_set_segments[] =    {0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6,0xC0,0x00,0xC0,0x00};
 	send_i2c(0x78,lcd_set_segments, sizeof(lcd_set_segments));
 }
 	
-void send_to_lcd(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5, uint8_t byte6){
+_attribute_ram_code_ void send_to_lcd(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5, uint8_t byte6){
     uint8_t lcd_set_segments[] =    {0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6};
 	send_i2c(0x78,lcd_set_segments, sizeof(lcd_set_segments));
 }
 
-void update_lcd(){
+_attribute_ram_code_ void update_lcd(){
 	if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff)))
 		send_to_lcd(display_buff[0],display_buff[1],display_buff[2],display_buff[3],display_buff[4],display_buff[5]);
 	memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
 }
 
-void show_number(uint8_t position,uint8_t number){
+_attribute_ram_code_ void show_number(uint8_t position,uint8_t number){
 	if(position>5 || position == 2 || number >9)return;	
     display_buff[position] = display_numbers[number] & 0xF7;
 }
 
-void show_temp_symbol(uint8_t symbol){ /*1 = C, 2 = F*/
+_attribute_ram_code_ void show_temp_symbol(uint8_t symbol){ /*1 = C, 2 = F*/
 	display_buff[2] &= ~0xE0;
 	if(symbol==1)display_buff[2]|=0xA0;
 	else if(symbol==2)display_buff[2]|=0x60;
 }
 
-void show_ble_symbol(bool state){
+_attribute_ram_code_ void show_ble_symbol(bool state){
 	if(state)
 		display_buff[2] |= 0x10;
 	else 
 		display_buff[2] &= ~0x10;
 }
 
-void show_battery_symbol(bool state){
+_attribute_ram_code_ void show_battery_symbol(bool state){
 	if(state)
 		display_buff[1] |= 0x08;
 	else 
 		display_buff[1] &= ~0x08;
 }
 
-void show_smiley(uint8_t state){ /*0=off, 1=happy, 2=sad*/
+_attribute_ram_code_ void show_smiley(uint8_t state){ /*0=off, 1=happy, 2=sad*/
 	display_buff[2] &= ~0x07;
 	if(state==1)display_buff[2]|=0x05;
 	else if(state==2)display_buff[2]|=0x06;
 }
 
-void show_atc(){
+_attribute_ram_code_ void show_atc(){
 	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
 }
 
@@ -87,7 +87,7 @@ void show_atc_mac(){
 	StallWaitMs(1800);
 }
 
-void show_big_number(int16_t number, bool point){
+_attribute_ram_code_ void show_big_number(int16_t number, bool point){
 	if(number >1999)return;	
 	if(number < -99)return;
 	display_buff[5] = (number > 999)?0x08:0x00; 
@@ -102,7 +102,7 @@ void show_big_number(int16_t number, bool point){
     display_buff[3] = display_numbers[number %10] & 0xF7;
 }
 
-void show_small_number(uint16_t number, bool percent){
+_attribute_ram_code_ void show_small_number(uint16_t number, bool percent){
 	if(number >99)return;	
 	display_buff[0] = percent?0x08:0x00;
 	display_buff[1] = display_buff[1] & 0x08;
