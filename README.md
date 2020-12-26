@@ -32,8 +32,17 @@ Forked from https://github.com/atc1441/ATC_MiThermometer
 ### Reading Measurements in Connected Mode
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/GraphAtc_html.gif) 
 
+
+### Interface for receiving and displaying data on the LCD.
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/ShowData.gif) 
+
+
 ### Reading and recovering Mi-Home keys
 >* Stage 1:
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/KeysProgStage1.gif) 
+
+
 >* Stage 2:
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/KeysProgStage2.gif) 
+
+

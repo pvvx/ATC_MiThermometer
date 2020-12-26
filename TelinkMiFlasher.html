@@ -42,6 +42,8 @@ function resetVariables() {
 	mikeys.bindkey = null
 	mikeys.cfg = null;
 	mikeys.delkeys = null;
+	ext.flg = null;
+	ext.enable = false;
 	cnt_buf11 = 0;
     writeCharacteristic = null;
     settingsCharacteristics = null;
@@ -162,6 +164,7 @@ var cnt_buf11 = 0;
 var cnt_delkeys = 0;
 var id_buf11 = 0x1000;
 var mikeys = {mac: null, id: null, token: null, bindkey: null, cfg: null, delkeys: null, restore: false};
+var ext = {big_number: null, small_number: null, vtime: null, flg: null, tim: null, enable: false};
 
 function concatUint8ArrayArrays(a, b) { // a, b TypedArray of same type
 	let c = new Uint8Array(a.byteLength + b.byteLength);
@@ -190,9 +193,12 @@ function CustomBlkParse(value) {
 		cfg.rf_tx_power = value.getUint8(8);
 		cfg.connect_latency = value.getUint8(9);
 		let s = 'Device Version: '+(cfg.ver>>4)+'.'+(cfg.ver&0x0f)+', Custom config: ['+cfg.flg+', '+cfg.smiley+', '+cfg.temp_offset+', '+cfg.humi_offset+', '+cfg.advertising_interval+', '+cfg.measure_interval+', '+cfg.rf_tx_power+', '+cfg.connect_latency+']';
-		addClog(s);
-		addLog(s);
-		CustomConfig();
+		addClog(s);	addLog(s);
+		if(cfg.ver >= 5) {
+			ext.enable = true; 
+			CustomConfig();
+		} else addLog('Old version - out of service!')
+
 	} else if(blkid == 0x33 && len >= 9) {
 		let vbat = value.getUint16(1, true);
 		let temp = value.getInt16(3, true) / 100.0;
@@ -201,6 +207,13 @@ function CustomBlkParse(value) {
 		let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%, Count: '+count;
 		document.getElementById("tempHumiData").innerHTML = s;
 	    addClog(s);
+	} else if(blkid == 0x22 && len >= 7) {
+		ext.big_number = value.getInt16(1, true); // -995..19995, x0.1
+		ext.small_number = value.getInt16(3, true); // -9..99, x1
+		ext.vtime = value.getUint16(5, true); // in sec
+		ext.flg = value.getInt8(7); 
+		let s = 'ExtShow: big_number: '+ext.big_number+', small_number: '+ext.small_number+', ext.vtime: '+ext.vtime+' s';
+	    addClog(s); UpdExt();
 	} else if(blkid >= 0x10 && blkid <= 0x14 && len > 1) {
 		let lb = value.getUint8(1);
 		if(lb != 0) {
@@ -300,9 +313,9 @@ function customAction() {
                 	settingsCharacteristics.writeValue(new Uint8Array([0x33])).then(_ => {
 					  addClog('Send cmd ok');
 					})
-					.catch(error => ddClog(error));
-                }).catch(error => ddClog(error));
-	        }).catch(error => ddClog(error));
+					.catch(error => addClog(error));
+                }).catch(error => addClog(error));
+	        }).catch(error => addClog(error));
         }).catch(handleError);
 }
 
@@ -827,9 +840,47 @@ function do_login_generate() {
     mainCharSend("00000100", enc_19);
 }
 
+function UpdExt() {
+	if(ext.flg) {
+	document.getElementById("extbignumb").value = ext.big_number / 10.0;
+	document.getElementById("extsmalnumb").value = ext.small_number;
+	document.getElementById("extvtimed").value = ext.vtime;
+	document.getElementById("extsmiley").value = ext.flg & 7;
+	document.getElementById("extpersent").checked = ((ext.flg & 8) !=0 ? 1 : 0);
+	document.getElementById("extbattery").checked = ((ext.flg & 16) !=0 ? 1 : 0);
+	document.getElementById("exttmpsmb").value = (ext.flg >> 5) & 7;
+	}
+}
+function sendExt() {
+	ext.big_number = Math.round(10.0 * parseFloat(document.getElementById("extbignumb").value)); 
+	ext.small_number = parseInt(document.getElementById("extsmalnumb").value); 
+	ext.vtime = parseInt(document.getElementById("extvtimed").value);
+	if(ext.vtime < 1) ext.vtime = 1;
+	else if(ext.vtime > 65535) ext.vtime = 65535;
+	ext.cfg = (parseInt(document.getElementById("extsmiley").value) & 7) +
+	(document.getElementById("extpersent").checked ? 8 : 0) +
+	(document.getElementById("extbattery").checked ? 16 : 0) +
+	((parseInt(document.getElementById("exttmpsmb").value) & 7) << 5);
+	settingsCharacteristics.writeValue(new Uint8Array([0x22, ext.big_number&0xff, (ext.big_number>>8)&0xff,ext.small_number&0xff,(ext.small_number>>8)&0xff,ext.vtime&0xff,(ext.vtime>>8)&0xff,ext.cfg])).then(_ => {
+					  addClog('Send ext data ok');
+	});
+}
+
 function CustomConfig() {
-	let is = '<br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br><br>';
-	is += 'Temperature: <select id="cfg_flg_cf"><option value="0">°C</option><option value="1">°F</option></select><br><br>';
+	let is = '<br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button>';
+	if(ext.enable) {
+		is += '<br><br><input size="5" title="Big number: -99.5..1999.5" id="extbignumb" maxlength="5" value="0">';
+		is += ' <select id="exttmpsmb"><option value="0">&nbsp;&nbsp;</option><option value="1">°Г</option><option value="2">&nbsp;-</option><option value="3">°F</option><option value="4">&nbsp;_</option><option value="5">°C</option><option value="6">&nbsp;=</option><option value="7">°E</option></select>';
+		is += ' <select id="extsmiley"><option value="0">&nbsp;&nbsp;&nbsp;</option><option value="1">&nbsp;^_^&nbsp;</option><option value="2">&nbsp;-&and;-&nbsp;</option><option value="3">&nbsp;&Delta;&#9651;&Delta;&nbsp;</option><option value="4">(&nbsp;&nbsp;&nbsp;)</option><option value="5">(^_^)</option><option value="6">(-&and;-)</option><option value="7">(&Delta;&#9651;&Delta;)</option></select>';
+		is += '	<input size="5" title="Small number: -9..99 (-9..99)" id="extsmalnumb" maxlength="2" value="0">';
+		is += '&nbsp;%<input type="checkbox" id="extpersent">';
+		is += '	<input size="5" title="Validity time = Show time in sec: 1..65535" id="extvtimed" maxlength="5" value="600">';
+		is += '&nbsp;Battery:<input type="checkbox" id="extbattery">';
+		is += '	<button type="button" onclick="sendCustomSetting(&quot;22&quot;);">Get OldData</button>';
+		is += '	<button type="button" onclick="sendExt();">Show</button>';
+		UpdExt();
+	}
+	is += '<br><br>Temperature: <select id="cfg_flg_cf"><option value="0">°C</option><option value="1">°F</option></select><br><br>';
 	is += 'Smiley: <select id="cfg_smiley"><option value="0">&nbsp;&nbsp;&nbsp;</option><option value="1">&nbsp;^_^&nbsp;</option><option value="2">&nbsp;-&and;-&nbsp;</option><option value="3">&nbsp;&Delta;&#9651;&Delta;&nbsp;</option><option value="4">(&nbsp;&nbsp;&nbsp;)</option><option value="5">(^_^)</option><option value="6">(-&and;-)</option><option value="7">(&Delta;&#9651;&Delta;)</option></select>';
 	is += ' Blinking: <input type="checkbox" id="cfg_flg_blinking">';
 	is += ' Comfort: <input type="checkbox" id="cfg_flg_comfort">';

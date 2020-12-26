@@ -257,7 +257,7 @@ _attribute_ram_code_ void main_loop() {
 			measured_data.battery_mv = get_battery_mv();
 			battery_level = get_battery_level(measured_data.battery_mv);
 		} else {
-			if(ble_connected && blc_ll_getTxFifoNumber() < 9) {
+			if((ble_connected & 2) && blc_ll_getTxFifoNumber() < 9) {
 				if (end_measure) {
 					end_measure = 0;
 					if(tx_measures) {
