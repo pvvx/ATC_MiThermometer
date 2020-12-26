@@ -40,7 +40,7 @@ extern cfg_t cfg;
 typedef struct __attribute__((packed)) _external_data_t {
 	int16_t		big_number; // -995..19995, x0.1
 	int16_t		small_number; // -9..99, x1
-	uint16_t 	vtime; // validity time, in sec
+	uint16_t 	vtime_sec; // validity time, in sec
 	struct __attribute__((packed)) {
 		/* 0 = "     " off,
 		 * 1 = " ^_^ "

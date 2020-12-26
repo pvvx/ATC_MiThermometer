@@ -27,7 +27,7 @@ enum{
 
 #define StallWaitMs(t) cpu_stall_wakeup_by_timer0(t*CLOCK_SYS_CLOCK_1MS);
 
-#define TIME_UPDATE_LCD			(1500 * CLOCK_16M_SYS_TIMER_CLK_1MS) // min 1.5 sec
+#define TIME_UPDATE_LCD			(2750 * CLOCK_16M_SYS_TIMER_CLK_1MS) // min 2.75 sec
 
 #define RAM _attribute_data_retention_ // short version, this is needed to keep the values in ram after sleep
 

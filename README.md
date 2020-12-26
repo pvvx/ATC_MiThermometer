@@ -3,6 +3,7 @@
 
 Forked from https://github.com/atc1441/ATC_MiThermometer
 
+Under construction... Alpha test only.
 
 ### 1. Adaptation to reduce energy consumption (Average consumption).
 >* Released

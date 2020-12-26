@@ -12,8 +12,8 @@
 #include "sensor.h"
 #include "app.h"
 
-RAM uint32_t vtime_count_us;
-RAM uint32_t vtime_count_sec;
+RAM uint32_t vtime_count_us; // count validity time, in us
+RAM uint32_t vtime_count_sec; // count validity time, in sec
 RAM uint8_t show_stage; // count/stage update lcd code buffer
 
 RAM measured_data_t measured_data;
@@ -45,7 +45,7 @@ static const cfg_t def_cfg = {
 	.flg.show_batt_enabled = false,
 	.flg.advertising_type = false,
 	.flg.tx_measures = false,
-	.smiley = 0,
+	.smiley = 0,				// 0 = "     " off
 	.advertising_interval = 32, // multiply by 62.5 ms  (2 sec)
 	.measure_interval = 5, // * advertising_interval (10 sec)
 	.rf_tx_power = RF_POWER_P3p01dBm,
@@ -55,11 +55,11 @@ RAM cfg_t cfg;
 static const external_data_t def_ext = {
 	.big_number = 0,
 	.small_number = 0,
-	.vtime = 60*10, // 10 minutes
-	.flg.smiley = 7,
+	.vtime_sec = 60*10, // 10 minutes
+	.flg.smiley = 7,	// 7 = "(ooo)"
 	.flg.percent_on = true,
 	.flg.battery = false,
-	.flg.temp_symbol = 5 // 5 = "°C", 3 = "°F"
+	.flg.temp_symbol = 5 // 5 = "°C", 3 = "°F", ... app.h
 };
 
 RAM external_data_t ext;
@@ -182,12 +182,12 @@ _attribute_ram_code_ void lcd_set_ext_data(void) {
 
 _attribute_ram_code_ void lcd(void) {
 	bool set_small_number_and_bat = true;
-	while(ext.vtime && clock_time() - vtime_count_us > CLOCK_16M_SYS_TIMER_CLK_1S) {
+	while(vtime_count_sec && clock_time() - vtime_count_us > CLOCK_16M_SYS_TIMER_CLK_1S) {
 		vtime_count_us += CLOCK_16M_SYS_TIMER_CLK_1S;
-		ext.vtime--;
+		vtime_count_sec--;
 	}
 	show_stage++;
-	if(ext.vtime && (show_stage & 2)) { // no blinking on + show ext data
+	if(vtime_count_sec && (show_stage & 2)) { // no blinking on + show ext data
 		if(show_stage & 1) { // stage blinking or show battery
 			if(cfg.flg.show_batt_enabled || battery_level <= 5) { // Battery
 				show_smiley(0); // stage show battery

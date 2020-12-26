@@ -9,10 +9,10 @@
 #include "ble.h"
 #include "cmd_parser.h"
 
-#define TX_MAX_SIZE	 (ATT_MTU_SIZE-3)
+#define TX_MAX_SIZE	 (ATT_MTU_SIZE-3) // = 20
 #define FLASH_MIMAC_ADDR CFG_ADR_MAC // 0x76000
 #define FLASH_MIKEYS_ADDR 0x78000
-//#define FLASH_SECTOR_SIZE 0x1000
+//#define FLASH_SECTOR_SIZE 0x1000 // in "flash_eep.h"
 
 RAM uint8_t mi_key_stage;
 RAM uint8_t mi_key_chk_cnt;
@@ -187,7 +187,7 @@ void cmd_parser(void * p) {
 			if(--len > sizeof(ext)) len = sizeof(ext);
 			else if(len) {
 				memcpy(&ext, &req->dat[1], len);
-				vtime_count_sec = ext.vtime;
+				vtime_count_sec = ext.vtime_sec;
 				vtime_count_us = clock_time();
 			}
 			ble_send_ext();
