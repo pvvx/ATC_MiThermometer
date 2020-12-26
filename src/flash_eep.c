@@ -55,7 +55,7 @@
 #define _flash_memcmp(a,b,c) memcmp((void *)(FLASH_BASE_ADDR + (unsigned int)a), c, b) // _flash_memcmp(xfaddr + fobj_head_size, size, ptr) == 0)
 #define _flash_erase_sector(a) flash_erase_sector(a)
 #define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write_page(a, 4, (unsigned char *)&_dw); }
-#define _flash_write(a,b,c) flash_write_page(a,b,(unsigned char *)c) //_flash_write(wraddr, len, pbuf);
+#define _flash_write(a,b,c) flash_write_(a,b,(unsigned char *)c) //_flash_write(wraddr, len, pbuf);
 
 #ifndef LOCAL
 #define LOCAL static
@@ -86,10 +86,20 @@ typedef union __attribute__((packed)) // заголовок объекта со�
 
 #define fobj_head_size 4
 #define fobj_x_free 0xffffffff
-#define MAX_FOBJ_SIZE 512 // максимальный размер сохраняемых объeктов
 #define FMEM_ERROR_MAX 5
 
 unsigned char buf_epp[MAX_FOBJ_SIZE+fobj_head_size];
+
+_attribute_ram_code_ void flash_write_(unsigned int addr, unsigned int len, unsigned char *buf) {
+	u32 sz = 256;
+	while(len) {
+		if (len < sz) sz = len;
+		flash_write_page(addr, sz, buf);
+		addr += sz;
+		buf += sz;
+		len -= sz;
+	}
+}
 //-----------------------------------------------------------------------------
 // FunctionName : get_addr_bscfg
 // поиск текушего сегмента

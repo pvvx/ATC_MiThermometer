@@ -35,6 +35,14 @@ function resetVariables() {
     busy = false;
     gattServer = null;
     Theservice = null;
+    mikeys.restore = false;
+	mikeys.mac = null;
+	mikeys.id = null;
+	mikeys.token = null;
+	mikeys.bindkey = null
+	mikeys.cfg = null;
+	mikeys.delkeys = null;
+	cnt_buf11 = 0;
     writeCharacteristic = null;
     settingsCharacteristics = null;
     miConnected = false;
@@ -151,8 +159,9 @@ function miAction() {
 }
 var buf11;
 var cnt_buf11 = 0;
+var cnt_delkeys = 0;
 var id_buf11 = 0x1000;
-var mikeys = { bind_key: new Uint8Array(), token: new Uint8Array(), id: new Uint8Array()};
+var mikeys = {mac: null, id: null, token: null, bindkey: null, cfg: null, delkeys: null, restore: false};
 
 function concatUint8ArrayArrays(a, b) { // a, b TypedArray of same type
 	let c = new Uint8Array(a.byteLength + b.byteLength);
@@ -191,35 +200,79 @@ function CustomBlkParse(value) {
 		let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%, Count: '+count;
 		document.getElementById("tempHumiData").innerHTML = s;
 	    addClog(s);
-	} else if(blkid == 0x11 && len > 1) {
+	} else if(blkid >= 0x10 && blkid <= 0x14 && len > 1) {
 		let lb = value.getUint8(1);
-		if(lb) {
+		if(lb != 0) {
 			len -= 2;
-			if(cnt_buf11 == 0)
+			if(cnt_buf11 == 0){
+				// addClog('New miKey length: '+lb);
 				buf11 = new Uint8Array(lb);
+			}
 			for(let i = 0; i < len && i < lb; i++ )
 				buf11[cnt_buf11++] = value.getUint8(i+2);
 			if(len == lb) {
-				if(cnt_buf11 == 28) {
-	 				mikeys.token = buf11.slice(0, 12);
-	 				mikeys.bind_key = buf11.slice(12);
-	 				let s = 'miToken: '+dump(mikeys.token, 12)+', miBindKey: '+dump(mikeys.bind_key, 16);
+				if(cnt_buf11 == buf11.length) {
+					let s = '';
+					if(blkid == 0x14)  {
+						if(cnt_delkeys == 0) {
+							mikeys.delkeys = [];
+						}
+						s = 'Delete key'+cnt_delkeys+': ';
+						cnt_delkeys += 1;
+						mikeys.delkeys.push(buf11);
+					}
+					if(cnt_buf11 == 28) {
+	 					s +=  'miToken: '+dump(buf11.slice(0, 12), 12)+', miBindKey: '+dump(buf11.slice(12), 16);
+						if(blkid == 0x12) {
+							cnt_delkeys = 0;
+	 		 				mikeys.token = buf11.slice(0, 12);
+			 				mikeys.bindkey = buf11.slice(12);
+			 				CustomConfig();
+						} else if(blkid == 0x14) {
+							if(mikeys.token) mikeys.restore = true;
+						}
+						addLog(s);
+					} else if(cnt_buf11 == 20) {
+						let str = new TextDecoder("utf-8").decode(buf11.slice(1));
+ 						s += 'miDevId: "'+str+'" '+dump(buf11.slice(1), 19);
+						if(blkid == 0x11) {
+							cnt_delkeys = 0;
+							mikeys.id = buf11;
+						}
+						addLog(s);
+					} else if(cnt_buf11 == 8) {
+						// * public_mac: 		[0][1][2][3][4][5], const: [3]=38;[4]=C1;[5]=A4
+						// * random_static_mac: [0][1][2][6][7]C0
+ 						s += 'miMAC: '+dump(buf11, 6)+', miRandMAC: '+dump(buf11, 3)+dump(buf11.slice(6), 2)+'C0';
+						if(blkid == 0x10) {
+							cnt_delkeys = 0;
+							mikeys.mac = buf11;
+							addLog(s);
+						}
+					} else if(cnt_buf11 == 4) {
+ 						s += 'miCfg: '+dump(buf11, 4);
+						if(blkid == 0x13) {
+							cnt_delkeys = 0;
+							mikeys.cfg = buf11;
+							addLog(s);
+						}
+					} else 
+	 					s += 'miKey: '+dump(buf11, cnt_buf11);
 					addClog(s);
-					addLog(s);
-				}
-				else if(cnt_buf11 == 20) {
-					mikeys.id = buf11.slice(1);
-					let str = new TextDecoder("utf-8").decode(mikeys.id);
-	 				let s = 'miDevId: "'+str+'" '+dump(mikeys.id, 19);
-					addClog(s);
-					addLog(s);
-				}
-				//else if(cnt_buf11 == 4)
-	 			//	addClog('mi???: '+dump(buf11, cnt_buf11));
+		 		}
 				cnt_buf11 = 0;
 			}
-		} else
-			addClog("End keys");
+		} else if(cnt_buf11 != 0) {
+			cnt_buf11 = 0;
+			addClog("Error read mi keys!");
+		} else {
+			if(blkid == 0x11) {addClog('No miDevId!'); addLog('No miDevId!')}
+			else if(blkid == 0x12) {addClog('No miToken and miBindKey!'); addLog('No miToken and miBindKey!');}
+			else if(blkid == 0x13) {addClog('No miCFG!');addLog('No miCFG!');}
+			else if(blkid == 0x14) {addClog("End keys"); CustomConfig();}
+			else addClog("End keys");
+			cnt_buf11 = 0;
+		}
 	} else {
 		let s = 'Custom (0x1f1f) Notifications id: 0x'+hex(blkid,2)+' ['+len+']';
 		addClog(s);
@@ -442,7 +495,7 @@ function detectMi() {
         if (miEnabled) {
             addLog("Detected Mi Thermometer");
             setStatus("Detected Mi Thermometer");
-			document.getElementById("custcfg").innerHTML = 'Device known id:<br><input size="40" type="text" id="known_id" value=""><br>Mi Token:<br><input size="40" type="text" id="mi_token" value=""><br>Mi Bind Key:<br><input size="40" type="text" id="mi_bind_key" value=""><br><br>When doing an activation here the device is needed to be activated in the Mi app again when wanted to use there.<br>';
+			document.getElementById("custcfg").innerHTML = '<button type="button" onclick="sendRegister();">Do Activation</button><br>Device known id:<br><input size="40" type="text" id="known_id" value=""><br>Mi Token:<br><input size="40" type="text" id="mi_token" value=""><br>Mi Bind Key:<br><input size="40" type="text" id="mi_bind_key" value=""><br><br>When doing an activation here the device is needed to be activated in the Mi app again when wanted to use there.<br>';
             miAction();
         } else if (customEnabled) {
             addLog("Detected custom Firmware");
@@ -783,15 +836,28 @@ function CustomConfig() {
 	is += 'Tx measures: <input title="When connected, start transferring measurements" type="checkbox" id="cfg_cfg_tx_meas">'; 
 	is += ' <button type="button" title="Start transferring measurements. Only in the current connection." onclick="sendCustomSetting(&quot;3301&quot;);">Start Tx Measure</button>';
 	is += ' <button type="button" title="Stop transferring measurements. Only in the current connection." onclick="sendCustomSetting(&quot;3300&quot;);">Stop Tx Measure</button><br><br>';
-	is += 'Temperature offset: <input title="-125..125 (-12.5..12.5°), default 0" id="cfg_tmp_off" maxlength="5" value="0"> x0.1°';
-	is += ', Humidity offset: <input title="-125..125 (-12.5..12.5%), default 0" id="cfg_hm_off" maxlength="5" value="0"> x0.1%<br><br>';
+	is += 'Temperature offset: <input size="5" title="-125..125 (-12.5..12.5°), default 0" id="cfg_tmp_off" maxlength="4" value="0"> x0.1°';
+	is += ', Humidity offset: <input size="5" title="-125..125 (-12.5..12.5%), default 0" id="cfg_hm_off" maxlength="4" value="0"> x0.1%<br><br>';
 	is += 'Advertising type: <select id="cfg_flg_adv_type"><option value="0">Custom</option><option value="1">Mi</option></select><br><br>';
-	is += 'Advertising interval: <input title="1..160 (62.5 ms .. 10 sec), default 32 (2 sec)" id="cfg_adv_int" maxlength="5" value="32"> x62.5 ms<br><br>';
-	is += 'Connect latency: <input title="0..200 (20 ms .. 4 sec), default 99 (2 sec)" id="cfg_con_lat" maxlength="5" value="99"> x20 ms<br><br>';
-	is += 'Measure interval: <input title="2..10 (125 ms .. 100 sec), default 5 (10 sec)" id="cfg_meas_int" maxlength="5" value="5"> x(Advertising interval or Connect latency)<br><br>';
+	is += 'Advertising interval: <input size="5" title="1..160 (62.5 ms .. 10 sec), default 32 (2 sec)" id="cfg_adv_int" maxlength="5" value="32"> x62.5 ms<br><br>';
+	is += 'Connect latency: <input size="5" title="0..200 (20 ms .. 4 sec), default 99 (2 sec)" id="cfg_con_lat" maxlength="3" value="99"> x20 ms<br><br>';
+	is += 'Measure interval: <input size="5" title="2..10 (125 ms .. 100 sec), default 5 (10 sec)" id="cfg_meas_int" maxlength="2" value="5"> x(Advertising interval or Connect latency)<br><br>';
 	is += 'RF TX Power: <select id="cfg_rf_tx"><option value="191">+3.01 dbm</option><option value="189">+2.81 dbm</option><option value="187">+2.61 dbm</option><option value="185">+2.39 dbm</option><option value="182">+1.99 dbm</option><option value="180">+1.73 dbm</option><option value="178">+1.45 dbm</option><option value="176">+1.17 dbm</option><option value="174">+0.90 dbm</option><option value="172">+0.58 dbm</option><option value="169">+0.04 dbm</option><option value="168">-0.14 dbm</option><option value="164">-0.97 dbm</option><option value="162">-1.42 dbm</option><option value="160">-1.89 dbm</option><option value="158">-2.48 dbm</option><option value="156">-3.03 dbm</option><option value="154">-3.61 dbm</option><option value="152">-4.26 dbm</option><option value="150">-5.03 dbm</option><option value="148">-5.81 dbm</option><option value="146">-6.67 dbm</option><option value="144">-7.65 dbm</option><option value="142">-8.65 dbm</option><option value="140">-9.89 dbm</option><option value="138">-11.4 dbm</option><option value="136">-13.29 dbm</option><option value="134">-15.88 dbm</option><option value="132">-19.27 dbm</option><option value="130">-25.18 dbm</option></select><br><br>';
-	is += '<button type="button" onclick="SendCustomConfig()">Send Custom Config</button>'; 
-	is += ' <button type="button" onclick="sendCustomSetting(&quot;11&quot;);">Show all mi-home keys</button><br><br>';
+	is += '<button type="button" onclick="SendCustomConfig()">Send Custom Config</button><br><br>'; 
+	is += '<button type="button" onclick="sendCustomSetting(&quot;15&quot;);">Show all mi keys</button><br><br>';
+	if(mikeys.mac)
+		is +='Device MAC:<br><input title="6 MAC + 2 RandMAC" size="40" maxlength="8" type="text" id="known_id" value="'+dump(mikeys.mac,8)+'"><br>';
+	if(mikeys.id) {
+		let str = new TextDecoder("utf-8").decode(mikeys.id.slice(1));
+		is +='Device known id:<br><input size="40" maxlength="19" type="text" id="known_id" value="'+str+'"><br>';
+	}
+	if(mikeys.token)
+		is +='Mi Token:<br><input size="40" maxlength="12" type="text" id="mi_token" value="'+dump(mikeys.token,12)+'"><br>';
+	if(mikeys.bindkey)
+		is +='Mi Bind Key:<br><input size="40" maxlength="16" type="text" id="mi_bind_key" value="'+dump(mikeys.bindkey,16)+'"><br>';
+	if(mikeys.restore)
+		is += '<br><button type="button" onclick="sendCustomSetting(&quot;16&quot;);">Swap previous token + bindkey</button><br><br>';
+
 	document.getElementById("custcfg").innerHTML = is;
 	document.getElementById("cfg_smiley").value = cfg.flg&3;
 	document.getElementById("cfg_flg_comfort").checked = (cfg.flg&4) != 0;
@@ -844,17 +910,15 @@ function SendCustomConfig() {
 </script>
 <big><big>Telink Flasher for Mi Thermostat</big></big><br>
 Copyright: Aaron Christophel / Atc1441  <a href="https://atcnetz.de">https://ATCnetz.de</a><br>
-<a href="https://youtu.be/NXKzFG61lNs">Video Manual</a> <a href="https://github.com/atc1441/ATC_MiThermometer">Custom firmware repo</a><br><br>
   <button type="button" onclick="connect();">Connect</button>
   <button type="button" onclick="reConnect();">Reconnect</button><br>
   <label for="hideUnknown">Hide unknown</label>
   <input type="checkbox" id="hideUnknown"><br>
   <label for="namePrefix">BLE device name prefix filter(s)</label>
   <input type="text" id="namePrefix" value="" placeholder="LYWSD03,ATC"><br>
-  <button type="button" onclick="sendRegister();">Do Activation</button>
   <button type="button" onclick="startDFU();">Start Flashing</button>
   <button type="button" onclick="clearLog();">Clear Log</button><br><br>
-Please select a .bin file you want to flash to a Telink BLE device.<br><br>
+Please select a .bin file you want to flash to a Telink BLE device.<br>
   Select Firmware: <input type="file" accept=".bin" id="file"/><br>
  <div id="percent">Status: waiting for you to connect a device</div><hr>
  <div id="tempHumiData">Temp/Humi: waiting for data after connecting</div><hr>

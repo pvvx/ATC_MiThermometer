@@ -32,9 +32,11 @@ enum eFMEMORY_ERRORS {
 	FMEM_MEM_ERR = 	-5		//  -5 - heap alloc error
 };
 //-----------------------------------------------------------------------------
+#define MAX_FOBJ_SIZE 64 // максимальный размер сохраняемых объeктов (32..512)
 // extern QueueHandle_t flash_mutex;
 signed short flash_read_cfg(void *ptr, unsigned short id, unsigned short maxsize); // возврат: размер объекта последнего сохранения, -1 - не найден, -2 - error
 bool flash_write_cfg(void *ptr, unsigned short id, unsigned short size);
+void flash_write_(unsigned int addr, unsigned int len, unsigned char *buf);
 //-----------------------------------------------------------------------------
 
 #ifdef __cplusplus
