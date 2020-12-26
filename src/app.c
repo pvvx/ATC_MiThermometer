@@ -12,10 +12,9 @@
 #include "sensor.h"
 #include "app.h"
 
-RAM uint8_t get_keys;
-
-RAM bool last_smiley;
-RAM bool show_batt_or_humi;
+RAM uint32_t vtime_count_us;
+RAM uint32_t vtime_count_sec;
+RAM uint8_t show_stage; // count/stage update lcd code buffer
 
 RAM measured_data_t measured_data;
 RAM volatile uint8_t tx_measures;
@@ -40,18 +39,30 @@ RAM uint16_t comfort_y[] = {2000, 1980, 3200, 6000, 8200, 8600, 7700, 3800};
 
 // Settings
 static const cfg_t def_cfg = {
-	.flg.temp_C_or_F = false,
+	.flg.temp_F_or_C = false,
 	.flg.blinking_smiley = false,
-	.flg.comfort_smiley = true,
+	.flg.comfort_smiley = false,
 	.flg.show_batt_enabled = false,
 	.flg.advertising_type = false,
 	.flg.tx_measures = false,
+	.smiley = 0,
 	.advertising_interval = 32, // multiply by 62.5 ms  (2 sec)
 	.measure_interval = 5, // * advertising_interval (10 sec)
 	.rf_tx_power = RF_POWER_P3p01dBm,
 	.connect_latency = 99
 };
 RAM cfg_t cfg;
+static const external_data_t def_ext = {
+	.big_number = 0,
+	.small_number = 0,
+	.vtime = 60*10, // 10 minutes
+	.flg.smiley = 7,
+	.flg.percent_on = true,
+	.flg.battery = false,
+	.flg.temp_symbol = 5 // 5 = "°C", 3 = "°F"
+};
+
+RAM external_data_t ext;
 
 void test_config(void) {
 	if (cfg.humi_offset < -50)
@@ -62,8 +73,6 @@ void test_config(void) {
 		cfg.measure_interval = 1; // x1
 	else if (cfg.measure_interval > 10)
 		cfg.measure_interval = 10; // x10
-	if(!cfg.flg.blinking_smiley && !cfg.flg.comfort_smiley)
-		show_smiley(cfg.flg.smiley);
 	if(cfg.flg.tx_measures)
 		tx_measures = 1;
 	adv_interval = cfg.advertising_interval * 100; // t = adv_interval * 0.625 ms
@@ -130,21 +139,25 @@ _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
 _attribute_ram_code_ void user_init_normal(void) {//this will get executed one time after power up
 	random_generator_init(); //must
 	// Read config
-	if (flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg)) {
+
+	if((!flash_supported_eep_ver(EEP_SUP_VER, VERSION)) || flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg)) {
 		memcpy(&cfg, &def_cfg, sizeof(cfg));
 	}
 	test_config();
+	memcpy(&ext, &def_ext, sizeof(ext));
+//	vtime_count_sec = ext.vtime;
+//	vtime_count_us = clock_time();
 	init_ble();
 	init_sensor();
 	measured_data.battery_mv = get_battery_mv();
 	battery_level = get_battery_level(measured_data.battery_mv);
-	if(measured_data.battery_mv < 1950) {
+	if(measured_data.battery_mv < 2000) {
 		init_lcd();
-		show_big_number(0, 1);
+		show_big_number(measured_data.battery_mv * 10);
 		show_small_number(0, 1);
 		show_battery_symbol(1);
 		update_lcd();
-		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER, clock_time() + 30 * CLOCK_16M_SYS_TIMER_CLK_1S);  //deepsleep
+		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER, clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S);  // go deepsleep
 	}
 	init_lcd();
 	//	show_atc_mac();
@@ -160,41 +173,78 @@ _attribute_ram_code_ void user_init_deepRetn(void) {//after sleep this will get 
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 }
 
-_attribute_ram_code_ void lcd(void) {
-	if (cfg.flg.temp_C_or_F) {
-		show_temp_symbol(2);
-		show_big_number((((measured_data.temp / 5) * 9) + 3200) / 10, 1); // convert C to F
-	} else {
-		show_temp_symbol(1);
-		show_big_number(last_temp, 1);
-	}
+_attribute_ram_code_ void lcd_set_ext_data(void) {
+	show_battery_symbol(ext.flg.battery);
+	show_small_number(ext.small_number, ext.flg.percent_on);
+	show_temp_symbol(*((uint8_t *)&ext.flg));
+	show_big_number(ext.big_number);
+}
 
-	if (cfg.flg.comfort_smiley) {
-		if (is_comfort(measured_data.temp, measured_data.humi)) {
-			show_smiley(1);
+_attribute_ram_code_ void lcd(void) {
+	bool set_small_number_and_bat = true;
+	while(ext.vtime && clock_time() - vtime_count_us > CLOCK_16M_SYS_TIMER_CLK_1S) {
+		vtime_count_us += CLOCK_16M_SYS_TIMER_CLK_1S;
+		ext.vtime--;
+	}
+	show_stage++;
+	if(ext.vtime && (show_stage & 2)) { // no blinking on + show ext data
+		if(show_stage & 1) { // stage blinking or show battery
+			if(cfg.flg.show_batt_enabled || battery_level <= 5) { // Battery
+				show_smiley(0); // stage show battery
+				show_battery_symbol(1);
+				show_small_number((battery_level >= 100) ? 99 : battery_level, 1);
+				set_small_number_and_bat = false;
+			} else if(cfg.flg.blinking_smiley)  // blinking on
+				show_smiley(0); // stage blinking and blinking on
+			else
+				show_smiley(*((uint8_t *)&ext.flg));
+		} else
+			show_smiley(*((uint8_t *)&ext.flg));
+		if(set_small_number_and_bat) {
+			show_battery_symbol(ext.flg.battery);
+			show_small_number(ext.small_number, ext.flg.percent_on);
+		}
+		show_temp_symbol(*((uint8_t *)&ext.flg));
+		show_big_number(ext.big_number);
+	} else {
+		if(show_stage & 1) { // stage blinking or show battery
+			if(cfg.flg.show_batt_enabled || battery_level <= 5) { // Battery
+				show_smiley(0); // stage show battery
+				show_battery_symbol(1);
+				show_small_number((battery_level >= 100) ? 99 : battery_level, 1);
+				set_small_number_and_bat = false;
+			} else if(cfg.flg.blinking_smiley) // blinking on
+				show_smiley(0); // stage blinking and blinking on
+			else {
+				if(cfg.flg.comfort_smiley) { // no blinking on + comfort
+					if (is_comfort(measured_data.temp, measured_data.humi))  // blinking + comfort
+						show_smiley(5);
+					else
+						show_smiley(6);
+				} else
+					show_smiley(cfg.smiley); // no blinking
+			}
 		} else {
-			show_smiley(2);
+			if(cfg.flg.comfort_smiley) { // no blinking on + comfort
+				if (is_comfort(measured_data.temp, measured_data.humi))  // blinking + comfort
+					show_smiley(5);
+				else
+					show_smiley(6);
+			} else
+				show_smiley(cfg.smiley); // no blinking
+		}
+		if(set_small_number_and_bat) {
+			show_battery_symbol(0);
+			show_small_number(last_humi, 1);
+		}
+		if (cfg.flg.temp_F_or_C) {
+			show_temp_symbol(0x60); // "°F"
+			show_big_number((((measured_data.temp / 5) * 9) + 3200) / 10); // convert C to F
+		} else {
+			show_temp_symbol(0xA0); // "°C"
+			show_big_number(last_temp);
 		}
 	}
-	if (cfg.flg.blinking_smiley) { // If Smiley should blink do it
-		last_smiley = !last_smiley;
-		show_smiley(last_smiley);
-	}
-
-	if (!cfg.flg.show_batt_enabled) {
-		if(battery_level < 5)
-			cfg.flg.show_batt_enabled = true;
-		else
-			show_batt_or_humi = true;
-	}
-	if (show_batt_or_humi) { // Change between Humidity displaying and battery level if show_batt_enabled=true
-		show_small_number(last_humi, 1);
-		show_battery_symbol(0);
-	} else {
-		show_small_number((battery_level == 100) ? 99 : battery_level, 1);
-		show_battery_symbol(1);
-	}
-	show_batt_or_humi = !show_batt_or_humi;
 }
 
 _attribute_ram_code_ void main_loop() {
@@ -207,15 +257,15 @@ _attribute_ram_code_ void main_loop() {
 			measured_data.battery_mv = get_battery_mv();
 			battery_level = get_battery_level(measured_data.battery_mv);
 		} else {
-			if(ble_connected) {
+			if(ble_connected && blc_ll_getTxFifoNumber() < 9) {
 				if (end_measure) {
 					end_measure = 0;
 					if(tx_measures) {
 						if(tx_measures == 0xff) {
-							ble_send_all();
+							ble_send_measures();
 							tx_measures = 0;
 						} else if((RxTxValueInCCC[0] | RxTxValueInCCC[1]))
-							ble_send_all();
+							ble_send_measures();
 					}
 					if(batteryValueInCCC[0] | batteryValueInCCC[1])
 						ble_send_battery(battery_level);

@@ -7,20 +7,12 @@
 #include "app.h"
 #include "flash_eep.h"
 #include "ble.h"
+#include "cmd_parser.h"
 
 #define TX_MAX_SIZE	 (ATT_MTU_SIZE-3)
 #define FLASH_MIMAC_ADDR CFG_ADR_MAC // 0x76000
 #define FLASH_MIKEYS_ADDR 0x78000
 //#define FLASH_SECTOR_SIZE 0x1000
-enum {
-	CMD_MI_ID_MAC	= 0x10,
-	CMD_MI_ID_DNAME = 0x11,
-	CMD_MI_ID_TBIND = 0x12,
-	CMD_MI_ID_CFG = 0x13,
-	CMD_MI_ID_KDEL = 0x14,
-	CMD_MI_ID_KALL = 0x15,
-	CMD_MI_ID_REST = 0x16
-} CMD_MI_ID_KEYS;
 
 RAM uint8_t mi_key_stage;
 RAM uint8_t mi_key_chk_cnt;
@@ -177,74 +169,37 @@ void cmd_parser(void * p) {
 	uint32_t len = req->l2cap - 3;
 	if(len) {
 		uint8_t cmd = req->dat[0];
-#if 1
-		if (cmd == 0x55) {
+		if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) {
 			if(--len > sizeof(cfg)) len = sizeof(cfg);
-			if(len)
+			else if(len)
 				memcpy(&cfg, &req->dat[1], len);
 			test_config();
 			ev_adv_timeout(0, 0, 0);
-			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
+			if(cmd != CMD_ID_CFG_NS)
+				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
-		} if (cmd == 0x33) {
+		} if (cmd == CMD_MI_ID_MAC) { // mac
+		} if (cmd == CMD_MI_ID_KALL) { // get all mi keys
+			mi_key_stage = get_mi_keys(0xff);
+		} if (cmd == CMD_MI_ID_REST) { // restore prev mi token & bindkeys
+			mi_key_stage = get_mi_keys(5);
+		} if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
+			if(--len > sizeof(ext)) len = sizeof(ext);
+			else if(len) {
+				memcpy(&ext, &req->dat[1], len);
+				vtime_count_sec = ext.vtime;
+				vtime_count_us = clock_time();
+			}
+			ble_send_ext();
+		} if (cmd == CMD_ID_MEASURE) {
 			if(len >= 2)
 				tx_measures = req->dat[1];
 			else {
 				end_measure = 1;
 				tx_measures = 0xff;
 			}
-		} if (cmd == 0x22) { // test
+		} if (cmd == 0x44) { // test
 			blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, 128); // 234
-		} if (cmd == CMD_MI_ID_MAC) { // mac
-		} if (cmd == CMD_MI_ID_KALL) { // get all mi keys
-			mi_key_stage = get_mi_keys(0xff);
-		} if (cmd == CMD_MI_ID_REST) { // restore prev mi token & bindkeys
-			mi_key_stage = get_mi_keys(5);
 		}
-#else // Atc1441 variant
-		if (cmd == 0xFF) {
-			cfg.flg.temp_C_or_F = true; // Temp in F
-		} else if (cmd == 0xCC) {
-			cfg.flg.temp_C_or_F = false; // Temp in C
-		} else if (cmd == 0xB1) {
-			cfg.flg.show_batt_enabled = true; // Enable battery on LCD
-		} else if (cmd == 0xB0) {
-			cfg.flg.show_batt_enabled = false; // Disable battery on LCD
-		} else if (cmd == 0xA0) {
-			cfg.flg.blinking_smiley = false;
-			cfg.flg.comfort_smiley = false;
-		} else if (cmd == 0xA1) {
-			cfg.flg.blinking_smiley = false;
-			cfg.flg.comfort_smiley = false;
-		} else if (cmd == 0xA2) {
-			cfg.flg.blinking_smiley = false;
-			cfg.flg.comfort_smiley = false;
-		} else if (cmd == 0xA3) {
-			cfg.flg.blinking_smiley = false;
-			cfg.flg.comfort_smiley = true; // Comfort Indicator
-		} else if (cmd == 0xAB) {
-			cfg.flg.blinking_smiley = true; // Smiley blinking
-		} else if (cmd == 0xAE) {
-			cfg.flg.advertising_type = false; // Advertising type Custom
-		} else if (cmd == 0xAF) {
-			cfg.flg.advertising_type = true; // Advertising type Mi Like
-		} else if (cmd == 0xF8) {
-			cfg.rf_tx_power = req->dat[1];
-		} else if (cmd == 0xF9) {
-			cfg.measure_interval = req->dat[1]; // Set advertising interval with second byte, value * 62.5 ms / 0=main_delay
-		} else if (cmd == 0xFA) {
-			cfg.temp_offset = req->dat[1]; // Set temp offset, -12,5 - +12,5 °C
-		} else if (cmd == 0xFB) {
-			cfg.humi_offset = req->dat[1]; // Set humi offset, -50 - +50 %
-		} else if (cmd == 0xFC) {
-		} else if (cmd == 0xFD) {
-		} else if (cmd == 0xFE) {
-			cfg.advertising_interval = req->dat[1]; // Set advertising interval with second byte, value * 62.5 ms / 0=main_delay
-		}
-		test_config();
-//		user_set_rf_power(0, 0, 0);
-		ev_adv_timeout(0, 0, 0);
-		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
-#endif
 	}
 }

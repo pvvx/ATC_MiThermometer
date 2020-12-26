@@ -235,10 +235,16 @@ void ble_send_battery(uint8_t value) {
 }
 
 uint8_t send_buf[16];
-_attribute_ram_code_ void ble_send_all(void) {
-	send_buf[0] = 0x33;
+_attribute_ram_code_ void ble_send_measures(void) {
+	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);
+}
+
+_attribute_ram_code_ void ble_send_ext(void) {
+	send_buf[0] = CMD_ID_EXTDATA;
+	memcpy(&send_buf[1], &ext, sizeof(ext));
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(ext) + 1);
 }
 
 void ble_send_cfg(void) {

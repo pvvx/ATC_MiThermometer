@@ -8,7 +8,9 @@ extern "C" {
 //#define PC3_INPUT_ENABLE	1
 //#define PB6_INPUT_ENABLE	1
 
-#define VERSION 0x04
+#define VERSION 0x05
+#define EEP_SUP_VER 0x05 // EEP data minimum supported version
+
 /* Average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
  * 16 MHz - 17.43 uA
  * 24 MHz - 17.28 uA

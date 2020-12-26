@@ -21,7 +21,7 @@ var state = 0,
 var customEnabled;
 var settingsCharacteristics = null;
 // Custom config
-var cfg = {ver: 0, flg: 4, temp_offset: 0, humi_offset: 0, advertising_interval: 32, measure_interval: 5, rf_tx_power: 191, connect_latency: 99};
+var cfg = {ver: 0, flg: 0, smiley: 0, temp_offset: 0, humi_offset: 0, advertising_interval: 32, measure_interval: 5, rf_tx_power: 191, connect_latency: 99};
 //Mi values
 var miEnabled = false,
     miConnected = false,
@@ -179,16 +179,17 @@ function dump(ar, len) {
 function CustomBlkParse(value) {
 	let blkid = value.getUint8(0);
 	let len = value.byteLength;
-	if(blkid == 0x55 && len >= 9) {
+	if(blkid == 0x55 && len >= 10) {
 		cfg.ver = value.getUint8(1);
 		cfg.flg = value.getUint8(2);
-		cfg.temp_offset = value.getInt8(3);
-		cfg.humi_offset = value.getInt8(4);
-		cfg.advertising_interval = value.getUint8(5);
-		cfg.measure_interval = value.getUint8(6);
-		cfg.rf_tx_power = value.getUint8(7);
-		cfg.connect_latency = value.getUint8(8);
-		let s = 'Device Version: '+(cfg.ver>>4)+'.'+(cfg.ver&0x0f)+', Custom config: ['+cfg.flg+', '+cfg.temp_offset+', '+cfg.humi_offset+', '+cfg.advertising_interval+', '+cfg.measure_interval+', '+cfg.rf_tx_power+', '+cfg.connect_latency+']';
+		cfg.smiley = value.getUint8(3);
+		cfg.temp_offset = value.getInt8(4);
+		cfg.humi_offset = value.getInt8(5);
+		cfg.advertising_interval = value.getUint8(6);
+		cfg.measure_interval = value.getUint8(7);
+		cfg.rf_tx_power = value.getUint8(8);
+		cfg.connect_latency = value.getUint8(9);
+		let s = 'Device Version: '+(cfg.ver>>4)+'.'+(cfg.ver&0x0f)+', Custom config: ['+cfg.flg+', '+cfg.smiley+', '+cfg.temp_offset+', '+cfg.humi_offset+', '+cfg.advertising_interval+', '+cfg.measure_interval+', '+cfg.rf_tx_power+', '+cfg.connect_latency+']';
 		addClog(s);
 		addLog(s);
 		CustomConfig();
@@ -217,7 +218,7 @@ function CustomBlkParse(value) {
 						if(cnt_delkeys == 0) {
 							mikeys.delkeys = [];
 						}
-						s = 'Delete key'+cnt_delkeys+': ';
+						s = 'Marked as delete Key'+cnt_delkeys+': ';
 						cnt_delkeys += 1;
 						mikeys.delkeys.push(buf11);
 					}
@@ -829,7 +830,7 @@ function do_login_generate() {
 function CustomConfig() {
 	let is = '<br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br><br>';
 	is += 'Temperature: <select id="cfg_flg_cf"><option value="0">°C</option><option value="1">°F</option></select><br><br>';
-	is += 'Smiley: <select id="cfg_smiley"><option value="0">Off</option><option value="1">Happy</option><option value="2">Sad</option></select>';
+	is += 'Smiley: <select id="cfg_smiley"><option value="0">&nbsp;&nbsp;&nbsp;</option><option value="1">&nbsp;^_^&nbsp;</option><option value="2">&nbsp;-&and;-&nbsp;</option><option value="3">&nbsp;&Delta;&#9651;&Delta;&nbsp;</option><option value="4">(&nbsp;&nbsp;&nbsp;)</option><option value="5">(^_^)</option><option value="6">(-&and;-)</option><option value="7">(&Delta;&#9651;&Delta;)</option></select>';
 	is += ' Blinking: <input type="checkbox" id="cfg_flg_blinking">';
 	is += ' Comfort: <input type="checkbox" id="cfg_flg_comfort">';
 	is += ', Show batt: <input type="checkbox" id="cfg_flg_show_batt"><br><br>';
@@ -859,13 +860,13 @@ function CustomConfig() {
 		is += '<br><button type="button" onclick="sendCustomSetting(&quot;16&quot;);">Swap previous token + bindkey</button><br><br>';
 
 	document.getElementById("custcfg").innerHTML = is;
-	document.getElementById("cfg_smiley").value = cfg.flg&3;
-	document.getElementById("cfg_flg_comfort").checked = (cfg.flg&4) != 0;
-	document.getElementById("cfg_flg_blinking").checked = (cfg.flg&8) != 0;
-   	document.getElementById("cfg_flg_cf").value = ((cfg.flg&16) != 0 ? 1 : 0);
-	document.getElementById("cfg_flg_show_batt").checked = (cfg.flg&32) != 0;
-	document.getElementById("cfg_flg_adv_type").value = ((cfg.flg&64) != 0 ? 1 : 0);
-	document.getElementById("cfg_cfg_tx_meas").checked = (cfg.flg&128) != 0;
+	document.getElementById("cfg_flg_comfort").checked = (cfg.flg&1) != 0;
+	document.getElementById("cfg_flg_blinking").checked = (cfg.flg&2) != 0;
+   	document.getElementById("cfg_flg_cf").value = ((cfg.flg&4) != 0 ? 1 : 0);
+	document.getElementById("cfg_flg_show_batt").checked = (cfg.flg&8) != 0;
+	document.getElementById("cfg_flg_adv_type").value = ((cfg.flg&16) != 0 ? 1 : 0);
+	document.getElementById("cfg_cfg_tx_meas").checked = (cfg.flg&32) != 0;
+	document.getElementById("cfg_smiley").value = cfg.smiley&7;
 	document.getElementById("cfg_tmp_off").value = String(cfg.temp_offset);
 	document.getElementById("cfg_hm_off").value = String(cfg.humi_offset);
 	document.getElementById("cfg_adv_int").value = String(cfg.advertising_interval);
@@ -879,13 +880,13 @@ function hex(number, len) {
     return str;
 } 
 function SendCustomConfig() {
-	cfg.flg = (parseInt(document.getElementById("cfg_smiley").value) & 3) + 
-	((document.getElementById("cfg_flg_comfort").checked) ? 4 : 0) +
-	((document.getElementById("cfg_flg_blinking").checked) ? 8 : 0) +
-   	((document.getElementById("cfg_flg_cf").value != 0) ? 16 : 0) +
-	((document.getElementById("cfg_flg_show_batt").checked) ? 32 : 0) +
-	((document.getElementById("cfg_flg_adv_type").value != 0) ? 64 : 0) +
-	((document.getElementById("cfg_cfg_tx_meas").checked) ? 128 : 0);
+	cfg.flg = ((document.getElementById("cfg_flg_comfort").checked) ? 1 : 0) +
+	((document.getElementById("cfg_flg_blinking").checked) ? 2 : 0) +
+   	((document.getElementById("cfg_flg_cf").value != 0) ? 4 : 0) +
+	((document.getElementById("cfg_flg_show_batt").checked) ? 8 : 0) +
+	((document.getElementById("cfg_flg_adv_type").value != 0) ? 16 : 0) +
+	((document.getElementById("cfg_cfg_tx_meas").checked) ? 32 : 0);
+	cfg.smiley = (parseInt(document.getElementById("cfg_smiley").value) & 7); 
 	cfg.temp_offset = parseInt(document.getElementById("cfg_tmp_off").value);
 	if(cfg.temp_offset < -125) cfg.temp_offset = -125;
 	else if(cfg.temp_offset > 125) cfg.temp_offset = 125;
@@ -903,7 +904,7 @@ function SendCustomConfig() {
 	let s = 'New custom config: ['+cfg.flg+', '+cfg.temp_offset+', '+cfg.humi_offset+', '+cfg.advertising_interval+', '+cfg.measure_interval+', '+cfg.rf_tx_power+', '+cfg.connect_latency+']';
 	addClog(s);
 	addLog(s);
-	sendCustomSetting('55'+hex(cfg.flg,2)+hex(cfg.temp_offset&0xff,2)+hex(cfg.humi_offset&0xff,2)+hex(cfg.advertising_interval,2)+hex(cfg.measure_interval,2)+hex(cfg.rf_tx_power,2)+hex(cfg.connect_latency,2));
+	sendCustomSetting('55'+hex(cfg.flg,2)+hex(cfg.smiley,2)+hex(cfg.temp_offset&0xff,2)+hex(cfg.humi_offset&0xff,2)+hex(cfg.advertising_interval,2)+hex(cfg.measure_interval,2)+hex(cfg.rf_tx_power,2)+hex(cfg.connect_latency,2));
 	document.getElementById("custcfg").innerHTML = '<button type="button" onclick="sendCustomSetting(&quot;55&quot;);">Get Config</button><br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button><br>';
 }
 

@@ -55,7 +55,11 @@
 #define _flash_memcmp(a,b,c) memcmp((void *)(FLASH_BASE_ADDR + (unsigned int)a), c, b) // _flash_memcmp(xfaddr + fobj_head_size, size, ptr) == 0)
 #define _flash_erase_sector(a) flash_erase_sector(a)
 #define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write_page(a, 4, (unsigned char *)&_dw); }
-#define _flash_write(a,b,c) flash_write_(a,b,(unsigned char *)c) //_flash_write(wraddr, len, pbuf);
+#if MAX_FOBJ_SIZE > 256
+#define _flash_write(a,b,c) flash_write_(a,b,(unsigned char *)c) //flash_write(wraddr, len, pbuf);
+#else
+#define _flash_write(a,b,c) flash_write_page(a,b,(unsigned char *)c)
+#endif
 
 #ifndef LOCAL
 #define LOCAL static
@@ -91,7 +95,7 @@ typedef union __attribute__((packed)) // заголовок объекта со�
 unsigned char buf_epp[MAX_FOBJ_SIZE+fobj_head_size];
 
 _attribute_ram_code_ void flash_write_(unsigned int addr, unsigned int len, unsigned char *buf) {
-	u32 sz = 256;
+	unsigned int sz = 256;
 	while(len) {
 		if (len < sz) sz = len;
 		flash_write_page(addr, sz, buf);
@@ -332,8 +336,8 @@ LOCAL signed short _flash_write_cfg(void *ptr, unsigned short id, unsigned short
 FEEP_CODE_ATTR
 bool flash_write_cfg(void *ptr, unsigned short id, unsigned short size)
 {
-	if(size > MAX_FOBJ_SIZE) return false;
 	bool retb = false;
+	if(size > MAX_FOBJ_SIZE) return retb;
 	_flash_mutex_lock();
 	if(_flash_write_cfg(ptr, id, size) >= 0) {
 #if CONFIG_DEBUG_LOG > 3
@@ -391,4 +395,22 @@ signed short flash_read_cfg(void *ptr, unsigned short id, unsigned short maxsize
     return rets;
 }
 //=============================================================================
+FEEP_CODE_ATTR
+bool flash_supported_eep_ver(unsigned int min_ver, unsigned int new_ver) {
+	unsigned int tmp;
+	unsigned int faddr = FMEMORY_SCFG_BASE_ADDR;
+	_flash_mutex_lock();
+	if(flash_read_cfg(&tmp, EEP_ID_VER, sizeof(tmp)) == sizeof(tmp) && tmp >= min_ver)
+		return true;
+	do{
+		tmp = _flash_read_dword(faddr);
+		_flash_erase_sector(faddr);
+		_flash_write_dword(faddr, --tmp);
+		faddr += FLASH_SECTOR_SIZE;
+	} while(faddr < FLASH_SIZE);
+	tmp = new_ver;
+	flash_write_cfg(&tmp, EEP_ID_VER, sizeof(tmp));
+	_flash_mutex_unlock();
+	return false;
+}
 

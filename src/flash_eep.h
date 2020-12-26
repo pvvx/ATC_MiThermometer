@@ -16,6 +16,7 @@ extern "C" {
 //#include <FreeRTOS.h>
 //#include <queue.h>
 
+#define EEP_ID_VER (0x5555) // EEP ID blk: unsigned int = minimum supported version
 //-----------------------------------------------------------------------------
 #define FLASH_BASE_ADDR			0x00000000
 #define FLASH_SIZE				(512*1024)
@@ -37,6 +38,7 @@ enum eFMEMORY_ERRORS {
 signed short flash_read_cfg(void *ptr, unsigned short id, unsigned short maxsize); // возврат: размер объекта последнего сохранения, -1 - не найден, -2 - error
 bool flash_write_cfg(void *ptr, unsigned short id, unsigned short size);
 void flash_write_(unsigned int addr, unsigned int len, unsigned char *buf);
+bool flash_supported_eep_ver(unsigned int min_ver, unsigned int new_ver);
 //-----------------------------------------------------------------------------
 
 #ifdef __cplusplus

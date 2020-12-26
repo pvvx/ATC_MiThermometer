@@ -11,7 +11,9 @@
 const uint8_t lcd_init_cmd[] = {0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
 RAM uint8_t display_buff[6];
 RAM uint8_t display_cmp_buff[6];
-const uint8_t display_numbers[16] = {0xF5,0x05,0xD3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7,0x77,0xe6,0xf0,0xc7,0xf2,0x72};
+/* t,H,h,L,o,i  0xe2,0x67,0x66,0xe0,0xC6,0x40 */
+/* 0,1,2,3,4,5,6,7,8,9,A,b,C,d,E,F*/
+const uint8_t display_numbers[22] = {0xF5,0x05,0xD3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7, 0x77,0xe6,0xf0,0xc7,0xf2,0x72 };
 
 void init_lcd(){	
 	gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
@@ -26,7 +28,7 @@ _attribute_ram_code_ void send_to_lcd_long(uint8_t byte1, uint8_t byte2, uint8_t
     uint8_t lcd_set_segments[] =    {0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6,0xC0,0x00,0xC0,0x00};
 	send_i2c(0x78,lcd_set_segments, sizeof(lcd_set_segments));
 }
-	
+
 _attribute_ram_code_ void send_to_lcd(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5, uint8_t byte6){
     uint8_t lcd_set_segments[] =    {0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6};
 	send_i2c(0x78,lcd_set_segments, sizeof(lcd_set_segments));
@@ -42,11 +44,29 @@ _attribute_ram_code_ void show_number(uint8_t position,uint8_t number){
 	if(position>5 || position == 2 || number >9)return;	
     display_buff[position] = display_numbers[number] & 0xF7;
 }
-
-_attribute_ram_code_ void show_temp_symbol(uint8_t symbol){ /*1 = C, 2 = F*/
+/* 0x00 = "  "
+ * 0x20 = "°Г"
+ * 0x40 = " -"
+ * 0x60 = "°F"
+ * 0x80 = " _"
+ * 0xA0 = "°C"
+ * 0xC0 = " ="
+ * 0xE0 = "°E" */
+_attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
 	display_buff[2] &= ~0xE0;
-	if(symbol==1)display_buff[2]|=0xA0;
-	else if(symbol==2)display_buff[2]|=0x60;
+	display_buff[2] |= symbol & 0xE0;
+}
+/* 0 = "     " off,
+ * 1 = " ^-^ "
+ * 2 = " -^- "
+ * 3 = " ooo "
+ * 4 = "(   )"
+ * 5 = "(^-^)" happy
+ * 6 = "(-^-)" sad
+ * 7 = "(ooo)" */
+_attribute_ram_code_ void show_smiley(uint8_t state){
+	display_buff[2] &= ~0x07;
+	display_buff[2] |= state & 0x07;
 }
 
 _attribute_ram_code_ void show_ble_symbol(bool state){
@@ -63,16 +83,10 @@ _attribute_ram_code_ void show_battery_symbol(bool state){
 		display_buff[1] &= ~0x08;
 }
 
-_attribute_ram_code_ void show_smiley(uint8_t state){ /*0=off, 1=happy, 2=sad*/
-	display_buff[2] &= ~0x07;
-	if(state==1)display_buff[2]|=0x05;
-	else if(state==2)display_buff[2]|=0x06;
-}
-
+#if 0
 _attribute_ram_code_ void show_atc(){
 	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
 }
-
 void show_atc_mac(){
 	extern u8  mac_public[6];
 	send_to_lcd(display_numbers[mac_public[2] &0x0f],display_numbers[mac_public[2]>>4],0x05,0xc2,0xe2,0x77);
@@ -86,26 +100,60 @@ void show_atc_mac(){
 	send_to_lcd(display_numbers[mac_public[0] &0x0f],display_numbers[mac_public[0]>>4],0x05,0xc2,0xe2,0x77);
 	StallWaitMs(1800);
 }
-
-_attribute_ram_code_ void show_big_number(int16_t number, bool point){
-	if(number >1999)return;	
-	if(number < -99)return;
-	display_buff[5] = (number > 999)?0x08:0x00; 
-	if(number < 0){
-		number = -number;
-		display_buff[5] = 2; 
+#endif
+/* x0.1 (-995..19995) Show: -99 .. -9.9 .. 199.9 .. 1999 */
+_attribute_ram_code_ void show_big_number(int16_t number){
+//	display_buff[4] = point?0x08:0x00;
+	if(number > 19995) {
+   		display_buff[3] = 0;
+   		display_buff[4] = 0x40; // "i"
+   		display_buff[5] = 0x67; // "H"
+	} else if(number < -995) {
+   		display_buff[3] = 0;
+   		display_buff[4] = 0xc6; // "o"
+   		display_buff[5] = 0xe0; // "L"
+	} else {
+		display_buff[5] = 0;
+		/* number: -995..19995 */
+		if(number > 1995 || number < -95) {
+			display_buff[4] = 0; // no point, show: -99..1999
+			if(number < 0){
+				number = -number;
+				display_buff[5] = 2; // "-"
+			}
+			number = (number / 10) + ((number % 10) > 5); // round(div 10)
+		} else { // show: -9.9..199.9
+			display_buff[4] = 0x08; // point,
+			if(number < 0){
+				number = -number;
+				display_buff[5] = 2; // "-"
+			}
+		}
+		/* number: -99..1999 */
+		if(number > 999) display_buff[5] |= 0x08; // "1" 1000..1999
+		if(number > 99)display_buff[5] |= display_numbers[number / 100 % 10] & 0xF7; //
+		if(number > 9)display_buff[4] |= display_numbers[number / 10 % 10] & 0xF7;
+		if(number < 9)display_buff[4] |= 0xF5; // "0"
+	    display_buff[3] = display_numbers[number %10] & 0xF7;
 	}
-	display_buff[4] = point?0x08:0x00; 
-	if(number > 99)display_buff[5] |= display_numbers[number / 100 % 10] & 0xF7;
-	if(number > 9)display_buff[4] |= display_numbers[number / 10 % 10] & 0xF7;
-	if(number < 9)display_buff[4] |= display_numbers[0] & 0xF7;
-    display_buff[3] = display_numbers[number %10] & 0xF7;
 }
 
-_attribute_ram_code_ void show_small_number(uint16_t number, bool percent){
-	if(number >99)return;	
+/* -9 .. 99 */
+_attribute_ram_code_ void show_small_number(int16_t number, bool percent){
+	display_buff[1] = display_buff[1] & 0x08; // battery
 	display_buff[0] = percent?0x08:0x00;
-	display_buff[1] = display_buff[1] & 0x08;
-	if(number > 9)display_buff[1] |= display_numbers[number / 10 % 10] & 0xF7;
-    display_buff[0] |= display_numbers[number %10] & 0xF7;
+	if(number > 99) {
+		display_buff[0] |= 0x40; // "i"
+		display_buff[1] |= 0x67; // "H"
+	} else if(number < -9) {
+		display_buff[0] |= 0xc6; // "o"
+		display_buff[1] |= 0xe0; // "L"
+	} else {
+		if(number < 0) {
+			number = -number;
+			display_buff[1] = 2; // "-"
+		}
+		if(number > 9) display_buff[1] |= display_numbers[number / 10 % 10] & 0xF7;
+		display_buff[0] |= display_numbers[number %10] & 0xF7;
+	}
 }
