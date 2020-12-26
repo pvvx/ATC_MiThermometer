@@ -4,13 +4,12 @@
 Forked from https://github.com/atc1441/ATC_MiThermometer
 
 
-### 1. Adaptation to reduce energy consumption.
->* Average consumption (default configuration)
+### 1. Adaptation to reduce energy consumption (Average consumption).
 >* Released
 >* #### Original Xiaomi LYWSD03MMC (advertisement 1700 ms, measurement 6800 ms):
 > * Advertisement: 18.64 uA
 > * Connection: > 0.3 mA
->* #### Custom firmware (show battery, comfort on, advertisement 2 sec, measurement 10 sec):
+>* #### Custom firmware (show 2 sec battery/humidity, comfort on, advertisement 2 sec, measurement 10 sec):
 > * Advertisement: 17.28 uA
 > * Connection: < 17 uA
 ### 2. Reading Measurements in Connect Mode.
