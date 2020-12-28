@@ -65,10 +65,16 @@ static const external_data_t def_ext = {
 RAM external_data_t ext;
 
 void test_config(void) {
-	if (cfg.humi_offset < -50)
-		cfg.humi_offset = -50;
-	if (cfg.humi_offset > 50)
-		cfg.humi_offset = 50;
+/*
+	if (cfg.humi_offset < -125)
+		cfg.humi_offset = -125;
+	if (cfg.humi_offset > 125)
+		cfg.humi_offset = 125;
+	if (cfg.temp_offset < -125)
+		cfg.temp_offset = -125;
+	if (cfg.temp_offset > 125)
+		cfg.temp_offset = 125;
+*/
 	if (cfg.measure_interval == 0)
 		cfg.measure_interval = 1; // x1
 	else if (cfg.measure_interval > 10)
@@ -119,9 +125,9 @@ _attribute_ram_code_ void app_suspend_enter(void) {
 		}
 	} else {
 		if (timer_measure_cb) {
-				bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
-				bls_pm_setAppWakeupLowPower(timer_measure_cb, 1);
-				timer_measure_cb = 0;
+			bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
+			bls_pm_setAppWakeupLowPower(timer_measure_cb, 1);
+			timer_measure_cb = 0;
 		} else if(!wrk_measure)
 			bls_pm_setAppWakeupLowPower(0, 0);
 		bls_pm_setSuspendMask(
@@ -139,7 +145,6 @@ _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
 _attribute_ram_code_ void user_init_normal(void) {//this will get executed one time after power up
 	random_generator_init(); //must
 	// Read config
-
 	if((!flash_supported_eep_ver(EEP_SUP_VER, VERSION)) || flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg)) {
 		memcpy(&cfg, &def_cfg, sizeof(cfg));
 	}

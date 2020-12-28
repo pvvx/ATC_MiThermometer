@@ -71,7 +71,7 @@ extern uint32_t vtime_count_sec;
 typedef struct _measured_data_t {
 	uint16_t	battery_mv; // mV
 	int16_t		temp; // x 0.01 C
-	uint16_t	humi; // x 0.01 %
+	int16_t		humi; // x 0.01 %
 	uint16_t 	count;
 } measured_data_t;
 extern measured_data_t measured_data;

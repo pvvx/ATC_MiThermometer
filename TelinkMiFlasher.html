@@ -886,8 +886,8 @@ function CustomConfig() {
 	is += 'Tx measures: <input title="When connected, start transferring measurements" type="checkbox" id="cfg_cfg_tx_meas">'; 
 	is += ' <button type="button" title="Start transferring measurements. Only in the current connection." onclick="sendCustomSetting(&quot;3301&quot;);">Start Tx Measure</button>';
 	is += ' <button type="button" title="Stop transferring measurements. Only in the current connection." onclick="sendCustomSetting(&quot;3300&quot;);">Stop Tx Measure</button><br><br>';
-	is += 'Temperature offset: <input size="5" title="-125..125 (-12.5..12.5°), default 0" id="cfg_tmp_off" maxlength="4" value="0"> x0.1°';
-	is += ', Humidity offset: <input size="5" title="-125..125 (-12.5..12.5%), default 0" id="cfg_hm_off" maxlength="4" value="0"> x0.1%<br><br>';
+	is += 'Temperature offset: <input size="5" title="-12.7..12.7°, default 0" id="cfg_tmp_off" maxlength="5" value="0"> °';
+	is += ', Humidity offset: <input size="5" title="-12.7..12.7%, default 0" id="cfg_hm_off" maxlength="5" value="0"> %<br><br>';
 	is += 'Advertising type: <select id="cfg_flg_adv_type"><option value="0">Custom</option><option value="1">Mi</option></select><br><br>';
 	is += 'Advertising interval: <input size="5" title="1..160 (62.5 ms .. 10 sec), default 32 (2 sec)" id="cfg_adv_int" maxlength="5" value="32"> x62.5 ms<br><br>';
 	is += 'Connect latency: <input size="5" title="0..200 (20 ms .. 4 sec), default 99 (2 sec)" id="cfg_con_lat" maxlength="3" value="99"> x20 ms<br><br>';
@@ -916,8 +916,8 @@ function CustomConfig() {
 	document.getElementById("cfg_flg_adv_type").value = ((cfg.flg&16) != 0 ? 1 : 0);
 	document.getElementById("cfg_cfg_tx_meas").checked = (cfg.flg&32) != 0;
 	document.getElementById("cfg_smiley").value = cfg.smiley&7;
-	document.getElementById("cfg_tmp_off").value = String(cfg.temp_offset);
-	document.getElementById("cfg_hm_off").value = String(cfg.humi_offset);
+	document.getElementById("cfg_tmp_off").value = String(cfg.temp_offset) / 10.0;
+	document.getElementById("cfg_hm_off").value = String(cfg.humi_offset) / 10.0;
 	document.getElementById("cfg_adv_int").value = String(cfg.advertising_interval);
 	document.getElementById("cfg_meas_int").value = String(cfg.measure_interval);
 	document.getElementById("cfg_rf_tx").value = String(cfg.rf_tx_power);
@@ -936,12 +936,12 @@ function SendCustomConfig() {
 	((document.getElementById("cfg_flg_adv_type").value != 0) ? 16 : 0) +
 	((document.getElementById("cfg_cfg_tx_meas").checked) ? 32 : 0);
 	cfg.smiley = (parseInt(document.getElementById("cfg_smiley").value) & 7); 
-	cfg.temp_offset = parseInt(document.getElementById("cfg_tmp_off").value);
-	if(cfg.temp_offset < -125) cfg.temp_offset = -125;
-	else if(cfg.temp_offset > 125) cfg.temp_offset = 125;
-	cfg.humi_offset = parseInt(document.getElementById("cfg_hm_off").value);
-	if(cfg.humi_offset < -125) cfg.humi_offset = -125;
-	else if(cfg.humi_offset > 125) cfg.humi_offset = 125;
+	cfg.temp_offset = Math.round(10.0 * parseFloat(document.getElementById("cfg_tmp_off").value));
+	if(cfg.temp_offset < -127) cfg.temp_offset = -127;
+	else if(cfg.temp_offset > 127) cfg.temp_offset = 127;
+	cfg.humi_offset = Math.round(10.0 * parseFloat(document.getElementById("cfg_hm_off").value));
+	if(cfg.humi_offset < -127) cfg.humi_offset = -127;
+	else if(cfg.humi_offset > 127) cfg.humi_offset = 127;
 	cfg.advertising_interval = parseInt(document.getElementById("cfg_adv_int").value);
 	if(cfg.advertising_interval < 2 || cfg.advertising_interval > 160) cfg.advertising_interval = 32;
 	cfg.measure_interval = parseInt(document.getElementById("cfg_meas_int").value);
