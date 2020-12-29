@@ -8,7 +8,7 @@ extern "C" {
 //#define PC3_INPUT_ENABLE	1
 //#define PB6_INPUT_ENABLE	1
 
-#define VERSION 0x05
+#define VERSION 0x06
 #define EEP_SUP_VER 0x05 // EEP data minimum supported version
 
 /* Average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
@@ -26,8 +26,6 @@ enum{
 };
 
 #define StallWaitMs(t) cpu_stall_wakeup_by_timer0(t*CLOCK_SYS_CLOCK_1MS);
-
-#define TIME_UPDATE_LCD			(2750 * CLOCK_16M_SYS_TIMER_CLK_1MS) // min 2.75 sec
 
 #define RAM _attribute_data_retention_ // short version, this is needed to keep the values in ram after sleep
 

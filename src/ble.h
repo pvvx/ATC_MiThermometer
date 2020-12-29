@@ -10,6 +10,19 @@ extern u8 tempValueInCCC[2];
 extern u8 humiValueInCCC[2];
 extern u8 RxTxValueInCCC[2];
 
+typedef struct
+{
+  /** Minimum value for the connection event (interval. 0x0006 - 0x0C80 * 1.25 ms) */
+  u16 intervalMin;
+  /** Maximum value for the connection event (interval. 0x0006 - 0x0C80 * 1.25 ms) */
+  u16 intervalMax;
+  /** Number of LL latency connection events (0x0000 - 0x03e8) */
+  u16 latency;
+  /** Connection Timeout (0x000A - 0x0C80 * 10 ms) */
+  u16 timeout;
+} gap_periConnectParams_t;
+extern gap_periConnectParams_t my_periConnParameters;
+
 extern u8 my_RxTx_Data[16];
 
 void init_ble();

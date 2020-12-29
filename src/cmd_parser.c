@@ -196,7 +196,7 @@ void cmd_parser(void * p) {
 				tx_measures = req->dat[1];
 			else {
 				end_measure = 1;
-				tx_measures = 0xff;
+				tx_measures = 1;
 			}
 		} if (cmd == 0x44) { // test
 			blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, 128); // 234

@@ -3,18 +3,6 @@
 #include "stack/ble/ble.h"
 #include "ble.h"
 
-typedef struct
-{
-  /** Minimum value for the connection event (interval. 0x0006 - 0x0C80 * 1.25 ms) */
-  u16 intervalMin;
-  /** Maximum value for the connection event (interval. 0x0006 - 0x0C80 * 1.25 ms) */
-  u16 intervalMax;
-  /** Number of LL latency connection events (0x0000 - 0x03e8) */
-  u16 latency;
-  /** Connection Timeout (0x000A - 0x0C80 * 10 ms) */
-  u16 timeout;
-} gap_periConnectParams_t;
-
 static const u16 clientCharacterCfgUUID = GATT_UUID_CLIENT_CHAR_CFG;
 
 static const u16 extReportRefUUID = GATT_UUID_EXT_REPORT_REF;
@@ -47,7 +35,7 @@ static const u16 my_appearance = GAP_APPEARE_UNKNOWN;
 
 static const u16 my_gattServiceUUID = SERVICE_UUID_GENERIC_ATTRIBUTE;
 
-static const gap_periConnectParams_t my_periConnParameters = {20, 40, 0, 1000};
+RAM gap_periConnectParams_t my_periConnParameters = {20, 40, 0, 1000};
 
 static u16 serviceChangeVal[2] = {0};
 

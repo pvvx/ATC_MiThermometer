@@ -18,6 +18,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 		uint8_t show_batt_enabled	: 1;
 		uint8_t advertising_type	: 1; // Custom or Mi Advertising (true)
 		uint8_t tx_measures			: 1; // Send all measurements in connected mode
+		uint8_t lp_measures			: 1; // Sensor measurements in "Low Power" mode
 	} flg;
 	/* 0 = "     " off,
 	 * 1 = " ^_^ "
@@ -32,8 +33,9 @@ typedef struct __attribute__((packed)) _cfg_t {
 	int8_t humi_offset; // Set humi offset, -50 - +50 %
 	uint8_t advertising_interval; // multiply by 62.5 for value in ms (1..160,  62.5 ms .. 10 sec)
 	uint8_t measure_interval; // measure_interval = advertising_interval * x (1..10)
-	uint8_t rf_tx_power;
-	uint8_t connect_latency; // x 0.02 sec ( = connection interval)
+	uint8_t rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm
+	uint8_t connect_latency; // +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
+	uint8_t min_step_time_update_lcd; // x0.05 sec
 }cfg_t;
 extern cfg_t cfg;
 
@@ -83,6 +85,7 @@ extern uint32_t tim_measure;
 
 
 extern uint32_t adv_interval;
+extern uint32_t connection_timeout;
 extern uint32_t measurement_step_time;
 void ev_adv_timeout(u8 e, u8 *p, int n);
 void test_config(void);

@@ -61,14 +61,10 @@ _attribute_ram_code_ void user_set_rf_power(uint8_t e, uint8_t *p, int n) {
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 1;
-/*
- * interval_ms = (interval * 125) / 10;
- * latency_ms = (latency + 1) * interval_ms;
- * timeout_ms = timeout * 10;
-*/
-	u16 timeout = (cfg.connect_latency + 1) * 8; // default = 800 -> 800*10 ms = 8 sec (max 32 sec?)
-	if(timeout > 32*100) timeout = 32*100;
-	bls_l2cap_requestConnParamUpdate(16, 16, cfg.connect_latency, timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
+	if(cfg.connect_latency)
+		bls_l2cap_requestConnParamUpdate(16, 16, cfg.connect_latency, connection_timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
+	else
+		bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, cfg.connect_latency, connection_timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
 	show_ble_symbol(1);
 }
 
@@ -163,7 +159,7 @@ void init_ble() {
 					| DEEPSLEEP_RETENTION_CONN);
 //*/
 	blc_pm_setDeepsleepRetentionThreshold(95, 95);
-	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
+	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(400); // 240
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
 
 	bls_ota_clearNewFwDataArea(); //must

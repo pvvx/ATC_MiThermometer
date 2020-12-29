@@ -15,6 +15,7 @@
 #define SHTC3_SOFT_RESET	0x5d80 // Soft reset command
 #define SHTC3_GO_SLEEP		0x98b0 // Sleep command of the sensor
 #define SHTC3_MEASURE		0x6678 // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First
+#define SHTC3_LPMEASURE		0x9C60 // Measurement commands, Clock Stretching Disabled, Low Power Mode, Read T First
 
 RAM uint32_t timer_measure_cb;
 
@@ -35,11 +36,11 @@ void init_sensor(){
 	send_sensor(SHTC3_GO_SLEEP); // Sleep command of the sensor
 }
 
-_attribute_ram_code_ void read_sensor_start(void) {
+_attribute_ram_code_ void read_sensor_start(uint16_t mcmd) {
 	send_sensor(SHTC3_WAKEUP); //	Wake-up command of the sensor
 	sleep_us(240);
 	reg_i2c_id = 0xE0;
-	reg_i2c_adr_dat = SHTC3_MEASURE; // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First
+	reg_i2c_adr_dat = mcmd; // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
@@ -82,14 +83,20 @@ _attribute_ram_code_ void read_sensor_cb(void) {
 }
 
 _attribute_ram_code_ void read_sensor_deep_sleep(void) {
-	read_sensor_start();
+	read_sensor_start(SHTC3_MEASURE);
 	gpio_setup_up_down_resistor(GPIO_PC2, PM_PIN_PULLUP_1M);
 	gpio_setup_up_down_resistor(GPIO_PC3, PM_PIN_PULLUP_1M);
-	timer_measure_cb = (clock_time() + 11 * CLOCK_16M_SYS_TIMER_CLK_1MS);
+	timer_measure_cb = (clock_time() + SENSOR_MEASURING_TIMEOUT);
+}
+
+_attribute_ram_code_ void read_sensor_low_power(void) {
+	read_sensor_start(SHTC3_LPMEASURE);
+	gpio_setup_up_down_resistor(GPIO_PC2, PM_PIN_PULLUP_1M);
+	gpio_setup_up_down_resistor(GPIO_PC3, PM_PIN_PULLUP_1M);
 }
 
 _attribute_ram_code_ void read_sensor_sleep(void) {
-	read_sensor_start();
+	read_sensor_start(SHTC3_MEASURE);
 	StallWaitMs(11);
 	read_sensor_cb();
 }
