@@ -73,7 +73,7 @@ void test_config(void) {
 	else if (cfg.measure_interval > 10)
 		cfg.measure_interval = 10; // x10, T = cfg.measure_interval * advertising_interval_ms (ms),  Tmax = 10 * 1*62.5 = 625 ms / 10 * 160 * 62.5 = 100000 ms = 100 sec
 	if (cfg.flg.tx_measures)
-		tx_measures = 1;
+		tx_measures = 0xff;
 	if (cfg.advertising_interval == 0) // 0 ?
 		cfg.advertising_interval = 1; // 1*62.5 = 62.5 ms
 	else if (cfg.advertising_interval > 160) // 160*62.5 = 10000 ms
