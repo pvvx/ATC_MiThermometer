@@ -23,20 +23,24 @@ RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
 RAM uint8_t ble_name[] = { 11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0',
 		'0', '0' };
 RAM bool show_temp_humi_Mi = true;
+// https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
 RAM uint8_t advertising_data_Mi[] = {
-/*Description*/21, 0x16, 0x95, 0xfe,
+		21,	// Size
+/*Description*/	0x16, 0x95, 0xfe, // = 0x16 Service Data - 16-bit UUID, UUID: fe95
+// 16-bit UUID for Members 0xFE95 Xiaomi Inc. https://btprodspecificationrefs.blob.core.windows.net/assigned-values/16-bit%20UUID%20Numbers%20Document.pdf
 /*Start*/0x50, 0x30,
 /*Device id*/0x5B, 0x05,
 /*counter*/0x00,
 /*MAC*/0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 /*Temp+Humi*//*BatL alternating*/0x0D, 0x10, 0x04, 0x00, 0x00, 0x00, 0x00, };
 RAM uint8_t advertising_data[] = {
-/*Description*/16, 0x16, 0x1a, 0x18,
+		17, // Size
+/*Description*/ 0x16, 0x1a, 0x18, // = 0x16 Service Data - 16-bit UUID, UUID: 181a // GATT Service 0x181A Environmental Sensing
 /*MAC*/0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 /*Temp*/0xaa, 0xaa,
-/*Humi*/0xbb,
-/*BatL*/0xcc,
+/*Humi*/0xbb, 0xcc,
 /*BatM*/0xdd, 0xdd,
+/*BatL*/0xee,
 /*Counter*/0x00 };
 
 uint8_t mac_public[6];
@@ -167,50 +171,53 @@ void init_ble() {
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 }
 
-_attribute_ram_code_ void set_adv_data(int32_t temp, uint32_t humi, uint8_t battery_level,
-		uint32_t battery_mv) {
-	if (cfg.flg.advertising_type) { // Mi Like Advertising
-		humi = humi * 10;
+_attribute_ram_code_ void set_mi_adv_data(int32_t temp, uint32_t humi,
+		uint8_t battery_level, uint32_t battery_mv) {
+	advertising_data_Mi[8] = (uint8_t)measured_data.count;
+	if (show_temp_humi_Mi) { // Alternate between Sensor and Battery level
+		advertising_data_Mi[15] = 0x0d;
+		advertising_data_Mi[17] = 0x04;
 
-		advertising_data_Mi[8]++;
+		advertising_data_Mi[18] = temp;
+		advertising_data_Mi[19] = temp >> 8;
+		humi /= 10;
+		advertising_data_Mi[20] = humi;
+		advertising_data_Mi[21] = humi >> 8;
+		show_temp_humi_Mi = false;
+	} else {
+		advertising_data_Mi[15] = 0x0a;
+		advertising_data_Mi[17] = 0x01;
 
-		if (show_temp_humi_Mi) { // Alternate between Sensor and Battery level
-			advertising_data_Mi[15] = 0x0d;
-			advertising_data_Mi[17] = 0x04;
+		advertising_data_Mi[18] = battery_level;
 
-			advertising_data_Mi[18] = temp & 0xff;
-			advertising_data_Mi[19] = temp >> 8;
-			advertising_data_Mi[20] = humi & 0xff;
-			advertising_data_Mi[21] = humi >> 8;
-		} else {
-			advertising_data_Mi[15] = 0x0a;
-			advertising_data_Mi[17] = 0x01;
-
-			advertising_data_Mi[18] = battery_level;
-			advertising_data_Mi[19] = 0x00;
-			advertising_data_Mi[20] = 0x00;
-			advertising_data_Mi[21] = 0x00;
-		}
-		show_temp_humi_Mi = !show_temp_humi_Mi;
-
-		bls_ll_setAdvData((uint8_t *) advertising_data_Mi,
-				sizeof(advertising_data_Mi));
-	} else { // Custom advertising type
-		advertising_data[10] = temp >> 8;
-		advertising_data[11] = temp & 0xff;
-
-		advertising_data[12] = humi & 0xff;
-
-		advertising_data[13] = battery_level;
-
-		advertising_data[14] = battery_mv >> 8;
-		advertising_data[15] = battery_mv & 0xff;
-
-		advertising_data[16]++;
-
-		bls_ll_setAdvData((uint8_t *) advertising_data,
-				sizeof(advertising_data));
+		advertising_data_Mi[19] = 0x02;
+		advertising_data_Mi[20] = battery_mv;
+		advertising_data_Mi[21] = battery_mv >> 8;
+		show_temp_humi_Mi = true;
 	}
+
+	bls_ll_setAdvData((uint8_t *) advertising_data_Mi,
+			sizeof(advertising_data_Mi));
+
+}
+// Custom advertising type
+_attribute_ram_code_ void set_custom_adv_data(int32_t temp, uint32_t humi,
+		uint8_t battery_level, uint32_t battery_mv) {
+
+	advertising_data[10] = temp;
+	advertising_data[11] = temp >> 8;
+
+	advertising_data[12] = humi;
+	advertising_data[13] = humi >> 8;
+
+	advertising_data[14] = battery_mv;
+	advertising_data[15] = battery_mv >> 8;
+
+	advertising_data[16] = battery_level;
+
+	advertising_data[17] = (uint8_t)measured_data.count;
+
+	bls_ll_setAdvData((uint8_t *) advertising_data, sizeof(advertising_data));
 }
 
 void ble_send_temp(int16_t temp) {

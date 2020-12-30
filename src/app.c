@@ -131,7 +131,12 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	read_sensor_cb();
 	last_temp = measured_data.temp / 10;
 	last_humi = measured_data.humi / 100;
-	set_adv_data(last_temp, last_humi, battery_level, measured_data.battery_mv);
+	if(cfg.flg.advertising_type) {
+		show_temp_humi_Mi = true;
+		set_mi_adv_data(last_temp, measured_data.humi, battery_level, measured_data.battery_mv);
+	} else {
+		set_custom_adv_data(measured_data.temp, measured_data.humi, battery_level, measured_data.battery_mv);
+	}
 	end_measure = 1;
 	wrk_measure = 0;
 }
@@ -293,7 +298,7 @@ _attribute_ram_code_ void main_loop() {
 			WakeupLowPowerCb(0);
 			timer_measure_cb = 0;
 	}
-	if (!ota_is_working) {
+	if (!ota_is_working && !wrk_measure) {
 		if (start_measure) {
 			start_measure = 0;
 			if (cfg.flg.lp_measures) {
@@ -306,7 +311,8 @@ _attribute_ram_code_ void main_loop() {
 				read_sensor_deep_sleep();
 			}
 		} else {
-			if ((ble_connected) && blc_ll_getTxFifoNumber() < 9) {
+			uint32_t new = clock_time();
+			if (blc_ll_getCurrentState() == BLS_LINK_STATE_CONN && blc_ll_getTxFifoNumber() < 9) {
 				if (end_measure) {
 					end_measure = 0;
 					if (tx_measures && (RxTxValueInCCC[0] | RxTxValueInCCC[1])) {
@@ -323,8 +329,9 @@ _attribute_ram_code_ void main_loop() {
 				} else if (mi_key_stage) {
 					mi_key_stage = get_mi_keys(mi_key_stage);
 				}
+			} else if(cfg.flg.advertising_type && blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {
+				set_mi_adv_data(last_temp, measured_data.humi, battery_level, measured_data.battery_mv);
 			}
-			uint32_t new = clock_time();
 			if (new - tim_measure >= measurement_step_time) {
 				start_measure = 1;
 				tim_measure = new;
