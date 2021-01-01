@@ -47,7 +47,7 @@ function hex(number, length) {
 	while (str.length < length) str = '0' + str;
 	return str;
 }
-function sws_wr_addr_var1(addr, data) {
+function sws_wr_addr(addr, data) {
 	// log(addr + ':['+data+']');
 	let d = new Uint8Array(10); // word swire 10 bits = 10 bytes UART
 	let h = new Uint8Array([0x5a, (addr>>16)&0xff, (addr>>8)&0xff, addr & 0xff, 0x00]);
@@ -80,7 +80,7 @@ function sws_wr_addr_var1(addr, data) {
 	pkt.set(d, (data.byteLength+5)*10);
 	return pkt;
 }
-function sws_wr_addr(addr, data) {
+function sws_wr_addr_var2(addr, data) {
 	// log(addr + ':['+data+']');
 	let d = new Uint8Array([0xe8,0xef,0xef,0xef,0xef]); // word swire 10 bits = 5 bytes UART
 	let h = new Uint8Array([0x5a, (addr>>16)&0xff, (addr>>8)&0xff, addr & 0xff, 0x00]);
