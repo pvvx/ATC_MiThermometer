@@ -38,7 +38,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	uint8_t min_step_time_update_lcd; // x0.05 sec
 }cfg_t;
 extern cfg_t cfg;
-
+//
 typedef struct __attribute__((packed)) _external_data_t {
 	int16_t		big_number; // -995..19995, x0.1
 	int16_t		small_number; // -9..99, x1
