@@ -35,6 +35,11 @@ Under construction... Alpha test only.
 
 
 ### Interface for receiving and displaying data on the LCD.
+>* LCD shows: 
+> * Big number: -99.5..1999.5 
+> * Small number: -9..99
+> * Smiley, battery, degrees
+> + Setting the display time limit in sec
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/ShowData.gif) 
 
 
