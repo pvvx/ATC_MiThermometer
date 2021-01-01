@@ -37,8 +37,10 @@ Under construction... Alpha test only.
 ### Interface for receiving and displaying data on the LCD.
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/ShowData.gif) 
 
-### USB-COM adapter flasher (connect TX-SWS and GND wires only)
+
+### The USB-COM adapter writes the firmware in explorer. Web version. Connect only TX-SWS and GND wires.
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/USBCOMFlashTxHtml.gif) 
+
 
 ### Reading and recovering Mi-Home keys
 >* Stage 1:
