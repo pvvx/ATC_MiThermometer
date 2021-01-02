@@ -9,6 +9,7 @@
 #define MAIN_H_
 
 #define EEP_ID_CFG (0x0CFC) // EEP ID config data
+#define EEP_ID_TRG (0x0DFE) // EEP ID trigger data
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
@@ -28,14 +29,14 @@ typedef struct __attribute__((packed)) _cfg_t {
 	 * 5 = "(^_^)" happy
 	 * 6 = "(-^-)" sad
 	 * 7 = "(ooo)" */
-	uint8_t smiley;
+	uint8_t smiley;		// 0..7
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
-	int8_t humi_offset; // Set humi offset, -50 - +50 %
+	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)
 	uint8_t advertising_interval; // multiply by 62.5 for value in ms (1..160,  62.5 ms .. 10 sec)
 	uint8_t measure_interval; // measure_interval = advertising_interval * x (1..10)
-	uint8_t rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm
+	uint8_t rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm (130..191)
 	uint8_t connect_latency; // +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
-	uint8_t min_step_time_update_lcd; // x0.05 sec
+	uint8_t min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
 }cfg_t;
 extern cfg_t cfg;
 //
@@ -82,7 +83,6 @@ extern volatile uint8_t start_measure; // start measure all
 extern volatile uint8_t wrk_measure;
 extern volatile uint8_t end_measure;
 extern uint32_t tim_measure;
-
 
 extern uint32_t adv_interval;
 extern uint32_t connection_timeout;

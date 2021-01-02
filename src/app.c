@@ -10,6 +10,10 @@
 #include "lcd.h"
 #include "sensor.h"
 #include "app.h"
+#if	USE_TRIGGER_OUT
+#include "trigger.h"
+#endif
+
 RAM uint32_t vtime_count_us; // count validity time, in us
 RAM uint32_t vtime_count_sec; // count validity time, in sec
 RAM uint8_t show_stage; // count/stage update lcd code buffer
@@ -129,6 +133,10 @@ _attribute_ram_code_ bool is_comfort(int16_t t, uint16_t h) {
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
 	read_sensor_cb();
+#if	USE_TRIGGER_OUT
+	if(trg.flg.trigger_on)
+		set_trigger_out();
+#endif
 	last_temp = measured_data.temp / 10;
 	last_humi = measured_data.humi / 100;
 	if(cfg.flg.advertising_type) {
@@ -174,15 +182,27 @@ _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	bls_ll_setAdvEnable(1);
 	start_measure = 1;
 }
-
+//------------------ user_init_normal -------------------
 _attribute_ram_code_ void user_init_normal(void) {//this will get executed one time after power up
 	random_generator_init(); //must
 	// Read config
-	if ((!flash_supported_eep_ver(EEP_SUP_VER, VERSION)) || flash_read_cfg(
-			&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg)) {
+	if (flash_supported_eep_ver(EEP_SUP_VER, VERSION)) {
+		if(flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg))
+			memcpy(&cfg, &def_cfg, sizeof(cfg));
+#if	USE_TRIGGER_OUT
+		if(flash_read_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG) != FEEP_SAVE_SIZE_TRG)
+			memcpy(&trg, &def_trg, sizeof(trg));
+#endif
+	} else {
 		memcpy(&cfg, &def_cfg, sizeof(cfg));
+#if	USE_TRIGGER_OUT
+		memcpy(&trg, &def_trg, sizeof(trg));
+#endif
 	}
 	test_config();
+#if	USE_TRIGGER_OUT
+	test_trg_on();
+#endif
 	memcpy(&ext, &def_ext, sizeof(ext));
 	//	vtime_count_sec = ext.vtime;
 	//	vtime_count_us = clock_time();
@@ -207,6 +227,7 @@ _attribute_ram_code_ void user_init_normal(void) {//this will get executed one t
 
 void app_enter_ota_mode(void);
 
+//------------------ user_init_deepRetn -------------------
 _attribute_ram_code_ void user_init_deepRetn(void) {//after sleep this will get executed
 	blc_ll_initBasicMCU();
 	rf_set_power_level_index(RF_POWER_P3p01dBm);

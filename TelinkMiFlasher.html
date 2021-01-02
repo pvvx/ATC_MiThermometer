@@ -2,7 +2,7 @@
 <!-- Copyright: Aaron Christophel / Atc1441 https://atcnetz.de, + peoples' edition :) -->
 <html class="telFlasherClass"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Telink Flasher v0.6</title>
+<title>Telink Flasher v0.8</title>
 <script type="text/javascript" src="./core.js"></script>
 </head>
 <body>
@@ -22,6 +22,7 @@ var customEnabled;
 var settingsCharacteristics = null;
 // Custom config
 var cfg = {ver: 0, flg: 0, smiley: 0, temp_offset: 0, humi_offset: 0, advertising_interval: 32, measure_interval: 5, rf_tx_power: 191, connect_latency: 99, lcd_tint: 55};
+var trg = {enable: false, tmp_thr: 2100, hm_thr: 5000, tmp_hst: -1, hm_hst: 0, flg: 0}; 
 //Mi values
 var miEnabled = false,
     miConnected = false,
@@ -43,6 +44,7 @@ function resetVariables() {
 	mikeys.cfg = null;
 	mikeys.delkeys = null;
 	ext.enable = false;
+	trg.enable = false;
 	cnt_buf11 = 0;
     writeCharacteristic = null;
     settingsCharacteristics = null;
@@ -216,6 +218,14 @@ function CustomBlkParse(value) {
 		ext.flg = value.getInt8(7); 
 		let s = 'ExtShow: big_number: '+ext.big_number+', small_number: '+ext.small_number+', ext.vtime: '+ext.vtime+' s, flg: '+ext.flg;
 	    addClog(s); addLog(s); UpdExt();
+	} else if(blkid == 0x44 && len >= 8) {
+		trg.tmp_thr = value.getInt16(1, true); // temp threshold
+		trg.hm_thr = value.getInt16(3, true); // humi threshold
+		trg.tmp_hst = value.getInt8(5);        // temp hysteresis
+		trg.hm_hst = value.getInt8(6);        // humi hysteresis
+		trg.flg = value.getInt8(7);
+		let s = 'Threshold Temp/Humi: '+(trg.tmp_thr/100.0)+'°C/'+(trg.hm_thr/100.0)+'%, Hysteresis T/H: '+(trg.tmp_hst/10.0)+'°/'+(trg.hm_hst/10.0)+'%, flg: 0x'+hex(trg.flg,2);
+	    addClog(s); addLog(s); UpdTrg();
 	} else if(blkid >= 0x10 && blkid <= 0x14 && len > 1) {
 		let lb = value.getUint8(1);
 		if(lb != 0) {
@@ -869,7 +879,25 @@ function sendExt() {
 		});
 	}
 }
-
+function UpdTrg() {
+	if(trg.enable && document.getElementById("trg_tmp_hst").value) {
+		document.getElementById("trg_tmp_thr").value =  trg.tmp_thr/100.0;
+		document.getElementById("trg_hm_thr").value =  trg.hm_thr/100.0;
+		document.getElementById("trg_tmp_hst").value =  trg.tmp_hst/10.0;
+		document.getElementById("trg_hm_hst").value =  trg.hm_hst/10.0;
+	}
+}
+function sendTrg() {
+	if(trg.enable) {
+		trg.tmp_thr = Math.round(100.0 * parseFloat(document.getElementById("trg_tmp_thr").value));
+		trg.hm_thr = Math.round(100.0 * parseFloat(document.getElementById("trg_hm_thr").value));
+		trg.tmp_hst = Math.round(10.0 * parseFloat(document.getElementById("trg_tmp_hst").value)); 
+		trg.hm_hst = Math.round(10.0 * parseFloat(document.getElementById("trg_hm_hst").value)); 
+		settingsCharacteristics.writeValue(new Uint8Array([0x44, trg.tmp_thr&0xff, (trg.tmp_thr>>8)&0xff,trg.hm_thr&0xff,(trg.hm_thr>>8)&0xff,trg.tmp_hst&0xff,trg.hm_hst&0xff])).then(_ => {
+			addClog('Send trg data ok');
+		});
+	}
+}
 function CustomConfig() {
 	let is = '<br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button>';
 	if(cfg.ver >= 5) {
@@ -902,6 +930,16 @@ function CustomConfig() {
 	is += 'RF TX Power: <select id="cfg_rf_tx"><option value="191">+3.01 dbm</option><option value="189">+2.81 dbm</option><option value="187">+2.61 dbm</option><option value="185">+2.39 dbm</option><option value="182">+1.99 dbm</option><option value="180">+1.73 dbm</option><option value="178">+1.45 dbm</option><option value="176">+1.17 dbm</option><option value="174">+0.90 dbm</option><option value="172">+0.58 dbm</option><option value="169">+0.04 dbm</option><option value="168">-0.14 dbm</option><option value="164">-0.97 dbm</option><option value="162">-1.42 dbm</option><option value="160">-1.89 dbm</option><option value="158">-2.48 dbm</option><option value="156">-3.03 dbm</option><option value="154">-3.61 dbm</option><option value="152">-4.26 dbm</option><option value="150">-5.03 dbm</option><option value="148">-5.81 dbm</option><option value="146">-6.67 dbm</option><option value="144">-7.65 dbm</option><option value="142">-8.65 dbm</option><option value="140">-9.89 dbm</option><option value="138">-11.4 dbm</option><option value="136">-13.29 dbm</option><option value="134">-15.88 dbm</option><option value="132">-19.27 dbm</option><option value="130">-25.18 dbm</option></select><br><br>';
 	is += 'Minimum LCD refresh rate: <input size="5" title="0.5..12.75 sec, step: 0.05 s, default 2.75 s" id="cfg_lcd_tint" maxlength="6" value="2.75">, step: 0.05 s<br><br>';
 	is += '<button type="button" onclick="SendCustomConfig()">Send Custom Config</button><br><br>'; 
+	if(cfg.ver >= 8) {
+		is += '<hr>Management GPIO_PA5 (mark "reset"):<br><br>';
+		is += 'Temperature hysteresis: <input size="8" title="-12.7..12.7°, default -0.1, =0 off, if less than zero - activation on decrease, if more than zero - activation on excess" id="trg_tmp_hst" maxlength="5" value="-0.1"> °';
+		is += ', Humidity hysteresis: <input size="8" title="-12.7..12.7%, default 0, =0 off, if less than zero - activation on decrease, if more than zero - activation on excess" id="trg_hm_hst" maxlength="5" value="0.0"> %<br><br>';
+		is += 'Temperature threshold: <input size="8" title="-40.00..80.00°C, default 21.00°C" id="trg_tmp_thr" maxlength="6" value="21.00"> °';
+		is += ', Humidity threshold: <input size="8" title="0..99.00%, default 50.00%" id="trg_hm_thr" maxlength="6" value="50.00"> %<br><br>';
+		is += ' <button type="button" title="Get/read current setings" onclick="sendCustomSetting(&quot;44&quot;);">Get TRG</button>';
+		is += ' <button type="button" title="Set/save current setings" onclick="sendTrg();">Set TRG</button><br><hr><br>';
+		trg.enable = true;
+	}
 	is += '<button type="button" onclick="sendCustomSetting(&quot;15&quot;);">Show all mi keys</button><br><br>';
 	if(mikeys.mac)
 		is +='Device MAC, RandMAC:<br><input size="40" maxlength="18" type="text" id="known_id" value="'+hex(mikeys.mac[5],2)+hex(mikeys.mac[4],2)+hex(mikeys.mac[3],2)+hex(mikeys.mac[2],2)+hex(mikeys.mac[1],2)+hex(mikeys.mac[0],2)+', C0'+hex(mikeys.mac[7],2)+hex(mikeys.mac[6],2)+hex(mikeys.mac[2],2)+hex(mikeys.mac[1],2)+hex(mikeys.mac[0],2)+'"><br>';

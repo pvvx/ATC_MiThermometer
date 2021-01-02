@@ -35,6 +35,9 @@ void ble_send_humi(uint16_t humi);
 void ble_send_battery(uint8_t value);
 void ble_send_measures(void);
 void ble_send_ext(void);
+#if USE_TRIGGER_OUT
+void ble_send_trg(void);
+#endif
 void ble_send_cfg(void);
 void user_set_rf_power(uint8_t e, uint8_t *p, int n);
 int otaWritePre(void * p);

@@ -23,15 +23,20 @@ Under construction... Alpha test only.
 >* Released (v0.4)
 ### 6. Interface for receiving and displaying data on the LCD.
 >* Released (v0.5)
-### 7. Loop recording of measurements in Flash
+### 7. Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
+>* Released (v0.8)
+### 8. External control or read GPIO PA5 (label on the "reset" pin)
+>* Released (v0.8)
+### 9. Loop recording of measurements in Flash
 >* TODO
-### 8. Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
->* TODO
-### 9. External control or read GPIO PA5 (label on the "reset" pin)
->* TODO
+
 
 ### Reading Measurements in Connected Mode
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/GraphAtc_html.gif) 
+
+
+### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/trg_menu.gif) 
 
 
 ### Interface for receiving and displaying data on the LCD.

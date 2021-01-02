@@ -2,11 +2,14 @@
 #include "tl_common.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
+#include "ble.h"
 
 #include "lcd.h"
 #include "app.h"
 #include "flash_eep.h"
-#include "ble.h"
+#if	USE_TRIGGER_OUT
+#include "trigger.h"
+#endif
 #include "cmd_parser.h"
 
 #define TX_MAX_SIZE	 (ATT_MTU_SIZE-3) // = 20
@@ -178,12 +181,26 @@ void cmd_parser(void * p) {
 			if(cmd != CMD_ID_CFG_NS)
 				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
-		} if (cmd == CMD_MI_ID_MAC) { // mac
-		} if (cmd == CMD_MI_ID_KALL) { // get all mi keys
+#if USE_TRIGGER_OUT
+		} else if (cmd == CMD_ID_TRG || cmd == CMD_ID_TRG_NS) {
+			if(--len > sizeof(trg))
+				len = sizeof(trg);
+			else if(len)
+				memcpy(&trg, &req->dat[1], len);
+			test_trg_on();
+			if(cmd != CMD_ID_TRG_NS)
+				flash_write_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG);
+			ble_send_trg();
+		} else if (cmd == CMD_ID_TRG_OUT) {
+			trg.flg.trg_output = req->dat[1] != 0;
+			test_trg_on();
+#endif // USE_TRIGGER_OUT
+		} else if (cmd == CMD_MI_ID_MAC) { // mac
+		} else if (cmd == CMD_MI_ID_KALL) { // get all mi keys
 			mi_key_stage = get_mi_keys(0xff);
-		} if (cmd == CMD_MI_ID_REST) { // restore prev mi token & bindkeys
+		} else if (cmd == CMD_MI_ID_REST) { // restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(5);
-		} if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
+		} else if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
 			if(--len > sizeof(ext)) len = sizeof(ext);
 			else if(len) {
 				memcpy(&ext, &req->dat[1], len);
@@ -191,15 +208,15 @@ void cmd_parser(void * p) {
 				vtime_count_us = clock_time();
 			}
 			ble_send_ext();
-		} if (cmd == CMD_ID_MEASURE) {
+		} else if (cmd == CMD_ID_MEASURE) {
 			if(len >= 2)
 				tx_measures = req->dat[1];
 			else {
 				end_measure = 1;
 				tx_measures = 1;
 			}
-		} if (cmd == 0x44) { // test
-			blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, 128); // 234
+//		} else if (cmd == 0x44) { // test
+//			blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, 128); // 234
 		}
 	}
 }

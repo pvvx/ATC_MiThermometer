@@ -8,8 +8,17 @@ extern "C" {
 //#define PC3_INPUT_ENABLE	1
 //#define PB6_INPUT_ENABLE	1
 
-#define VERSION 0x07
+#define VERSION 0x08
 #define EEP_SUP_VER 0x05 // EEP data minimum supported version
+
+#define USE_TRIGGER_OUT 1 // use trigger out (GPIO_PA5)
+
+#if USE_TRIGGER_OUT
+#define PA5_INPUT_ENABLE	1
+#define PA5_DATA_OUT		0
+#define PA5_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA5	0
+#endif
 
 /* Average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
  * 16 MHz - 17.43 uA

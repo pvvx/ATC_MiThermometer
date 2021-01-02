@@ -50,9 +50,6 @@
 
 #define _flash_mutex_lock()
 #define _flash_mutex_unlock()
-#define _flash_read_dword(a) (*(volatile u32*)(FLASH_BASE_ADDR + (a)))
-#define _flash_read(a,b,c) memcpy((void *)c, (void *)(FLASH_BASE_ADDR + (unsigned int)a), b) // _flash_read(rdaddr, len, pbuf);
-#define _flash_memcmp(a,b,c) memcmp((void *)(FLASH_BASE_ADDR + (unsigned int)a), c, b) // _flash_memcmp(xfaddr + fobj_head_size, size, ptr) == 0)
 #define _flash_erase_sector(a) flash_erase_sector(a)
 #define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write_page(a, 4, (unsigned char *)&_dw); }
 #if MAX_FOBJ_SIZE > 256
@@ -93,6 +90,23 @@ typedef union __attribute__((packed)) // заголовок объекта со�
 #define FMEM_ERROR_MAX 5
 
 unsigned char buf_epp[MAX_FOBJ_SIZE+fobj_head_size];
+#if 1
+#define _flash_read_dword(a) (*(volatile u32*)(FLASH_BASE_ADDR + (a)))
+#define _flash_read(a,b,c) memcpy((void *)c, (void *)(FLASH_BASE_ADDR + (unsigned int)a), b) // _flash_read(rdaddr, len, pbuf);
+#define _flash_memcmp(a,b,c) memcmp((void *)(FLASH_BASE_ADDR + (unsigned int)a), c, b) // _flash_memcmp(xfaddr + fobj_head_size, size, ptr) == 0)
+#else
+#define _flash_read(a,b,c) flash_read_page(FLASH_BASE_ADDR + a, b, (u8 *)c)
+inline unsigned int _flash_read_dword(unsigned int addr) {
+	unsigned int ret;
+	_flash_read(FLASH_BASE_ADDR + addr, 4, &ret);
+	return ret;
+}
+
+inline unsigned int _flash_memcmp(unsigned int addr, unsigned int len, unsigned char * buf) {
+	_flash_read(FLASH_BASE_ADDR + addr, len, &buf_epp);
+	return memcmp(buf_epp, buf, len);
+}
+#endif
 
 _attribute_ram_code_ void flash_write_(unsigned int addr, unsigned int len, unsigned char *buf) {
 	unsigned int sz = 256;

@@ -10,6 +10,9 @@
 #include "cmd_parser.h"
 #include "lcd.h"
 #include "app.h"
+#if	USE_TRIGGER_OUT
+#include "trigger.h"
+#endif
 
 RAM uint8_t ble_connected;
 
@@ -34,14 +37,22 @@ RAM uint8_t advertising_data_Mi[] = {
 /*MAC*/0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 /*Temp+Humi*//*BatL alternating*/0x0D, 0x10, 0x04, 0x00, 0x00, 0x00, 0x00, };
 RAM uint8_t advertising_data[] = {
+#if USE_TRIGGER_OUT
+		18, // Size
+#else
 		17, // Size
+#endif
 /*Description*/ 0x16, 0x1a, 0x18, // = 0x16 Service Data - 16-bit UUID, UUID: 181a // GATT Service 0x181A Environmental Sensing
 /*MAC*/0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 /*Temp*/0xaa, 0xaa,
 /*Humi*/0xbb, 0xcc,
-/*BatM*/0xdd, 0xdd,
+/*BatmV*/0xdd, 0xdd,
 /*BatL*/0xee,
-/*Counter*/0x00 };
+/*Counter*/0x00
+#if USE_TRIGGER_OUT
+/*flg*/	,0x00 // trigger_flg_t
+#endif
+};
 
 uint8_t mac_public[6];
 uint8_t ota_is_working = 0;
@@ -91,17 +102,6 @@ int otaWritePre(void * p) {
 _attribute_ram_code_ int RxTxWrite(void * p) {
 	cmd_parser(p);
 	return 0;
-}
-
-_attribute_ram_code_ void blt_pm_proc(void) {
-	if (ota_is_working) {
-		bls_pm_setSuspendMask(SUSPEND_DISABLE);
-		bls_pm_setManualLatency(0);
-	} else {
-		bls_pm_setSuspendMask(
-				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN
-						| DEEPSLEEP_RETENTION_CONN);
-	}
 }
 
 void init_ble() {
@@ -157,11 +157,7 @@ void init_ble() {
 
 	///////////////////// Power Management initialization///////////////////
 	blc_ll_initPowerManagement_module();
-///*
-	bls_pm_setSuspendMask(
-			SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN
-					| DEEPSLEEP_RETENTION_CONN);
-//*/
+	bls_pm_setSuspendMask(SUSPEND_DISABLE);
 	blc_pm_setDeepsleepRetentionThreshold(95, 95);
 	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(400); // 240
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
@@ -216,7 +212,10 @@ _attribute_ram_code_ void set_custom_adv_data(int32_t temp, uint32_t humi,
 	advertising_data[16] = battery_level;
 
 	advertising_data[17] = (uint8_t)measured_data.count;
-
+#if USE_TRIGGER_OUT
+	test_trg_input();
+	advertising_data[18] = *(uint8_t *)(&trg.flg);
+#endif
 	bls_ll_setAdvData((uint8_t *) advertising_data, sizeof(advertising_data));
 }
 
@@ -249,6 +248,14 @@ _attribute_ram_code_ void ble_send_ext(void) {
 	memcpy(&send_buf[1], &ext, sizeof(ext));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(ext) + 1);
 }
+
+#if USE_TRIGGER_OUT
+void ble_send_trg(void) {
+	send_buf[0] = CMD_ID_TRG;
+	memcpy(&send_buf[1], &trg, sizeof(trg));
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(trg) + 1);
+}
+#endif
 
 void ble_send_cfg(void) {
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg) + 2);
