@@ -6,15 +6,15 @@
 	<title>TLSR825x USB-COM Flash Writer (TX-SWS only!)</title>
   </head>
   <body>
-	<h3>TLSR825x USB-COM Flash Writer v0.1 (TX-SWS only!)</h3>
+	<h3>TLSR825x USB-COM Flash Writer v0.2 (TX-SWS only!)</h3>
 	<div><br>
 	1. USB-COM: <input type="button" id="butOpen" value="Open">
-	Baud: <select id="ubaud"><option value="115200">115200</option><option value="230400">230400</option><option value="460800" selected>460800</option><option value="921600">921600</option></select>
-	Atime: <select id="uatime"><option value="0">0 ms</option><option value="100">100 ms</option><option value="1000">1 sec</option><option value="2000">2 sec</option><option value="3000" selected>3 sec</option><option value="4000">4 sec</option><option value="8000">8 sec</option><option value="16000">16 sec</option></select>
+	Baud: <select id="ubaud" title="Optimal: 460800 baud"><option value="115200">115200</option><option value="230400">230400</option><option value="460800" selected>460800</option><option value="921600">921600</option><option value="1500000">1500000</option><option value="2000000">2000000</option></select>
+	Atime: <select id="uatime" title="Activation time: Set above than Advertising interval or use manual power reset"><option value="0">0 ms</option><option value="100">100 ms</option><option value="1000">1 sec</option><option value="2000">2 sec</option><option value="3000" selected>3 sec</option><option value="4000">4 sec</option><option value="8000">8 sec</option><option value="16000">16 sec</option></select>
 	<br><br>
 	2. Select Firmware: <input type="file" accept=".bin" id="file"/><br><br>
-	3. <input type="button" id="butWrite" value="Write to Flash" disabled> <span id="swrite">Open COM & Select file</span><br><br>
-	<input type="button" id="butErase" value="Erase All Flash" disabled> <input type="button" id="butReset" value="Soft Reset MCU" disabled> <input type="button" id="butClrlog" value="Clear log"><br><hr>
+	3. <input type="button" title="Write firmware in to Flash" id="butWrite" value="Write to Flash" disabled> <span id="swrite">Open COM & Select file</span><br><br>
+	<input type="button" title="Clean all flash" id="butErase" value="Erase All Flash" disabled> <input type="button" id="butReset" title="Test restart of MÑU" value="Soft Reset MCU" disabled> <input type="button" id="butClrlog" value="Clear log"><br><hr>
 	</div>
 	<div id="slog"></div>
   </body>
@@ -78,57 +78,6 @@ function sws_wr_addr(addr, data) {
 	// swire stop cmd = 0xff 
 	d.fill(0x80,0,9);
 	pkt.set(d, (data.byteLength+5)*10);
-	return pkt;
-}
-function sws_wr_addr_var2(addr, data) {
-	// log(addr + ':['+data+']');
-	let d = new Uint8Array([0xe8,0xef,0xef,0xef,0xef]); // word swire 10 bits = 5 bytes UART
-	let h = new Uint8Array([0x5a, (addr>>16)&0xff, (addr>>8)&0xff, addr & 0xff, 0x00]);
-	let pkt = new Uint8Array((data.byteLength+6)*5);
-	h.forEach((el,n) => {
-		if((el & 0x80) != 0)
-			d[0] &= 0x0f
-		if((el & 0x40) != 0)
-			d[1] &= 0xe8
-		if((el & 0x20) != 0)
-			d[1] &= 0x0f
-		if((el & 0x10) != 0)
-			d[2] &= 0xe8
-		if((el & 0x08) != 0)
-			d[2] &= 0x0f
-		if((el & 0x04) != 0)
-			d[3] &= 0xe8
-		if((el & 0x02) != 0)
-			d[3] &= 0x0f
-		if((el & 0x01) != 0)
-			d[4] &= 0xe8
-		pkt.set(d, n*5);
-		d.fill(0xef, 0); // start bit next byte swire = 0
-	});
-	data.forEach((el,n) => {
-		if((el & 0x80) != 0)
-			d[0] &= 0x0f
-		if((el & 0x40) != 0)
-			d[1] &= 0xe8
-		if((el & 0x20) != 0)
-			d[1] &= 0x0f
-		if((el & 0x10) != 0)
-			d[2] &= 0xe8
-		if((el & 0x08) != 0)
-			d[2] &= 0x0f
-		if((el & 0x04) != 0)
-			d[3] &= 0xe8
-		if((el & 0x02) != 0)
-			d[3] &= 0x0f
-		if((el & 0x01) != 0)
-			d[4] &= 0xe8
-		pkt.set(d, (n+5)*5);
-		d.fill(0xef, 0); // start bit next byte swire = 0
-	});
-	// swire stop cmd = 0xff 
-	d.fill(0x08,0,5);
-	d[4]=0xe8;
-	pkt.set(d, (data.byteLength+5)*5);
 	return pkt;
 }
 async function FlashByteCmd(cmd) { 
@@ -202,7 +151,7 @@ async function FlashWrite() {
 	log('Write ' + firmwareArray.byteLength + ' bytes in to Flash...');
 	let len = firmwareArray.byteLength;
 	let addr = 0;
-	let sblk = 256;
+	let sblk = 256; // max spi-flash fifo = 256
 	while(len > 0) {
 	    if((addr & 0x0fff) == 0) {
 	    	let s = 'Flash Sector Erase at 0x'+hex(addr, 6);
@@ -309,7 +258,7 @@ class SerialController {
 				connect.disabled = true;
 				this.port = await navigator.serial.requestPort();
 				await this.port.open({baudRate: ubaud.value, baudrate: ubaud.value,
-				bufferSize: 240, buffersize: 240}); 
+				bufferSize: 240, buffersize: 240}); // % 10, 60..n <= USB-COM Chip fifo
 				this.writer = this.port.writable.getWriter();
 				console.log('DTR, RTS on.');
 				await this.port.setSignals({dataTerminalReady: false, requestToSend: false});
@@ -333,7 +282,6 @@ class SerialController {
 			connect.disabled = false;
 		}
 		else {
-			log('There was an error opening the serial port: ' + err);
 			log('Web serial doesn\'t seem to be enabled in your browser. Try enabling it by visiting:');
 			log('chrome://flags/#enable-experimental-web-platform-features');
 			log('opera://flags/#enable-experimental-web-platform-features');
