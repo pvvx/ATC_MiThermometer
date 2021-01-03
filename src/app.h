@@ -13,11 +13,11 @@
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
+		uint8_t advertising_type	: 2; // 0 - Custom, 1 - Mi, 2 - atc1441
 		uint8_t comfort_smiley		: 1;
 		uint8_t blinking_smiley		: 1;
 		uint8_t temp_F_or_C			: 1;
 		uint8_t show_batt_enabled	: 1;
-		uint8_t advertising_type	: 1; // Custom or Mi Advertising (true)
 		uint8_t tx_measures			: 1; // Send all measurements in connected mode
 		uint8_t lp_measures			: 1; // Sensor measurements in "Low Power" mode
 	} flg;
@@ -78,6 +78,10 @@ typedef struct _measured_data_t {
 	uint16_t 	count;
 } measured_data_t;
 extern measured_data_t measured_data;
+extern uint8_t battery_level; // 0..100%
+extern int16_t last_temp; // x0.1 C
+extern uint16_t last_humi; // x1 %
+
 extern volatile uint8_t tx_measures;
 extern volatile uint8_t start_measure; // start measure all
 extern volatile uint8_t wrk_measure;

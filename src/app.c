@@ -19,10 +19,11 @@ RAM uint32_t vtime_count_sec; // count validity time, in sec
 RAM uint8_t show_stage; // count/stage update lcd code buffer
 
 RAM measured_data_t measured_data;
-RAM volatile uint8_t tx_measures;
 RAM int16_t last_temp; // x0.1 C
-RAM uint16_t last_humi; // %
-RAM uint8_t battery_level; // %
+RAM uint16_t last_humi; // x1 %
+RAM uint8_t battery_level; // 0..100%
+
+RAM volatile uint8_t tx_measures;
 
 RAM volatile uint8_t start_measure; // start measure all
 RAM volatile uint8_t wrk_measure;
@@ -139,12 +140,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 #endif
 	last_temp = measured_data.temp / 10;
 	last_humi = measured_data.humi / 100;
-	if(cfg.flg.advertising_type) {
-		show_temp_humi_Mi = true;
-		set_mi_adv_data(last_temp, measured_data.humi, battery_level, measured_data.battery_mv);
-	} else {
-		set_custom_adv_data(measured_data.temp, measured_data.humi, battery_level, measured_data.battery_mv);
-	}
+	set_adv_data(cfg.flg.advertising_type);
 	end_measure = 1;
 	wrk_measure = 0;
 }
@@ -342,16 +338,16 @@ _attribute_ram_code_ void main_loop() {
 						ble_send_measures();
 					}
 					if (batteryValueInCCC[0] | batteryValueInCCC[1])
-						ble_send_battery(battery_level);
+						ble_send_battery();
 					if (tempValueInCCC[0] | tempValueInCCC[1])
-						ble_send_temp(last_temp);
+						ble_send_temp();
 					if (humiValueInCCC[0] | humiValueInCCC[1])
-						ble_send_humi(measured_data.humi);
+						ble_send_humi();
 				} else if (mi_key_stage) {
 					mi_key_stage = get_mi_keys(mi_key_stage);
 				}
-			} else if(cfg.flg.advertising_type && blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {
-				set_mi_adv_data(last_temp, measured_data.humi, battery_level, measured_data.battery_mv);
+			} else if(cfg.flg.advertising_type == 1 && blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {
+				set_adv_data(cfg.flg.advertising_type);
 			}
 			if (new - tim_measure >= measurement_step_time) {
 				start_measure = 1;

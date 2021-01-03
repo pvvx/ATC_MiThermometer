@@ -15,46 +15,21 @@
 #endif
 
 RAM uint8_t ble_connected;
+uint8_t send_buf[16];
 
 extern uint8_t my_tempVal[2];
 extern uint8_t my_humiVal[2];
 extern uint8_t my_batVal[1];
+
 RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
 RAM my_fifo_t blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b, };
 RAM uint8_t blt_txfifo_b[40 * 16] = { 0 };
 RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
 RAM uint8_t ble_name[] = { 11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0',
 		'0', '0' };
-RAM bool show_temp_humi_Mi = true;
-// https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
-RAM uint8_t advertising_data_Mi[] = {
-		21,	// Size
-/*Description*/	0x16, 0x95, 0xfe, // = 0x16 Service Data - 16-bit UUID, UUID: fe95
-// 16-bit UUID for Members 0xFE95 Xiaomi Inc. https://btprodspecificationrefs.blob.core.windows.net/assigned-values/16-bit%20UUID%20Numbers%20Document.pdf
-/*Start*/0x50, 0x30,
-/*Device id*/0x5B, 0x05,
-/*counter*/0x00,
-/*MAC*/0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-/*Temp+Humi*//*BatL alternating*/0x0D, 0x10, 0x04, 0x00, 0x00, 0x00, 0x00, };
-RAM uint8_t advertising_data[] = {
-#if USE_TRIGGER_OUT
-		18, // Size
-#else
-		17, // Size
-#endif
-/*Description*/ 0x16, 0x1a, 0x18, // = 0x16 Service Data - 16-bit UUID, UUID: 181a // GATT Service 0x181A Environmental Sensing
-/*MAC*/0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-/*Temp*/0xaa, 0xaa,
-/*Humi*/0xbb, 0xcc,
-/*BatmV*/0xdd, 0xdd,
-/*BatL*/0xee,
-/*Counter*/0x00
-#if USE_TRIGGER_OUT
-/*flg*/	,0x00 // trigger_flg_t
-#endif
-};
-
-uint8_t mac_public[6];
+RAM uint8_t mac_public[6];
+RAM uint8_t adv_count;
+RAM uint8_t adv_buffer[24];
 uint8_t ota_is_working = 0;
 
 _attribute_ram_code_ void app_enter_ota_mode(void) {
@@ -117,21 +92,6 @@ void init_ble() {
 	ble_name[9] = hex_ascii[mac_public[1] & 0x0f];
 	ble_name[10] = hex_ascii[mac_public[0] >> 4];
 	ble_name[11] = hex_ascii[mac_public[0] & 0x0f];
-
-	advertising_data[4] = mac_public[5];
-	advertising_data[5] = mac_public[4];
-	advertising_data[6] = mac_public[3];
-	advertising_data[7] = mac_public[2];
-	advertising_data[8] = mac_public[1];
-	advertising_data[9] = mac_public[0];
-
-	advertising_data_Mi[9] = mac_public[0];
-	advertising_data_Mi[10] = mac_public[1];
-	advertising_data_Mi[11] = mac_public[2];
-	advertising_data_Mi[12] = mac_public[3];
-	advertising_data_Mi[13] = mac_public[4];
-	advertising_data_Mi[14] = mac_public[5];
-
 	////// Controller Initialization  //////////
 	blc_ll_initBasicMCU(); //must
 	blc_ll_initStandby_module(mac_public); //must
@@ -167,76 +127,73 @@ void init_ble() {
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 }
 
-_attribute_ram_code_ void set_mi_adv_data(int32_t temp, uint32_t humi,
-		uint8_t battery_level, uint32_t battery_mv) {
-	advertising_data_Mi[8] = (uint8_t)measured_data.count;
-	if (show_temp_humi_Mi) { // Alternate between Sensor and Battery level
-		advertising_data_Mi[15] = 0x0d;
-		advertising_data_Mi[17] = 0x04;
-
-		advertising_data_Mi[18] = temp;
-		advertising_data_Mi[19] = temp >> 8;
-		humi /= 10;
-		advertising_data_Mi[20] = humi;
-		advertising_data_Mi[21] = humi >> 8;
-		show_temp_humi_Mi = false;
+// adv_type: 0 - Custom, 1 - Mi, 2 - atc1441
+_attribute_ram_code_ void set_adv_data(unsigned int adv_type) {
+	if(adv_type == 1) {
+		padv_mi_t p = (padv_mi_t)adv_buffer;
+		memcpy(p->MAC, mac_public, 6);
+		p->size = sizeof(adv_mi_t) - 1;
+		p->uid = 0x16; // 16-bit UUID
+		p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+		p->flg = 0x3050;
+		p->dev_id = 0x055b;
+		p->nx10 = 0x10;
+		p->counter = (uint8_t)measured_data.count;
+		if (adv_count & 1) {
+			p->data_id = 0x0d;
+			p->t0d.id = 0x04;
+			p->t0d.temperature = measured_data.temp;
+			p->t0d.humidity = measured_data.humi / 10;
+		} else {
+			p->data_id = 0x0a;
+			p->t0a.id1 = 0x01;
+			p->t0a.battery_level = battery_level;
+			p->t0a.id2 = 0x02;
+			p->t0a.battery_mv = measured_data.battery_mv;
+		}
+	} else if(adv_type == 2) {
+		padv_atc1441_t p = (padv_atc1441_t)adv_buffer;
+		p->size = sizeof(adv_atc1441_t) - 1;
+		p->uid = 0x16; // 16-bit UUID
+		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
+		p->MAC[0] = mac_public[5];
+		p->MAC[1] = mac_public[4];
+		p->MAC[2] = mac_public[3];
+		p->MAC[3] = mac_public[2];
+		p->MAC[4] = mac_public[1];
+		p->MAC[5] = mac_public[0];
+		p->temperature[0] = (uint8_t)(last_temp >> 8);
+		p->temperature[1] = (uint8_t)last_temp;
+		p->humidity = (uint8_t)last_humi;
+		p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
+		p->battery_mv[1] = (uint8_t)measured_data.battery_mv;
+		p->counter = (uint8_t)measured_data.count;
 	} else {
-		advertising_data_Mi[15] = 0x0a;
-		advertising_data_Mi[17] = 0x01;
-
-		advertising_data_Mi[18] = battery_level;
-
-		advertising_data_Mi[19] = 0x02;
-		advertising_data_Mi[20] = battery_mv;
-		advertising_data_Mi[21] = battery_mv >> 8;
-		show_temp_humi_Mi = true;
-	}
-
-	bls_ll_setAdvData((uint8_t *) advertising_data_Mi,
-			sizeof(advertising_data_Mi));
-
-}
-// Custom advertising type
-_attribute_ram_code_ void set_custom_adv_data(int32_t temp, uint32_t humi,
-		uint8_t battery_level, uint32_t battery_mv) {
-
-	advertising_data[10] = temp;
-	advertising_data[11] = temp >> 8;
-
-	advertising_data[12] = humi;
-	advertising_data[13] = humi >> 8;
-
-	advertising_data[14] = battery_mv;
-	advertising_data[15] = battery_mv >> 8;
-
-	advertising_data[16] = battery_level;
-
-	advertising_data[17] = (uint8_t)measured_data.count;
 #if USE_TRIGGER_OUT
-	test_trg_input();
-	advertising_data[18] = *(uint8_t *)(&trg.flg);
+		test_trg_input();
 #endif
-	bls_ll_setAdvData((uint8_t *) advertising_data, sizeof(advertising_data));
+		padv_custom_t p = (padv_custom_t)adv_buffer;
+		memcpy(p->MAC, mac_public, 6);
+#if USE_TRIGGER_OUT
+		p->size = sizeof(adv_custom_t) - 1;
+#else
+		p->size = sizeof(adv_custom_t) - 2;
+#endif
+		p->uid = 0x16; // 16-bit UUID
+		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
+		p->temperature = measured_data.temp;
+		p->humidity = measured_data.humi;
+		p->battery_mv = measured_data.battery_mv;
+		p->battery_level = battery_level;
+		p->counter = (uint8_t)measured_data.count;
+#if USE_TRIGGER_OUT
+		p->flags = *(uint8_t *)(&trg.flg);
+#endif
+	}
+	adv_count++;
+	bls_ll_setAdvData(adv_buffer, adv_buffer[0]+1);
 }
 
-void ble_send_temp(int16_t temp) {
-	my_tempVal[0] = temp & 0xFF;
-	my_tempVal[1] = temp >> 8;
-	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, my_tempVal, 2);
-}
-
-void ble_send_humi(uint16_t humi) {
-	my_humiVal[0] = humi & 0xFF;
-	my_humiVal[1] = humi >> 8;
-	bls_att_pushNotifyData(HUMI_LEVEL_INPUT_DP_H, my_humiVal, 2);
-}
-
-void ble_send_battery(uint8_t value) {
-	my_batVal[0] = value;
-	bls_att_pushNotifyData(BATT_LEVEL_INPUT_DP_H, my_batVal, 1);
-}
-
-uint8_t send_buf[16];
 _attribute_ram_code_ void ble_send_measures(void) {
 	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
@@ -257,7 +214,5 @@ void ble_send_trg(void) {
 }
 #endif
 
-void ble_send_cfg(void) {
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg) + 2);
-}
+
 

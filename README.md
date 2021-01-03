@@ -1,18 +1,20 @@
 # ATC_MiThermometer
 
 
-Forked from https://github.com/atc1441/ATC_MiThermometer
+Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
-Under construction... Alpha test only.
+Under construction... Alpha version 0.9 (test only).
 
 ### 1. Adaptation to reduce energy consumption (Average consumption).
->* Released
 >* #### Original Xiaomi LYWSD03MMC (advertisement 1700 ms, measurement 6800 ms):
 > * Advertisement: 18.64 uA
 > * Connection: > 0.3 mA
 >* #### Custom firmware (show 2 sec battery/humidity, comfort on, advertisement 2 sec, measurement 10 sec):
 > * Advertisement: 17.28 uA
 > * Connection: < 17 uA
+>* #### Mode "LowPower sensor" (default config):
+> * Advertisement: < 17 uA
+> * Connection: < 16 uA
 ### 2. Reading Measurements in Connected Mode.
 >* Released
 ### 3. Memory of settings when changing the battery.
@@ -45,10 +47,12 @@ Under construction... Alpha test only.
 > * Small number: -9..99
 > * Smiley, battery, degrees
 > + Setting the display time limit in sec
+>*
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/ShowData.gif) 
 
 
-### The USB-COM adapter writes the firmware in explorer. Web version. Connect only TX-SWS and GND wires.
+### The USB-COM adapter writes the firmware in explorer. Web version. 
+>* Connect only TX-SWS and GND wires.
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/USBCOMFlashTxHtml.gif) 
 
 
