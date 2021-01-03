@@ -341,6 +341,8 @@ _attribute_ram_code_ void main_loop() {
 						ble_send_battery();
 					if (tempValueInCCC[0] | tempValueInCCC[1])
 						ble_send_temp();
+					if (temp2ValueInCCC[0] | temp2ValueInCCC[1])
+						ble_send_temp2();
 					if (humiValueInCCC[0] | humiValueInCCC[1])
 						ble_send_humi();
 				} else if (mi_key_stage) {

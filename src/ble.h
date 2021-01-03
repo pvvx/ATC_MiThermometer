@@ -9,6 +9,7 @@ extern uint8_t ble_connected;
 extern bool show_temp_humi_Mi;
 extern u8 batteryValueInCCC[2];
 extern u8 tempValueInCCC[2];
+extern u8 temp2ValueInCCC[2];
 extern u8 humiValueInCCC[2];
 extern u8 RxTxValueInCCC[2];
 
@@ -101,6 +102,10 @@ int RxTxWrite(void * p);
 
 inline void ble_send_temp(void) {
 	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, (u8 *) &last_temp, 2);
+}
+
+inline void ble_send_temp2(void) {
+	bls_att_pushNotifyData(TEMP2_LEVEL_INPUT_DP_H, (u8 *) &measured_data.temp, 2);
 }
 
 inline void ble_send_humi(void) {

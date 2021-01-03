@@ -67,13 +67,17 @@ typedef enum
 	BATT_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: batVal
 	BATT_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: batValCCC
 
-	//// Temp service ////
+	//// Temp/Humi service ////
 	/**********************************************************************************************/
 	TEMP_PS_H, 								//UUID: 2800, 	VALUE: uuid 181A
 	TEMP_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
 	TEMP_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: tempVal
 	TEMP_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: tempValCCC
 	
+	TEMP2_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
+	TEMP2_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: tempVal
+	TEMP2_LEVEL_INPUT_CCB_H,				//UUID: 2902, 	VALUE: tempValCCC
+
 	HUMI_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
 	HUMI_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: humiVal
 	HUMI_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: humiValCCC
