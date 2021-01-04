@@ -172,7 +172,15 @@ void cmd_parser(void * p) {
 	uint32_t len = req->l2cap - 3;
 	if(len) {
 		uint8_t cmd = req->dat[0];
-		if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) {
+		if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
+			if(--len > sizeof(ext)) len = sizeof(ext);
+			else if(len) {
+				memcpy(&ext, &req->dat[1], len);
+				vtime_count_sec = ext.vtime_sec;
+				vtime_count_us = clock_time();
+			}
+			ble_send_ext();
+		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) {
 			if(--len > sizeof(cfg)) len = sizeof(cfg);
 			else if(len)
 				memcpy(&cfg, &req->dat[1], len);
@@ -180,6 +188,12 @@ void cmd_parser(void * p) {
 			ev_adv_timeout(0, 0, 0);
 			if(cmd != CMD_ID_CFG_NS)
 				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
+			ble_send_cfg();
+		} else if (cmd == CMD_ID_CFG_DEF) {
+			memcpy(&cfg, &def_cfg, sizeof(cfg));
+			test_config();
+			ev_adv_timeout(0, 0, 0);
+			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
 #if USE_TRIGGER_OUT
 		} else if (cmd == CMD_ID_TRG || cmd == CMD_ID_TRG_NS) {
@@ -192,22 +206,16 @@ void cmd_parser(void * p) {
 				flash_write_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG);
 			ble_send_trg();
 		} else if (cmd == CMD_ID_TRG_OUT) {
-			trg.flg.trg_output = req->dat[1] != 0;
+			if(len > 1)
+				trg.flg.trg_output = req->dat[1] != 0;
 			test_trg_on();
+			ble_send_trg_flg();
 #endif // USE_TRIGGER_OUT
 		} else if (cmd == CMD_MI_ID_MAC) { // mac
 		} else if (cmd == CMD_MI_ID_KALL) { // get all mi keys
 			mi_key_stage = get_mi_keys(0xff);
 		} else if (cmd == CMD_MI_ID_REST) { // restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(5);
-		} else if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
-			if(--len > sizeof(ext)) len = sizeof(ext);
-			else if(len) {
-				memcpy(&ext, &req->dat[1], len);
-				vtime_count_sec = ext.vtime_sec;
-				vtime_count_us = clock_time();
-			}
-			ble_send_ext();
 		} else if (cmd == CMD_ID_MEASURE) {
 			if(len >= 2)
 				tx_measures = req->dat[1];

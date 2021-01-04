@@ -15,15 +15,54 @@ void printBuffer(uint8_t* buf, int len) {
   Serial.print("\n");
 }
 
+void parse_value(uint8_t* buf, int len) {
+  int16_t x = buf[3];
+  if (buf[2] > 1)
+    x |=  buf[4] << 8;
+  switch (buf[0]) {
+    case 0x0D:
+      if (buf[2] && len > 6) {
+        float temp = x / 10.0;
+        x =  buf[5] | (buf[6] << 8);
+        float humidity = x / 10.0;
+        Serial.printf("Temp: %.1f°, Humidity: %.1f %%\n", temp, humidity);
+      }
+      break;
+    case 0x04: {
+        float temp = x / 10.0;
+        Serial.printf("Temp: %.1f°\n", temp);
+      }
+      break;
+    case 0x06: {
+        float humidity = x / 10.0;
+        Serial.printf("Humidity: %.1f%%\n", humidity);
+      }
+      break;
+    case 0x0A: {
+        Serial.printf("Battery: %d%%", x);
+        if (len > 5 && buf[4] == 2) {
+          uint16_t battery_mv = buf[5] | (buf[6] << 8);
+          Serial.printf(", %d mV", battery_mv);
+        }
+        Serial.printf("\n");
+      }
+      break;
+    default:
+      Serial.printf("Type: 0x%02x ", buf[0]);
+      printBuffer(buf, len);
+      break;
+  }
+}
+
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 
     uint8_t* findServiceData(uint8_t* data, size_t length, uint8_t* foundBlockLength) {
       uint8_t* rightBorder = data + length;
       while (data < rightBorder) {
-        uint8_t blockLength = *data;
+        uint8_t blockLength = *data + 1;
         //Serial.printf("blockLength: 0x%02x\n",blockLength);
         if (blockLength < 5) {
-          data += (blockLength + 1);
+          data += blockLength;
           continue;
         }
         uint8_t blockType = *(data + 1);
@@ -39,12 +78,13 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
             return data;
           }
         }
-        data += (blockLength + 1);
+        data += blockLength;
       }
       return nullptr;
     }
 
     void onResult(BLEAdvertisedDevice advertisedDevice) {
+      uint8_t mac[6];
       uint8_t* payload = advertisedDevice.getPayload();
       size_t payloadLength = advertisedDevice.getPayloadLength();
       uint8_t serviceDataLength = 0;
@@ -52,56 +92,56 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
       if (serviceData == nullptr || serviceDataLength < 15)
         return;
       uint16_t serviceType = *(uint16_t*)(serviceData + 2);
-      //Serial.printf("Found service '%04x' data len: %d, ", serviceType, serviceDataLength);
-      //printBuffer(serviceData, serviceDataLength);
+      Serial.printf("Found service '%04x' data len: %d, ", serviceType, serviceDataLength);
+      printBuffer(serviceData, serviceDataLength);
       if (serviceType == 0xfe95) {
         if (serviceData[5] & 0x10) {
-          Serial.printf("MAC: "); printBuffer(serviceData + 9, 6);
+          mac[5] = serviceData[9];
+          mac[4] = serviceData[10];
+          mac[3] = serviceData[11];
+          mac[2] = serviceData[12];
+          mac[1] = serviceData[13];
+          mac[0] = serviceData[14];
+          Serial.printf("MAC: "); printBuffer(mac, 6);
         }
         if ((serviceData[5] & 0x08) == 0) { // not encrypted
-          switch (serviceData[15]) {
-            case 0x0D: {
-                float temp = *(uint16_t*)(serviceData + 15 + 3) / 10.0;
-                float humidity = *(uint16_t*)(serviceData + 15 + 5) / 10.0;
-                Serial.printf("Temp: %.1f°, Humidity: %.1f %%, cout: %d\n", temp, humidity, serviceData[8]);
-              }
-              break;
-            case 0x04: {
-                float temp = *(uint16_t*)(serviceData + 15 + 3) / 10.0;
-                Serial.printf("Temp: %.1f°\n", temp);
-              }
-              break;
-            case 0x06: {
-                float humidity = *(uint16_t*)(serviceData + 15 + 3) / 10.0;
-                Serial.printf("Humidity: %.1f%%\n", humidity);
-              }
-              break;
-            case 0x0A: {
-                int battery = *(serviceData + 15 + 3);
-                if (serviceData[15]) {
-                  Serial.printf("Battery: %d%%, %d mV, cout: %d\n", battery, *(uint16_t*)(serviceData + 11 + 5 + 4), serviceData[8]);
-                } else
-                  Serial.printf("Battery: %d%%\n", battery);
-              }
-              break;
-            default:
-              Serial.printf("Type: 0x%02x ", serviceData[15]);
-              printBuffer(serviceData, serviceDataLength);
-              break;
+          serviceDataLength -= 15;
+          payload = &serviceData[15];
+          while (serviceDataLength > 3) {
+            parse_value(payload, serviceDataLength);
+            serviceDataLength -= payload[2] + 3;
+            payload += payload[2] + 3;
           }
+          Serial.printf("count: %d\n", serviceData[8]);
         } else {
-          if (serviceDataLength > 17) {
-            Serial.printf("Crypted data[%d]! ", serviceDataLength - 15); // https://github.com/Magalex2x14/LYWSD03MMC-info
+          if (serviceDataLength > 19) { // aes-ccm  bindkey
+            // https://github.com/ahpohl/xiaomi_lywsd03mmc
+            // https://github.com/Magalex2x14/LYWSD03MMC-info
+            Serial.printf("Crypted data[%d]! ", serviceDataLength - 15);
           }
-          Serial.printf("count: %d\n", serviceData[8]); 
+          Serial.printf("count: %d\n", serviceData[8]);
         }
       } else { // serviceType == 0x181a
-        Serial.printf("MAC: ");
-        printBuffer(serviceData + 4, 6);
-        float temp = *(uint16_t*)(serviceData + 10) / 100.0;
-        float humidity = *(uint16_t*)(serviceData + 12) / 100.0;
-        uint16_t vbat = *(uint16_t*)(serviceData + 14);
-        Serial.printf("Temp: %.1f°, Humidity: %.1f%%, Vbatt: %d, Battery: %d%%, cout: %d\n", temp, humidity, vbat, serviceData[16], serviceData[17]);
+        if(serviceDataLength > 18) { // custom format
+          mac[5] = serviceData[4];
+          mac[4] = serviceData[5];
+          mac[3] = serviceData[6];
+          mac[2] = serviceData[7];
+          mac[1] = serviceData[8];
+          mac[0] = serviceData[9];
+          Serial.printf("MAC: ");
+          printBuffer(mac, 6);
+          float temp = *(uint16_t*)(serviceData + 10) / 100.0;
+          float humidity = *(uint16_t*)(serviceData + 12) / 100.0;
+          uint16_t vbat = *(uint16_t*)(serviceData + 14);
+          Serial.printf("Temp: %.2f°, Humidity: %.2f%%, Vbatt: %d, Battery: %d%%, flg: 0x%02x, cout: %d\n", temp, humidity, vbat, serviceData[16], serviceData[18], serviceData[17]);
+        } else if(serviceDataLength == 17) { // format atc1441
+          Serial.printf("MAC: "); printBuffer(serviceData + 4, 6);
+          int16_t x = (serviceData[10]<<8) | serviceData[11];
+          float temp = x / 10.0;
+          uint16_t vbat = x = (serviceData[14]<<8) | serviceData[15];
+          Serial.printf("Temp: %.1f°, Humidity: %d%%, Vbatt: %d, Battery: %d%%, cout: %d\n", temp, serviceData[12], vbat, serviceData[13], serviceData[16]);
+        }
       }
     }
 };

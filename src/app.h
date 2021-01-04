@@ -13,7 +13,7 @@
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
-		uint8_t advertising_type	: 2; // 0 - Custom, 1 - Mi, 2 - atc1441
+		uint8_t advertising_type	: 2; // 0 - Custom, 1 - Mi, 2 - atc1441, 3 - All
 		uint8_t comfort_smiley		: 1;
 		uint8_t blinking_smiley		: 1;
 		uint8_t temp_F_or_C			: 1;
@@ -39,6 +39,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	uint8_t min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
 }cfg_t;
 extern cfg_t cfg;
+extern const cfg_t def_cfg;
 //
 typedef struct __attribute__((packed)) _external_data_t {
 	int16_t		big_number; // -995..19995, x0.1

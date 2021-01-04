@@ -13,6 +13,7 @@ enum {
 	CMD_ID_TRG_OUT = 0x45, 	   // Set trg out
 	CMD_ID_TRG_NS = 0x4A,  // Get/set trg data (not save to Flash)
 	CMD_ID_CFG = 0x55,		// Get/set config
+	CMD_ID_CFG_DEF = 0x56,	// Get default config
 	CMD_ID_CFG_NS = 0x5A,	// Get/set config (not save to Flash)
 } CMD_MI_ID_KEYS;
 

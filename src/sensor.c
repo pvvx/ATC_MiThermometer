@@ -17,7 +17,7 @@
 #define SHTC3_MEASURE		0x6678 // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First
 #define SHTC3_LPMEASURE		0x9C60 // Measurement commands, Clock Stretching Disabled, Low Power Mode, Read T First
 
-RAM uint32_t timer_measure_cb;
+RAM volatile uint32_t timer_measure_cb;
 
 _attribute_ram_code_ void send_sensor(uint16_t cmd) {
 	if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
@@ -48,7 +48,9 @@ _attribute_ram_code_ void read_sensor_start(uint16_t mcmd) {
 _attribute_ram_code_ void read_sensor_cb(void) {
 	int16_t _temp;
 	uint16_t _humi;
-	init_i2c();
+
+	if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
+			init_i2c();
 
 	reg_i2c_id = 0xE0 | FLD_I2C_WRITE_READ_BIT;
 	int i = 512;
@@ -86,7 +88,8 @@ _attribute_ram_code_ void read_sensor_deep_sleep(void) {
 	read_sensor_start(SHTC3_MEASURE);
 	gpio_setup_up_down_resistor(GPIO_PC2, PM_PIN_PULLUP_1M);
 	gpio_setup_up_down_resistor(GPIO_PC3, PM_PIN_PULLUP_1M);
-	timer_measure_cb = (clock_time() + SENSOR_MEASURING_TIMEOUT);
+	timer_measure_cb = clock_time() | 1;
+//	reg_clk_en0 &= ~FLD_CLK0_I2C_EN;
 }
 
 _attribute_ram_code_ void read_sensor_low_power(void) {

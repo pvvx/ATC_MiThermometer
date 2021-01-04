@@ -8,7 +8,7 @@ extern "C" {
 //#define PC3_INPUT_ENABLE	1
 //#define PB6_INPUT_ENABLE	1
 
-#define VERSION 0x09
+#define VERSION 0x10
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define USE_TRIGGER_OUT 1 // use trigger out (GPIO_PA5)

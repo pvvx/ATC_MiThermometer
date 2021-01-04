@@ -84,8 +84,7 @@ function onButtonClick() {
     { namePrefix: 'X' },
     { namePrefix: 'Y' },
     { namePrefix: 'Z' }
-  ],
-  optionalServices: ['generic_access'] // [0xfe95, 0x181a]
+  ], optionalServices: [0xfe95, 0x181a]
 	}).then(device => {
     log('> Requested ' + device.name);
     device.addEventListener('advertisementreceived', (event) => {
@@ -106,8 +105,9 @@ function onButtonClick() {
 /* Utils */
 
 const logDataView = (labelOfDataSource, key, valueDataView) => {
-  const data = new Uint8Array(valueDataView.buffer);
-  log(` ${labelOfDataSource} Data: ` + key + ', ' + data );
+  let s = '', h = '0123456789ABCDEF';
+  (new Uint8Array(valueDataView.buffer)).forEach((v) => { s += h[v >> 4] + h[v & 15]; });
+  log(` ${labelOfDataSource} Data: ` + key + ', ' + s);
 };
 </script>
 </html>

@@ -28,7 +28,7 @@ RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
 RAM uint8_t ble_name[] = { 11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0',
 		'0', '0' };
 RAM uint8_t mac_public[6];
-RAM uint8_t adv_count;
+RAM uint8_t adv_mi_count;
 RAM uint8_t adv_buffer[24];
 uint8_t ota_is_working = 0;
 
@@ -43,10 +43,6 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	show_ble_symbol(0);
 	if(!cfg.flg.tx_measures)
 		tx_measures = 0;
-}
-
-_attribute_ram_code_ void user_set_rf_power(uint8_t e, uint8_t *p, int n) {
-	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
@@ -109,8 +105,7 @@ void init_ble() {
 
 	///////////////////// USER application initialization ///////////////////
 	bls_ll_setScanRspData((uint8_t *) ble_name, sizeof(ble_name));
-	user_set_rf_power(0, 0, 0);
-	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power);
+	rf_set_power_level_index(cfg.rf_tx_power);
 	bls_app_registerEventCallback(BLT_EV_FLAG_CONNECT, &ble_connect_callback);
 	bls_app_registerEventCallback(BLT_EV_FLAG_TERMINATE,
 			&ble_disconnect_callback);
@@ -119,7 +114,7 @@ void init_ble() {
 	blc_ll_initPowerManagement_module();
 	bls_pm_setSuspendMask(SUSPEND_DISABLE);
 	blc_pm_setDeepsleepRetentionThreshold(95, 95);
-	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(400); // 240
+	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
 
 	bls_ota_clearNewFwDataArea(); //must
@@ -128,47 +123,10 @@ void init_ble() {
 }
 
 // adv_type: 0 - Custom, 1 - Mi, 2 - atc1441
-_attribute_ram_code_ void set_adv_data(unsigned int adv_type) {
+_attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
+	if(adv_type == 3)
+		adv_type = adv_mi_count & 3;
 	if(adv_type == 1) {
-		padv_mi_t p = (padv_mi_t)adv_buffer;
-		memcpy(p->MAC, mac_public, 6);
-		p->size = sizeof(adv_mi_t) - 1;
-		p->uid = 0x16; // 16-bit UUID
-		p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
-		p->flg = 0x3050;
-		p->dev_id = 0x055b;
-		p->nx10 = 0x10;
-		p->counter = (uint8_t)measured_data.count;
-		if (adv_count & 1) {
-			p->data_id = 0x0d;
-			p->t0d.id = 0x04;
-			p->t0d.temperature = measured_data.temp;
-			p->t0d.humidity = measured_data.humi / 10;
-		} else {
-			p->data_id = 0x0a;
-			p->t0a.id1 = 0x01;
-			p->t0a.battery_level = battery_level;
-			p->t0a.id2 = 0x02;
-			p->t0a.battery_mv = measured_data.battery_mv;
-		}
-	} else if(adv_type == 2) {
-		padv_atc1441_t p = (padv_atc1441_t)adv_buffer;
-		p->size = sizeof(adv_atc1441_t) - 1;
-		p->uid = 0x16; // 16-bit UUID
-		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
-		p->MAC[0] = mac_public[5];
-		p->MAC[1] = mac_public[4];
-		p->MAC[2] = mac_public[3];
-		p->MAC[3] = mac_public[2];
-		p->MAC[4] = mac_public[1];
-		p->MAC[5] = mac_public[0];
-		p->temperature[0] = (uint8_t)(last_temp >> 8);
-		p->temperature[1] = (uint8_t)last_temp;
-		p->humidity = (uint8_t)last_humi;
-		p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
-		p->battery_mv[1] = (uint8_t)measured_data.battery_mv;
-		p->counter = (uint8_t)measured_data.count;
-	} else {
 #if USE_TRIGGER_OUT
 		test_trg_input();
 #endif
@@ -181,16 +139,55 @@ _attribute_ram_code_ void set_adv_data(unsigned int adv_type) {
 #endif
 		p->uid = 0x16; // 16-bit UUID
 		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
-		p->temperature = measured_data.temp;
-		p->humidity = measured_data.humi;
+		p->temperature = measured_data.temp; // x0.01 C
+		p->humidity = measured_data.humi; // x0.01 %
 		p->battery_mv = measured_data.battery_mv;
 		p->battery_level = battery_level;
 		p->counter = (uint8_t)measured_data.count;
 #if USE_TRIGGER_OUT
 		p->flags = *(uint8_t *)(&trg.flg);
 #endif
+	} else if(adv_type & 2) { // adv_type == 2 or 3
+		padv_mi_t p = (padv_mi_t)adv_buffer;
+		memcpy(p->MAC, mac_public, 6);
+		p->size = sizeof(adv_mi_t) - 1;
+		p->uid = 0x16; // 16-bit UUID
+		p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+		p->ctrl = 0x3050;
+		p->dev_id = 0x055b;
+		p->nx10 = 0x10;
+		p->counter = (uint8_t)measured_data.count;
+		if (adv_mi_count & 1) {
+			p->data_id = 0x0d;
+			p->t0d.len = 0x04;
+			p->t0d.temperature = last_temp; // x0.1 C
+			p->t0d.humidity = measured_data.humi / 10; // x0.1 %
+		} else {
+			p->data_id = 0x0a;
+			p->t0a.len1 = 0x01;
+			p->t0a.battery_level = battery_level;
+			p->t0a.len2 = 0x02;
+			p->t0a.battery_mv = measured_data.battery_mv;
+		}
+	} else { // adv_type == 0
+		padv_atc1441_t p = (padv_atc1441_t)adv_buffer;
+		p->size = sizeof(adv_atc1441_t) - 1;
+		p->uid = 0x16; // 16-bit UUID
+		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
+		p->MAC[0] = mac_public[5];
+		p->MAC[1] = mac_public[4];
+		p->MAC[2] = mac_public[3];
+		p->MAC[3] = mac_public[2];
+		p->MAC[4] = mac_public[1];
+		p->MAC[5] = mac_public[0];
+		p->temperature[0] = (uint8_t)(last_temp >> 8);
+		p->temperature[1] = (uint8_t)last_temp; // x0.1 C
+		p->humidity = (uint8_t)last_humi; // x1 %
+		p->battery_level = battery_level;
+		p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
+		p->battery_mv[1] = (uint8_t)measured_data.battery_mv;
+		p->counter = (uint8_t)measured_data.count;
 	}
-	adv_count++;
 	bls_ll_setAdvData(adv_buffer, adv_buffer[0]+1);
 }
 
@@ -211,6 +208,11 @@ void ble_send_trg(void) {
 	send_buf[0] = CMD_ID_TRG;
 	memcpy(&send_buf[1], &trg, sizeof(trg));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(trg) + 1);
+}
+void ble_send_trg_flg(void) {
+	send_buf[0] = CMD_ID_TRG_OUT;
+	send_buf[1] = *((uint8_t *)(&trg.flg));
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
 }
 #endif
 

@@ -10,9 +10,11 @@
 #include "lcd.h"
 #include "sensor.h"
 #include "app.h"
+#include "i2c.h"
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
 #endif
+void app_enter_ota_mode(void);
 
 RAM uint32_t vtime_count_us; // count validity time, in us
 RAM uint32_t vtime_count_sec; // count validity time, in sec
@@ -41,19 +43,19 @@ RAM int16_t comfort_x[] = { 2000, 2560, 2700, 2500, 2050, 1700, 1600, 1750 };
 RAM uint16_t comfort_y[] = { 2000, 1980, 3200, 6000, 8200, 8600, 7700, 3800 };
 
 // Settings
-static const cfg_t def_cfg = {
+const cfg_t def_cfg = {
 		.flg.temp_F_or_C = false,
 		.flg.blinking_smiley = false,
 		.flg.comfort_smiley = false,
 		.flg.show_batt_enabled = false,
-		.flg.advertising_type = false,
+		.flg.advertising_type = 3,
 		.flg.tx_measures = false,
 		.smiley = 0, // 0 = "     " off
-		.advertising_interval = 32, // multiply by 62.5 ms = 2 sec
-		.measure_interval = 5, // * advertising_interval = 10 sec
+		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
+		.measure_interval = 4, // * advertising_interval = 10 sec
 		.rf_tx_power = RF_POWER_P3p01dBm,
 		.connect_latency = 124, // (124+1)*1.25*16 = 2500 ms
-		.min_step_time_update_lcd = 55 //x0.05 sec,   2.75 sec
+		.min_step_time_update_lcd = 49 //x0.05 sec,   2.45 sec
 		};
 RAM cfg_t cfg;
 static const external_data_t def_ext = {
@@ -115,22 +117,6 @@ void test_config(void) {
 	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 }
 
-_attribute_ram_code_ bool is_comfort(int16_t t, uint16_t h) {
-	bool c = 0;
-	uint8_t npol = sizeof(comfort_x);
-	for (uint8_t i = 0, j = npol - 1; i < npol; j = i++) {
-		if (((comfort_y[i] < comfort_y[j]) && (comfort_y[i] <= h) && (h
-				<= comfort_y[j]) && ((comfort_y[j] - comfort_y[i]) * (t
-				- comfort_x[i]) > (comfort_x[j] - comfort_x[i]) * (h
-				- comfort_y[i]))) || ((comfort_y[i] > comfort_y[j])
-				&& (comfort_y[j] <= h) && (h <= comfort_y[i]) && ((comfort_y[j]
-				- comfort_y[i]) * (t - comfort_x[i]) < (comfort_x[j]
-				- comfort_x[i]) * (h - comfort_y[i]))))
-			c = !c;
-	}
-	return c;
-}
-
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
 	read_sensor_cb();
@@ -140,35 +126,10 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 #endif
 	last_temp = measured_data.temp / 10;
 	last_humi = measured_data.humi / 100;
-	set_adv_data(cfg.flg.advertising_type);
+	timer_measure_cb = 0;
 	end_measure = 1;
 	wrk_measure = 0;
-}
-
-_attribute_ram_code_ void app_suspend_enter(void) {
-	if (ota_is_working) {
-		bls_pm_setSuspendMask(SUSPEND_DISABLE);
-		bls_pm_setManualLatency(0);
-	} else {
-		if (timer_measure_cb) {
-			if (bls_pm_getSystemWakeupTick() - clock_time() > 16
-					* CLOCK_16M_SYS_TIMER_CLK_1MS) {
-				bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
-				bls_pm_setAppWakeupLowPower(timer_measure_cb, 1);
-				timer_measure_cb = 0;
-			} else {
-				bls_pm_setAppWakeupLowPower(0, 0);
-				if (timer_measure_cb - clock_time() > SENSOR_MEASURING_TIMEOUT + 1) {
-					WakeupLowPowerCb(0);
-					timer_measure_cb = 0;
-				}
-			}
-		} else if (!wrk_measure)
-			bls_pm_setAppWakeupLowPower(0, 0);
-		bls_pm_setSuspendMask(
-				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN
-						| DEEPSLEEP_RETENTION_CONN);
-	}
+	set_adv_data(cfg.flg.advertising_type);
 }
 
 _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
@@ -178,6 +139,19 @@ _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	bls_ll_setAdvEnable(1);
 	start_measure = 1;
 }
+_attribute_ram_code_ void suspend_exit_cb(u8 e, u8 *p, int n) {
+	if(timer_measure_cb)
+		init_i2c();
+}
+_attribute_ram_code_ void suspend_enter_cb(u8 e, u8 *p, int n) {
+	if (wrk_measure
+		&& timer_measure_cb
+		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT - 3*CLOCK_16M_SYS_TIMER_CLK_1MS) {
+			WakeupLowPowerCb(0);
+			bls_pm_setAppWakeupLowPower(0, 0);
+	}
+}
+
 //------------------ user_init_normal -------------------
 _attribute_ram_code_ void user_init_normal(void) {//this will get executed one time after power up
 	random_generator_init(); //must
@@ -203,6 +177,8 @@ _attribute_ram_code_ void user_init_normal(void) {//this will get executed one t
 	//	vtime_count_sec = ext.vtime;
 	//	vtime_count_us = clock_time();
 	init_ble();
+	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
+	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
 	init_sensor();
 	measured_data.battery_mv = get_battery_mv();
 	battery_level = get_battery_level(measured_data.battery_mv);
@@ -221,14 +197,29 @@ _attribute_ram_code_ void user_init_normal(void) {//this will get executed one t
 	ev_adv_timeout(0, 0, 0);
 }
 
-void app_enter_ota_mode(void);
-
 //------------------ user_init_deepRetn -------------------
 _attribute_ram_code_ void user_init_deepRetn(void) {//after sleep this will get executed
+	adv_mi_count++;
 	blc_ll_initBasicMCU();
-	rf_set_power_level_index(RF_POWER_P3p01dBm);
+	rf_set_power_level_index(cfg.rf_tx_power);
 	blc_ll_recoverDeepRetention();
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
+}
+
+_attribute_ram_code_ bool is_comfort(int16_t t, uint16_t h) {
+	bool c = 0;
+	uint8_t npol = sizeof(comfort_x);
+	for (uint8_t i = 0, j = npol - 1; i < npol; j = i++) {
+		if (((comfort_y[i] < comfort_y[j]) && (comfort_y[i] <= h) && (h
+				<= comfort_y[j]) && ((comfort_y[j] - comfort_y[i]) * (t
+				- comfort_x[i]) > (comfort_x[j] - comfort_x[i]) * (h
+				- comfort_y[i]))) || ((comfort_y[i] > comfort_y[j])
+				&& (comfort_y[j] <= h) && (h <= comfort_y[i]) && ((comfort_y[j]
+				- comfort_y[i]) * (t - comfort_x[i]) < (comfort_x[j]
+				- comfort_x[i]) * (h - comfort_y[i]))))
+			c = !c;
+	}
+	return c;
 }
 
 _attribute_ram_code_ void lcd_set_ext_data(void) {
@@ -305,62 +296,81 @@ _attribute_ram_code_ void lcd(void) {
 		}
 	}
 }
-
-_attribute_ram_code_ void main_loop() {
+//----------------------- main_loop()
+_attribute_ram_code_ void main_loop(void) {
 	blt_sdk_main_loop();
 	if (wrk_measure
 		&& timer_measure_cb
-		&& timer_measure_cb - clock_time() > SENSOR_MEASURING_TIMEOUT + 1) {
-			bls_pm_setAppWakeupLowPower(0, 0);
+		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT) {
 			WakeupLowPowerCb(0);
-			timer_measure_cb = 0;
+			bls_pm_setAppWakeupLowPower(0, 0);
 	}
-	if (!ota_is_working && !wrk_measure) {
-		if (start_measure) {
-			start_measure = 0;
-			if (cfg.flg.lp_measures) {
-				read_sensor_low_power();
-				measured_data.battery_mv = get_battery_mv();
-				battery_level = get_battery_level(measured_data.battery_mv);
-				WakeupLowPowerCb(0);
-			} else {
+	if (ota_is_working) {
+		bls_pm_setSuspendMask(SUSPEND_DISABLE);
+		bls_pm_setManualLatency(0);
+	} else {
+		if (!wrk_measure) {
+			if (start_measure) {
 				wrk_measure = 1;
-				read_sensor_deep_sleep();
+				start_measure = 0;
+				if (cfg.flg.lp_measures) {
+					read_sensor_low_power();
+					measured_data.battery_mv = get_battery_mv();
+					battery_level = get_battery_level(measured_data.battery_mv);
+					WakeupLowPowerCb(0);
+					bls_pm_setAppWakeupLowPower(0, 0);
+				} else {
+					read_sensor_deep_sleep();
+					if (bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
+						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
+						bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
+//						timer_measure_cb = 0;
+					} else {
+						bls_pm_setAppWakeupLowPower(0, 0);
+					}
+				}
+			} else {
+				uint32_t new = clock_time();
+				if (blc_ll_getCurrentState() == BLS_LINK_STATE_CONN && blc_ll_getTxFifoNumber() < 9) {
+					if (end_measure) {
+						end_measure = 0;
+						if (tx_measures && (RxTxValueInCCC[0] | RxTxValueInCCC[1])) {
+							if (tx_measures != 0xff)
+								tx_measures--;
+							ble_send_measures();
+						}
+						if (batteryValueInCCC[0] | batteryValueInCCC[1])
+							ble_send_battery();
+						if (tempValueInCCC[0] | tempValueInCCC[1])
+							ble_send_temp();
+						if (temp2ValueInCCC[0] | temp2ValueInCCC[1])
+							ble_send_temp2();
+						if (humiValueInCCC[0] | humiValueInCCC[1])
+							ble_send_humi();
+					} else if (mi_key_stage) {
+						mi_key_stage = get_mi_keys(mi_key_stage);
+					}
+				}
+				if (new - tim_measure >= measurement_step_time) {
+					start_measure = 1;
+					tim_measure = new;
+				}
+				if (new - tim_last_chow >= min_step_time_update_lcd) {
+					lcd();
+					update_lcd();
+					tim_last_chow = new;
+				}
+				bls_pm_setAppWakeupLowPower(0, 0);
 			}
 		} else {
-			uint32_t new = clock_time();
-			if (blc_ll_getCurrentState() == BLS_LINK_STATE_CONN && blc_ll_getTxFifoNumber() < 9) {
-				if (end_measure) {
-					end_measure = 0;
-					if (tx_measures && (RxTxValueInCCC[0] | RxTxValueInCCC[1])) {
-						if (tx_measures != 0xff)
-							tx_measures--;
-						ble_send_measures();
-					}
-					if (batteryValueInCCC[0] | batteryValueInCCC[1])
-						ble_send_battery();
-					if (tempValueInCCC[0] | tempValueInCCC[1])
-						ble_send_temp();
-					if (temp2ValueInCCC[0] | temp2ValueInCCC[1])
-						ble_send_temp2();
-					if (humiValueInCCC[0] | humiValueInCCC[1])
-						ble_send_humi();
-				} else if (mi_key_stage) {
-					mi_key_stage = get_mi_keys(mi_key_stage);
-				}
-			} else if(cfg.flg.advertising_type == 1 && blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {
-				set_adv_data(cfg.flg.advertising_type);
-			}
-			if (new - tim_measure >= measurement_step_time) {
-				start_measure = 1;
-				tim_measure = new;
-			}
-			if (new - tim_last_chow >= min_step_time_update_lcd) {
-				lcd();
-				update_lcd();
-				tim_last_chow = new;
-			}
+//			bls_pm_setAppWakeupLowPower(0, 0);
 		}
+		if((cfg.flg.advertising_type & 1)
+			&& blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {
+			set_adv_data(cfg.flg.advertising_type);
+		}
+		bls_pm_setSuspendMask(
+				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN
+						| DEEPSLEEP_RETENTION_CONN);
 	}
-	app_suspend_enter();
 }

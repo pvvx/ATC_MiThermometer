@@ -6,9 +6,9 @@
 
 #include "i2c.h"
 
-extern void user_init_normal();
-extern void user_init_deepRetn();
-extern void main_loop (void);
+extern void user_init_normal(void);
+extern void user_init_deepRetn(void);
+extern void main_loop(void);
 
 _attribute_ram_code_ void irq_handler(void)
 {

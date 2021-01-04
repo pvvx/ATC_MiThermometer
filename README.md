@@ -3,7 +3,7 @@
 
 Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
-Under construction... Alpha version 0.9 (test only).
+Under construction... Version 1.0 (beta).
 
 ### 1. Adaptation to reduce energy consumption (Average consumption).
 >* #### Original Xiaomi LYWSD03MMC (advertisement 1700 ms, measurement 6800 ms):
