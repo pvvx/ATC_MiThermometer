@@ -70,11 +70,16 @@ static const external_data_t def_ext = {
 RAM external_data_t ext;
 
 void test_config(void) {
-	cfg.rf_tx_power |= BIT(7);
-	if (cfg.rf_tx_power < RF_POWER_N25p18dBm)
-		cfg.rf_tx_power = RF_POWER_N25p18dBm;
-	else if (cfg.rf_tx_power > RF_POWER_P3p01dBm)
-		cfg.rf_tx_power = RF_POWER_P3p01dBm;
+	if(cfg.rf_tx_power &BIT(7)) {
+		if (cfg.rf_tx_power < RF_POWER_N25p18dBm)
+			cfg.rf_tx_power = RF_POWER_N25p18dBm;
+		else if (cfg.rf_tx_power > RF_POWER_P3p01dBm)
+			cfg.rf_tx_power = RF_POWER_P3p01dBm;
+	} else { if (cfg.rf_tx_power < RF_POWER_P3p23dBm)
+		cfg.rf_tx_power = RF_POWER_P3p23dBm;
+	else if (cfg.rf_tx_power > RF_POWER_P10p46dBm)
+		cfg.rf_tx_power = RF_POWER_P10p46dBm;
+	}
 	if (cfg.measure_interval == 0)
 		cfg.measure_interval = 1; // x1, T = cfg.measure_interval * advertising_interval_ms (ms),  Tmin = 1 * 1*62.5 = 62.5 ms / 1 * 160 * 62.5 = 10000 ms
 	else if (cfg.measure_interval > 10)
