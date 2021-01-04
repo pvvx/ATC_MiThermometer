@@ -38,7 +38,9 @@ Under construction... Version 1.0 (beta).
 
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/trg_menu.gif) 
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/trg_menu.gif)
+
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/OnOff.gif)
 
 
 ### Interface for receiving and displaying data on the LCD.
