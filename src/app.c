@@ -198,6 +198,8 @@ _attribute_ram_code_ void user_init_normal(void) {//this will get executed one t
 				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deepsleep
 	}
 	init_lcd();
+	read_sensor_low_power();
+	WakeupLowPowerCb(0);
 	//	show_atc_mac();
 	ev_adv_timeout(0, 0, 0);
 }
@@ -323,9 +325,11 @@ _attribute_ram_code_ void main_loop(void) {
 					measured_data.battery_mv = get_battery_mv();
 					battery_level = get_battery_level(measured_data.battery_mv);
 					WakeupLowPowerCb(0);
-					bls_pm_setAppWakeupLowPower(0, 0);
+					//bls_pm_setAppWakeupLowPower(0, 0);
 				} else {
 					read_sensor_deep_sleep();
+					measured_data.battery_mv = get_battery_mv();
+					battery_level = get_battery_level(measured_data.battery_mv);
 					if (bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
 						bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);

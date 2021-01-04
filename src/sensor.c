@@ -89,13 +89,10 @@ _attribute_ram_code_ void read_sensor_deep_sleep(void) {
 	gpio_setup_up_down_resistor(GPIO_PC2, PM_PIN_PULLUP_1M);
 	gpio_setup_up_down_resistor(GPIO_PC3, PM_PIN_PULLUP_1M);
 	timer_measure_cb = clock_time() | 1;
-//	reg_clk_en0 &= ~FLD_CLK0_I2C_EN;
 }
 
 _attribute_ram_code_ void read_sensor_low_power(void) {
 	read_sensor_start(SHTC3_LPMEASURE);
-	gpio_setup_up_down_resistor(GPIO_PC2, PM_PIN_PULLUP_1M);
-	gpio_setup_up_down_resistor(GPIO_PC3, PM_PIN_PULLUP_1M);
 }
 
 _attribute_ram_code_ void read_sensor_sleep(void) {
