@@ -32,6 +32,22 @@ Under construction... Version 1.0 (beta).
 ### 9. Loop recording of measurements in Flash
 >* TODO
 
+**Advertising in 4 formats:**
+
+1. UUID 0x181A - size 16: atc1441 format 
+2. UUID 0x181A - size 19: custom - temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags (mark “reset”) and triggers.
+3. UUID 0xFE95 - 0x0A: Xiaomi - battery charge level 0..100%, battery voltage in mV
+4. UUID 0xFE95 - 0x0D: Xiaomi - temperature x0.1C, humidity x0.1%
+
+ ++ Сonfiguring mode of transferring everything in turn 
+
+**In Connection mode:**
+
+- Characteristic UUID 0x2A1F - Notify temperature x0.1C
+- Characteristic UUID 0x2A6E - Notify temperature x0.01C
+- Characteristic UUID 0x2A6F - Notify about humidity x0.01%
+- Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
+- Characteristic UUID 0x2803 - Notify, frame id 0x33 (сonfiguring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
 ### Reading Measurements in Connected Mode
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/GraphAtc_html.gif) 

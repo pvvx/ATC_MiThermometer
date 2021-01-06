@@ -13,7 +13,7 @@
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
-		uint8_t advertising_type	: 2; // 0 - Custom, 1 - Mi, 2 - atc1441, 3 - All
+		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom, 2 - Mi, 3 - all
 		uint8_t comfort_smiley		: 1;
 		uint8_t blinking_smiley		: 1;
 		uint8_t temp_F_or_C			: 1;
