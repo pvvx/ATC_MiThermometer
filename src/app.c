@@ -125,20 +125,22 @@ void test_config(void) {
 
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
-	read_sensor_cb();
+	if (read_sensor_cb()) {
+		last_temp = measured_data.temp / 10;
+		last_humi = measured_data.humi / 100;
 #if	USE_TRIGGER_OUT
-	if(trg.flg.trigger_on)
-		set_trigger_out();
+		if(trg.flg.trigger_on)
+			set_trigger_out();
 #endif
-	last_temp = measured_data.temp / 10;
-	last_humi = measured_data.humi / 100;
+		set_adv_data(cfg.flg.advertising_type);
+		end_measure = 1;
+	}
 	timer_measure_cb = 0;
-	end_measure = 1;
 	wrk_measure = 0;
-	set_adv_data(cfg.flg.advertising_type);
 }
 
 _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
+	(void) e; (void) p; (void) n;
 	bls_ll_setAdvParam(adv_interval, adv_interval + 50,
 			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
 			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
@@ -146,10 +148,12 @@ _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	start_measure = 1;
 }
 _attribute_ram_code_ void suspend_exit_cb(u8 e, u8 *p, int n) {
+	(void) e; (void) p; (void) n;
 	if(timer_measure_cb)
 		init_i2c();
 }
 _attribute_ram_code_ void suspend_enter_cb(u8 e, u8 *p, int n) {
+	(void) e; (void) p; (void) n;
 	if (wrk_measure
 		&& timer_measure_cb
 		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT - 3*CLOCK_16M_SYS_TIMER_CLK_1MS) {
@@ -159,7 +163,7 @@ _attribute_ram_code_ void suspend_enter_cb(u8 e, u8 *p, int n) {
 }
 
 //------------------ user_init_normal -------------------
-_attribute_ram_code_ void user_init_normal(void) {//this will get executed one time after power up
+void user_init_normal(void) {//this will get executed one time after power up
 	random_generator_init(); //must
 	// Read config
 	if (flash_supported_eep_ver(EEP_SUP_VER, VERSION)) {
@@ -188,21 +192,21 @@ _attribute_ram_code_ void user_init_normal(void) {//this will get executed one t
 	init_sensor();
 	measured_data.battery_mv = get_battery_mv();
 	battery_level = get_battery_level(measured_data.battery_mv);
+	init_lcd();
 	if (measured_data.battery_mv < 2000) {
-		init_lcd();
 		show_temp_symbol(0);
 		show_big_number(measured_data.battery_mv * 10);
 		show_small_number(-100, 1);
 		show_battery_symbol(1);
 		update_lcd();
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
-				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deepsleep
+				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 	}
-	init_lcd();
 	read_sensor_low_power();
 	WakeupLowPowerCb(0);
-	//	show_atc_mac();
 	ev_adv_timeout(0, 0, 0);
+	lcd();
+	update_lcd();
 }
 
 //------------------ user_init_deepRetn -------------------
@@ -326,7 +330,6 @@ _attribute_ram_code_ void main_loop(void) {
 					measured_data.battery_mv = get_battery_mv();
 					battery_level = get_battery_level(measured_data.battery_mv);
 					WakeupLowPowerCb(0);
-					//bls_pm_setAppWakeupLowPower(0, 0);
 				} else {
 					read_sensor_deep_sleep();
 					measured_data.battery_mv = get_battery_mv();
@@ -334,7 +337,6 @@ _attribute_ram_code_ void main_loop(void) {
 					if (bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
 						bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
-//						timer_measure_cb = 0;
 					} else {
 						bls_pm_setAppWakeupLowPower(0, 0);
 					}
@@ -381,8 +383,6 @@ _attribute_ram_code_ void main_loop(void) {
 				}
 				bls_pm_setAppWakeupLowPower(0, 0);
 			}
-		} else {
-//			bls_pm_setAppWakeupLowPower(0, 0);
 		}
 		if((cfg.flg.advertising_type & 1)
 			&& blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {

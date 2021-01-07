@@ -17,6 +17,8 @@
 #define SHTC3_MEASURE		0x6678 // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First
 #define SHTC3_LPMEASURE		0x9C60 // Measurement commands, Clock Stretching Disabled, Low Power Mode, Read T First
 
+#define CRC_POLYNOMIAL  0x131 // P(x) = x^8 + x^5 + x^4 + 1 = 100110001
+
 RAM volatile uint32_t timer_measure_cb;
 
 _attribute_ram_code_ void send_sensor(uint16_t cmd) {
@@ -45,30 +47,54 @@ _attribute_ram_code_ void read_sensor_start(uint16_t mcmd) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
 
-_attribute_ram_code_ void read_sensor_cb(void) {
+_attribute_ram_code_ int read_sensor_cb(void) {
 	int16_t _temp;
 	uint16_t _humi;
+	uint8_t data, crc; // calculated checksum
+	int i;
 
 	if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
 
 	reg_i2c_id = 0xE0 | FLD_I2C_WRITE_READ_BIT;
-	int i = 512;
+	i = 512;
 	do {
 		reg_i2c_ctrl = FLD_I2C_CMD_ID | FLD_I2C_CMD_START;
 		while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	} while((reg_i2c_status & FLD_I2C_NAK) && i--);
-
+	if (!i) {
+		reg_i2c_ctrl = FLD_I2C_CMD_STOP;
+		while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+		send_sensor(SHTC3_SOFT_RESET); // Soft reset command
+		sleep_us(240);
+		send_sensor(SHTC3_GO_SLEEP); // Sleep command of the sensor
+		return 0;
+	}
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-	_temp = reg_i2c_di << 8;
+	data = reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
+	_temp = data << 8;
+	crc = data ^ 0xff;
+	for(i = 8; i > 0; i--) {
+		if(crc & 0x80)
+			crc = (crc << 1) ^ (CRC_POLYNOMIAL & 0xff);
+		else
+			crc = (crc << 1);
+	}
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-	_temp |= reg_i2c_di;
+	data = reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
-	measured_data.temp = ((int32_t)(17500*_temp) >> 16) - 4500 + cfg.temp_offset * 10; // x 0.01 C
+	_temp |= data;
+	crc ^= data;
+	for(i = 8; i > 0; i--) {
+		if(crc & 0x80)
+			crc = (crc << 1) ^ (CRC_POLYNOMIAL & 0xff);
+		else
+			crc = (crc << 1);
+	}
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-	(void)reg_i2c_di;
+	data = reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	_humi = reg_i2c_di << 8;
@@ -76,12 +102,18 @@ _attribute_ram_code_ void read_sensor_cb(void) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	_humi |= reg_i2c_di;
 	reg_i2c_ctrl = FLD_I2C_CMD_STOP;
-	measured_data.humi = ((uint32_t)(10000*_humi) >> 16) + cfg.humi_offset * 10; // x 0.01 %
-	if(measured_data.humi > 9999) measured_data.humi = 9999;
-	else if(measured_data.humi < 0) measured_data.humi = 0;
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-	measured_data.count++;
-	send_sensor(SHTC3_GO_SLEEP); // Sleep command of the sensor
+	if(crc == data) {
+		measured_data.temp = ((int32_t)(17500*_temp) >> 16) - 4500 + cfg.temp_offset * 10; // x 0.01 C
+		measured_data.humi = ((uint32_t)(10000*_humi) >> 16) + cfg.humi_offset * 10; // x 0.01 %
+		measured_data.count++;
+		send_sensor(SHTC3_GO_SLEEP); // Sleep command of the sensor
+		return 1;
+	} else {
+		send_sensor(SHTC3_SOFT_RESET); // Soft reset command
+		sleep_us(240);
+	}
+	return 0;
 }
 
 _attribute_ram_code_ void read_sensor_deep_sleep(void) {
@@ -95,9 +127,9 @@ _attribute_ram_code_ void read_sensor_low_power(void) {
 	read_sensor_start(SHTC3_LPMEASURE);
 }
 
-_attribute_ram_code_ void read_sensor_sleep(void) {
+_attribute_ram_code_ int read_sensor_sleep(void) {
 	read_sensor_start(SHTC3_MEASURE);
 	StallWaitMs(11);
-	read_sensor_cb();
+	return read_sensor_cb();
 }
 

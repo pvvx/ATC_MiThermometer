@@ -11,7 +11,7 @@ extern uint16_t new_humi; // x 0.01 %
 
 void init_sensor();
 void read_sensor_deep_sleep(void);
-void read_sensor_sleep(void);
 void read_sensor_low_power(void);
-void read_sensor_cb(void);
+int read_sensor_sleep(void);
+int read_sensor_cb(void);
 
