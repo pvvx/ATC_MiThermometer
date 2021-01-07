@@ -206,7 +206,7 @@ _attribute_ram_code_ void ble_send_ext(void) {
 
 void ble_send_lcd(void) {
 	send_buf[0] = CMD_ID_LCD_DUMP;
-	memcpy(&send_buf[1], display_buff, sizeof(trg));
+	memcpy(&send_buf[1], display_buff, sizeof(display_buff));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(display_buff) + 1);
 }
 
