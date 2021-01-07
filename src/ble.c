@@ -40,6 +40,7 @@ _attribute_ram_code_ void app_enter_ota_mode(void) {
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 0;
+	lcd_flg.b.notify_on = 0;
 	show_ble_symbol(0);
 	if(!cfg.flg.tx_measures)
 		tx_measures = 0;
@@ -201,6 +202,12 @@ _attribute_ram_code_ void ble_send_ext(void) {
 	send_buf[0] = CMD_ID_EXTDATA;
 	memcpy(&send_buf[1], &ext, sizeof(ext));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(ext) + 1);
+}
+
+void ble_send_lcd(void) {
+	send_buf[0] = CMD_ID_LCD_DUMP;
+	memcpy(&send_buf[1], display_buff, sizeof(trg));
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(display_buff) + 1);
 }
 
 #if USE_TRIGGER_OUT

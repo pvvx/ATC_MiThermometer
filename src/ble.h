@@ -13,6 +13,7 @@ extern u8 tempValueInCCC[2];
 extern u8 temp2ValueInCCC[2];
 extern u8 humiValueInCCC[2];
 extern u8 RxTxValueInCCC[2];
+extern uint8_t send_buf[16];
 
 typedef struct
 {
@@ -94,6 +95,7 @@ void init_ble();
 bool ble_get_connected();
 void ble_send_measures(void);
 void ble_send_ext(void);
+void ble_send_lcd(void);
 #if USE_TRIGGER_OUT
 void ble_send_trg(void);
 void ble_send_trg_flg(void);

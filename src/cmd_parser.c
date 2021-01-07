@@ -223,6 +223,19 @@ void cmd_parser(void * p) {
 				end_measure = 1;
 				tx_measures = 1;
 			}
+		} else if (cmd == CMD_ID_LCD_DUMP) {
+			if(len == sizeof(display_buff) + 1) {
+				memcpy(display_buff, &req->dat[1], sizeof(display_buff));
+				update_lcd();
+				lcd_flg.b.ext_data = 1;
+			} else lcd_flg.b.ext_data = 0;
+			ble_send_lcd();
+		} else if (cmd == CMD_ID_LCD_FLG) {
+			 if (len)
+				 lcd_flg.uc = req->dat[1];
+			 send_buf[0] = CMD_ID_LCD_FLG;
+			 send_buf[1] = lcd_flg.uc;
+			 bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
 //		} else if (cmd == 0x44) { // test
 //			blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, 128); // 234
 		}

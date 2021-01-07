@@ -19,6 +19,7 @@ void app_enter_ota_mode(void);
 RAM uint32_t vtime_count_us; // count validity time, in us
 RAM uint32_t vtime_count_sec; // count validity time, in sec
 RAM uint8_t show_stage; // count/stage update lcd code buffer
+RAM lcd_flg_t lcd_flg;
 
 RAM measured_data_t measured_data;
 RAM int16_t last_temp; // x0.1 C
@@ -343,10 +344,16 @@ _attribute_ram_code_ void main_loop(void) {
 				if (blc_ll_getCurrentState() == BLS_LINK_STATE_CONN && blc_ll_getTxFifoNumber() < 9) {
 					if (end_measure) {
 						end_measure = 0;
-						if (tx_measures && (RxTxValueInCCC[0] | RxTxValueInCCC[1])) {
-							if (tx_measures != 0xff)
-								tx_measures--;
-							ble_send_measures();
+						if (RxTxValueInCCC[0] | RxTxValueInCCC[1]) {
+							if (tx_measures) {
+								if (tx_measures != 0xff)
+									tx_measures--;
+								ble_send_measures();
+							}
+							if (lcd_flg.b.new_update) {
+								lcd_flg.b.new_update = 0;
+								ble_send_lcd();
+							}
 						}
 						if (batteryValueInCCC[0] | batteryValueInCCC[1])
 							ble_send_battery();
@@ -365,8 +372,11 @@ _attribute_ram_code_ void main_loop(void) {
 					tim_measure = new;
 				}
 				if (new - tim_last_chow >= min_step_time_update_lcd) {
-					lcd();
-					update_lcd();
+					if (!lcd_flg.b.ext_data) {
+						lcd_flg.b.new_update = lcd_flg.b.notify_on;
+						lcd();
+						update_lcd();
+					}
 					tim_last_chow = new;
 				}
 				bls_pm_setAppWakeupLowPower(0, 0);

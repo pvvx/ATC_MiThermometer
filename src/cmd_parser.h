@@ -15,6 +15,8 @@ enum {
 	CMD_ID_CFG = 0x55,		// Get/set config
 	CMD_ID_CFG_DEF = 0x56,	// Get default config
 	CMD_ID_CFG_NS = 0x5A,	// Get/set config (not save to Flash)
+	CMD_ID_LCD_DUMP = 0x60,  // Get/set lcd buf
+	CMD_ID_LCD_FLG = 0x61  // Start/stop notify lcd dump and ...
 } CMD_MI_ID_KEYS;
 
 uint8_t mi_key_stage;

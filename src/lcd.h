@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+extern uint8_t display_buff[6];
+
 void init_lcd();
 void update_lcd();
 void show_temp_symbol(uint8_t symbol);

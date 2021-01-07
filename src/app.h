@@ -89,6 +89,17 @@ extern volatile uint8_t wrk_measure;
 extern volatile uint8_t end_measure;
 extern uint32_t tim_measure;
 
+typedef union _lcd_flg_t {
+	struct  {
+		uint8_t ext_data: 	1; // LCD show external data
+		uint8_t notify_on: 	1; // Send LCD dump if Notify on
+		uint8_t res:  		5;
+		uint8_t new_update: 1; // flag update LCD for send notify
+	}b;
+	uint8_t uc;
+} lcd_flg_t;
+extern lcd_flg_t lcd_flg;
+
 extern uint32_t adv_interval;
 extern uint32_t connection_timeout;
 extern uint32_t measurement_step_time;
