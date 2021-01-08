@@ -40,7 +40,8 @@ _attribute_ram_code_ void app_enter_ota_mode(void) {
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 0;
-	lcd_flg.b.notify_on = 0;
+	//lcd_flg.b.notify_on = 0;
+	lcd_flg.uc = 0;
 	show_ble_symbol(0);
 	if(!cfg.flg.tx_measures)
 		tx_measures = 0;

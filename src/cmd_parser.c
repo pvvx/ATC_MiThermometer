@@ -174,7 +174,7 @@ void cmd_parser(void * p) {
 		uint8_t cmd = req->dat[0];
 		if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
 			if(--len > sizeof(ext)) len = sizeof(ext);
-			else if(len) {
+			if(len) {
 				memcpy(&ext, &req->dat[1], len);
 				vtime_count_sec = ext.vtime_sec;
 				vtime_count_us = clock_time();
@@ -182,7 +182,7 @@ void cmd_parser(void * p) {
 			ble_send_ext();
 		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) {
 			if(--len > sizeof(cfg)) len = sizeof(cfg);
-			else if(len)
+			if(len)
 				memcpy(&cfg, &req->dat[1], len);
 			test_config();
 			ev_adv_timeout(0, 0, 0);
@@ -197,9 +197,8 @@ void cmd_parser(void * p) {
 			ble_send_cfg();
 #if USE_TRIGGER_OUT
 		} else if (cmd == CMD_ID_TRG || cmd == CMD_ID_TRG_NS) {
-			if(--len > sizeof(trg))
-				len = sizeof(trg);
-			else if(len)
+			if(--len > sizeof(trg))	len = sizeof(trg);
+			if(len)
 				memcpy(&trg, &req->dat[1], len);
 			test_trg_on();
 			if(cmd != CMD_ID_TRG_NS)
@@ -224,20 +223,21 @@ void cmd_parser(void * p) {
 				tx_measures = 1;
 			}
 		} else if (cmd == CMD_ID_LCD_DUMP) {
-			if(len == sizeof(display_buff) + 1) {
-				memcpy(display_buff, &req->dat[1], sizeof(display_buff));
+			if(--len > sizeof(display_buff)) len = sizeof(display_buff);
+			if(len) {
+				memcpy(display_buff, &req->dat[1], len);
 				update_lcd();
 				lcd_flg.b.ext_data = 1;
 			} else lcd_flg.b.ext_data = 0;
 			ble_send_lcd();
 		} else if (cmd == CMD_ID_LCD_FLG) {
-			 if (len)
+			 if (len > 1)
 				 lcd_flg.uc = req->dat[1];
 			 send_buf[0] = CMD_ID_LCD_FLG;
 			 send_buf[1] = lcd_flg.uc;
 			 bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
-//		} else if (cmd == 0x44) { // test
-//			blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, 128); // 234
+		} else if (cmd == CMD_ID_DEBUG && len > 6) { // test/debug
+			bls_l2cap_requestConnParamUpdate(req->dat[1], req->dat[2], req->dat[3] | (req->dat[4]<<8), req->dat[5] | (req->dat[6]<<8));
 		}
 	}
 }

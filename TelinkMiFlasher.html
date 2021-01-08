@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<!-- Copyright: Aaron Christophel / Atc1441 https://atcnetz.de, + peoples' edition :) -->
 <html class="telFlasherClass"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Telink Flasher v0.9</title>
+<title>Telink Flasher v1.0</title>
 <script type="text/javascript" src="./core.js"></script>
 </head>
 <body>
@@ -32,6 +31,7 @@ var mi_random_key, mi_random_key_recv, mi_device_info_recv, mi_device_info_send,
 //Activation values
 var keypair, is_activated, own_public_key, device_public_key, shared_key, derived_key, mi_write_did;
 var device_new_id = "00626c742e332e31323976" + makeRandomID(6) + "415443";
+
 function resetVariables() {
     busy = false;
     gattServer = null;
@@ -212,8 +212,9 @@ function CustomBlkParse(value) {
 		let vbat = value.getUint16(1, true);
 		let temp = value.getInt16(3, true) / 100.0;
 		let humi = value.getInt16(5, true) / 100.0;
-		let count = value.getUint16(7, true);
-		let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%, Count: '+count;
+		let count = value.getUint8(7);
+		let flg = value.getUint8(8);
+		let s = 'Vbat: '+vbat+' mV , Temp: '+temp+'°C, Humi: '+humi+'%, Count: '+count+', flg: '+hex(flg,2);
 		document.getElementById("tempHumiData").innerHTML = s;
 	    addClog(s);
 	} else if(blkid == 0x22 && len >= 7) {
@@ -221,7 +222,7 @@ function CustomBlkParse(value) {
 		ext.small_number = value.getInt16(3, true); // -9..99, x1
 		ext.vtime = value.getUint16(5, true); // in sec
 		ext.flg = value.getInt8(7); 
-		let s = 'ExtShow: big_number: '+ext.big_number+', small_number: '+ext.small_number+', ext.vtime: '+ext.vtime+' s, flg: '+ext.flg;
+		let s = 'ExtShow: big_number: '+ext.big_number+', small_number: '+ext.small_number+', ext.vtime: '+ext.vtime+' s, flg: '+hex(ext.flg,2);
 	    addClog(s); addLog(s); UpdExt();
 	} else if(blkid == 0x44 && len >= 8) {
 		trg.tmp_thr = value.getInt16(1, true); // temp threshold
@@ -304,8 +305,14 @@ function CustomBlkParse(value) {
 			else addClog("End keys");
 			cnt_buf11 = 0;
 		}
+	} else if(blkid == 0x60 && len >= 7) {
+		let s = 'LCD data: '+bytesToHex(value.buffer.slice(1));
+		addClog(s);
+	} else if(blkid == 0x61 && len >= 1) {
+		let s = 'LCD flg: '+hex(value.getUint8(1), 2);
+		addClog(s);
 	} else {
-		let s = 'Custom (0x1f1f) Notifications id: 0x'+hex(blkid,2)+' ['+len+']';
+		let s = 'Custom (0x1f1f) Notifications id: 0x'+hex(blkid,2)+' ['+bytesToHex(value.buffer.slice(1))+']';
 		addClog(s);
 	}
 }
@@ -593,7 +600,7 @@ function sendLogin() {
 }
 
 function addLog(logTXT) {
-    var time = new Date().toLocaleTimeString("de-DE");
+    var time = new Date().toLocaleTimeString();
     var logString = time + ": " + logTXT;
     document.getElementById("log").innerHTML += logString + "<br>";
 }
@@ -857,6 +864,26 @@ function do_login_generate() {
     mainCharSend("00000100", enc_19);
 }
 
+const lcd_digcode = [0xf5,0x05,0xd3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7];
+function lcd_clock() {
+    let date = new Date();
+	let hours = date.getHours();
+	let minutes = date.getMinutes();
+	let lcdb = new Uint8Array(7);
+	lcdb[0] = 0x60;
+	lcdb[1] = lcd_digcode[parseInt(minutes % 10)];
+	lcdb[2] = lcd_digcode[parseInt(minutes / 10)];
+	lcdb[4] = lcd_digcode[parseInt(hours % 10)];
+	lcdb[5] = lcd_digcode[parseInt(hours / 10)];
+	addClog("Send cmd (60): Set LCD data");
+	settingsCharacteristics.writeValue(lcdb).then(_ => {addClog('Send data ok'); addLog("Send 'Send clock data on LCD' ok");});
+}
+
+function lcd_restore() {
+	addClog("Send cmd (6100): Restore show LCD");
+	settingsCharacteristics.writeValue(new Uint8Array([0x61, 0])).then(_ => {addClog('Send data ok'); addLog("Send 'Repair LCD' ok");});
+}
+
 function UpdExt() {
 	if(ext.enable && document.getElementById("extbignumb").value) {
 		document.getElementById("extbignumb").value = ext.big_number / 10.0;
@@ -868,6 +895,7 @@ function UpdExt() {
 		document.getElementById("exttmpsmb").value = (ext.flg >> 5) & 7;
 	}
 }
+
 function sendExt() {
 	if(ext.enable) {
 		ext.big_number = Math.round(10.0 * parseFloat(document.getElementById("extbignumb").value)); 
@@ -904,12 +932,13 @@ function sendTrg() {
 	}
 }
 function CustomConfig() {
-  if(cfg.ver >= 9) {
-	let is = '<br>Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button>';
+  if(cfg.ver >= 0x10) {
+	let is = 'Send settings to custom firmware:<br><input type="text" id="cmdTXT" value=""><button type="button" onclick="sendCustomSetting(document.getElementById(&quot;cmdTXT&quot;).value,settingsCharacteristics);">Send</button>';
+	is += ' Test: [ <button type="button" onclick="lcd_clock();">Show clock on LCD</button> <button type="button" onclick="lcd_restore();">Repair LCD</button> ]';
 	is += '<br><br><input size="5" title="Big number: -99.5..1999.5" id="extbignumb" maxlength="5" value="123.4">';
 	is += ' <select id="exttmpsmb"><option value="0">&nbsp;&nbsp;</option><option value="1">°Г</option><option value="2">&nbsp;-</option><option value="3">°F</option><option value="4">&nbsp;_</option><option value="5">°C</option><option value="6" selected>&nbsp;=</option><option value="7">°E</option></select>';
 	is += ' <select id="extsmiley"><option value="0">&nbsp;&nbsp;&nbsp;</option><option value="1">&nbsp;^_^&nbsp;</option><option value="2">&nbsp;-&and;-&nbsp;</option><option value="3">&nbsp;&Delta;&#9651;&Delta;&nbsp;</option><option value="4">(&nbsp;&nbsp;&nbsp;)</option><option value="5">(^_^)</option><option value="6">(-&and;-)</option><option value="7" selected>(&Delta;&#9651;&Delta;)</option></select>';
-	is += '	<input size="5" title="Small number: -9..99 (-9..99)" id="extsmalnumb" maxlength="2" value="99">';
+	is += '	<input size="5" title="Small number: -9..99" id="extsmalnumb" maxlength="2" value="99">';
 	is += '&nbsp;%<input type="checkbox" id="extpersent">';
 	is += '	<input size="5" title="Validity time = Show time in sec: 1..65535" id="extvtimed" maxlength="5" value="600">';
 	is += '&nbsp;Battery:<input type="checkbox" id="extbattery">';
@@ -976,7 +1005,7 @@ function CustomConfig() {
 	document.getElementById("cfg_con_lat").value = String((cfg.connect_latency + 1) * 20);
 	document.getElementById("cfg_lcd_tint").value = String(cfg.lcd_tint * 0.05);
   } else
-	document.getElementById("custcfg").innerHTML = '<br><br>Unsupported device software version! Custom ATC version 0.9 only.<br><br>';
+	document.getElementById("custcfg").innerHTML = '<br><br>Unsupported device software version! Custom ATC version >= 1.0.<br><br>';
 }
 function hex(number, len) {
     var str = (number.toString(16)).toUpperCase();
@@ -1021,7 +1050,7 @@ function SendCustomConfig() {
 }
 
 </script>
-<big><big>Telink Flasher for Mi Thermostat</big></big><br>
+<big><big>Telink Flasher for Mi Thermostat</big></big> <a href="https://atcnetz.de">©</a><br>
 <!-- Copyright: Aaron Christophel / Atc1441  <a href="https://atcnetz.de">https://ATCnetz.de</a><br> -->
   <button type="button" onclick="connect();">Connect</button> Get Advertising MAC:<input type="checkbox" id="advmac">
   <button type="button" onclick="reConnect();">Reconnect</button><br>

@@ -307,6 +307,7 @@ _attribute_ram_code_ void lcd(void) {
 			show_big_number(last_temp);
 		}
 	}
+	show_ble_symbol(ble_connected);
 }
 //----------------------- main_loop()
 _attribute_ram_code_ void main_loop(void) {

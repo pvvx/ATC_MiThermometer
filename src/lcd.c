@@ -13,7 +13,7 @@ RAM uint8_t display_buff[6];
 RAM uint8_t display_cmp_buff[6];
 /* t,H,h,L,o,i  0xe2,0x67,0x66,0xe0,0xC6,0x40 */
 /* 0,1,2,3,4,5,6,7,8,9,A,b,C,d,E,F*/
-const uint8_t display_numbers[22] = {0xF5,0x05,0xD3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7, 0x77,0xe6,0xf0,0xc7,0xf2,0x72 };
+const uint8_t display_numbers[] = {0xf5,0x05,0xd3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7, 0x77,0xe6,0xf0,0xc7,0xf2,0x72 };
 
 void init_lcd(){	
 	gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
@@ -38,11 +38,6 @@ _attribute_ram_code_ void update_lcd(){
 	if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff)))
 		send_to_lcd(display_buff[0],display_buff[1],display_buff[2],display_buff[3],display_buff[4],display_buff[5]);
 	memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
-}
-
-_attribute_ram_code_ void show_number(uint8_t position,uint8_t number){
-	if(position>5 || position == 2 || number >9)return;	
-    display_buff[position] = display_numbers[number] & 0xF7;
 }
 /* 0x00 = "  "
  * 0x20 = "°Г"
