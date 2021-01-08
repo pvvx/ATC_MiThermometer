@@ -24,12 +24,14 @@ Documentation under construction ...
 
 **In Connection mode:**
 
-+ Environmental Sensing Service (181A):
++ PrimaryService - Environmental Sensing Service (0x181A):
 - Characteristic UUID 0x2A1F - Notify temperature x0.1C
 - Characteristic UUID 0x2A6E - Notify temperature x0.01C
 - Characteristic UUID 0x2A6F - Notify about humidity x0.01%
 - Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
-- Characteristic UUID 0x2803 - Notify, frame id 0x33 (сonfiguring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
+
++ PrimaryService (0x1F10):
+- Characteristic UUID 0x1F1F - Notify, frame id 0x33 (сonfiguring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
 ### OTA and Custom Setup
 [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html)
