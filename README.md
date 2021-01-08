@@ -80,4 +80,11 @@ Documentation under construction ...
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/KeysProgStage2.gif) 
 
 
-All html files moved in to [github.io](https://pvvx.github.io/ATC_MiThermometer)
+#### Building firmware:
+1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and getting IDE for TLSR8 Chips.
+2. Clone https://github.com/Ai-Thinker-Open/Telink_825X_SDK
+3. Install IDE and export the 'ATC_MiThermometer' project.
+4. Change 'Linked resousrce' and 'C/C++ Build/Build command'. Compile.
+
+
+All html files moved in to [github.io](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer)	
