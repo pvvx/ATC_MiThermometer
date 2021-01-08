@@ -226,7 +226,7 @@ void cmd_parser(void * p) {
 			if(--len > sizeof(display_buff)) len = sizeof(display_buff);
 			if(len) {
 				memcpy(display_buff, &req->dat[1], len);
-				update_lcd();
+				//update_lcd();
 				lcd_flg.b.ext_data = 1;
 			} else lcd_flg.b.ext_data = 0;
 			ble_send_lcd();

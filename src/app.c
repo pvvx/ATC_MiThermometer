@@ -378,8 +378,8 @@ _attribute_ram_code_ void main_loop(void) {
 					if (!lcd_flg.b.ext_data) {
 						lcd_flg.b.new_update = lcd_flg.b.notify_on;
 						lcd();
-						update_lcd();
 					}
+					update_lcd();
 					tim_last_chow = new;
 				}
 				bls_pm_setAppWakeupLowPower(0, 0);
