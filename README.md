@@ -36,6 +36,7 @@ Documentation under construction ...
 
 ### Reading Measurements in Connected Mode
 [GraphAtc2.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc2.html)
+
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/GraphAtc_html.gif) 
 
 
@@ -51,12 +52,15 @@ Documentation under construction ...
 > * Small number: -9..99
 > * Smiley, battery, degrees
 > * Setting the display time limit in sec
+
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/ShowData.gif) 
 
 
 ### The USB-COM adapter writes the firmware in explorer. Web version. 
 >* Connect only TX-SWS and GND wires.
+
 [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
+
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/USBCOMFlashTxHtml.gif) 
 
 
