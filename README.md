@@ -24,13 +24,18 @@ Documentation under construction ...
 
 **In Connection mode:**
 
++ Environmental Sensing Service (181A):
 - Characteristic UUID 0x2A1F - Notify temperature x0.1C
 - Characteristic UUID 0x2A6E - Notify temperature x0.01C
 - Characteristic UUID 0x2A6F - Notify about humidity x0.01%
 - Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
 - Characteristic UUID 0x2803 - Notify, frame id 0x33 (сonfiguring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
+### OTA and Custom Setup
+[TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html)
+
 ### Reading Measurements in Connected Mode
+[GraphAtc2.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc2.html)
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/GraphAtc_html.gif) 
 
 
@@ -45,13 +50,13 @@ Documentation under construction ...
 > * Big number: -99.5..1999.5 
 > * Small number: -9..99
 > * Smiley, battery, degrees
-> + Setting the display time limit in sec
->
+> * Setting the display time limit in sec
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/ShowData.gif) 
 
 
 ### The USB-COM adapter writes the firmware in explorer. Web version. 
 >* Connect only TX-SWS and GND wires.
+[USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/USBCOMFlashTxHtml.gif) 
 
 
