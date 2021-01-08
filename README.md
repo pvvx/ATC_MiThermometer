@@ -7,32 +7,11 @@ Firmware Version 1.1
 
 Documentation under construction ...
 
-### 1. Adaptation to reduce energy consumption (Average consumption).
->* #### Original Xiaomi LYWSD03MMC (advertisement 1700 ms, measurement 6800 ms):
-> * Advertisement: 18.64 uA
-> * Connection: > 0.3 mA
->* #### Custom firmware (show 2 sec battery/humidity, comfort on, advertisement 2 sec, measurement 10 sec):
-> * Advertisement: 17.28 uA
-> * Connection: < 17 uA
->* #### Mode "LowPower sensor" (default config):
-> * Advertisement: < 17 uA
-> * Connection: < 16 uA
-### 2. Reading Measurements in Connected Mode.
->* Released
-### 3. Memory of settings when changing the battery.
->* Released
-### 4. Getting and setting configuration parameters.
->* Released
-### 5. Reading and recovering mi keys.
->* Released (v0.4)
-### 6. Interface for receiving and displaying data on the LCD.
->* Released (v0.5)
-### 7. Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
->* Released (v0.8)
-### 8. External control or read GPIO PA5 (label on the "reset" pin)
->* Released (v0.8)
-### 9. Loop recording of measurements in Flash
->* TODO
+
+### Average consumption:
+>* #### Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
+> * Advertisement: 15.5 uA
+> * Connection: 15..17 uA
 
 **Advertising in 4 formats:**
 
@@ -67,6 +46,7 @@ Documentation under construction ...
 > * Small number: -9..99
 > * Smiley, battery, degrees
 > + Setting the display time limit in sec
+>
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/ShowData.gif) 
 
 
