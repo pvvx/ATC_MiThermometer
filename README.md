@@ -37,9 +37,14 @@ Documentation under construction ...
 [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html)
 
 ### Reading Measurements in Connected Mode
+[GraphAtc.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc.html)
+[GraphAtc1.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc1.html)
 [GraphAtc2.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc2.html)
 
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/GraphAtc_html.gif) 
+
+### Reading Measurements in Advertising Mode (experimental web platform features)
+[GraphAtc.html](https://pvvx.github.io/ATC_MiThermometer/Advertising.html)
 
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
@@ -58,7 +63,7 @@ Documentation under construction ...
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/ShowData.gif) 
 
 
-### The USB-COM adapter writes the firmware in explorer. Web version. 
+### The USB-COM adapter writes the firmware in explorer. Web version.
 >* Connect only TX-SWS and GND wires.
 
 [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
@@ -75,3 +80,4 @@ Documentation under construction ...
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/KeysProgStage2.gif) 
 
 
+All html files moved in to [github.io](https://pvvx.github.io/ATC_MiThermometer)
