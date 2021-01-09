@@ -5,7 +5,8 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
-[Firmware Version 1.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer.bin)
+[Custom Firmware Version 1.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer.bin)
+[Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
 
 ### Average consumption:
 >* #### Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
@@ -83,6 +84,12 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 4. Change 'Linked resousrce' and 'C/C++ Build/Build command'. Compile.
 
 [BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
+
+[Original Full Flash v1.0.0_0106 (512 KB)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_full_flash_Xiaomi_LYWSD03MMC.bin)
+
+[Build Telink EVK on E104-BT10-G/N module (TLSR8269)](https://github.com/pvvx/TLSR8269-EVK)
+
+[Alternative programmer TLSR SWire on module TB-04/03F or E104-BT10](https://github.com/pvvx/TLSRPGM)
 
 [Additional information on the format Advertising for Xiaomi LYWSD03MMC](https://github.com/Magalex2x14/LYWSD03MMC-info)
 
