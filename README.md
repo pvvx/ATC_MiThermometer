@@ -5,7 +5,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
-[Firmware Version 1.1](https://pvvx.github.io/ATC_MiThermometer/ATC_Thermometer.bin)
+[Firmware Version 1.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer.bin)
 
 ### Average consumption:
 >* #### Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
