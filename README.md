@@ -43,7 +43,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/GraphAtc_html.gif) 
 
 ### Reading Measurements in Advertising Mode (experimental web platform features)
-[GraphAtc.html](https://pvvx.github.io/ATC_MiThermometer/Advertising.html)
+[Advertising.html](https://pvvx.github.io/ATC_MiThermometer/Advertising.html)
 
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
