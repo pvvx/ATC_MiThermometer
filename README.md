@@ -49,6 +49,13 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/trg_menu.gif)
 
+Hysteresis: 
+> * =0 off, 
+> * if less than zero - activation on decrease, 
+> * if more than zero - activation on excess
+
+Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off). 
+
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/OnOff.gif)
 
 
