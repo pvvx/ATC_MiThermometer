@@ -3,6 +3,8 @@
 
 Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
+(Thanks @atc1441 for initial parsing and js code for OTA)
+
 Firmware Version 1.1
 
 Documentation under construction ...
@@ -15,12 +17,12 @@ Documentation under construction ...
 
 **Advertising in 4 formats:**
 
-1. UUID 0x181A - size 16: atc1441 format 
+1. UUID 0x181A - size 16: [atc1441 format](https://github.com/atc1441/ATC_MiThermometer) 
 2. UUID 0x181A - size 19: custom - temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags (mark “reset”) and triggers.
 3. UUID 0xFE95 - 0x0A: Xiaomi - battery charge level 0..100%, battery voltage in mV
 4. UUID 0xFE95 - 0x0D: Xiaomi - temperature x0.1C, humidity x0.1%
 
- ++ Сonfiguring mode of transferring everything in turn 
+ ++ Configuring mode of transferring everything in turn 
 
 **In Connection mode:**
 
@@ -28,8 +30,8 @@ Documentation under construction ...
 - Characteristic UUID 0x2A1F - Notify temperature x0.1C
 - Characteristic UUID 0x2A6E - Notify temperature x0.01C
 - Characteristic UUID 0x2A6F - Notify about humidity x0.01%
++ PrimaryService - Battery Service (0x180F):
 - Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
-
 + PrimaryService (0x1F10):
 - Characteristic UUID 0x1F1F - Notify, frame id 0x33 (сonfiguring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
@@ -86,5 +88,8 @@ Documentation under construction ...
 3. Install IDE and export the 'ATC_MiThermometer' project.
 4. Change 'Linked resousrce' and 'C/C++ Build/Build command'. Compile.
 
+[Additional information on the format Advertising for Xiaomi LYWSD03MMC](https://github.com/Magalex2x14/LYWSD03MMC-info)
 
-All html files moved in to [github.io](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer)	
+All html files moved in to [github.io](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer)
+
+[Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251-lcd-termometr-lywsd03mmc-xiaomi-bluetooth-termometr.5263/)
