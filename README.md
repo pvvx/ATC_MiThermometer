@@ -5,10 +5,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
-Firmware Version 1.1
-
-Documentation under construction ...
-
+[Firmware Version 1.1](https://pvvx.github.io/ATC_MiThermometer/ATC_Thermometer.bin)
 
 ### Average consumption:
 >* #### Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
@@ -43,16 +40,16 @@ Documentation under construction ...
 [GraphAtc1.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc1.html)
 [GraphAtc2.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc2.html)
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/GraphAtc_html.gif) 
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/GraphAtc_html.gif) 
 
 ### Reading Measurements in Advertising Mode (experimental web platform features)
 [GraphAtc.html](https://pvvx.github.io/ATC_MiThermometer/Advertising.html)
 
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/trg_menu.gif)
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/trg_menu.gif)
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/OnOff.gif)
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/OnOff.gif)
 
 
 ### Interface for receiving and displaying data on the LCD.
@@ -62,7 +59,7 @@ Documentation under construction ...
 > * Smiley, battery, degrees
 > * Setting the display time limit in sec
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/ShowData.gif) 
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/ShowData.gif) 
 
 
 ### The USB-COM adapter writes the firmware in explorer. Web version.
@@ -70,17 +67,7 @@ Documentation under construction ...
 
 [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/USBCOMFlashTxHtml.gif) 
-
-
-### Reading and recovering Mi-Home keys
->* Stage 1:
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/KeysProgStage1.gif) 
-
-
->* Stage 2:
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/KeysProgStage2.gif) 
-
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif) 
 
 #### Building firmware:
 1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and getting IDE for TLSR8 Chips.
@@ -88,8 +75,12 @@ Documentation under construction ...
 3. Install IDE and export the 'ATC_MiThermometer' project.
 4. Change 'Linked resousrce' and 'C/C++ Build/Build command'. Compile.
 
+[BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
+
 [Additional information on the format Advertising for Xiaomi LYWSD03MMC](https://github.com/Magalex2x14/LYWSD03MMC-info)
 
-All html files moved in to [github.io](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer)
+[Reading and recovering Mi-Home keys](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/)
+
+[HTML files](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer)
 
 [Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251-lcd-termometr-lywsd03mmc-xiaomi-bluetooth-termometr.5263/)
