@@ -102,6 +102,7 @@ void ble_send_trg_flg(void);
 #endif
 int otaWritePre(void * p);
 int RxTxWrite(void * p);
+void ev_adv_timeout(u8 e, u8 *p, int n);
 
 inline void ble_send_temp(void) {
 	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, (u8 *) &last_temp, 2);

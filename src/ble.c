@@ -54,6 +54,7 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	else
 		bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, cfg.connect_latency, connection_timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
 	show_ble_symbol(1);
+	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 }
 
 int app_conn_param_update_response(u8 id, u16  result) {
@@ -77,11 +78,40 @@ _attribute_ram_code_ int RxTxWrite(void * p) {
 	return 0;
 }
 
-void init_ble() {
-	////////////////// BLE stack initialization ////////////////////////////////////
+_attribute_ram_code_ void user_set_rf_power(u8 e, u8 *p, int n) {
+	rf_set_power_level_index(cfg.rf_tx_power);
+}
+/*
+ * bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
+ * blt_event_callback_t(): */
+_attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
+	(void) e; (void) p; (void) n;
+	bls_ll_setAdvParam(adv_interval, adv_interval + 50,
+			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
+			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
+	bls_ll_setAdvEnable(1);
+}
+
+#if BLE_SECURITY_ENABLE
+int app_host_event_callback(u32 h, u8 *para, int n) {
+	uint8_t event = (uint8_t)h;
+	if (event == GAP_EVT_SMP_TK_DISPALY) {
+			//u32 pinCode = *(u32*) para;
+			uint32_t * p = (uint32_t *)&smp_param_own.paring_tk[0];
+			memset(p, 0, 16);
+			p[0] = pincode;
+	}
+//	else if (event == GAP_EVT_SMP_TK_REQUEST_PASSKEY)
+//		blc_smp_setTK_by_PasskeyEntry(pincode);
+	return 0;
+}
+#endif
+
+void init_ble(void) {
+	////////////////// BLE stack initialization //////////////////////
 	uint8_t mac_random_static[6];
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
-
+	/// if bls_ll_setAdvParam( OWN_ADDRESS_RANDOM ) ->  blc_ll_setRandomAddr(mac_random_static);
 	//Set the BLE Name to the last three MACs the first ones are always the same
 	const char* hex_ascii = { "0123456789ABCDEF" };
 	ble_name[6] = hex_ascii[mac_public[2] >> 4];
@@ -90,6 +120,7 @@ void init_ble() {
 	ble_name[9] = hex_ascii[mac_public[1] & 0x0f];
 	ble_name[10] = hex_ascii[mac_public[0] >> 4];
 	ble_name[11] = hex_ascii[mac_public[0] & 0x0f];
+
 	////// Controller Initialization  //////////
 	blc_ll_initBasicMCU(); //must
 	blc_ll_initStandby_module(mac_public); //must
@@ -103,11 +134,42 @@ void init_ble() {
 	extern void my_att_init();
 	my_att_init(); //gatt initialization
 	blc_l2cap_register_handler(blc_l2cap_packet_receive);
+
+	//Smp Initialization may involve flash write/erase(when one sector stores too much information,
+	//   is about to exceed the sector threshold, this sector must be erased, and all useful information
+	//   should re_stored) , so it must be done after battery check
+#if BLE_SECURITY_ENABLE
+	if(pincode) {
+		// bls_smp_eraseAllParingInformation();
+		// bls_smp_configParingSecurityInfoStorageAddr(0x074000);
+		// blc_smp_setParingMethods(LE_Secure_Connection);
+		// blc_smp_param_setBondingDeviceMaxNumber(SMP_BONDING_DEVICE_MAX_NUM);
+		//set security level: "LE_Security_Mode_1_Level_3"
+		blc_smp_setSecurityLevel(Authenticated_Paring_with_Encryption);  //if not set, default is : LE_Security_Mode_1_Level_2(Unauthenticated_Paring_with_Encryption)
+		blc_smp_enableAuthMITM(1);
+		blc_smp_setBondingMode(Bondable_Mode);	// if not set, default is : Bondable_Mode
+		blc_smp_setIoCapability(IO_CAPABILITY_DISPLAY_ONLY);	// if not set, default is : IO_CAPABILITY_NO_INPUT_NO_OUTPUT
+		//Smp Initialization may involve flash write/erase(when one sector stores too much information,
+		//   is about to exceed the sector threshold, this sector must be erased, and all useful information
+		//   should re_stored) , so it must be done after battery check
+		//Notice:if user set smp parameters: it should be called after usr smp settings
+		blc_smp_peripheral_init();
+		// Hid device on android7.0/7.1 or later version
+		// New paring: send security_request immediately after connection complete
+		// reConnect:  send security_request 1000mS after connection complete. If master start paring or encryption before 1000mS timeout, slave do not send security_request.
+		//host(GAP/SMP/GATT/ATT) event process: register host event callback and set event mask
+		blc_smp_configSecurityRequestSending(SecReq_IMM_SEND, SecReq_PEND_SEND, 1000); //if not set, default is:  send "security request" immediately after link layer connection established(regardless of new connection or reconnection )
+		blc_gap_registerHostEventHandler(app_host_event_callback);
+		blc_gap_setEventMask(GAP_EVT_MASK_SMP_TK_DISPALY); // | GAP_EVT_MASK_SMP_CONN_ENCRYPTION_DONE | GAP_EVT_MASK_SMP_TK_REQUEST_PASSKEY);
+
+	} else
+#endif
 	blc_smp_setSecurityLevel(No_Security);
 
 	///////////////////// USER application initialization ///////////////////
 	bls_ll_setScanRspData((uint8_t *) ble_name, sizeof(ble_name));
 	rf_set_power_level_index(cfg.rf_tx_power);
+	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power);
 	bls_app_registerEventCallback(BLT_EV_FLAG_CONNECT, &ble_connect_callback);
 	bls_app_registerEventCallback(BLT_EV_FLAG_TERMINATE,
 			&ble_disconnect_callback);
@@ -122,6 +184,29 @@ void init_ble() {
 	bls_ota_clearNewFwDataArea(); //must
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
+#if BLE_SECURITY_ENABLE
+#if 1
+#else
+	if(pincode) {
+		u8 bond_number = blc_smp_param_getCurrentBondingDeviceNumber();  //get bonded device number
+		if(bond_number) {  // at least 1 bonding device exist
+			smp_param_save_t  bondInfo;
+			bls_smp_param_loadByIndex(bond_number - 1, &bondInfo);  //get the latest bonding device (index: bond_number-1 )
+			//set direct adv
+			bls_ll_setAdvParam( adv_interval, adv_interval + 50,
+						ADV_TYPE_CONNECTABLE_DIRECTED_LOW_DUTY,
+						OWN_ADDRESS_PUBLIC,
+						bondInfo.peer_addr_type, bondInfo.peer_addr,
+						BLT_ENABLE_ADV_ALL,
+						ADV_FP_NONE);
+			//it is recommended that direct adv only last for several seconds, then switch to indirect adv
+			bls_ll_setAdvDuration(adv_interval*625*2, 1); // interval usec, duration enable
+			bls_app_registerEventCallback(BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
+		}
+	} else
+#endif
+#endif
+	ev_adv_timeout(0,0,0);
 }
 
 // adv_type: 0 - Custom, 1 - Mi, 2 - atc1441

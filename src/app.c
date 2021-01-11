@@ -69,6 +69,7 @@ static const external_data_t def_ext = {
 		.flg.temp_symbol = 5 // 5 = "°C", 3 = "°F", ... app.h
 		};
 RAM external_data_t ext;
+RAM uint32_t pincode;
 
 void test_config(void) {
 	if(cfg.rf_tx_power &BIT(7)) {
@@ -139,14 +140,6 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	wrk_measure = 0;
 }
 
-_attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
-	(void) e; (void) p; (void) n;
-	bls_ll_setAdvParam(adv_interval, adv_interval + 50,
-			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
-			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
-	bls_ll_setAdvEnable(1);
-	start_measure = 1;
-}
 _attribute_ram_code_ void suspend_exit_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 	if(timer_measure_cb)
@@ -169,12 +162,19 @@ void user_init_normal(void) {//this will get executed one time after power up
 	if (flash_supported_eep_ver(EEP_SUP_VER, VERSION)) {
 		if(flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg))
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
+#if BLE_SECURITY_ENABLE
+		if(flash_read_cfg(&pincode, EEP_ID_PCD, sizeof(pincode)) != sizeof(pincode))
+			pincode = 0;
+#endif
 #if	USE_TRIGGER_OUT
 		if(flash_read_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG) != FEEP_SAVE_SIZE_TRG)
 			memcpy(&trg, &def_trg, sizeof(trg));
 #endif
 	} else {
 		memcpy(&cfg, &def_cfg, sizeof(cfg));
+#if BLE_SECURITY_ENABLE
+		pincode = 0;
+#endif
 #if	USE_TRIGGER_OUT
 		memcpy(&trg, &def_trg, sizeof(trg));
 #endif
@@ -204,9 +204,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	}
 	read_sensor_low_power();
 	WakeupLowPowerCb(0);
-	ev_adv_timeout(0, 0, 0);
 	lcd();
 	update_lcd();
+	start_measure = 1;
 }
 
 //------------------ user_init_deepRetn -------------------

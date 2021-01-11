@@ -236,6 +236,24 @@ void cmd_parser(void * p) {
 			 send_buf[0] = CMD_ID_LCD_FLG;
 			 send_buf[1] = lcd_flg.uc;
 			 bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
+#if BLE_SECURITY_ENABLE
+		} else if (cmd == CMD_ID_PINCODE && len > 4) { // PinCode
+			uint32_t old_pincode = pincode;
+			uint32_t new_pincode = req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16) | (req->dat[4]<<24);
+			if(pincode != new_pincode) {
+				pincode = new_pincode;
+				if (flash_write_cfg(&pincode, EEP_ID_PCD, sizeof(pincode))) {
+					if((pincode != 0) ^ (old_pincode != 0)) {
+						cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
+								clock_time() + 5*CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 5 sec
+						start_reboot();
+					}
+					send_buf[1] = 1;
+				} else	send_buf[1] = 3;
+			} else send_buf[1] = 0;
+			send_buf[0] = CMD_ID_PINCODE;
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
+#endif
 		} else if (cmd == CMD_ID_DEBUG && len > 6) { // test/debug
 			bls_l2cap_requestConnParamUpdate(req->dat[1], req->dat[2], req->dat[3] | (req->dat[4]<<8), req->dat[5] | (req->dat[6]<<8));
 		}

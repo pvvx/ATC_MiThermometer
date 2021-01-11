@@ -10,6 +10,7 @@
 
 #define EEP_ID_CFG (0x0CFC) // EEP ID config data
 #define EEP_ID_TRG (0x0DFE) // EEP ID trigger data
+#define EEP_ID_PCD (0xC0DE) // EEP ID pincode
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
@@ -71,6 +72,8 @@ typedef struct __attribute__((packed)) _external_data_t {
 extern external_data_t ext;
 extern uint32_t vtime_count_us;
 extern uint32_t vtime_count_sec;
+
+extern uint32_t pincode; // pincode (if = 0 - not used)
 
 typedef struct _measured_data_t {
 	uint16_t	battery_mv; // mV

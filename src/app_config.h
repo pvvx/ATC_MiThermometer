@@ -8,10 +8,13 @@ extern "C" {
 //#define PC3_INPUT_ENABLE	1
 //#define PB6_INPUT_ENABLE	1
 
-#define VERSION 0x11
+#define VERSION 0x12
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
-#define USE_TRIGGER_OUT 1 // use trigger out (GPIO_PA5)
+#define BLE_SECURITY_ENABLE 1
+#define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
+
+#define USE_TRIGGER_OUT 	1 // use trigger out (GPIO_PA5)
 
 #if USE_TRIGGER_OUT
 #define PA5_INPUT_ENABLE	1
