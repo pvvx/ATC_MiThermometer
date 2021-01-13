@@ -7,7 +7,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 [Custom Firmware Version 1.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer11.bin)
 
-[Custom Firmware Version 1.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer12.bin)
+[Custom Firmware Version 1.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer12.bin) added "pin-code" of connection
 
 [Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
 
