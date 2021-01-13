@@ -86,6 +86,8 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 3. Install IDE and export the 'ATC_MiThermometer' project.
 4. Change 'Linked resousrce' and 'C/C++ Build/Build command'. Compile.
 
+[Telink Linux Tool Chain 2020-06-26](https://yadi.sk/d/pt_qTBB-t24i9A)
+
 [BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
 
 [Original Full Flash v1.0.0_0106 (512 KB)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_full_flash_Xiaomi_LYWSD03MMC.bin)
