@@ -131,7 +131,7 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
           mac[0] = serviceData[9];
           Serial.printf("MAC: ");
           printBuffer(mac, 6);
-          float temp = *(uint16_t*)(serviceData + 10) / 100.0;
+          float temp = *(int16_t*)(serviceData + 10) / 100.0;
           float humidity = *(uint16_t*)(serviceData + 12) / 100.0;
           uint16_t vbat = *(uint16_t*)(serviceData + 14);
           Serial.printf("Temp: %.2f°, Humidity: %.2f%%, Vbatt: %d, Battery: %d%%, flg: 0x%02x, cout: %d\n", temp, humidity, vbat, serviceData[16], serviceData[18], serviceData[17]);
