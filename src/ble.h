@@ -13,7 +13,7 @@ extern u8 tempValueInCCC[2];
 extern u8 temp2ValueInCCC[2];
 extern u8 humiValueInCCC[2];
 extern u8 RxTxValueInCCC[2];
-extern uint8_t send_buf[16];
+extern uint8_t send_buf[20];
 
 typedef struct
 {

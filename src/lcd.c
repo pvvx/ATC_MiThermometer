@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include "tl_common.h"
-#include "drivers.h"
-#include "vendor/common/user_config.h"
 #include "app_config.h"
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+#include "drivers.h"
 #include "drivers/8258/gpio_8258.h"
 
 #include "i2c.h"
@@ -18,7 +18,7 @@ const uint8_t display_numbers[] = {0xf5,0x05,0xd3,0x97,0x27,0xb6,0xf6,0x15,0xf7,
 void init_lcd(){	
 	gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 	
-	StallWaitMs(50);
+	pm_wait_ms(50);
 	
 	send_i2c(0x78,(uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd));
 	send_to_lcd_long(0x00,0x00,0x00,0x00,0x00,0x00);	
@@ -85,15 +85,15 @@ _attribute_ram_code_ void show_atc(){
 void show_atc_mac(){
 	extern u8  mac_public[6];
 	send_to_lcd(display_numbers[mac_public[2] &0x0f],display_numbers[mac_public[2]>>4],0x05,0xc2,0xe2,0x77);
-	StallWaitMs(1800);
+	pm_wait_ms(1800);
 	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
-	StallWaitMs(200);
+	pm_wait_ms(200);
 	send_to_lcd(display_numbers[mac_public[1] &0x0f],display_numbers[mac_public[1]>>4],0x05,0xc2,0xe2,0x77);
-	StallWaitMs(1800);
+	pm_wait_ms(1800);
 	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
-	StallWaitMs(200);
+	pm_wait_ms(200);
 	send_to_lcd(display_numbers[mac_public[0] &0x0f],display_numbers[mac_public[0]>>4],0x05,0xc2,0xe2,0x77);
-	StallWaitMs(1800);
+	pm_wait_ms(1800);
 }
 #endif
 /* x0.1 (-995..19995) Show: -99 .. -9.9 .. 199.9 .. 1999 */
@@ -135,7 +135,7 @@ _attribute_ram_code_ void show_big_number(int16_t number){
 
 /* -9 .. 99 */
 _attribute_ram_code_ void show_small_number(int16_t number, bool percent){
-	display_buff[1] = display_buff[1] & 0x08; // battery
+	display_buff[1] = display_buff[1] & 0x08; // and battery
 	display_buff[0] = percent?0x08:0x00;
 	if(number > 99) {
 		display_buff[0] |= 0x40; // "i"
@@ -152,3 +152,5 @@ _attribute_ram_code_ void show_small_number(int16_t number, bool percent){
 		display_buff[0] |= display_numbers[number %10] & 0xF7;
 	}
 }
+
+#endif // DEVICE_TYPE == DEVICE_LYWSD03MMC

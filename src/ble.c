@@ -15,7 +15,7 @@
 #endif
 
 RAM uint8_t ble_connected;
-uint8_t send_buf[16];
+uint8_t send_buf[20];
 
 extern uint8_t my_tempVal[2];
 extern uint8_t my_humiVal[2];
@@ -35,14 +35,14 @@ uint8_t ota_is_working = 0;
 _attribute_ram_code_ void app_enter_ota_mode(void) {
 	ota_is_working = 1;
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
-	show_smiley(1);
+	//show_smiley(1);
 }
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 0;
 	//lcd_flg.b.notify_on = 0;
 	lcd_flg.uc = 0;
-	show_ble_symbol(0);
+	//show_ble_symbol(0);
 	if(!cfg.flg.tx_measures)
 		tx_measures = 0;
 }
@@ -53,7 +53,7 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 		bls_l2cap_requestConnParamUpdate(16, 16, cfg.connect_latency, connection_timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
 	else
 		bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, cfg.connect_latency, connection_timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
-	show_ble_symbol(1);
+	//show_ble_symbol(1);
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 }
 

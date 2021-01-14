@@ -53,18 +53,28 @@ const cfg_t def_cfg = {
 		.flg.tx_measures = false,
 		.smiley = 0, // 0 = "     " off
 		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
+#if DEVICE_TYPE == DEVICE_MHO_C401
+		.measure_interval = 8, // * advertising_interval = 20 sec
+		.min_step_time_update_lcd = 199, //x0.05 sec,   9.95 sec
+#else
 		.measure_interval = 4, // * advertising_interval = 10 sec
+		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
+#endif
 		.rf_tx_power = RF_POWER_P3p01dBm,
-		.connect_latency = 124, // (124+1)*1.25*16 = 2500 ms
-		.min_step_time_update_lcd = 49 //x0.05 sec,   2.45 sec
+		.connect_latency = 124 // (124+1)*1.25*16 = 2500 ms
 		};
 RAM cfg_t cfg;
 static const external_data_t def_ext = {
 		.big_number = 0,
 		.small_number = 0,
 		.vtime_sec = 60 * 10, // 10 minutes
+#if DEVICE_TYPE == DEVICE_MHO_C401
+		.flg.smiley = 7, // 7 = "ooo"
+		.flg.percent_on = true,
+#else
 		.flg.smiley = 7, // 7 = "(ooo)"
 		.flg.percent_on = true,
+#endif
 		.flg.battery = false,
 		.flg.temp_symbol = 5 // 5 = "°C", 3 = "°F", ... app.h
 		};
@@ -126,7 +136,7 @@ void test_config(void) {
 
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
-	if (read_sensor_cb()) {
+	if (wrk_measure && read_sensor_cb()) {
 		last_temp = measured_data.temp / 10;
 		last_humi = measured_data.humi / 100;
 #if	USE_TRIGGER_OUT
@@ -145,6 +155,7 @@ _attribute_ram_code_ void suspend_exit_cb(u8 e, u8 *p, int n) {
 	if(timer_measure_cb)
 		init_i2c();
 }
+
 _attribute_ram_code_ void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 	if (wrk_measure
@@ -199,13 +210,19 @@ void user_init_normal(void) {//this will get executed one time after power up
 		show_small_number(-100, 1);
 		show_battery_symbol(1);
 		update_lcd();
+#if DEVICE_TYPE == DEVICE_MHO_C401
+		while(!task_lcd()) pm_wait_ms(10);
+#endif
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 	}
 	read_sensor_low_power();
+	wrk_measure = 1;
 	WakeupLowPowerCb(0);
 	lcd();
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	update_lcd();
+#endif
 	start_measure = 1;
 }
 
@@ -280,18 +297,18 @@ _attribute_ram_code_ void lcd(void) {
 			else {
 				if (cfg.flg.comfort_smiley) { // no blinking on + comfort
 					if (is_comfort(measured_data.temp, measured_data.humi)) // blinking + comfort
-						show_smiley(5);
+						show_smiley(5); // "(^-^)" happy
 					else
-						show_smiley(6);
+						show_smiley(6); // "(-^-)" sad
 				} else
 					show_smiley(cfg.smiley); // no blinking
 			}
 		} else {
 			if (cfg.flg.comfort_smiley) { // no blinking on + comfort
 				if (is_comfort(measured_data.temp, measured_data.humi)) // blinking + comfort
-					show_smiley(5);
+					show_smiley(5); // "(^-^)" happy
 				else
-					show_smiley(6);
+					show_smiley(6); // "(-^-)" sad
 			} else
 				show_smiley(cfg.smiley); // no blinking
 		}
@@ -379,7 +396,12 @@ _attribute_ram_code_ void main_loop(void) {
 						lcd_flg.b.new_update = lcd_flg.b.notify_on;
 						lcd();
 					}
-					update_lcd();
+#if DEVICE_TYPE == DEVICE_MHO_C401
+					if(!stage_lcd)
+#endif
+					{
+						update_lcd();
+					}
 					tim_last_chow = new;
 				}
 				bls_pm_setAppWakeupLowPower(0, 0);
@@ -389,6 +411,18 @@ _attribute_ram_code_ void main_loop(void) {
 			&& blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {
 			set_adv_data(cfg.flg.advertising_type);
 		}
+#if DEVICE_TYPE == DEVICE_MHO_C401
+		if(wrk_measure == 0 && stage_lcd) {
+			if(gpio_read(EPD_BUSY) && (!task_lcd())) {
+				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
+				//bls_pm_setWakeupSource(0);  // gpio pad wakeup suspend/deepsleep
+			}
+			else if(stage_lcd && ((bls_pm_getSystemWakeupTick() - clock_time())) > 25 * CLOCK_16M_SYS_TIMER_CLK_1MS) {
+				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable
+				bls_pm_setWakeupSource(PM_WAKEUP_PAD|PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
+			}
+		}
+#endif
 		bls_pm_setSuspendMask(
 				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN
 						| DEEPSLEEP_RETENTION_CONN);

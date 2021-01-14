@@ -15,7 +15,7 @@ import io
 
 __progname__ = 'TLSR825x TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '25.11.20'
+__version__ = '06.01.21'
 
 DEFAULT_UART_BAUD = 230400
 
@@ -178,6 +178,8 @@ class TLSRPGM:
 	pgm_cid = 0
 	pgm_pwr = 1
 
+	pgm_swsps = 0.96
+	pgm_clk = 24
 	pgm_swdiv = 5
 	pgm_swaddrlen = 3
 	pgm_swbuf = [b'\x5a\x00\x06\x02\x00\x05']
@@ -301,15 +303,27 @@ class TLSRPGM:
 			return False
 		if self.pgm_cid == 0x5562:
 			self.pgm_chip = 'TLSR825x'
+			self.pgm_clk = 24
+		elif self.pgm_cid == 0x5325:
+			self.pgm_chip = 'TLSR8266'
+			self.pgm_clk = 32
+		elif self.pgm_cid == 0x5326:
+			self.pgm_chip = 'TLSR8267'
+			self.pgm_clk = 32
+		elif self.pgm_cid == 0x5327:
+			self.pgm_chip = 'TLSR8269'
+			self.pgm_clk = 32
 		else:
+			self.pgm_clk = 32
 			self.pgm_chip = '?'
 		print('PGM: ChipID: 0x%04x (%s), ver:' % (self.pgm_cid, self.pgm_chip), bcd2str(self.pgm_version))
+		self.pgm_swsps = self.pgm_clk/5/self.pgm_swdiv
 		print('swdiv %d, addrlen %d, swbuf [%s], ' % (self.pgm_swdiv, self.pgm_swaddrlen, hex2str(self.pgm_swbuf)), end = '')
 		if self.pgm_pwr != 0:
 			print('pwr On')
 		else:
 			print('pfr Off')
-		print('SWire bit rate: %.4f Mbits/s' % (24/5/self.pgm_swdiv))
+		print('SWire bit rate: %.4f Mbits/s' % self.pgm_swsps)
 		return True
 	# Set Speed SWM pgm board
 	def SetPgmConfig(self, swdiv = None, swaddrlen = None, swbuf = None):
@@ -347,7 +361,7 @@ class TLSRPGM:
 			return False
 		print('ok')
 		self.ext_pc = struct.unpack('<I', data[4:8])
-		print('CPU PC=0x%06x' % self.ext_pc)
+		print('CPU PC=0x%08x' % self.ext_pc)
 		return True
 		'''
 		# multiple choice function
@@ -383,7 +397,7 @@ class TLSRPGM:
 		if len(rblk) >= 10:
 			self.ext_pc = struct.unpack('<I', rblk[4:8])
 			print('ok')
-			print('CPU PC=0x%06x' % (self.ext_pc))
+			print('CPU PC=0x%08x' % (self.ext_pc))
 		else:
 			print('\r\nUnknown response!') 
 			return False
@@ -427,7 +441,7 @@ class TLSRPGM:
 		if data == None or self.wcnt != rdsize:
 			print('\rError Read SWire data! (%d)' % self.err) 
 			return False
-		print('CPU PC=0x%06x' % self.ext_pc, '([0x0602] = 0x%02x)' % data[4])
+		print('CPU PC=0x%08x' % self.ext_pc, '([0x0602] = 0x%02x)' % data[4])
 		return True
 	# Dump Ext. Chip regs
 	def DumpChipRegs(self, offset = 0x60, rdsize = 0x20):
@@ -762,7 +776,7 @@ class TLSRPGM:
 						t1 = t2
 						print()
 					self.ext_pc = struct.unpack('<I', rblk[4:8])
-					print('\rCPU PC=0x%06x' % self.ext_pc, end = '')
+					print('\rCPU PC=0x%08x' % self.ext_pc, end = '')
 					if count != 1 or i != 0:
 						print(' (%.3f)' % (t2-t1), end = '')
 					#if flgsleep:
@@ -777,7 +791,7 @@ class TLSRPGM:
 					print()
 				print('\rCPU sleep? ', end = '')
 				if count != 1 or i != 0:
-					print(' (%.3f)' % (t2-t1), end = '')
+					print(' (%.3f sec)' % (t2-t1), end = '')
 				if not flgsleep:
 					t1 = t2
 				flgsleep = True
@@ -929,16 +943,16 @@ def main():
 		sys.exit(1)
 	if not pgm.GetVersion():
 		sys.exit(1)
+	if pgm.pgm_swsps < 0.9 or pgm.pgm_swsps > 1.3 or pgm.pgm_swaddrlen != 3:
+		if not pgm.SetPgmConfig(swdiv = int(round(pgm.pgm_clk/4.8,0)), swaddrlen=3, swbuf = [b'\x5a\x00\x06\x02\x00\x05']):
+			pgm.close()
+			sys.exit(1)
 	# set speed up?
 	if args.baud != DEFAULT_UART_BAUD:
 		if not pgm.SetUartBaud(args.baud):
 			sys.exit(1)
 	if args.trst > 0 or args.act != 0 or args.stopcpu or args.cpustall:
 		print('=== PreProcess ========================================')
-    # For TLSR826x set swaddrlen=2 (!)
-	#if not pgm.SetPgmConfig(swdiv=5, swaddrlen=3, swbuf = [b'\x5a\x00\x06\x02\x00\x05']):
-	#	pgm.close()
-	#	sys.exit(1)
 	if args.trst > 0: # Hard reset (Pin RST set '0')?	
 		if args.trst < 5: # min 5 ms
 			args.trst = 5

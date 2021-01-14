@@ -28,9 +28,9 @@ _attribute_ram_code_ void test_trg_on(void) {
 	else {
 		trg.flg.trigger_on = false;
 		if(trg.flg.trg_output)
-			gpio_setup_up_down_resistor(GPIO_PA5, PM_PIN_PULLUP_10K);
+			gpio_setup_up_down_resistor(GPIO_TRG, PM_PIN_PULLUP_10K);
 		else
-			gpio_setup_up_down_resistor(GPIO_PA5, PM_PIN_PULLDOWN_100K);
+			gpio_setup_up_down_resistor(GPIO_TRG, PM_PIN_PULLDOWN_100K);
 	}
 }
 
@@ -83,9 +83,9 @@ _attribute_ram_code_ void set_trigger_out(void) {
 	} else trg.flg.humi_out_on = false;
 
 	if(trg.flg.temp_out_on || trg.flg.humi_out_on) {
-		gpio_setup_up_down_resistor(GPIO_PA5, PM_PIN_PULLUP_10K);
+		gpio_setup_up_down_resistor(GPIO_TRG, PM_PIN_PULLUP_10K);
 	} else {
-		gpio_setup_up_down_resistor(GPIO_PA5, PM_PIN_PULLDOWN_100K);
+		gpio_setup_up_down_resistor(GPIO_TRG, PM_PIN_PULLDOWN_100K);
 	}
 }
 

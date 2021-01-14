@@ -9,6 +9,8 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 [Custom Firmware Version 1.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer12.bin) added "pin-code" of connection
 
+[MHO-C401 Version 1.2-beta](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v12_beta.bin) 
+
 [Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
 
 ### Average consumption:
@@ -78,7 +80,9 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif) 
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif)
+
+[MHO-C401](https://pvvx.github.io/MHO_C401/)
 
 #### Building firmware:
 1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and getting IDE for TLSR8 Chips.

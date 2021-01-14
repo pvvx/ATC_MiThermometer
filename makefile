@@ -73,10 +73,16 @@ SIZEDUMMY := sizedummy
 all: clean pre-build main-build
 
 flash: $(BIN_FILE)
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM3 -a2000 -m -w we 0 $(BIN_FILE)
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM3 -t50 -a2550 -m -w we 0 $(BIN_FILE)
 
-reset: $(BIN_FILE)
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM3 -a2000 -m -w i
+reset:
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM3 -t50 -a2550 -m -w i
+
+stop:
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM3 -t50 -a2550 i
+
+go:
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM3 -w -m
 
 # Main-build Target
 main-build: $(ELF_FILE) secondary-outputs

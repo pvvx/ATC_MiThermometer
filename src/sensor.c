@@ -129,7 +129,7 @@ _attribute_ram_code_ void read_sensor_low_power(void) {
 
 _attribute_ram_code_ int read_sensor_sleep(void) {
 	read_sensor_start(SHTC3_MEASURE);
-	StallWaitMs(11);
+	pm_wait_ms(11);
 	return read_sensor_cb();
 }
 
