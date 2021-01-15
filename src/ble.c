@@ -35,14 +35,12 @@ uint8_t ota_is_working = 0;
 _attribute_ram_code_ void app_enter_ota_mode(void) {
 	ota_is_working = 1;
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
-	//show_smiley(1);
 }
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 0;
 	//lcd_flg.b.notify_on = 0;
 	lcd_flg.uc = 0;
-	//show_ble_symbol(0);
 	if(!cfg.flg.tx_measures)
 		tx_measures = 0;
 }
@@ -53,7 +51,6 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 		bls_l2cap_requestConnParamUpdate(16, 16, cfg.connect_latency, connection_timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
 	else
 		bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, cfg.connect_latency, connection_timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
-	//show_ble_symbol(1);
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 }
 
@@ -79,6 +76,7 @@ _attribute_ram_code_ int RxTxWrite(void * p) {
 }
 
 _attribute_ram_code_ void user_set_rf_power(u8 e, u8 *p, int n) {
+	(void) e; (void) p; (void) n;
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 /*
@@ -94,11 +92,12 @@ _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
 
 #if BLE_SECURITY_ENABLE
 int app_host_event_callback(u32 h, u8 *para, int n) {
+	(void) para; (void) n;
 	uint8_t event = (uint8_t)h;
 	if (event == GAP_EVT_SMP_TK_DISPALY) {
 			//u32 pinCode = *(u32*) para;
 			uint32_t * p = (uint32_t *)&smp_param_own.paring_tk[0];
-			memset(p, 0, 16);
+			memset(p, 0, sizeof(smp_param_own.paring_tk));
 			p[0] = pincode;
 	}
 //	else if (event == GAP_EVT_SMP_TK_REQUEST_PASSKEY)
@@ -161,7 +160,6 @@ void init_ble(void) {
 		blc_smp_configSecurityRequestSending(SecReq_IMM_SEND, SecReq_PEND_SEND, 1000); //if not set, default is:  send "security request" immediately after link layer connection established(regardless of new connection or reconnection )
 		blc_gap_registerHostEventHandler(app_host_event_callback);
 		blc_gap_setEventMask(GAP_EVT_MASK_SMP_TK_DISPALY); // | GAP_EVT_MASK_SMP_CONN_ENCRYPTION_DONE | GAP_EVT_MASK_SMP_TK_REQUEST_PASSKEY);
-
 	} else
 #endif
 	blc_smp_setSecurityLevel(No_Security);
@@ -209,7 +207,7 @@ void init_ble(void) {
 	ev_adv_timeout(0,0,0);
 }
 
-// adv_type: 0 - Custom, 1 - Mi, 2 - atc1441
+/* adv_type: 0 - atc1441, 1 - Custom,  2,3 - Mi  */
 _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 	if(adv_type == 3)
 		adv_type = adv_mi_count & 3;

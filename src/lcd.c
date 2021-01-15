@@ -78,24 +78,6 @@ _attribute_ram_code_ void show_battery_symbol(bool state){
 		display_buff[1] &= ~0x08;
 }
 
-#if 0
-_attribute_ram_code_ void show_atc(){
-	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
-}
-void show_atc_mac(){
-	extern u8  mac_public[6];
-	send_to_lcd(display_numbers[mac_public[2] &0x0f],display_numbers[mac_public[2]>>4],0x05,0xc2,0xe2,0x77);
-	pm_wait_ms(1800);
-	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
-	pm_wait_ms(200);
-	send_to_lcd(display_numbers[mac_public[1] &0x0f],display_numbers[mac_public[1]>>4],0x05,0xc2,0xe2,0x77);
-	pm_wait_ms(1800);
-	send_to_lcd(0x00,0x00,0x05,0xc2,0xe2,0x77);
-	pm_wait_ms(200);
-	send_to_lcd(display_numbers[mac_public[0] &0x0f],display_numbers[mac_public[0]>>4],0x05,0xc2,0xe2,0x77);
-	pm_wait_ms(1800);
-}
-#endif
 /* x0.1 (-995..19995) Show: -99 .. -9.9 .. 199.9 .. 1999 */
 _attribute_ram_code_ void show_big_number(int16_t number){
 //	display_buff[4] = point?0x08:0x00;

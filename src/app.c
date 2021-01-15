@@ -14,6 +14,7 @@
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
 #endif
+
 void app_enter_ota_mode(void);
 
 RAM uint32_t vtime_count_us; // count validity time, in us
@@ -34,9 +35,9 @@ RAM volatile uint8_t end_measure;
 RAM uint32_t tim_last_chow; // timer show lcd >= 1.5 sec
 RAM uint32_t tim_measure; // timer measurements >= 10 sec
 
-RAM uint32_t adv_interval; // adv interval in 0.625 ms // cfg.advertising_interval * 100
+RAM uint32_t adv_interval; // adv interval in 0.625 ms // = cfg.advertising_interval * 100
 RAM uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = connection_latency_ms * 4 = 2000 * 4 = 8000 ms
-RAM uint32_t measurement_step_time; // adv_interval * measure_interval
+RAM uint32_t measurement_step_time; // = adv_interval * measure_interval
 RAM uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * 0.05 sec
 
 void lcd(void);
@@ -56,7 +57,7 @@ const cfg_t def_cfg = {
 #if DEVICE_TYPE == DEVICE_MHO_C401
 		.measure_interval = 8, // * advertising_interval = 20 sec
 		.min_step_time_update_lcd = 199, //x0.05 sec,   9.95 sec
-#else
+#else // DEVICE_LYWSD03MMC
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 #endif
@@ -71,12 +72,12 @@ static const external_data_t def_ext = {
 #if DEVICE_TYPE == DEVICE_MHO_C401
 		.flg.smiley = 7, // 7 = "ooo"
 		.flg.percent_on = true,
-#else
+#else // DEVICE_LYWSD03MMC
 		.flg.smiley = 7, // 7 = "(ooo)"
 		.flg.percent_on = true,
 #endif
 		.flg.battery = false,
-		.flg.temp_symbol = 5 // 5 = "°C", 3 = "°F", ... app.h
+		.flg.temp_symbol = 5 // 5 = "°C", ... app.h
 		};
 RAM external_data_t ext;
 RAM uint32_t pincode;
@@ -116,7 +117,7 @@ void test_config(void) {
 	else if(connection_timeout < 100)
 		connection_timeout = 100;	//x10 ms,  1 sec
 	if(!cfg.connect_latency) {
-		my_periConnParameters.intervalMin = (cfg.advertising_interval * 625 / 30) - 1; // Tmin = 20*1.25 = 25 ms, Tмах = 3333*1.25 = 4166.25 ms
+		my_periConnParameters.intervalMin = (cfg.advertising_interval * 625 / 30) - 1; // Tmin = 20*1.25 = 25 ms, Tmax = 3333*1.25 = 4166.25 ms
 		my_periConnParameters.intervalMax = my_periConnParameters.intervalMin + 2;
 		my_periConnParameters.latency = 0;
 	} else {
@@ -129,8 +130,9 @@ void test_config(void) {
 		cfg.min_step_time_update_lcd = 10; // min 10*0.05 = 0.5 sec
 	min_step_time_update_lcd = cfg.min_step_time_update_lcd * (100 * CLOCK_16M_SYS_TIMER_CLK_1MS);
 
-	my_RxTx_Data[0] = 0x55;
+	my_RxTx_Data[0] = CMD_ID_CFG;
 	my_RxTx_Data[1] = VERSION;
+	my_RxTx_Data[sizeof(cfg)+2] = DEVICE_TYPE;
 	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 }
 
@@ -211,7 +213,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 		show_battery_symbol(1);
 		update_lcd();
 #if DEVICE_TYPE == DEVICE_MHO_C401
-		while(!task_lcd()) pm_wait_ms(10);
+		while(task_lcd()) pm_wait_ms(10);
 #endif
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
@@ -415,7 +417,6 @@ _attribute_ram_code_ void main_loop(void) {
 		if(wrk_measure == 0 && stage_lcd) {
 			if(gpio_read(EPD_BUSY) && (!task_lcd())) {
 				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
-				//bls_pm_setWakeupSource(0);  // gpio pad wakeup suspend/deepsleep
 			}
 			else if(stage_lcd && ((bls_pm_getSystemWakeupTick() - clock_time())) > 25 * CLOCK_16M_SYS_TIMER_CLK_1MS) {
 				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable

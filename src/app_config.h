@@ -8,9 +8,9 @@ extern "C" {
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0	// LCD display LYWSD03MMC
-#define DEVICE_MHO_C401   	1	// E-Ink display MHO-C401 (beta version)
+#define DEVICE_MHO_C401   	1	// E-Ink display MHO-C401
 
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401
 
 #define BLE_SECURITY_ENABLE 1
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
@@ -80,7 +80,7 @@ extern "C" {
 #endif // USE_TRIGGER_OUT
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
 
-/* Average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
+/* DEVICE_LYWSD03MMC Average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
  * 16 MHz - 17.43 uA
  * 24 MHz - 17.28 uA
  * 32 MHz - 17.36 uA

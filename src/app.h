@@ -22,14 +22,26 @@ typedef struct __attribute__((packed)) _cfg_t {
 		uint8_t tx_measures			: 1; // Send all measurements in connected mode
 		uint8_t lp_measures			: 1; // Sensor measurements in "Low Power" mode
 	} flg;
-	/* 0 = "     " off,
+	/* ==================
+	 * LYWSD03MMC:
+	 * 0 = "     " off,
 	 * 1 = " ^_^ "
 	 * 2 = " -^- "
 	 * 3 = " ooo "
 	 * 4 = "(   )"
 	 * 5 = "(^_^)" happy
 	 * 6 = "(-^-)" sad
-	 * 7 = "(ooo)" */
+	 * 7 = "(ooo)"
+	 * -------------------
+	 * MHO-C401:
+	 * 0 = "   " off,
+	 * 1 = " o "
+	 * 2 = "o^o"
+	 * 3 = "o-o"
+	 * 4 = "oVo"
+	 * 5 = "vVv" happy
+	 * 6 = "^-^" sad
+	 * 7 = "oOo" */
 	uint8_t smiley;		// 0..7
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)
@@ -41,7 +53,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 }cfg_t;
 extern cfg_t cfg;
 extern const cfg_t def_cfg;
-//
+/* Warning: MHO-C401 Symbols: "%", "°Г", "(  )", "." have one control bit! */
 typedef struct __attribute__((packed)) _external_data_t {
 	int16_t		big_number; // -995..19995, x0.1
 	int16_t		small_number; // -9..99, x1

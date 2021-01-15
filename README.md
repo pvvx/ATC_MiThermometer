@@ -5,18 +5,21 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
-[Custom Firmware Version 1.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer11.bin)
+[LYWSD03MMC Custom Firmware Version 1.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer11.bin)
 
-[Custom Firmware Version 1.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer12.bin) added "pin-code" of connection
+[LYWSD03MMC Custom Firmware Version 1.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer12.bin) added "pin-code" of connection
 
-[MHO-C401 Version 1.2-beta](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v12_beta.bin) 
+[MHO-C401 Custom Firmware Version 1.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v12.bin) 
 
-[Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
+[LYWSD03MMC Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
 
 ### Average consumption:
->* #### Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
+>* #### LYWSD03MMC - Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
 > * Advertisement: 15.5 uA
 > * Connection: 15..17 uA
+>* #### MHO-C401 - Default settings (Advertising interval of 2.5 seconds, the measurement interval 20 sec):
+> * Advertisement: 12..30 uA (depends on the amount of temperature or humidity changes over time to display)
+> * Connection: 15..30 uA (depends on the amount of temperature or humidity changes over time to display)
 
 **Advertising in 4 formats:**
 
@@ -82,8 +85,6 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif)
 
-[MHO-C401](https://pvvx.github.io/MHO_C401/)
-
 #### Building firmware:
 1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and getting IDE for TLSR8 Chips.
 2. Clone https://github.com/Ai-Thinker-Open/Telink_825X_SDK
@@ -92,9 +93,11 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 [Telink Linux Tool Chain 2020-06-26](https://yadi.sk/d/pt_qTBB-t24i9A)
 
-[BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
+[LYWSD03MMC BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
 
-[Original Full Flash v1.0.0_0106 (512 KB)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_full_flash_Xiaomi_LYWSD03MMC.bin)
+[LYWSD03MMC Original Full Flash v1.0.0_0106 (512 KB)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_full_flash_Xiaomi_LYWSD03MMC.bin)
+
+[MHO-C401 Info](https://pvvx.github.io/MHO_C401/)
 
 [Build Telink EVK on E104-BT10-G/N module (TLSR8269)](https://github.com/pvvx/TLSR8269-EVK)
 
@@ -106,4 +109,7 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 [HTML files](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer)
 
-[Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251-lcd-termometr-lywsd03mmc-xiaomi-bluetooth-termometr.5263/)
+[LYWSD03MMC Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251-lcd-termometr-lywsd03mmc-xiaomi-bluetooth-termometr.5263/)
+
+[MHO-C401 Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251f512et24-e-inc-display-termometr-mho-c401-bluetooth-termometr.5446/)
+

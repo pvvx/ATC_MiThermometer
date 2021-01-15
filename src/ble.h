@@ -121,5 +121,5 @@ inline void ble_send_battery(void) {
 }
 
 inline void ble_send_cfg(void) {
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg) + 2);
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg) + 3);
 }

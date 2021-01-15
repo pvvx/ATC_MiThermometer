@@ -28,7 +28,7 @@ _attribute_ram_code_ void adc_bat_init(void)
 	adc_power_on_sar_adc(1);
 }
 
-_attribute_ram_code_ uint16_t get_battery_mv()
+_attribute_ram_code_ uint16_t get_battery_mv(void)
 {
 	uint16_t temp;
 	int i,j;

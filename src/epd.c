@@ -1,6 +1,7 @@
 #include "tl_common.h"
 #include "app_config.h"
 #if DEVICE_TYPE == DEVICE_MHO_C401
+/* Based on source: https://github.com/znanev/ATC_MiThermometer */
 #include "epd.h"
 #include "drivers/8258/pm.h"
 #include "drivers/8258/timer.h"
@@ -103,13 +104,13 @@ _attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
 		display_buff[14] &= ~BIT(2); // "_"
 }
 /* 0 = "   " off,
- * 1 = " @ "
- * 2 = " O "
+ * 1 = " o "
+ * 2 = "o^o"
  * 3 = "o-o"
- * 4 = "ovo"
+ * 4 = "oVo"
  * 5 = "vVv" happy
- * 6 = "`^-^" sad
- * 7 = "ooo" */
+ * 6 = "^-^" sad
+ * 7 = "oOo" */
 _attribute_ram_code_ void show_smiley(uint8_t state){
 	// off
 	display_buff[3] = 0;
@@ -118,12 +119,11 @@ _attribute_ram_code_ void show_smiley(uint8_t state){
 	switch(state & 7) {
 		case 1:
 			display_buff[3] |= BIT(2);
-			display_buff[4] |= BIT(4) | BIT(7);
-			display_buff[5] |= BIT(6);
+			display_buff[4] |= BIT(4);
 		break;
 		case 2:
-			display_buff[3] |= BIT(2);
-			display_buff[4] |= BIT(4);
+			display_buff[4] |= BIT(1) | BIT(4);
+			display_buff[5] |= BIT(6);
 		break;
 		case 3:
 			display_buff[4] |= BIT(1) | BIT(7);
@@ -139,7 +139,6 @@ _attribute_ram_code_ void show_smiley(uint8_t state){
 			display_buff[4] |= BIT(1);
 		break;
 		case 6:
-			display_buff[3] |= BIT(5);
 			display_buff[4] |= BIT(7);
 			display_buff[5] |= BIT(6);
 		break;

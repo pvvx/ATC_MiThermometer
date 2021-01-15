@@ -1,5 +1,5 @@
 #pragma once
-
+/* Based on source: https://github.com/znanev/ATC_MiThermometer */
 #include <stdint.h>
 
 //----------------------------------

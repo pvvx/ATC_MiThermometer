@@ -33,6 +33,7 @@ typedef struct __attribute__((packed)) _blk_mi_keys_t {
 	uint8_t data[MI_KEYTBIND_SIZE]; // token + bindkey
 } blk_mi_keys_t, * pblk_mi_keys_t;
 RAM blk_mi_keys_t keybuf;
+
 #if DEVICE_TYPE == DEVICE_MHO_C401
 uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	uint8_t * p = (uint8_t *)(FLASH_MIKEYS_ADDR);
@@ -59,7 +60,7 @@ uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	} while(id != 0xffff || len != 0xff  || p < pend);
 	return NULL;
 }
-#else
+#else // DEVICE_LYWSD03MMC
 uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	uint8_t * p = (uint8_t *)(FLASH_MIKEYS_ADDR);
 	uint8_t * pend = p + FLASH_SECTOR_SIZE;
@@ -83,6 +84,7 @@ uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	return NULL;
 }
 #endif
+
 uint8_t send_mi_key(void) {
 	if (blc_ll_getTxFifoNumber() < 9) {
 		while(keybuf.klen > TX_MAX_SIZE - 2) {
