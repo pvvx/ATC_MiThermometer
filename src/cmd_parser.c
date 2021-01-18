@@ -131,6 +131,7 @@ uint8_t restore_prev_mi_keys(void) {
 	}
 	return 0;
 }
+
 uint8_t get_mi_keys(uint8_t chk_stage) {
 	if(keybuf.klen) {
 		if(!send_mi_key())
@@ -283,6 +284,12 @@ void cmd_parser(void * p) {
 			send_buf[0] = CMD_ID_PINCODE;
 			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
 #endif
+		} else if (cmd == CMD_ID_COMFORT) { // Get/set comfort parameters
+			if(--len > sizeof(cfg)) len = sizeof(cmf);
+			if(len)
+				memcpy(&cmf, &req->dat[1], len);
+			flash_write_cfg(&cmf, EEP_ID_CMF, sizeof(cmf));
+			ble_send_cmf();
 		} else if (cmd == CMD_ID_DEBUG && len > 6) { // test/debug
 			bls_l2cap_requestConnParamUpdate(req->dat[1], req->dat[2], req->dat[3] | (req->dat[4]<<8), req->dat[5] | (req->dat[6]<<8));
 		}

@@ -96,6 +96,7 @@ bool ble_get_connected();
 void ble_send_measures(void);
 void ble_send_ext(void);
 void ble_send_lcd(void);
+void ble_send_cmf(void);
 #if USE_TRIGGER_OUT
 void ble_send_trg(void);
 void ble_send_trg_flg(void);

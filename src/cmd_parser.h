@@ -7,6 +7,7 @@ enum {
 	CMD_MI_ID_KDEL  = 0x14, // Mi marked as deleted keys
 	CMD_MI_ID_KALL  = 0x15, // Get all mi keys
 	CMD_MI_ID_REST  = 0x16, // Restore prev mi token & bindkeys
+	CMD_ID_COMFORT  = 0x20, // Get/set comfort parameters
 	CMD_ID_EXTDATA  = 0x22, // Get/set show ext. data
 	CMD_ID_MEASURE  = 0x33, // Start/stop measures in connection mode
 	CMD_ID_TRG      = 0x44, // Get/set trg data

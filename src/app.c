@@ -40,15 +40,19 @@ RAM uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = conn
 RAM uint32_t measurement_step_time; // = adv_interval * measure_interval
 RAM uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * 0.05 sec
 
+RAM scomfort_t cmf;
+const scomfort_t def_cmf = {
+		.t = {2100,2600}, // x0.01 C
+		.h = {3000,6000}  // x0.01 %
+};
+
 void lcd(void);
-RAM int16_t comfort_x[] = { 2000, 2560, 2700, 2500, 2050, 1700, 1600, 1750 };
-RAM uint16_t comfort_y[] = { 2000, 1980, 3200, 6000, 8200, 8600, 7700, 3800 };
 
 // Settings
 const cfg_t def_cfg = {
 		.flg.temp_F_or_C = false,
+		.flg.comfort_smiley = true,
 		.flg.blinking_smiley = false,
-		.flg.comfort_smiley = false,
 		.flg.show_batt_enabled = false,
 		.flg.advertising_type = 3,
 		.flg.tx_measures = false,
@@ -175,6 +179,8 @@ void user_init_normal(void) {//this will get executed one time after power up
 	if (flash_supported_eep_ver(EEP_SUP_VER, VERSION)) {
 		if(flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg))
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
+		if(flash_read_cfg(&cmf, EEP_ID_CMF, sizeof(cmf)) != sizeof(cmf))
+			memcpy(&cmf, &def_cmf, sizeof(cmf));
 #if BLE_SECURITY_ENABLE
 		if(flash_read_cfg(&pincode, EEP_ID_PCD, sizeof(pincode)) != sizeof(pincode))
 			pincode = 0;
@@ -185,6 +191,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 	} else {
 		memcpy(&cfg, &def_cfg, sizeof(cfg));
+		memcpy(&cmf, &def_cmf, sizeof(cmf));
 #if BLE_SECURITY_ENABLE
 		pincode = 0;
 #endif
@@ -197,8 +204,6 @@ void user_init_normal(void) {//this will get executed one time after power up
 	test_trg_on();
 #endif
 	memcpy(&ext, &def_ext, sizeof(ext));
-	//	vtime_count_sec = ext.vtime;
-	//	vtime_count_us = clock_time();
 	init_ble();
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
@@ -237,20 +242,10 @@ _attribute_ram_code_ void user_init_deepRetn(void) {//after sleep this will get 
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 }
 
-_attribute_ram_code_ bool is_comfort(int16_t t, uint16_t h) {
-	bool c = 0;
-	uint8_t npol = sizeof(comfort_x);
-	for (uint8_t i = 0, j = npol - 1; i < npol; j = i++) {
-		if (((comfort_y[i] < comfort_y[j]) && (comfort_y[i] <= h) && (h
-				<= comfort_y[j]) && ((comfort_y[j] - comfort_y[i]) * (t
-				- comfort_x[i]) > (comfort_x[j] - comfort_x[i]) * (h
-				- comfort_y[i]))) || ((comfort_y[i] > comfort_y[j])
-				&& (comfort_y[j] <= h) && (h <= comfort_y[i]) && ((comfort_y[j]
-				- comfort_y[i]) * (t - comfort_x[i]) < (comfort_x[j]
-				- comfort_x[i]) * (h - comfort_y[i]))))
-			c = !c;
-	}
-	return c;
+_attribute_ram_code_ uint8_t is_comfort(int16_t t, uint16_t h) {
+	uint8_t ret = SMILE_SAD;
+	if(t >= cmf.t[0] && t <= cmf.t[1] && h >= cmf.h[0] && h <= cmf.h[1]) ret = SMILE_HAPPY;
+	return ret;
 }
 
 _attribute_ram_code_ void lcd_set_ext_data(void) {
@@ -298,19 +293,13 @@ _attribute_ram_code_ void lcd(void) {
 				show_smiley(0); // stage blinking and blinking on
 			else {
 				if (cfg.flg.comfort_smiley) { // no blinking on + comfort
-					if (is_comfort(measured_data.temp, measured_data.humi)) // blinking + comfort
-						show_smiley(5); // "(^-^)" happy
-					else
-						show_smiley(6); // "(-^-)" sad
+					show_smiley(is_comfort(measured_data.temp, measured_data.humi));
 				} else
 					show_smiley(cfg.smiley); // no blinking
 			}
 		} else {
 			if (cfg.flg.comfort_smiley) { // no blinking on + comfort
-				if (is_comfort(measured_data.temp, measured_data.humi)) // blinking + comfort
-					show_smiley(5); // "(^-^)" happy
-				else
-					show_smiley(6); // "(-^-)" sad
+				show_smiley(is_comfort(measured_data.temp, measured_data.humi));
 			} else
 				show_smiley(cfg.smiley); // no blinking
 		}
@@ -319,10 +308,10 @@ _attribute_ram_code_ void lcd(void) {
 			show_small_number(last_humi, 1);
 		}
 		if (cfg.flg.temp_F_or_C) {
-			show_temp_symbol(0x60); // "°F"
+			show_temp_symbol(TMP_SYM_F); // "°F"
 			show_big_number((((measured_data.temp / 5) * 9) + 3200) / 10); // convert C to F
 		} else {
-			show_temp_symbol(0xA0); // "°C"
+			show_temp_symbol(TMP_SYM_C); // "°C"
 			show_big_number(last_temp);
 		}
 	}

@@ -294,6 +294,12 @@ void ble_send_lcd(void) {
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(display_buff) + 1);
 }
 
+void ble_send_cmf(void) {
+	send_buf[0] = CMD_ID_COMFORT;
+	memcpy(&send_buf[1], &cmf, sizeof(cmf));
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(cmf) + 1);
+}
+
 #if USE_TRIGGER_OUT
 void ble_send_trg(void) {
 	send_buf[0] = CMD_ID_TRG;

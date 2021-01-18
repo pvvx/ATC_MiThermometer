@@ -11,6 +11,7 @@
 #define EEP_ID_CFG (0x0CFC) // EEP ID config data
 #define EEP_ID_TRG (0x0DFE) // EEP ID trigger data
 #define EEP_ID_PCD (0xC0DE) // EEP ID pincode
+#define EEP_ID_CMF (0x0FCC) // EEP ID comfort data
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
@@ -114,6 +115,13 @@ typedef union _lcd_flg_t {
 	uint8_t uc;
 } lcd_flg_t;
 extern lcd_flg_t lcd_flg;
+
+typedef struct _comfort_t {
+	int16_t  t[2];
+	uint16_t h[2];
+}scomfort_t, * pcomfort_t;
+
+extern scomfort_t cmf;
 
 extern uint32_t adv_interval;
 extern uint32_t connection_timeout;

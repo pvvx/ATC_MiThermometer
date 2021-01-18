@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include "app_config.h"
 
+#define SMILE_HAPPY 5 		// "(^-^)" happy
+#define SMILE_SAD   6 		// "(-^-)" sad
+#define TMP_SYM_C	0xA0	// "°C"
+#define TMP_SYM_F	0x60	// "°F"
+
 void init_lcd();
 void update_lcd();
 /* 0x00 = "  "
@@ -13,7 +18,7 @@ void update_lcd();
  * 0x80 = " _"
  * 0xA0 = "°C"
  * 0xC0 = " ="
- * 0xE0 = "°E" 
+ * 0xE0 = "°E"
  * Warning: MHO-C401 Symbols: "%", "°Г", "(  )", "." have one control bit! */
 void show_temp_symbol(uint8_t symbol);
 /* ==================
