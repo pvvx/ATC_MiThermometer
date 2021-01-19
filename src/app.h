@@ -12,6 +12,7 @@
 #define EEP_ID_TRG (0x0DFE) // EEP ID trigger data
 #define EEP_ID_PCD (0xC0DE) // EEP ID pincode
 #define EEP_ID_CMF (0x0FCC) // EEP ID comfort data
+#define EEP_ID_DVN (0x0DB5) // EEP ID device name
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
@@ -128,5 +129,6 @@ extern uint32_t connection_timeout;
 extern uint32_t measurement_step_time;
 void ev_adv_timeout(u8 e, u8 *p, int n);
 void test_config(void);
+void reset_cache(void);
 
 #endif /* MAIN_H_ */

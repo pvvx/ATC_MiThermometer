@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x13
+#define VERSION 0x14
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0	// LCD display LYWSD03MMC
@@ -132,15 +132,15 @@ typedef enum
 	/**********************************************************************************************/
 	TEMP_PS_H, 								//UUID: 2800, 	VALUE: uuid 181A
 	TEMP_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
-	TEMP_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: tempVal
+	TEMP_LEVEL_INPUT_DP_H,					//UUID: 2A1F 	VALUE: last_temp
 	TEMP_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: tempValCCC
 	
 	TEMP2_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
-	TEMP2_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: tempVal
-	TEMP2_LEVEL_INPUT_CCB_H,				//UUID: 2902, 	VALUE: tempValCCC
+	TEMP2_LEVEL_INPUT_DP_H,					//UUID: 2A6E 	VALUE: measured_data.temp
+	TEMP2_LEVEL_INPUT_CCB_H,				//UUID: 2902, 	VALUE: temp2ValCCC
 
 	HUMI_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
-	HUMI_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: humiVal
+	HUMI_LEVEL_INPUT_DP_H,					//UUID: 2A6F 	VALUE: measured_data.humi
 	HUMI_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: humiValCCC
 
 	//// Ota ////
@@ -152,14 +152,14 @@ typedef enum
 
 	//// RxTx ////
 	/**********************************************************************************************/
-	RxTx_PS_H, 								//UUID: , 	VALUE: RxTx service uuid
-	RxTx_CMD_OUT_CD_H,						//UUID: , 	VALUE:  			Prop: read | write_without_rsp
-	RxTx_CMD_OUT_DP_H,						//UUID: RxTx uuid,  VALUE: RxTxData
-	RxTx_CMD_OUT_DESC_H,					//UUID: 2901, 	VALUE: RxTxName
+	RxTx_PS_H, 								//UUID: 1F10, 	VALUE: RxTx service uuid
+	RxTx_CMD_OUT_CD_H,						//UUID: 2803, 	VALUE:  			Prop: read | write_without_rsp
+	RxTx_CMD_OUT_DP_H,						//UUID: 1F1F,  VALUE: RxTxData
+	RxTx_CMD_OUT_DESC_H,					//UUID: 2902, 	VALUE: RxTxValueInCCC
 	
 	// Mi Advertising char
 	Mi_PS_H, 								//UUID: , 	VALUE: 0xFE95 service uuid
-	Mi_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: Miname
+	Mi_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: my_MiName
 	
 	ATT_END_H,
 

@@ -27,6 +27,18 @@ RAM uint8_t mi_key_chk_cnt;
 #define MI_KEYTBIND_SIZE (12+16) // buf token + bindkey size
 #define MI_KEYDNAME_SIZE (20) // device name buf size
 
+enum {
+	MI_KEY_STAGE_END = 0,
+	MI_KEY_STAGE_DNAME,
+	MI_KEY_STAGE_TBIND,
+	MI_KEY_STAGE_CFG,
+	MI_KEY_STAGE_KDEL,
+	MI_KEY_STAGE_RESTORE,
+	MI_KEY_STAGE_WAIT_SEND,
+	MI_KEY_STAGE_GET_ALL = 0xff,
+	MI_KEY_STAGE_MAC = 0xfe
+} MI_KEY_STAGES;
+
 typedef struct __attribute__((packed)) _blk_mi_keys_t {
 	uint8_t id;
 	uint8_t klen;	// max length, end length, current length, ...
@@ -105,27 +117,38 @@ void send_mi_no_key(void) {
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *) &keybuf, 2);
 }
 
-uint8_t backupsector[FLASH_SECTOR_SIZE];
-uint8_t restore_prev_mi_keys(void) {
+uint8_t store_mi_keys(uint8_t klen, uint16_t key_id, uint8_t * pkey) {
 	uint8_t key_chk_cnt = 0;
 	uint8_t * pfoldkey = NULL;
 	uint8_t * pfnewkey;
 	uint8_t * p;
-	while((p = find_mi_keys(MI_KEYDELETE_ID, ++key_chk_cnt)) != NULL) {
-		if(p && keybuf.klen == MI_KEYTBIND_SIZE)
+	if(pkey == NULL) {
+		while((p = find_mi_keys(MI_KEYDELETE_ID, ++key_chk_cnt)) != NULL) {
+		if(p && keybuf.klen == klen)
 			pfoldkey = p;
+		}
 	};
-	if(pfoldkey) {
-		pfnewkey = find_mi_keys(MI_KEYTBIND_ID, 1);
-		if(pfnewkey && keybuf.klen == MI_KEYTBIND_SIZE) {
-			if(memcmp(pfnewkey, pfoldkey, keybuf.klen)) {
-				memcpy(&backupsector,(uint8_t *)(FLASH_MIKEYS_ADDR), sizeof(backupsector));
-				memcpy(&backupsector[(uint32_t)pfoldkey - FLASH_MIKEYS_ADDR], pfnewkey, keybuf.klen);
-				memcpy(&keybuf.data, pfoldkey, keybuf.klen);
-				memcpy(&backupsector[(uint32_t)pfnewkey - FLASH_MIKEYS_ADDR], pfoldkey, keybuf.klen);
-				flash_erase_sector(FLASH_MIKEYS_ADDR);
-				flash_write_(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
-				return 1;
+	if(pfoldkey || pkey) {
+		pfnewkey = find_mi_keys(key_id, 1);
+		if(pfnewkey && keybuf.klen == klen) {
+			uint8_t backupsector[FLASH_SECTOR_SIZE];
+			memcpy(&backupsector,(uint8_t *)(FLASH_MIKEYS_ADDR), sizeof(backupsector));
+			if(pkey) {
+				if(memcmp(pfnewkey, pkey, keybuf.klen)) {
+					memcpy(&backupsector[(uint32_t)pfnewkey - FLASH_MIKEYS_ADDR], pkey, keybuf.klen);
+					flash_erase_sector(FLASH_MIKEYS_ADDR);
+					flash_write_(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
+					return 1;
+				}
+			} else {
+				if(memcmp(pfnewkey, pfoldkey, keybuf.klen)) {
+					memcpy(&backupsector[(uint32_t)pfoldkey - FLASH_MIKEYS_ADDR], pfnewkey, keybuf.klen);
+					memcpy(&keybuf.data, pfoldkey, keybuf.klen);
+					memcpy(&backupsector[(uint32_t)pfnewkey - FLASH_MIKEYS_ADDR], pfoldkey, keybuf.klen);
+					flash_erase_sector(FLASH_MIKEYS_ADDR);
+					flash_write_(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
+					return 1;
+				}
 			}
 		}
 	}
@@ -138,16 +161,16 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 			return chk_stage;
 	};
 	switch(chk_stage) {
-	case 1:
-		chk_stage = 2;
+	case MI_KEY_STAGE_DNAME:
+		chk_stage = MI_KEY_STAGE_TBIND;
 		keybuf.id = CMD_MI_ID_DNAME;
 		if(find_mi_keys(MI_KEYDNAME_ID, 1)) {
 			send_mi_key();
 		} else
 			send_mi_no_key();
 		break;
-	case 2:
-		chk_stage = 3;
+	case MI_KEY_STAGE_TBIND:
+		chk_stage = MI_KEY_STAGE_CFG;
 		keybuf.id = CMD_MI_ID_TBIND;
 		if(find_mi_keys(MI_KEYTBIND_ID, 1)) {
 			mi_key_chk_cnt = 0;
@@ -155,8 +178,8 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 		} else
 			send_mi_no_key();
 		break;
-	case 3:
-		chk_stage = 4;
+	case MI_KEY_STAGE_CFG:
+		chk_stage = MI_KEY_STAGE_KDEL;
 		keybuf.id = CMD_MI_ID_CFG;
 		if(find_mi_keys(MI_KEYCFG_ID, 1)) {
 			mi_key_chk_cnt = 0;
@@ -164,33 +187,33 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 		} else
 			send_mi_no_key();
 		break;
-	case 4:
+	case MI_KEY_STAGE_KDEL:
 		keybuf.id = CMD_MI_ID_KDEL;
 		if(find_mi_keys(MI_KEYDELETE_ID, ++mi_key_chk_cnt)) {
 			send_mi_key();
 		} else {
-			chk_stage = 0;
+			chk_stage = MI_KEY_STAGE_END;
 			send_mi_no_key();
 		}
 		break;
-	case 5: // restore prev mi token & bindkeys
+	case MI_KEY_STAGE_RESTORE: // restore prev mi token & bindkeys
 		keybuf.id = CMD_MI_ID_TBIND;
-		if(restore_prev_mi_keys()) {
-			chk_stage = 6;
+		if(store_mi_keys(MI_KEYTBIND_SIZE, MI_KEYTBIND_ID, NULL)) {
+			chk_stage = MI_KEY_STAGE_WAIT_SEND;
 			send_mi_key();
 		} else {
-			chk_stage = 0;
+			chk_stage = MI_KEY_STAGE_END;
 			send_mi_no_key();
 		}
 		break;
-	case 6:
-		chk_stage = 0;
+	case MI_KEY_STAGE_WAIT_SEND:
+		chk_stage = MI_KEY_STAGE_END;
 		break;
-	default: // get all mi keys
+	default: // Start get all mi keys // MI_KEY_STAGE_MAC
 		memcpy(&keybuf.data,(uint8_t *)(FLASH_MIMAC_ADDR), 8); // MAC[6] + mac_random[2]
 		keybuf.klen = 8;
 		keybuf.id = CMD_MI_ID_MAC;
-		chk_stage = 1;
+		chk_stage = MI_KEY_STAGE_DNAME;
 		send_mi_key();
 		break;
 	};
@@ -210,49 +233,84 @@ void cmd_parser(void * p) {
 				vtime_count_us = clock_time();
 			}
 			ble_send_ext();
-		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) {
+		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) { // Get/set config
 			if(--len > sizeof(cfg)) len = sizeof(cfg);
 			if(len)
 				memcpy(&cfg, &req->dat[1], len);
 			test_config();
 			ev_adv_timeout(0, 0, 0);
-			if(cmd != CMD_ID_CFG_NS)
+			if(cmd != CMD_ID_CFG_NS) // Get/set config (not save to Flash)
 				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
-		} else if (cmd == CMD_ID_CFG_DEF) {
+		} else if (cmd == CMD_ID_CFG_DEF) { // Get default config
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 			test_config();
 			ev_adv_timeout(0, 0, 0);
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
 #if USE_TRIGGER_OUT
-		} else if (cmd == CMD_ID_TRG || cmd == CMD_ID_TRG_NS) {
+		} else if (cmd == CMD_ID_TRG || cmd == CMD_ID_TRG_NS) { // Get/set trg data
 			if(--len > sizeof(trg))	len = sizeof(trg);
 			if(len)
 				memcpy(&trg, &req->dat[1], len);
 			test_trg_on();
-			if(cmd != CMD_ID_TRG_NS)
+			if(cmd != CMD_ID_TRG_NS) // Get/set trg data (not save to Flash)
 				flash_write_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG);
 			ble_send_trg();
-		} else if (cmd == CMD_ID_TRG_OUT) {
+		} else if (cmd == CMD_ID_TRG_OUT) { // Set trg out
 			if(len > 1)
 				trg.flg.trg_output = req->dat[1] != 0;
 			test_trg_on();
 			ble_send_trg_flg();
 #endif // USE_TRIGGER_OUT
-		} else if (cmd == CMD_MI_ID_MAC) { // mac
-		} else if (cmd == CMD_MI_ID_KALL) { // get all mi keys
-			mi_key_stage = get_mi_keys(0xff);
-		} else if (cmd == CMD_MI_ID_REST) { // restore prev mi token & bindkeys
-			mi_key_stage = get_mi_keys(5);
-		} else if (cmd == CMD_ID_MEASURE) {
+		} else if (cmd == CMD_MI_ID_MAC) { // Get/Set mac
+			if(len == 2 && req->dat[1] == 0) { // default MAC
+				flash_erase_sector(FLASH_MIMAC_ADDR);
+				blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
+				ble_connected |= 0x80; // reset device on disconnect
+			} else if(len == sizeof(mac_public)+2 && req->dat[1] == sizeof(mac_public)) {
+				if(memcmp(&mac_public, &req->dat[2], sizeof(mac_public))) {
+					memcpy(&mac_public, &req->dat[2], sizeof(mac_public));
+					mac_random_static[0] = mac_public[0];
+					mac_random_static[1] = mac_public[1];
+					mac_random_static[2] = mac_public[2];
+					generateRandomNum(2, &mac_random_static[3]);
+					mac_random_static[5] = 0xC0; 			//for random static
+					flash_erase_sector(FLASH_MIMAC_ADDR);
+					flash_write_page(FLASH_MIMAC_ADDR, sizeof(mac_public), mac_public);
+					flash_write_page(FLASH_MIMAC_ADDR + sizeof(mac_public), 2, &mac_random_static[3]);
+					ble_connected |= 0x80; // reset device on disconnect
+				}
+			} else	if(len == sizeof(mac_public)+2+2 && req->dat[1] == sizeof(mac_public)+2) {
+				if(memcmp(&mac_public, &req->dat[2], sizeof(mac_public))
+						|| mac_random_static[3] != req->dat[2+6]
+						|| mac_random_static[4] != req->dat[2+7] ) {
+					memcpy(&mac_public, &req->dat[2], sizeof(mac_public));
+					mac_random_static[0] = mac_public[0];
+					mac_random_static[1] = mac_public[1];
+					mac_random_static[2] = mac_public[2];
+					mac_random_static[3] = req->dat[2+6];
+					mac_random_static[4] = req->dat[2+7];
+					mac_random_static[5] = 0xC0; 			//for random static
+					flash_erase_sector(FLASH_MIMAC_ADDR);
+					flash_write_page(FLASH_MIMAC_ADDR, sizeof(mac_public)+2, &req->dat[2]);
+					ble_connected |= 0x80; // reset device on disconnect
+				}
+			}
+			get_mi_keys(MI_KEY_STAGE_MAC);
+			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
+		} else if (cmd == CMD_MI_ID_KALL) { // Get all mi keys
+			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
+		} else if (cmd == CMD_MI_ID_REST) { // Restore prev mi token & bindkeys
+			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
+		} else if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
 			if(len >= 2)
 				tx_measures = req->dat[1];
 			else {
 				end_measure = 1;
 				tx_measures = 1;
 			}
-		} else if (cmd == CMD_ID_LCD_DUMP) {
+		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
 			if(--len > sizeof(display_buff)) len = sizeof(display_buff);
 			if(len) {
 				memcpy(display_buff, &req->dat[1], len);
@@ -260,14 +318,14 @@ void cmd_parser(void * p) {
 				lcd_flg.b.ext_data = 1;
 			} else lcd_flg.b.ext_data = 0;
 			ble_send_lcd();
-		} else if (cmd == CMD_ID_LCD_FLG) {
+		} else if (cmd == CMD_ID_LCD_FLG) { // Start/stop notify lcd dump and ...
 			 if (len > 1)
 				 lcd_flg.uc = req->dat[1];
 			 send_buf[0] = CMD_ID_LCD_FLG;
 			 send_buf[1] = lcd_flg.uc;
 			 bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
 #if BLE_SECURITY_ENABLE
-		} else if (cmd == CMD_ID_PINCODE && len > 4) { // PinCode
+		} else if (cmd == CMD_ID_PINCODE && len > 4) { // Set new pinCode 0..999999
 			uint32_t old_pincode = pincode;
 			uint32_t new_pincode = req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16) | (req->dat[4]<<24);
 			if(pincode != new_pincode) {
@@ -276,7 +334,7 @@ void cmd_parser(void * p) {
 					if((pincode != 0) ^ (old_pincode != 0)) {
 						cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 								clock_time() + 5*CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 5 sec
-						start_reboot();
+						ble_connected |= 0x80; // reset device on disconnect
 					}
 					send_buf[1] = 1;
 				} else	send_buf[1] = 3;
@@ -290,8 +348,38 @@ void cmd_parser(void * p) {
 				memcpy(&cmf, &req->dat[1], len);
 			flash_write_cfg(&cmf, EEP_ID_CMF, sizeof(cmf));
 			ble_send_cmf();
-		} else if (cmd == CMD_ID_DEBUG && len > 6) { // test/debug
-			bls_l2cap_requestConnParamUpdate(req->dat[1], req->dat[2], req->dat[3] | (req->dat[4]<<8), req->dat[5] | (req->dat[6]<<8));
+		} else if (cmd == CMD_ID_DNAME) { // Get/Set device name
+			if(--len > sizeof(ble_name) - 2) len = sizeof(ble_name) - 2;
+			if(len) {
+				flash_write_cfg(&req->dat[1], EEP_ID_DVN, (req->dat[1] != 0)? len : 0);
+				ble_get_name();
+				ble_connected |= 0x80; // reset device on disconnect
+			}
+			send_buf[0] = CMD_ID_DNAME;
+			memcpy(&send_buf[1], &ble_name[2], ble_name[0] - 1);
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, ble_name[0]);
+		} else if (cmd == CMD_MI_ID_DNAME) { // Mi key: DevNameId
+			if(len == MI_KEYDNAME_SIZE + 1)
+				store_mi_keys(MI_KEYDNAME_SIZE, MI_KEYDNAME_ID, &req->dat[1]);
+			get_mi_keys(MI_KEY_STAGE_DNAME);
+			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
+		} else if (cmd == CMD_MI_ID_TBIND) { // Mi keys: Token & Bind
+			if(len == MI_KEYTBIND_SIZE + 1)
+				store_mi_keys(MI_KEYTBIND_SIZE, MI_KEYTBIND_ID, &req->dat[1]);
+			get_mi_keys(MI_KEY_STAGE_TBIND);
+			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
+		} else if (cmd == CMD_ID_MTU && len > 1) { // Request Mtu Size Exchange
+			if(req->dat[1] > ATT_MTU_SIZE)
+			send_buf[1] = blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, req->dat[1]);
+			send_buf[0] = CMD_ID_MTU;
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
+		} else if (cmd == CMD_ID_REBOOT) { // Set Reboot on disconnect
+			ble_connected |= 0x80; // reset device on disconnect
+		} else if (cmd == CMD_ID_DEBUG && len > 3) { // test/debug
+			flash_read_page((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), sizeof(send_buf)-4, &send_buf[4]);
+			memcpy(send_buf, req->dat, 4);
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(send_buf));
 		}
+
 	}
 }

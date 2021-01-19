@@ -50,6 +50,7 @@
 
 #define _flash_mutex_lock()
 #define _flash_mutex_unlock()
+#define _flash_clear_cache()	// TLRS8xxx ?
 #define _flash_erase_sector(a) flash_erase_sector(a)
 #define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write_page(a, 4, (unsigned char *)&_dw); }
 #if MAX_FOBJ_SIZE > 256
@@ -90,7 +91,7 @@ typedef union __attribute__((packed)) // заголовок объекта со�
 #define FMEM_ERROR_MAX 5
 
 unsigned char buf_epp[MAX_FOBJ_SIZE+fobj_head_size];
-#if 1
+#if 0
 #define _flash_read_dword(a) (*(volatile u32*)(FLASH_BASE_ADDR + (a)))
 #define _flash_read(a,b,c) memcpy((void *)c, (void *)(FLASH_BASE_ADDR + (unsigned int)a), b) // _flash_read(rdaddr, len, pbuf);
 #define _flash_memcmp(a,b,c) memcmp((void *)(FLASH_BASE_ADDR + (unsigned int)a), c, b) // _flash_memcmp(xfaddr + fobj_head_size, size, ptr) == 0)
@@ -341,6 +342,7 @@ LOCAL signed short _flash_write_cfg(void *ptr, unsigned short id, unsigned short
 		faddr += 4;
 	}
 #endif
+	_flash_clear_cache();
 	return size;
 }
 //=============================================================================
@@ -422,6 +424,7 @@ bool flash_supported_eep_ver(unsigned int min_ver, unsigned int new_ver) {
 		_flash_write_dword(faddr, --tmp);
 		faddr += FLASH_SECTOR_SIZE;
 	} while(faddr < FLASH_SIZE);
+	_flash_clear_cache();
 	tmp = new_ver;
 	flash_write_cfg(&tmp, EEP_ID_VER, sizeof(tmp));
 	_flash_mutex_unlock();

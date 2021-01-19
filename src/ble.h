@@ -5,7 +5,7 @@
 #include "app.h"
 
 extern uint8_t ota_is_working;
-extern uint8_t ble_connected;
+extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 7 - reset device on disconnect
 extern uint8_t adv_mi_count;
 extern bool show_temp_humi_Mi;
 extern u8 batteryValueInCCC[2];
@@ -14,6 +14,9 @@ extern u8 temp2ValueInCCC[2];
 extern u8 humiValueInCCC[2];
 extern u8 RxTxValueInCCC[2];
 extern uint8_t send_buf[20];
+extern uint8_t mac_public[6];
+extern uint8_t mac_random_static[6];
+extern uint8_t ble_name[12];
 
 typedef struct
 {
@@ -92,6 +95,7 @@ void set_adv_data(uint8_t adv_type); // 0 - atc1441, 1 - Custom, 2 - Mi, 3 - all
 extern u8 my_RxTx_Data[16];
 
 void init_ble();
+void ble_get_name(void);
 bool ble_get_connected();
 void ble_send_measures(void);
 void ble_send_ext(void);

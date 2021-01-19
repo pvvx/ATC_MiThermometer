@@ -10,11 +10,12 @@
 #include "cmd_parser.h"
 #include "lcd.h"
 #include "app.h"
+#include "flash_eep.h"
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
 #endif
 
-RAM uint8_t ble_connected;
+RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - reset of disconnect
 uint8_t send_buf[20];
 
 extern uint8_t my_tempVal[2];
@@ -25,23 +26,30 @@ RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
 RAM my_fifo_t blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b, };
 RAM uint8_t blt_txfifo_b[40 * 16] = { 0 };
 RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
-RAM uint8_t ble_name[] = { 11, 0x09, 'A', 'T', 'C', '_', '0', '0', '0', '0',
-		'0', '0' };
+RAM uint8_t ble_name[12] = { 11, 0x09,
+		'A', 'T', 'C', '_', '0', '0', '0', '0',	'0', '0' };
 RAM uint8_t mac_public[6];
+RAM uint8_t mac_random_static[6];
 RAM uint8_t adv_mi_count;
 RAM uint8_t adv_buffer[24];
 uint8_t ota_is_working = 0;
 
-_attribute_ram_code_ void app_enter_ota_mode(void) {
+void app_enter_ota_mode(void) {
 	ota_is_working = 1;
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
 }
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
+	if(ble_connected & 0x80) // reset device on disconnect?
+		start_reboot();
 	ble_connected = 0;
+	ota_is_working = 0;
+	mi_key_stage = 0;
 	//lcd_flg.b.notify_on = 0;
 	lcd_flg.uc = 0;
-	if(!cfg.flg.tx_measures)
+	if(cfg.flg.tx_measures)
+		tx_measures = 0xff;
+	else
 		tx_measures = 0;
 }
 
@@ -106,20 +114,31 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 }
 #endif
 
+const char* hex_ascii = { "0123456789ABCDEF" };
+void ble_get_name(void) {
+	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, sizeof(ble_name)-2);
+	if(len < 1) {
+		//Set the BLE Name to the last three MACs the first ones are always the same
+		ble_name[2] = 'A';
+		ble_name[3] = 'T';
+		ble_name[4] = 'C';
+		ble_name[5] = '_';
+		ble_name[6] = hex_ascii[mac_public[2] >> 4];
+		ble_name[7] = hex_ascii[mac_public[2] & 0x0f];
+		ble_name[8] = hex_ascii[mac_public[1] >> 4];
+		ble_name[9] = hex_ascii[mac_public[1] & 0x0f];
+		ble_name[10] = hex_ascii[mac_public[0] >> 4];
+		ble_name[11] = hex_ascii[mac_public[0] & 0x0f];
+		ble_name[0] = 11;
+	} else
+		ble_name[0] = (uint8_t)(len + 1);
+}
+
 void init_ble(void) {
 	////////////////// BLE stack initialization //////////////////////
-	uint8_t mac_random_static[6];
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 	/// if bls_ll_setAdvParam( OWN_ADDRESS_RANDOM ) ->  blc_ll_setRandomAddr(mac_random_static);
-	//Set the BLE Name to the last three MACs the first ones are always the same
-	const char* hex_ascii = { "0123456789ABCDEF" };
-	ble_name[6] = hex_ascii[mac_public[2] >> 4];
-	ble_name[7] = hex_ascii[mac_public[2] & 0x0f];
-	ble_name[8] = hex_ascii[mac_public[1] >> 4];
-	ble_name[9] = hex_ascii[mac_public[1] & 0x0f];
-	ble_name[10] = hex_ascii[mac_public[0] >> 4];
-	ble_name[11] = hex_ascii[mac_public[0] & 0x0f];
-
+	ble_get_name();
 	////// Controller Initialization  //////////
 	blc_ll_initBasicMCU(); //must
 	blc_ll_initStandby_module(mac_public); //must
@@ -165,7 +184,7 @@ void init_ble(void) {
 	blc_smp_setSecurityLevel(No_Security);
 
 	///////////////////// USER application initialization ///////////////////
-	bls_ll_setScanRspData((uint8_t *) ble_name, sizeof(ble_name));
+	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
 	rf_set_power_level_index(cfg.rf_tx_power);
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power);
 	bls_app_registerEventCallback(BLT_EV_FLAG_CONNECT, &ble_connect_callback);
@@ -282,13 +301,13 @@ _attribute_ram_code_ void ble_send_measures(void) {
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);
 }
 
-_attribute_ram_code_ void ble_send_ext(void) {
+void ble_send_ext(void) {
 	send_buf[0] = CMD_ID_EXTDATA;
 	memcpy(&send_buf[1], &ext, sizeof(ext));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(ext) + 1);
 }
 
-void ble_send_lcd(void) {
+_attribute_ram_code_ void ble_send_lcd(void) {
 	send_buf[0] = CMD_ID_LCD_DUMP;
 	memcpy(&send_buf[1], display_buff, sizeof(display_buff));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(display_buff) + 1);

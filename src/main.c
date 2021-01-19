@@ -139,6 +139,10 @@ void _gpio_init(int anaRes_init_en) {
 	}
 }
 
+extern uint8_t * _ictag_start_;
+_attribute_ram_code_ void reset_cache(void) {
+	memset(_ictag_start_, 0, 256);	// Reset instruction cache ?
+}
 
 
 _attribute_ram_code_ void irq_handler(void)
@@ -171,15 +175,12 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	lpc_power_down();
 	blc_app_loadCustomizedParameters();
 
-	if( deepRetWakeUp ){
+	if(deepRetWakeUp)
 		user_init_deepRetn();
-	}
-	else{
+	else
 		user_init_normal();
-	}	
     irq_enable();
-	while(1) {
+	while(1)
 		main_loop();
-	}
 }
 
