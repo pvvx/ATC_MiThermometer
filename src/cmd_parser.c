@@ -66,9 +66,9 @@ uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 					memcpy(&pk->data, p, len);
 					return p;
 			}
-			p += len + 0x0f;
-			p = (uint8_t *)((uint32_t)(p) & 0xfffffff0);
 		}
+		p += len + 0x0f;
+		p = (uint8_t *)((uint32_t)(p) & 0xfffffff0);
 	} while(id != 0xffff || len != 0xff  || p < pend);
 	return NULL;
 }

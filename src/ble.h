@@ -38,7 +38,7 @@ typedef struct __attribute__((packed)) _adv_custom_t {
 	uint8_t		uid;	// = 0x16, 16-bit UUID
 	uint16_t	UUID;	// = 0x181A, GATT Service 0x181A Environmental Sensing
 	uint8_t		MAC[6]; // [0] - lo, .. [6] - hi digits
-	int16_t		temperature; // x 0.1 degree
+	int16_t		temperature; // x 0.01 degree
 	uint16_t	humidity; // x 0.01 %
 	uint16_t	battery_mv; // mV
 	uint8_t		battery_level; // 0..100 %
