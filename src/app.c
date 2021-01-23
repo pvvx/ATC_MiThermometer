@@ -398,7 +398,7 @@ _attribute_ram_code_ void main_loop(void) {
 				bls_pm_setAppWakeupLowPower(0, 0);
 			}
 		}
-		if((cfg.flg.advertising_type & 1)
+		if((cfg.flg.advertising_type & 2) // type 2 - Mi and 3 - all
 			&& blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {
 			set_adv_data(cfg.flg.advertising_type);
 		}

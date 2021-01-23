@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x15
+#define VERSION 0x16
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0	// LCD display LYWSD03MMC
