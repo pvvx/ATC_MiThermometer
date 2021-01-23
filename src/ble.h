@@ -5,7 +5,7 @@
 #include "app.h"
 
 extern uint8_t ota_is_working;
-extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 7 - reset device on disconnect
+extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset device on disconnect
 extern uint8_t adv_mi_count;
 extern bool show_temp_humi_Mi;
 extern u8 batteryValueInCCC[2];
@@ -17,6 +17,7 @@ extern uint8_t send_buf[20];
 extern uint8_t mac_public[6];
 extern uint8_t mac_random_static[6];
 extern uint8_t ble_name[12];
+extern attribute_t my_Attributes[ATT_END_H];
 
 typedef struct
 {

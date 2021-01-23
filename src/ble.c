@@ -15,7 +15,7 @@
 #include "trigger.h"
 #endif
 
-RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - reset of disconnect
+RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
 uint8_t send_buf[20];
 
 extern uint8_t my_tempVal[2];
@@ -54,7 +54,8 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
-	ble_connected = 1;
+	if(pincode) ble_connected = 1;
+	else ble_connected = 5;
 	if(cfg.connect_latency)
 		bls_l2cap_requestConnParamUpdate(16, 16, cfg.connect_latency, connection_timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
 	else
@@ -63,11 +64,11 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 }
 
 int app_conn_param_update_response(u8 id, u16  result) {
-/*
-	if(result == CONN_PARAM_UPDATE_ACCEPT) {
-	} else if(result == CONN_PARAM_UPDATE_REJECT) {	}
-*/
-	ble_connected |= 2;
+	if(result == CONN_PARAM_UPDATE_ACCEPT)
+		ble_connected |= 2;
+	else if(result == CONN_PARAM_UPDATE_REJECT) {
+		//bls_l2cap_requestConnParamUpdate(160, 160, 4, 300); // (200 ms, 200 ms, 1 s, 3 s)
+	}
 	return 0;
 }
 
@@ -107,9 +108,27 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 			uint32_t * p = (uint32_t *)&smp_param_own.paring_tk[0];
 			memset(p, 0, sizeof(smp_param_own.paring_tk));
 			p[0] = pincode;
+#if 0
+	} else if (event == GAP_EVT_SMP_PARING_SUCCESS) {
+		gap_smp_paringSuccessEvt_t* p = (gap_smp_paringSuccessEvt_t*)para;
+		if(p->bonding && p->bonding_result) { // paring success ?
+			ble_connected |= 4;
+		} else
+			ble_connected &= ~4;
+	} else if (event == GAP_EVT_SMP_PARING_FAIL) {
+		//gap_smp_paringFailEvt_t * p = (gap_smp_paringFailEvt_t *)para;
+		ble_connected &= ~4; // “Pairing Failed”
+	} else if (event == GAP_EVT_SMP_TK_REQUEST_PASSKEY) {
+		blc_smp_setTK_by_PasskeyEntry(pincode);
+	} else if (event == GAP_EVT_SMP_PARING_BEAGIN) {
+		gap_smp_paringBeginEvt_t * p = (gap_smp_paringBeginEvt_t*)para;
+		// ...
+	} else if(event == GAP_EVT_SMP_TK_REQUEST_OOB) {
+		//blc_smp_setTK_by_OOB();
+	} else if(event == GAP_EVT_SMP_TK_NUMERIC_COMPARE) {
+		//uint32_t * pin == (uint32_t*)para;
+#endif
 	}
-//	else if (event == GAP_EVT_SMP_TK_REQUEST_PASSKEY)
-//		blc_smp_setTK_by_PasskeyEntry(pincode);
 	return 0;
 }
 #endif
@@ -129,9 +148,12 @@ void ble_get_name(void) {
 		ble_name[9] = hex_ascii[mac_public[1] & 0x0f];
 		ble_name[10] = hex_ascii[mac_public[0] >> 4];
 		ble_name[11] = hex_ascii[mac_public[0] & 0x0f];
+		my_Attributes[GenericAccess_DeviceName_DP_H].attrLen = 10;
 		ble_name[0] = 11;
-	} else
+	} else {
+		my_Attributes[GenericAccess_DeviceName_DP_H].attrLen = len;
 		ble_name[0] = (uint8_t)(len + 1);
+	}
 }
 
 void init_ble(void) {
@@ -178,7 +200,17 @@ void init_ble(void) {
 		//host(GAP/SMP/GATT/ATT) event process: register host event callback and set event mask
 		blc_smp_configSecurityRequestSending(SecReq_IMM_SEND, SecReq_PEND_SEND, 1000); //if not set, default is:  send "security request" immediately after link layer connection established(regardless of new connection or reconnection )
 		blc_gap_registerHostEventHandler(app_host_event_callback);
-		blc_gap_setEventMask(GAP_EVT_MASK_SMP_TK_DISPALY); // | GAP_EVT_MASK_SMP_CONN_ENCRYPTION_DONE | GAP_EVT_MASK_SMP_TK_REQUEST_PASSKEY);
+		blc_gap_setEventMask(GAP_EVT_MASK_SMP_TK_DISPALY
+#if 0
+				| GAP_EVT_MASK_SMP_PARING_SUCCESS
+				| GAP_EVT_MASK_SMP_PARING_FAIL
+				| GAP_EVT_MASK_SMP_TK_REQUEST_PASSKEY
+				| GAP_EVT_MASK_SMP_PARING_BEAGIN
+				| GAP_EVT_MASK_SMP_CONN_ENCRYPTION_DONE
+				| GAP_EVT_MASK_SMP_TK_REQUEST_OOB
+				| GAP_EVT_MASK_SMP_TK_NUMERIC_COMPARE
+#endif
+				);
 	} else
 #endif
 	blc_smp_setSecurityLevel(No_Security);

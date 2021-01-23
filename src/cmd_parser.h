@@ -20,6 +20,7 @@ enum {
 	CMD_ID_LCD_DUMP = 0x60, // Get/set lcd buf
 	CMD_ID_LCD_FLG  = 0x61, // Start/stop notify lcd dump and ...
 	CMD_ID_PINCODE  = 0x70, // Set new PinCode 0..999999
+	// Debug commands (unsupported in different versions!):
 	CMD_ID_MTU		= 0x71, // Request Mtu Size Exchange (23..255)
 	CMD_ID_REBOOT	= 0x72, // Set Reboot on disconnect
 	CMD_ID_DEBUG    = 0xDE  // Test/Debug

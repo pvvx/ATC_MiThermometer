@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x14
+#define VERSION 0x15
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0	// LCD display LYWSD03MMC
@@ -80,6 +80,9 @@ extern "C" {
 #endif // USE_TRIGGER_OUT
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
 
+#define MODULE_WATCHDOG_ENABLE		0
+#define WATCHDOG_INIT_TIMEOUT		250  //ms
+
 /* DEVICE_LYWSD03MMC Average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
  * 16 MHz - 17.43 uA
  * 24 MHz - 17.28 uA
@@ -98,6 +101,8 @@ enum{
 #define pm_wait_us(t) cpu_stall_wakeup_by_timer0(t*CLOCK_SYS_CLOCK_1US);
 
 #define RAM _attribute_data_retention_ // short version, this is needed to keep the values in ram after sleep
+
+#define DeviceInformation_UUID 	1
 
 ///////////////////////////////////// ATT  HANDLER define ///////////////////////////////////////
 typedef enum
@@ -120,7 +125,21 @@ typedef enum
 	GenericAttribute_ServiceChanged_CD_H,	//UUID: 2803, 	VALUE:  			Prop: Indicate
 	GenericAttribute_ServiceChanged_DP_H,   //UUID:	2A05,	VALUE: service change
 	GenericAttribute_ServiceChanged_CCB_H,	//UUID: 2902,	VALUE: serviceChangeCCC
-
+	//// device information ////
+#if DeviceInformation_UUID
+	/**********************************************************************************************/
+	DeviceInformation_PS_H,					//UUID: 2800, 	VALUE: uuid 180A
+	DeviceInformation_ModName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_ModName_DP_H,			//UUID: 2A24,	VALUE: Model Number String
+	DeviceInformation_FirmRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_FirmRev_DP_H,			//UUID: 2A26,	VALUE: Firmware Revision String
+	DeviceInformation_HardRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_HardRev_DP_H,			//UUID: 2A27,	VALUE: Hardware Revision String
+	DeviceInformation_SoftRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_SoftRev_DP_H,			//UUID: 2A28,	VALUE: Software Revision String
+	DeviceInformation_ManName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_ManName_DP_H,			//UUID: 2A29,	VALUE: Manufacturer Name String
+#endif
 	//// battery service ////
 	/**********************************************************************************************/
 	BATT_PS_H, 								//UUID: 2800, 	VALUE: uuid 180f
@@ -152,13 +171,13 @@ typedef enum
 
 	//// RxTx ////
 	/**********************************************************************************************/
-	RxTx_PS_H, 								//UUID: 1F10, 	VALUE: RxTx service uuid
+	RxTx_PS_H, 								//UUID: 2800, 	VALUE: 1F10 RxTx service uuid
 	RxTx_CMD_OUT_CD_H,						//UUID: 2803, 	VALUE:  			Prop: read | write_without_rsp
 	RxTx_CMD_OUT_DP_H,						//UUID: 1F1F,  VALUE: RxTxData
 	RxTx_CMD_OUT_DESC_H,					//UUID: 2902, 	VALUE: RxTxValueInCCC
 	
 	// Mi Advertising char
-	Mi_PS_H, 								//UUID: , 	VALUE: 0xFE95 service uuid
+	Mi_PS_H, 								//UUID: 2800, 	VALUE: 0xFE95 service uuid
 	Mi_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: my_MiName
 	
 	ATT_END_H,

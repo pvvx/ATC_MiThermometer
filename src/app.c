@@ -409,7 +409,7 @@ _attribute_ram_code_ void main_loop(void) {
 			}
 			else if(stage_lcd && ((bls_pm_getSystemWakeupTick() - clock_time())) > 25 * CLOCK_16M_SYS_TIMER_CLK_1MS) {
 				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable
-				bls_pm_setWakeupSource(PM_WAKEUP_PAD|PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
+				bls_pm_setWakeupSource(PM_WAKEUP_PAD);//|PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 			}
 		}
 #endif

@@ -6,19 +6,19 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
 
-[LYWSD03MMC Custom Firmware Version 1.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer14.bin)
+[LYWSD03MMC Custom Firmware Version 1.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer15.bin)
 
-[MHO-C401 Custom Firmware Version 1.4p](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v14p.bin) (Fixed bug with get mi keys)
+[MHO-C401 Custom Firmware Version 1.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v15.bin)
 
 [LYWSD03MMC Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
 
 ### Average consumption:
 >* #### LYWSD03MMC - Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
-> * Advertisement: 15.5 uA
-> * Connection: 15..17 uA
+> * Advertisement: 20..25 uA 3.3V (CR2032 over 6 months)
+> * Connection: 19..25 uA 3.3V (CR2032 over 6 months)
 >* #### MHO-C401 - Default settings (Advertising interval of 2.5 seconds, the measurement interval 20 sec):
-> * Advertisement: 12..30 uA (depends on the amount of temperature or humidity changes over time to display)
-> * Connection: 15..30 uA (depends on the amount of temperature or humidity changes over time to display)
+> * Advertisement: 12..30 uA 3.3V (depends on the amount of temperature or humidity changes over time to display)
+> * Connection: 15..30 uA 3.3V (depends on the amount of temperature or humidity changes over time to display)
 
 **Advertising in 4 formats:**
 
@@ -119,3 +119,6 @@ History Firmware versions:
 1.3: Get/Set comfort parameters
 
 1.4: Get/Set device name, Get/Set MAC
+
+1.5: Add Standart Device Information Characteristics
+

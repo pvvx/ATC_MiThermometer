@@ -18,7 +18,7 @@ extern void main_loop(void);
  * @return     none.
  *
  */
-void _gpio_init(int anaRes_init_en) {
+_attribute_ram_code_ void _gpio_init(int anaRes_init_en) {
 	//PA group
 	reg_gpio_pa_setting1 =
 		(PA0_INPUT_ENABLE<<8) 	| (PA1_INPUT_ENABLE<<9)	| (PA2_INPUT_ENABLE<<10)	| (PA3_INPUT_ENABLE<<11) |
@@ -139,19 +139,11 @@ void _gpio_init(int anaRes_init_en) {
 	}
 }
 
-extern uint8_t * _ictag_start_;
-_attribute_ram_code_ void reset_cache(void) {
-	memset(_ictag_start_, 0, 256);	// Reset instruction cache ?
-}
-
-
-_attribute_ram_code_ void irq_handler(void)
-{
+_attribute_ram_code_ void irq_handler(void) {
 	irq_blt_sdk_handler();
 }
 
-_attribute_ram_code_ int main (void)    //must run in ramcode
-{
+_attribute_ram_code_ int main (void) {    //must run in ramcode
 	blc_pm_select_internal_32k_crystal();
 	cpu_wakeup_init();
 	int deepRetWakeUp = pm_is_MCU_deepRetentionWakeup();  //MCU deep retention wakeUp
@@ -179,8 +171,17 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		user_init_deepRetn();
 	else
 		user_init_normal();
+#if (MODULE_WATCHDOG_ENABLE)
+	reg_tmr_ctrl = MASK_VAL(
+		FLD_TMR_WD_CAPT, (MODULE_WATCHDOG_ENABLE ? (WATCHDOG_INIT_TIMEOUT * CLOCK_SYS_CLOCK_1MS >> 18):0)
+		, FLD_TMR_WD_EN, (MODULE_WATCHDOG_ENABLE?1:0));
+#endif
     irq_enable();
-	while(1)
+	while(1) {
+#if (MODULE_WATCHDOG_ENABLE)
+		wd_clear(); //clear watch dog
+#endif
 		main_loop();
+	}
 }
 

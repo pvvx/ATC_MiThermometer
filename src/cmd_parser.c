@@ -368,6 +368,9 @@ void cmd_parser(void * p) {
 				store_mi_keys(MI_KEYTBIND_SIZE, MI_KEYTBIND_ID, &req->dat[1]);
 			get_mi_keys(MI_KEY_STAGE_TBIND);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
+
+		// Debug commands (unsupported in different versions!):
+
 		} else if (cmd == CMD_ID_MTU && len > 1) { // Request Mtu Size Exchange
 			if(req->dat[1] > ATT_MTU_SIZE)
 			send_buf[1] = blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, req->dat[1]);
@@ -380,6 +383,5 @@ void cmd_parser(void * p) {
 			memcpy(send_buf, req->dat, 4);
 			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(send_buf));
 		}
-
 	}
 }
