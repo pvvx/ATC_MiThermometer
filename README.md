@@ -120,5 +120,5 @@ History Firmware versions:
 
 1.4: Get/Set device name, Get/Set MAC
 
-1.5: Add Standart Device Information Characteristics
+1.5: Add Standard Device Information Characteristics
 
