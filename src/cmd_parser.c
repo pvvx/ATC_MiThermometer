@@ -225,7 +225,14 @@ void cmd_parser(void * p) {
 	uint32_t len = req->l2cap - 3;
 	if(len) {
 		uint8_t cmd = req->dat[0];
-		if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
+		if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
+			if(len >= 2)
+				tx_measures = req->dat[1];
+			else {
+				end_measure = 1;
+				tx_measures = 1;
+			}
+		} else if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
 			if(--len > sizeof(ext)) len = sizeof(ext);
 			if(len) {
 				memcpy(&ext, &req->dat[1], len);
@@ -242,7 +249,7 @@ void cmd_parser(void * p) {
 			if(cmd != CMD_ID_CFG_NS) // Get/set config (not save to Flash)
 				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
-		} else if (cmd == CMD_ID_CFG_DEF) { // Get default config
+		} else if (cmd == CMD_ID_CFG_DEF) { // Set default config
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 			test_config();
 			ev_adv_timeout(0, 0, 0);
@@ -303,13 +310,6 @@ void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
 		} else if (cmd == CMD_MI_ID_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
-		} else if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
-			if(len >= 2)
-				tx_measures = req->dat[1];
-			else {
-				end_measure = 1;
-				tx_measures = 1;
-			}
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
 			if(--len > sizeof(display_buff)) len = sizeof(display_buff);
 			if(len) {
@@ -332,8 +332,8 @@ void cmd_parser(void * p) {
 				pincode = new_pincode;
 				if (flash_write_cfg(&pincode, EEP_ID_PCD, sizeof(pincode))) {
 					if((pincode != 0) ^ (old_pincode != 0)) {
-						cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
-								clock_time() + 5*CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 5 sec
+						bls_smp_eraseAllParingInformation();
+//						cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER, clock_time() + 5*CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 5 sec
 						ble_connected |= 0x80; // reset device on disconnect
 					}
 					send_buf[1] = 1;

@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x16
+#define VERSION 0x17
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0	// LCD display LYWSD03MMC
@@ -16,6 +16,8 @@ extern "C" {
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
 
 #define USE_TRIGGER_OUT 	1 // use trigger out (GPIO_PA5)
+
+#define USE_DEVICE_INFO_CHR_UUID 	1 // enable Device Information Characteristics
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
 
@@ -101,88 +103,6 @@ enum{
 #define pm_wait_us(t) cpu_stall_wakeup_by_timer0(t*CLOCK_SYS_CLOCK_1US);
 
 #define RAM _attribute_data_retention_ // short version, this is needed to keep the values in ram after sleep
-
-#define DeviceInformation_UUID 	1
-
-///////////////////////////////////// ATT  HANDLER define ///////////////////////////////////////
-typedef enum
-{
-	ATT_H_START = 0,
-
-	//// Gap ////
-	/**********************************************************************************************/
-	GenericAccess_PS_H, 					//UUID: 2800, 	VALUE: uuid 1800
-	GenericAccess_DeviceName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read | Notify
-	GenericAccess_DeviceName_DP_H,			//UUID: 2A00,   VALUE: device name
-	GenericAccess_Appearance_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
-	GenericAccess_Appearance_DP_H,			//UUID: 2A01,	VALUE: appearance
-	CONN_PARAM_CD_H,						//UUID: 2803, 	VALUE:  			Prop: Read
-	CONN_PARAM_DP_H,						//UUID: 2A04,   VALUE: connParameter
-
-	//// gatt ////
-	/**********************************************************************************************/
-	GenericAttribute_PS_H,					//UUID: 2800, 	VALUE: uuid 1801
-	GenericAttribute_ServiceChanged_CD_H,	//UUID: 2803, 	VALUE:  			Prop: Indicate
-	GenericAttribute_ServiceChanged_DP_H,   //UUID:	2A05,	VALUE: service change
-	GenericAttribute_ServiceChanged_CCB_H,	//UUID: 2902,	VALUE: serviceChangeCCC
-	//// device information ////
-#if DeviceInformation_UUID
-	/**********************************************************************************************/
-	DeviceInformation_PS_H,					//UUID: 2800, 	VALUE: uuid 180A
-	DeviceInformation_ModName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
-	DeviceInformation_ModName_DP_H,			//UUID: 2A24,	VALUE: Model Number String
-	DeviceInformation_FirmRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
-	DeviceInformation_FirmRev_DP_H,			//UUID: 2A26,	VALUE: Firmware Revision String
-	DeviceInformation_HardRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
-	DeviceInformation_HardRev_DP_H,			//UUID: 2A27,	VALUE: Hardware Revision String
-	DeviceInformation_SoftRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
-	DeviceInformation_SoftRev_DP_H,			//UUID: 2A28,	VALUE: Software Revision String
-	DeviceInformation_ManName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
-	DeviceInformation_ManName_DP_H,			//UUID: 2A29,	VALUE: Manufacturer Name String
-#endif
-	//// battery service ////
-	/**********************************************************************************************/
-	BATT_PS_H, 								//UUID: 2800, 	VALUE: uuid 180f
-	BATT_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
-	BATT_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: batVal
-	BATT_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: batValCCC
-
-	//// Temp/Humi service ////
-	/**********************************************************************************************/
-	TEMP_PS_H, 								//UUID: 2800, 	VALUE: uuid 181A
-	TEMP_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
-	TEMP_LEVEL_INPUT_DP_H,					//UUID: 2A1F 	VALUE: last_temp
-	TEMP_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: tempValCCC
-	
-	TEMP2_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
-	TEMP2_LEVEL_INPUT_DP_H,					//UUID: 2A6E 	VALUE: measured_data.temp
-	TEMP2_LEVEL_INPUT_CCB_H,				//UUID: 2902, 	VALUE: temp2ValCCC
-
-	HUMI_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
-	HUMI_LEVEL_INPUT_DP_H,					//UUID: 2A6F 	VALUE: measured_data.humi
-	HUMI_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: humiValCCC
-
-	//// Ota ////
-	/**********************************************************************************************/
-	OTA_PS_H, 								//UUID: 2800, 	VALUE: telink ota service uuid
-	OTA_CMD_OUT_CD_H,						//UUID: 2803, 	VALUE:  			Prop: read | write_without_rsp
-	OTA_CMD_OUT_DP_H,						//UUID: telink ota uuid,  VALUE: otaData
-	OTA_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: otaName
-
-	//// RxTx ////
-	/**********************************************************************************************/
-	RxTx_PS_H, 								//UUID: 2800, 	VALUE: 1F10 RxTx service uuid
-	RxTx_CMD_OUT_CD_H,						//UUID: 2803, 	VALUE:  			Prop: read | write_without_rsp
-	RxTx_CMD_OUT_DP_H,						//UUID: 1F1F,  VALUE: RxTxData
-	RxTx_CMD_OUT_DESC_H,					//UUID: 2902, 	VALUE: RxTxValueInCCC
-	
-	// Mi Advertising char
-	Mi_PS_H, 								//UUID: 2800, 	VALUE: 0xFE95 service uuid
-	Mi_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: my_MiName
-	
-	ATT_END_H,
-
-}ATT_HANDLE;
 
 #include "vendor/common/default_config.h"
 

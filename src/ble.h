@@ -17,7 +17,6 @@ extern uint8_t send_buf[20];
 extern uint8_t mac_public[6];
 extern uint8_t mac_random_static[6];
 extern uint8_t ble_name[12];
-extern attribute_t my_Attributes[ATT_END_H];
 
 typedef struct
 {
@@ -91,10 +90,95 @@ typedef struct __attribute__((packed)) _adv_mi_t {
 	};
 } adv_mi_t, * padv_mi_t;
 
+
+
+///////////////////////////////////// ATT  HANDLER define ///////////////////////////////////////
+typedef enum
+{
+	ATT_H_START = 0,
+
+	//// Gap ////
+	/**********************************************************************************************/
+	GenericAccess_PS_H, 					//UUID: 2800, 	VALUE: uuid 1800
+	GenericAccess_DeviceName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read | Notify
+	GenericAccess_DeviceName_DP_H,			//UUID: 2A00,   VALUE: device name
+	GenericAccess_Appearance_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	GenericAccess_Appearance_DP_H,			//UUID: 2A01,	VALUE: appearance
+	CONN_PARAM_CD_H,						//UUID: 2803, 	VALUE:  			Prop: Read
+	CONN_PARAM_DP_H,						//UUID: 2A04,   VALUE: connParameter
+
+	//// gatt ////
+	/**********************************************************************************************/
+	GenericAttribute_PS_H,					//UUID: 2800, 	VALUE: uuid 1801
+	GenericAttribute_ServiceChanged_CD_H,	//UUID: 2803, 	VALUE:  			Prop: Indicate
+	GenericAttribute_ServiceChanged_DP_H,   //UUID:	2A05,	VALUE: service change
+	GenericAttribute_ServiceChanged_CCB_H,	//UUID: 2902,	VALUE: serviceChangeCCC
+	//// device information ////
+#if USE_DEVICE_INFO_CHR_UUID
+	/**********************************************************************************************/
+	DeviceInformation_PS_H,					//UUID: 2800, 	VALUE: uuid 180A
+	DeviceInformation_ModName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_ModName_DP_H,			//UUID: 2A24,	VALUE: Model Number String
+	DeviceInformation_FirmRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_FirmRev_DP_H,			//UUID: 2A26,	VALUE: Firmware Revision String
+	DeviceInformation_HardRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_HardRev_DP_H,			//UUID: 2A27,	VALUE: Hardware Revision String
+	DeviceInformation_SoftRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_SoftRev_DP_H,			//UUID: 2A28,	VALUE: Software Revision String
+	DeviceInformation_ManName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_ManName_DP_H,			//UUID: 2A29,	VALUE: Manufacturer Name String
+#endif
+	//// battery service ////
+	/**********************************************************************************************/
+	BATT_PS_H, 								//UUID: 2800, 	VALUE: uuid 180f
+	BATT_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
+	BATT_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: batVal
+	BATT_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: batValCCC
+
+	//// Temp/Humi service ////
+	/**********************************************************************************************/
+	TEMP_PS_H, 								//UUID: 2800, 	VALUE: uuid 181A
+	TEMP_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
+	TEMP_LEVEL_INPUT_DP_H,					//UUID: 2A1F 	VALUE: last_temp
+	TEMP_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: tempValCCC
+
+	TEMP2_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
+	TEMP2_LEVEL_INPUT_DP_H,					//UUID: 2A6E 	VALUE: measured_data.temp
+	TEMP2_LEVEL_INPUT_CCB_H,				//UUID: 2902, 	VALUE: temp2ValCCC
+
+	HUMI_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
+	HUMI_LEVEL_INPUT_DP_H,					//UUID: 2A6F 	VALUE: measured_data.humi
+	HUMI_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: humiValCCC
+
+	//// Ota ////
+	/**********************************************************************************************/
+	OTA_PS_H, 								//UUID: 2800, 	VALUE: telink ota service uuid
+	OTA_CMD_OUT_CD_H,						//UUID: 2803, 	VALUE:  			Prop: read | write_without_rsp
+	OTA_CMD_OUT_DP_H,						//UUID: telink ota uuid,  VALUE: otaData
+	OTA_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: otaName
+
+	//// RxTx ////
+	/**********************************************************************************************/
+	RxTx_PS_H, 								//UUID: 2800, 	VALUE: 1F10 RxTx service uuid
+	RxTx_CMD_OUT_CD_H,						//UUID: 2803, 	VALUE:  			Prop: read | write_without_rsp
+	RxTx_CMD_OUT_DP_H,						//UUID: 1F1F,  VALUE: RxTxData
+	RxTx_CMD_OUT_DESC_H,					//UUID: 2902, 	VALUE: RxTxValueInCCC
+
+	// Mi Advertising char
+	Mi_PS_H, 								//UUID: 2800, 	VALUE: 0xFE95 service uuid
+	Mi_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: my_MiName
+
+	ATT_END_H,
+
+}ATT_HANDLE;
+extern attribute_t my_Attributes[ATT_END_H];
+
+
 void set_adv_data(uint8_t adv_type); // 0 - atc1441, 1 - Custom, 2 - Mi, 3 - all
 
 extern u8 my_RxTx_Data[16];
 
+void my_att_init();
 void init_ble();
 void ble_get_name(void);
 bool ble_get_connected();

@@ -6,9 +6,9 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
 
-[LYWSD03MMC Custom Firmware Version 1.6](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer16.bin)
+[LYWSD03MMC Custom Firmware Version 1.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer17.bin)
 
-[MHO-C401 Custom Firmware Version 1.6](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v16.bin)
+[MHO-C401 Custom Firmware Version 1.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v17.bin)
 
 [LYWSD03MMC Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
 
@@ -122,4 +122,6 @@ History Firmware versions:
 
 1.5: Add Standard Device Information Characteristics
 
-1.6: Fix alternation of Advertising in mi mode.
+1.6: Fix alternation of Advertising in mi mode
+
+1.7: Security attributes permission if pin-code enable

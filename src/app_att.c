@@ -35,7 +35,7 @@ static const u16 my_appearance = GAP_APPEARE_UNKNOWN;
 
 static const u16 my_gattServiceUUID = SERVICE_UUID_GENERIC_ATTRIBUTE;
 
-#if DeviceInformation_UUID
+#if USE_DEVICE_INFO_CHR_UUID
 
 //#define CHARACTERISTIC_UUID_SYSTEM_ID			0x2A23 // System ID
 #define CHARACTERISTIC_UUID_MODEL_NUMBER		0x2A24 // Model Number String
@@ -89,7 +89,7 @@ static const u8 my_FirmStr[] = {"github.com/pvvx"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 //------------------
-#endif // DeviceInformation_UUID
+#endif // USE_DEVICE_INFO_CHR_UUID
 
 RAM gap_periConnectParams_t my_periConnParameters = {20, 40, 0, 1000};
 
@@ -216,7 +216,7 @@ RAM attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_READ,2,sizeof(my_serviceChangeCharVal),(u8*)(&my_characterUUID), 		(u8*)(my_serviceChangeCharVal), 0},
 	{0,ATT_PERMISSIONS_READ,2,sizeof (serviceChangeVal), (u8*)(&serviceChangeUUID), 	(u8*)(&serviceChangeVal), 0},
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof (serviceChangeCCC),(u8*)(&clientCharacterCfgUUID), (u8*)(serviceChangeCCC), 0},
-#if DeviceInformation_UUID
+#if USE_DEVICE_INFO_CHR_UUID
 	// Device Information Service
 	{11,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_devServiceUUID), 0},
 
@@ -274,6 +274,13 @@ RAM attribute_t my_Attributes[] = {
 };
 
 void my_att_init(void) {
+	if(pincode) {
+		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;
+		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;
+	} else {
+		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_RDWR;
+		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_RDWR;
+	}
 	bls_att_setAttributeTable ((u8 *)my_Attributes);
 }
 

@@ -54,8 +54,7 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
-	if(pincode) ble_connected = 1;
-	else ble_connected = 5;
+	ble_connected = 1;
 	if(cfg.connect_latency)
 		bls_l2cap_requestConnParamUpdate(16, 16, cfg.connect_latency, connection_timeout); // (16*1.25 ms, 16*1.25 ms, (16*1.25)*100 ms, 800*10 ms)
 	else
@@ -103,30 +102,29 @@ _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
 int app_host_event_callback(u32 h, u8 *para, int n) {
 	(void) para; (void) n;
 	uint8_t event = (uint8_t)h;
-	if (event == GAP_EVT_SMP_TK_DISPALY) {
-			//u32 pinCode = *(u32*) para;
+	if (event == GAP_EVT_SMP_TK_DISPALY) { // PK_Resp_Dsply_Init_Input
+			//u32 *pinCode = (u32*) para;
 			uint32_t * p = (uint32_t *)&smp_param_own.paring_tk[0];
 			memset(p, 0, sizeof(smp_param_own.paring_tk));
 			p[0] = pincode;
 #if 0
 	} else if (event == GAP_EVT_SMP_PARING_SUCCESS) {
 		gap_smp_paringSuccessEvt_t* p = (gap_smp_paringSuccessEvt_t*)para;
-		if(p->bonding && p->bonding_result) { // paring success ?
+		if(p->bonding && p->bonding_result)  // paring success ?
 			ble_connected |= 4;
-		} else
-			ble_connected &= ~4;
 	} else if (event == GAP_EVT_SMP_PARING_FAIL) {
 		//gap_smp_paringFailEvt_t * p = (gap_smp_paringFailEvt_t *)para;
-		ble_connected &= ~4; // “Pairing Failed”
 	} else if (event == GAP_EVT_SMP_TK_REQUEST_PASSKEY) {
-		blc_smp_setTK_by_PasskeyEntry(pincode);
+		//blc_smp_setTK_by_PasskeyEntry(pincode);
 	} else if (event == GAP_EVT_SMP_PARING_BEAGIN) {
-		gap_smp_paringBeginEvt_t * p = (gap_smp_paringBeginEvt_t*)para;
+		//gap_smp_paringBeginEvt_t * p = (gap_smp_paringBeginEvt_t*)para;
 		// ...
 	} else if(event == GAP_EVT_SMP_TK_REQUEST_OOB) {
 		//blc_smp_setTK_by_OOB();
 	} else if(event == GAP_EVT_SMP_TK_NUMERIC_COMPARE) {
-		//uint32_t * pin == (uint32_t*)para;
+		//uint32_t * pin = (uint32_t*)para;
+		//blc_smp_setNumericComparisonResult(*pin == pincode);
+	} else if(event == GAP_EVT_MASK_SMP_CONN_ENCRYPTION_DONE) {
 #endif
 	}
 	return 0;
@@ -171,7 +169,6 @@ void init_ble(void) {
 
 	////// Host Initialization  //////////
 	blc_gap_peripheral_init();
-	extern void my_att_init();
 	my_att_init(); //gatt initialization
 	blc_l2cap_register_handler(blc_l2cap_packet_receive);
 
@@ -180,15 +177,29 @@ void init_ble(void) {
 	//   should re_stored) , so it must be done after battery check
 #if BLE_SECURITY_ENABLE
 	if(pincode) {
-		// bls_smp_eraseAllParingInformation();
-		// bls_smp_configParingSecurityInfoStorageAddr(0x074000);
-		// blc_smp_setParingMethods(LE_Secure_Connection);
-		// blc_smp_param_setBondingDeviceMaxNumber(SMP_BONDING_DEVICE_MAX_NUM);
+		//bls_smp_configParingSecurityInfoStorageAddr(0x074000);
+		//bls_smp_eraseAllParingInformation();
+		//blc_smp_param_setBondingDeviceMaxNumber(SMP_BONDING_DEVICE_MAX_NUM);
+#if 0
+		//set security level: "LE_Security_Mode_1_Level_2"
+		blc_smp_setSecurityLevel(Unauthenticated_Paring_with_Encryption);  //if not set, default is : LE_Security_Mode_1_Level_2(Unauthenticated_Paring_with_Encryption)
+		blc_smp_setParingMethods(LE_Secure_Connection);
+		blc_smp_setSecurityParamters(Bondable_Mode, 1, 0, 0, IO_CAPABLITY_NO_IN_NO_OUT);
+		//blc_smp_setEcdhDebugMode(debug_mode); //use debug mode for sniffer decryption
+#elif 1
 		//set security level: "LE_Security_Mode_1_Level_3"
-		blc_smp_setSecurityLevel(Authenticated_Paring_with_Encryption);  //if not set, default is : LE_Security_Mode_1_Level_2(Unauthenticated_Paring_with_Encryption)
+		blc_smp_setSecurityLevel(Authenticated_Paring_with_Encryption); //if not set, default is : LE_Security_Mode_1_Level_2(Unauthenticated_Paring_with_Encryption)
+		blc_smp_setParingMethods(LE_Secure_Connection);
 		blc_smp_enableAuthMITM(1);
-		blc_smp_setBondingMode(Bondable_Mode);	// if not set, default is : Bondable_Mode
+		//blc_smp_setBondingMode(Bondable_Mode);	// if not set, default is : Bondable_Mode
 		blc_smp_setIoCapability(IO_CAPABILITY_DISPLAY_ONLY);	// if not set, default is : IO_CAPABILITY_NO_INPUT_NO_OUTPUT
+#else
+		//set security level: "LE_Security_Mode_1_Level_4"
+		blc_smp_setSecurityLevel(Authenticated_LE_Secure_Connection_Paring_with_Encryption);  //if not set, default is : LE_Security_Mode_1_Level_2(Unauthenticated_Paring_with_Encryption)
+		blc_smp_setParingMethods(LE_Secure_Connection);
+		blc_smp_setSecurityParamters(Bondable_Mode, 1, 0, 0, IO_CAPABILITY_DISPLAY_ONLY);
+
+#endif
 		//Smp Initialization may involve flash write/erase(when one sector stores too much information,
 		//   is about to exceed the sector threshold, this sector must be erased, and all useful information
 		//   should re_stored) , so it must be done after battery check
@@ -202,13 +213,13 @@ void init_ble(void) {
 		blc_gap_registerHostEventHandler(app_host_event_callback);
 		blc_gap_setEventMask(GAP_EVT_MASK_SMP_TK_DISPALY
 #if 0
+				| GAP_EVT_MASK_SMP_PARING_BEAGIN
+				| GAP_EVT_MASK_SMP_TK_NUMERIC_COMPARE
 				| GAP_EVT_MASK_SMP_PARING_SUCCESS
 				| GAP_EVT_MASK_SMP_PARING_FAIL
 				| GAP_EVT_MASK_SMP_TK_REQUEST_PASSKEY
-				| GAP_EVT_MASK_SMP_PARING_BEAGIN
 				| GAP_EVT_MASK_SMP_CONN_ENCRYPTION_DONE
 				| GAP_EVT_MASK_SMP_TK_REQUEST_OOB
-				| GAP_EVT_MASK_SMP_TK_NUMERIC_COMPARE
 #endif
 				);
 	} else
@@ -233,13 +244,11 @@ void init_ble(void) {
 	bls_ota_clearNewFwDataArea(); //must
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
-#if BLE_SECURITY_ENABLE
-#if 1
-#else
-	if(pincode) {
+#if 0 // BLE_SECURITY_ENABLE && DEVICE_TYPE != DEVICE_MHO_C401
+	if(pincode && *((u32 *)(0x074000)) != 0xffffffff) {
+		smp_param_save_t  bondInfo;
 		u8 bond_number = blc_smp_param_getCurrentBondingDeviceNumber();  //get bonded device number
 		if(bond_number) {  // at least 1 bonding device exist
-			smp_param_save_t  bondInfo;
 			bls_smp_param_loadByIndex(bond_number - 1, &bondInfo);  //get the latest bonding device (index: bond_number-1 )
 			//set direct adv
 			bls_ll_setAdvParam( adv_interval, adv_interval + 50,
@@ -251,9 +260,9 @@ void init_ble(void) {
 			//it is recommended that direct adv only last for several seconds, then switch to indirect adv
 			bls_ll_setAdvDuration(adv_interval*625*2, 1); // interval usec, duration enable
 			bls_app_registerEventCallback(BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
+			bls_ll_setAdvEnable(1);
 		}
 	} else
-#endif
 #endif
 	ev_adv_timeout(0,0,0);
 }

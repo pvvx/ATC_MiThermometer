@@ -327,7 +327,7 @@ _attribute_ram_code_ void main_loop(void) {
 			bls_pm_setAppWakeupLowPower(0, 0);
 	}
 	if (ota_is_working) {
-		bls_pm_setSuspendMask(SUSPEND_DISABLE);
+		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN); // SUSPEND_DISABLE
 		bls_pm_setManualLatency(0);
 	} else {
 		if (!wrk_measure) {
