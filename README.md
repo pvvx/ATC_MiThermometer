@@ -47,6 +47,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 [GraphAtc.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc.html)
 [GraphAtc1.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc1.html)
 [GraphAtc2.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc2.html)
+[DevPoint.html](https://pvvx.github.io/ATC_MiThermometer/DevPoint.html)
 
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/GraphAtc_html.gif) 
 
