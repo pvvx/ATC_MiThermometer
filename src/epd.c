@@ -446,4 +446,18 @@ _attribute_ram_code_ int task_lcd(void) {
 	return stage_lcd;
 }
 
+#if	USE_CLOCK
+extern uint32_t utc_time;
+_attribute_ram_code_ void show_clock(void) {
+	uint32_t tmp = utc_time / 60;
+	uint32_t min = tmp % 60;
+	uint32_t hrs = tmp / 60 % 24;
+	memset(display_buff, 0, sizeof(display_buff));
+	epd_set_digit(display_buff, min / 10 % 10, bottom_left);
+	epd_set_digit(display_buff, min % 10, bottom_right);
+	epd_set_digit(display_buff, hrs / 10 % 10, top_left);
+	epd_set_digit(display_buff, hrs % 10, top_middle);
+}
+#endif // USE_CLOCK
+
 #endif // DEVICE_TYPE == DEVICE_MHO_C401

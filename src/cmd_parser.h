@@ -10,6 +10,7 @@ enum {
 	CMD_MI_ID_REST  = 0x16, // Restore prev mi token & bindkeys
 	CMD_ID_COMFORT  = 0x20, // Get/set comfort parameters
 	CMD_ID_EXTDATA  = 0x22, // Get/set show ext. data
+	CMD_ID_UTC_TIME = 0x23, // Get/set utc time (if USE_CLOCK = 1)
 	CMD_ID_MEASURE  = 0x33, // Start/stop notify measures in connection mode
 	CMD_ID_TRG      = 0x44, // Get/set trg data
 	CMD_ID_TRG_OUT  = 0x45, // Set trg out

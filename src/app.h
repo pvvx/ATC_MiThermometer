@@ -18,7 +18,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
 		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom, 2 - Mi, 3 - all
 		uint8_t comfort_smiley		: 1;
-		uint8_t blinking_smiley		: 1;
+		uint8_t blinking_time_smile	: 1; //(USE_CLOCK = 0 - smile, =1 time)
 		uint8_t temp_F_or_C			: 1;
 		uint8_t show_batt_enabled	: 1;
 		uint8_t tx_measures			: 1; // Send all measurements in connected mode

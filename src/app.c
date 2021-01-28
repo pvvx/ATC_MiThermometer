@@ -40,6 +40,11 @@ RAM uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = conn
 RAM uint32_t measurement_step_time; // = adv_interval * measure_interval
 RAM uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * 0.05 sec
 
+#if	USE_CLOCK
+RAM u32 utc_time;
+RAM u32 utc_time_tick;
+#endif
+
 RAM scomfort_t cmf;
 const scomfort_t def_cmf = {
 		.t = {2100,2600}, // x0.01 C
@@ -52,7 +57,7 @@ void lcd(void);
 const cfg_t def_cfg = {
 		.flg.temp_F_or_C = false,
 		.flg.comfort_smiley = true,
-		.flg.blinking_smiley = false,
+		.flg.blinking_time_smile = false,
 		.flg.show_batt_enabled = false,
 		.flg.advertising_type = 3,
 		.flg.tx_measures = false,
@@ -136,7 +141,7 @@ void test_config(void) {
 
 	my_RxTx_Data[0] = CMD_ID_CFG;
 	my_RxTx_Data[1] = VERSION;
-	my_RxTx_Data[sizeof(cfg)+2] = DEVICE_TYPE;
+	my_RxTx_Data[sizeof(cfg)+2] = DEVICE_TYPE | (USE_CLOCK << 4);
 	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 }
 
@@ -263,16 +268,22 @@ _attribute_ram_code_ void lcd(void) {
 		vtime_count_sec--;
 	}
 	show_stage++;
-	if (vtime_count_sec && (show_stage & 2)) { // no blinking on + show ext data
+	if (vtime_count_sec && (show_stage & 2)) { // show ext data
 		if (show_stage & 1) { // stage blinking or show battery
 			if (cfg.flg.show_batt_enabled || battery_level <= 5) { // Battery
 				show_smiley(0); // stage show battery
 				show_battery_symbol(1);
 				show_small_number((battery_level >= 100) ? 99 : battery_level, 1);
 				set_small_number_and_bat = false;
-			} else if (cfg.flg.blinking_smiley) // blinking on
+			} else if (cfg.flg.blinking_time_smile) { // blinking on
+#if	USE_CLOCK
+				show_clock(); // stage clock
+				show_ble_symbol(ble_connected);
+				return;
+#else
 				show_smiley(0); // stage blinking and blinking on
-			else
+#endif
+			} else
 				show_smiley(*((uint8_t *) &ext.flg));
 		} else
 			show_smiley(*((uint8_t *) &ext.flg));
@@ -284,14 +295,27 @@ _attribute_ram_code_ void lcd(void) {
 		show_big_number(ext.big_number);
 	} else {
 		if (show_stage & 1) { // stage blinking or show battery
+#if	USE_CLOCK
+			if (cfg.flg.blinking_time_smile && (show_stage & 2)) {
+				show_clock(); // stage clock
+				show_ble_symbol(ble_connected);
+				return;
+			}
+#endif
 			if (cfg.flg.show_batt_enabled || battery_level <= 5) { // Battery
 				show_smiley(0); // stage show battery
 				show_battery_symbol(1);
 				show_small_number((battery_level >= 100) ? 99 : battery_level, 1);
 				set_small_number_and_bat = false;
-			} else if (cfg.flg.blinking_smiley) // blinking on
+			} else if (cfg.flg.blinking_time_smile) { // blinking on
+#if	USE_CLOCK
+				show_clock(); // stage clock
+				show_ble_symbol(ble_connected);
+				return;
+#else
 				show_smiley(0); // stage blinking and blinking on
-			else {
+#endif
+			} else {
 				if (cfg.flg.comfort_smiley) { // no blinking on + comfort
 					show_smiley(is_comfort(measured_data.temp, measured_data.humi));
 				} else
@@ -317,9 +341,16 @@ _attribute_ram_code_ void lcd(void) {
 	}
 	show_ble_symbol(ble_connected);
 }
+
 //----------------------- main_loop()
 _attribute_ram_code_ void main_loop(void) {
 	blt_sdk_main_loop();
+#if	USE_CLOCK
+	while(clock_time() -  utc_time_tick > CLOCK_16M_SYS_TIMER_CLK_1S) {
+		utc_time_tick += CLOCK_16M_SYS_TIMER_CLK_1S;
+		utc_time++;
+	}
+#endif
 	if (wrk_measure
 		&& timer_measure_cb
 		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT) {

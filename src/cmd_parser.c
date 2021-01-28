@@ -368,7 +368,16 @@ void cmd_parser(void * p) {
 				store_mi_keys(MI_KEYTBIND_SIZE, MI_KEYTBIND_ID, &req->dat[1]);
 			get_mi_keys(MI_KEY_STAGE_TBIND);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
-
+#if USE_CLOCK
+		} else if (cmd == CMD_ID_UTC_TIME) { // Get/set utc time
+			extern uint32_t utc_time;
+			if(--len > sizeof(utc_time)) len = sizeof(utc_time);
+			if(len)
+				memcpy(&utc_time, &req->dat[1], len);
+			send_buf[0] = CMD_ID_UTC_TIME;
+			memcpy(&send_buf[1], &utc_time, sizeof(utc_time));
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(utc_time) + 1);
+#endif
 		// Debug commands (unsupported in different versions!):
 
 		} else if (cmd == CMD_ID_MTU && len > 1) { // Request Mtu Size Exchange

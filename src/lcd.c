@@ -108,10 +108,10 @@ _attribute_ram_code_ void show_big_number(int16_t number){
 		}
 		/* number: -99..1999 */
 		if(number > 999) display_buff[5] |= 0x08; // "1" 1000..1999
-		if(number > 99)display_buff[5] |= display_numbers[number / 100 % 10] & 0xF7; //
-		if(number > 9)display_buff[4] |= display_numbers[number / 10 % 10] & 0xF7;
-		if(number < 9)display_buff[4] |= 0xF5; // "0"
-	    display_buff[3] = display_numbers[number %10] & 0xF7;
+		if(number > 99) display_buff[5] |= display_numbers[number / 100 % 10];
+		if(number > 9) display_buff[4] |= display_numbers[number / 10 % 10];
+		if(number < 9) display_buff[4] |= 0xF5; // "0"
+	    display_buff[3] = display_numbers[number %10];
 	}
 }
 
@@ -130,9 +130,24 @@ _attribute_ram_code_ void show_small_number(int16_t number, bool percent){
 			number = -number;
 			display_buff[1] = 2; // "-"
 		}
-		if(number > 9) display_buff[1] |= display_numbers[number / 10 % 10] & 0xF7;
-		display_buff[0] |= display_numbers[number %10] & 0xF7;
+		if(number > 9) display_buff[1] |= display_numbers[number / 10 % 10];
+		display_buff[0] |= display_numbers[number %10];
 	}
 }
+
+#if	USE_CLOCK
+extern uint32_t utc_time;
+_attribute_ram_code_ void show_clock(void) {
+	uint32_t tmp = utc_time / 60;
+	uint32_t min = tmp % 60;
+	uint32_t hrs = tmp / 60 % 24;
+	display_buff[0] = display_numbers[min % 10];
+	display_buff[1] = display_numbers[min / 10 % 10];
+	display_buff[2] = 0;
+	display_buff[3] = display_numbers[hrs % 10];
+	display_buff[4] = display_numbers[hrs / 10 % 10];
+	display_buff[5] = 0;
+}
+#endif // USE_CLOCK
 
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
