@@ -37,7 +37,8 @@ enum eFMEMORY_ERRORS {
 // extern QueueHandle_t flash_mutex;
 signed short flash_read_cfg(void *ptr, unsigned short id, unsigned short maxsize); // возврат: размер объекта последнего сохранения, -1 - не найден, -2 - error
 bool flash_write_cfg(void *ptr, unsigned short id, unsigned short size);
-void flash_write_(unsigned int addr, unsigned int len, unsigned char *buf);
+// error flash write: patch (переход границы в 256 байт)!
+void flash_write_all_size(unsigned int addr, unsigned int len, unsigned char *buf);
 bool flash_supported_eep_ver(unsigned int min_ver, unsigned int new_ver);
 //-----------------------------------------------------------------------------
 

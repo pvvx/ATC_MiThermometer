@@ -4,15 +4,17 @@
 #include "vendor/common/user_config.h"
 #include "app_config.h"
 #include "drivers/8258/gpio_8258.h"
-#include "stack/ble/ble.h"
-#include "vendor/common/blt_common.h"
 #include "ble.h"
+#include "vendor/common/blt_common.h"
 #include "cmd_parser.h"
 #include "lcd.h"
 #include "app.h"
 #include "flash_eep.h"
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
+#endif
+#if USE_FLASH_MEMO
+#include "logger.h"
 #endif
 
 RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
@@ -47,6 +49,9 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	mi_key_stage = 0;
 	//lcd_flg.b.notify_on = 0;
 	lcd_flg.uc = 0;
+#if USE_FLASH_MEMO
+	rd_memo.cnt = 0;
+#endif
 	if(cfg.flg.tx_measures)
 		tx_measures = 0xff;
 	else
@@ -131,6 +136,7 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 }
 #endif
 
+extern attribute_t my_Attributes[ATT_END_H];
 const char* hex_ascii = { "0123456789ABCDEF" };
 void ble_get_name(void) {
 	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, sizeof(ble_name)-2);
@@ -373,5 +379,21 @@ void ble_send_trg_flg(void) {
 }
 #endif
 
+#if USE_FLASH_MEMO
+void send_memo_blk(void) {
+	send_buf[0] = CMD_ID_LOGGER;
+	if(++rd_memo.cur > rd_memo.cnt || (!get_memo(rd_memo.cur, (pmemo_blk_t)&send_buf[3]))) {
+		send_buf[1] = 0;
+		send_buf[2] = 0;
+		bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 3);
+		bls_pm_setManualLatency(cfg.connect_latency);
+		rd_memo.cnt = 0;
+	} else {
+		send_buf[1] = rd_memo.cur;
+		send_buf[2] = rd_memo.cur >> 8;
+		bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 3 + sizeof(memo_blk_t));
+	}
+}
+#endif
 
 

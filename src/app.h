@@ -24,6 +24,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 		uint8_t tx_measures			: 1; // Send all measurements in connected mode
 		uint8_t lp_measures			: 1; // Sensor measurements in "Low Power" mode
 	} flg;
+	struct __attribute__((packed)) {
 	/* ==================
 	 * LYWSD03MMC:
 	 * 0 = "     " off,
@@ -44,7 +45,9 @@ typedef struct __attribute__((packed)) _cfg_t {
 	 * 5 = "vVv" happy
 	 * 6 = "^-^" sad
 	 * 7 = "oOo" */
-	uint8_t smiley;		// 0..7
+		uint8_t smiley 		: 3;	// 0..7
+		uint8_t memo_enable	: 1;	// flash write measures enable
+	} flg2;
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)
 	uint8_t advertising_interval; // multiply by 62.5 for value in ms (1..160,  62.5 ms .. 10 sec)

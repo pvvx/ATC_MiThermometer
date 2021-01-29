@@ -52,11 +52,11 @@
 #define _flash_mutex_unlock()
 #define _flash_clear_cache()	// TLRS8xxx ?
 #define _flash_erase_sector(a) flash_erase_sector(a)
-#define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write_page(a, 4, (unsigned char *)&_dw); }
+#define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write_all_size(a, 4, (unsigned char *)&_dw); }
 #if MAX_FOBJ_SIZE > 256
-#define _flash_write(a,b,c) flash_write_(a,b,(unsigned char *)c) //flash_write(wraddr, len, pbuf);
+#define _flash_write(a,b,c) flash_write_all_size(a,b,(unsigned char *)c) //flash_write(wraddr, len, pbuf);
 #else
-#define _flash_write(a,b,c) flash_write_page(a,b,(unsigned char *)c)
+#define _flash_write(a,b,c) flash_write_all_size(a,b,(unsigned char *)c)
 #endif
 
 #ifndef LOCAL
@@ -97,6 +97,7 @@ unsigned char buf_epp[MAX_FOBJ_SIZE+fobj_head_size];
 #define _flash_memcmp(a,b,c) memcmp((void *)(FLASH_BASE_ADDR + (unsigned int)a), c, b) // _flash_memcmp(xfaddr + fobj_head_size, size, ptr) == 0)
 #else
 #define _flash_read(a,b,c) flash_read_page(FLASH_BASE_ADDR + a, b, (u8 *)c)
+
 inline unsigned int _flash_read_dword(unsigned int addr) {
 	unsigned int ret;
 	_flash_read(FLASH_BASE_ADDR + addr, 4, &ret);
@@ -109,14 +110,21 @@ inline unsigned int _flash_memcmp(unsigned int addr, unsigned int len, unsigned 
 }
 #endif
 
-_attribute_ram_code_ void flash_write_(unsigned int addr, unsigned int len, unsigned char *buf) {
-	unsigned int sz = 256;
+// error flash write: patch (переход границы в 256 байт)
+_attribute_ram_code_ void flash_write_all_size(unsigned int addr, unsigned int len, unsigned char *buf) {
+	uint32_t xlen;
 	while(len) {
-		if (len < sz) sz = len;
-		flash_write_page(addr, sz, buf);
-		addr += sz;
-		buf += sz;
-		len -= sz;
+		xlen = addr & 0xff;
+		if(xlen + len > 0x100) {
+			xlen = 0x100 - xlen;
+			flash_write_page(addr, xlen, buf);
+			len -= xlen;
+			addr += xlen;
+			buf += xlen;
+		} else {
+			flash_write_page(addr, len, buf);
+			break;
+		}
 	}
 }
 //-----------------------------------------------------------------------------

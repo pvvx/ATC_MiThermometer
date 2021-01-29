@@ -6,9 +6,9 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
 
-[LYWSD03MMC Custom Firmware Version 1.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer18.bin)
+[LYWSD03MMC Custom Firmware Version 1.9](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer19.bin)
 
-[MHO-C401 Custom Firmware Version 1.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v18.bin)
+[MHO-C401 Custom Firmware Version 1.9](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v19.bin)
 
 [LYWSD03MMC Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
 
@@ -38,7 +38,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 + PrimaryService - Battery Service (0x180F):
 - Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
 + PrimaryService (0x1F10):
-- Characteristic UUID 0x1F1F - Notify, frame id 0x33 (сonfiguring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
+- Characteristic UUID 0x1F1F - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
 ### OTA and Custom Setup
 [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html)
@@ -128,3 +128,6 @@ History Firmware versions:
 1.7: Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled
 
 1.8: Time display (instead of a blinking smile)
+
+1.9: Recording measurements to flash memory (cyclic buffer for 19632 measurements)
+

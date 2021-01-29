@@ -14,6 +14,9 @@
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
 #endif
+#if USE_FLASH_MEMO
+#include "logger.h"
+#endif
 
 void app_enter_ota_mode(void);
 
@@ -40,7 +43,7 @@ RAM uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = conn
 RAM uint32_t measurement_step_time; // = adv_interval * measure_interval
 RAM uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * 0.05 sec
 
-#if	USE_CLOCK
+#if	USE_CLOCK || USE_FLASH_MEMO
 RAM u32 utc_time;
 RAM u32 utc_time_tick;
 #endif
@@ -61,7 +64,7 @@ const cfg_t def_cfg = {
 		.flg.show_batt_enabled = false,
 		.flg.advertising_type = 3,
 		.flg.tx_measures = false,
-		.smiley = 0, // 0 = "     " off
+		.flg2.smiley = 0, // 0 = "     " off
 		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
 #if DEVICE_TYPE == DEVICE_MHO_C401
 		.measure_interval = 8, // * advertising_interval = 20 sec
@@ -154,6 +157,10 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 		if(trg.flg.trigger_on)
 			set_trigger_out();
 #endif
+#if USE_FLASH_MEMO
+		if(cfg.flg2.memo_enable)
+			write_memo();
+#endif
 		set_adv_data(cfg.flg.advertising_type);
 		end_measure = 1;
 	}
@@ -213,6 +220,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
 	init_sensor();
+#if USE_FLASH_MEMO
+	memo_init();
+#endif
 	measured_data.battery_mv = get_battery_mv();
 	battery_level = get_battery_level(measured_data.battery_mv);
 	init_lcd();
@@ -319,13 +329,13 @@ _attribute_ram_code_ void lcd(void) {
 				if (cfg.flg.comfort_smiley) { // no blinking on + comfort
 					show_smiley(is_comfort(measured_data.temp, measured_data.humi));
 				} else
-					show_smiley(cfg.smiley); // no blinking
+					show_smiley(cfg.flg2.smiley); // no blinking
 			}
 		} else {
 			if (cfg.flg.comfort_smiley) { // no blinking on + comfort
 				show_smiley(is_comfort(measured_data.temp, measured_data.humi));
 			} else
-				show_smiley(cfg.smiley); // no blinking
+				show_smiley(cfg.flg2.smiley); // no blinking
 		}
 		if (set_small_number_and_bat) {
 			show_battery_symbol(0);
@@ -345,10 +355,10 @@ _attribute_ram_code_ void lcd(void) {
 //----------------------- main_loop()
 _attribute_ram_code_ void main_loop(void) {
 	blt_sdk_main_loop();
-#if	USE_CLOCK
+#if	USE_CLOCK || USE_FLASH_MEMO
 	while(clock_time() -  utc_time_tick > CLOCK_16M_SYS_TIMER_CLK_1S) {
 		utc_time_tick += CLOCK_16M_SYS_TIMER_CLK_1S;
-		utc_time++;
+		utc_time++; // + 1 sec
 	}
 #endif
 	if (wrk_measure
@@ -407,6 +417,10 @@ _attribute_ram_code_ void main_loop(void) {
 							ble_send_humi();
 					} else if (mi_key_stage) {
 						mi_key_stage = get_mi_keys(mi_key_stage);
+#if USE_FLASH_MEMO
+					} else if (rd_memo.cnt) {
+						send_memo_blk();
+#endif
 					}
 				}
 				if (new - tim_measure >= measurement_step_time) {

@@ -10,6 +10,9 @@
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
 #endif
+#if USE_FLASH_MEMO
+#include "logger.h"
+#endif
 #include "cmd_parser.h"
 
 #define TX_MAX_SIZE	 (ATT_MTU_SIZE-3) // = 20
@@ -137,7 +140,7 @@ uint8_t store_mi_keys(uint8_t klen, uint16_t key_id, uint8_t * pkey) {
 				if(memcmp(pfnewkey, pkey, keybuf.klen)) {
 					memcpy(&backupsector[(uint32_t)pfnewkey - FLASH_MIKEYS_ADDR], pkey, keybuf.klen);
 					flash_erase_sector(FLASH_MIKEYS_ADDR);
-					flash_write_(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
+					flash_write_all_size(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
 					return 1;
 				}
 			} else {
@@ -146,7 +149,7 @@ uint8_t store_mi_keys(uint8_t klen, uint16_t key_id, uint8_t * pkey) {
 					memcpy(&keybuf.data, pfoldkey, keybuf.klen);
 					memcpy(&backupsector[(uint32_t)pfnewkey - FLASH_MIKEYS_ADDR], pfoldkey, keybuf.klen);
 					flash_erase_sector(FLASH_MIKEYS_ADDR);
-					flash_write_(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
+					flash_write_all_size(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
 					return 1;
 				}
 			}
@@ -368,7 +371,7 @@ void cmd_parser(void * p) {
 				store_mi_keys(MI_KEYTBIND_SIZE, MI_KEYTBIND_ID, &req->dat[1]);
 			get_mi_keys(MI_KEY_STAGE_TBIND);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
-#if USE_CLOCK
+#if USE_CLOCK || USE_FLASH_MEMO
 		} else if (cmd == CMD_ID_UTC_TIME) { // Get/set utc time
 			extern uint32_t utc_time;
 			if(--len > sizeof(utc_time)) len = sizeof(utc_time);
@@ -377,6 +380,17 @@ void cmd_parser(void * p) {
 			send_buf[0] = CMD_ID_UTC_TIME;
 			memcpy(&send_buf[1], &utc_time, sizeof(utc_time));
 			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(utc_time) + 1);
+#endif
+#if USE_FLASH_MEMO
+		} else if (cmd == CMD_ID_LOGGER && len > 2) { // Read memory measures
+			rd_memo.cnt = req->dat[1] | (req->dat[2] << 8);
+			if(rd_memo.cnt) {
+				rd_memo.saved = memo;
+				rd_memo.cur = 0;
+				bls_pm_setManualLatency(0);
+			} else {
+				bls_pm_setManualLatency(cfg.connect_latency);
+			}
 #endif
 		// Debug commands (unsupported in different versions!):
 

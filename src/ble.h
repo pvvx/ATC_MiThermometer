@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "app.h"
+#include "stack/ble/ble.h"
 
 extern uint8_t ota_is_working;
 extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset device on disconnect
@@ -171,8 +172,6 @@ typedef enum
 	ATT_END_H,
 
 }ATT_HANDLE;
-extern attribute_t my_Attributes[ATT_END_H];
-
 
 void set_adv_data(uint8_t adv_type); // 0 - atc1441, 1 - Custom, 2 - Mi, 3 - all
 
@@ -189,6 +188,9 @@ void ble_send_cmf(void);
 #if USE_TRIGGER_OUT
 void ble_send_trg(void);
 void ble_send_trg_flg(void);
+#endif
+#if USE_FLASH_MEMO
+void send_memo_blk(void);
 #endif
 int otaWritePre(void * p);
 int RxTxWrite(void * p);

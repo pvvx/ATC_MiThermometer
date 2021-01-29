@@ -12,6 +12,7 @@ enum {
 	CMD_ID_EXTDATA  = 0x22, // Get/set show ext. data
 	CMD_ID_UTC_TIME = 0x23, // Get/set utc time (if USE_CLOCK = 1)
 	CMD_ID_MEASURE  = 0x33, // Start/stop notify measures in connection mode
+	CMD_ID_LOGGER   = 0x35, // Read memory measures
 	CMD_ID_TRG      = 0x44, // Get/set trg data
 	CMD_ID_TRG_OUT  = 0x45, // Set trg out
 	CMD_ID_TRG_NS   = 0x4A, // Get/set trg data (not save to Flash)
