@@ -54,6 +54,10 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 ### Reading Measurements in Advertising Mode (experimental web platform features)
 [Advertising.html](https://pvvx.github.io/ATC_MiThermometer/Advertising.html)
 
+### Reading Measurements from Flash (test)
+[GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html)
+
+![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/FlashData.gif)
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/trg_menu.gif)
