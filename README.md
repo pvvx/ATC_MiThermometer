@@ -23,7 +23,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 **Advertising in 4 formats:**
 
 1. UUID 0x181A - size 16: [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware) 
-2. UUID 0x181A - size 19: custom - temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags (mark “reset”) and triggers.
+2. UUID 0x181A - size 19: custom - temperature x0.01C, humidity x0.01%, battery voltage in mV, battery charge level 0..100%, measurement count, GPIO-pin flags (mark “reset”) and triggers.
 3. UUID 0xFE95 - 0x0A: Xiaomi - battery charge level 0..100%, battery voltage in mV
 4. UUID 0xFE95 - 0x0D: Xiaomi - temperature x0.1C, humidity x0.1%
 
