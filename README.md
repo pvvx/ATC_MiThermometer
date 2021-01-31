@@ -1,4 +1,4 @@
-# ATC_MiThermometer
+# ATC_MiThermometer & MHO-C401
 
 
 Initial forked from https://github.com/atc1441/ATC_MiThermometer
@@ -88,6 +88,20 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
 
 ![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif)
+
+### Sample show LCD
+
+[Display on LCD in a loop:](https://youtu.be/HzYh1vq8ikM)
+
+(Battery and clock display are enabled in the settings. The rest of the settings in default.)
+
+1. Temperature and humidity
+2. Temperature and % of battery
+3. Temperature and humidity
+4. Hours and minutes
+
+The video contains 2 cycles.
+
 
 #### Building firmware:
 1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and getting IDE for TLSR8 Chips.
