@@ -110,7 +110,7 @@ _attribute_ram_code_ void show_big_number(int16_t number){
 		if(number > 999) display_buff[5] |= 0x08; // "1" 1000..1999
 		if(number > 99) display_buff[5] |= display_numbers[number / 100 % 10];
 		if(number > 9) display_buff[4] |= display_numbers[number / 10 % 10];
-		if(number < 9) display_buff[4] |= 0xF5; // "0"
+		else display_buff[4] |= 0xF5; // "0"
 	    display_buff[3] = display_numbers[number %10];
 	}
 }

@@ -6,9 +6,9 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
 
-[LYWSD03MMC Custom Firmware Version 2.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer20.bin)
+[LYWSD03MMC Custom Firmware Version 2.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer20p.bin)
 
-[MHO-C401 Custom Firmware Version 2.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v20.bin)
+[MHO-C401 Custom Firmware Version 2.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v20p.bin)
 
 [LYWSD03MMC Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
 

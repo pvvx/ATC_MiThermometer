@@ -266,7 +266,7 @@ _attribute_ram_code_ void show_big_number(int16_t number){
 		if(number > 999) display_buff[12] |= BIT(3); // "1" 1000..1999
 		if(number > 99) epd_set_digit(display_buff, number / 100 % 10, top_left);
 		if(number > 9) epd_set_digit(display_buff, number / 10 % 10, top_middle);
-		if(number < 9) epd_set_digit(display_buff, 0, top_middle);
+		else epd_set_digit(display_buff, 0, top_middle);
 		epd_set_digit(display_buff, number % 10, top_right);
 	}
 }
