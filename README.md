@@ -154,5 +154,5 @@ History Firmware versions:
 
 #### CJMCU-2557 BQ25570
 
-![SCH](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer/CJMCU-2557.jpg)
+![SCH](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer/img/CJMCU-2557.jpg)
 
