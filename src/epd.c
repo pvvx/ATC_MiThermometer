@@ -1,7 +1,9 @@
+#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if DEVICE_TYPE == DEVICE_MHO_C401
 /* Based on source: https://github.com/znanev/ATC_MiThermometer */
+#include "app.h"
 #include "epd.h"
 #include "drivers/8258/pm.h"
 #include "drivers/8258/timer.h"
@@ -382,7 +384,7 @@ _attribute_ram_code_ int task_lcd(void) {
 		    		transmit(0, LUT_CMD_0x26);
 		    		for (int i = 0; i < 15; i++)
 		    			transmit(1, T_LUT_KK_update[i]);
-			        // start an initialisation sequence (white - all 0x00)
+			        // start an initialization sequence (white - all 0x00)
 				    transmit(0, DATA_START_TRANSMISSION_1);
 				    for (int i = 0; i < 18; i++)
 				        transmit(1, 0);
@@ -395,7 +397,7 @@ _attribute_ram_code_ int task_lcd(void) {
 		    		transmit(0, LUT_CMD_0x26);
 		    		for (int i = 0; i < 15; i++)
 		    			transmit(1, T_LUT_KW_init[i]);
-		    	    // start an initialisation sequence (black - all 0xFF)
+		    	    // start an initialization sequence (black - all 0xFF)
 				    transmit(0, DATA_START_TRANSMISSION_1);
 				    for (int i = 0; i < 18; i++)
 				        transmit(1, 0xff);
@@ -447,9 +449,8 @@ _attribute_ram_code_ int task_lcd(void) {
 }
 
 #if	USE_CLOCK
-extern uint32_t utc_time;
 _attribute_ram_code_ void show_clock(void) {
-	uint32_t tmp = utc_time / 60;
+	uint32_t tmp = utc_time_sec / 60;
 	uint32_t min = tmp % 60;
 	uint32_t hrs = tmp / 60 % 24;
 	memset(display_buff, 0, sizeof(display_buff));
