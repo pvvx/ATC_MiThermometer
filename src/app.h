@@ -46,7 +46,8 @@ typedef struct __attribute__((packed)) _cfg_t {
 	 * 6 = "^-^" sad
 	 * 7 = "oOo" */
 		uint8_t smiley 		: 3;	// 0..7
-		uint8_t memo_enable	: 1;	// flash write measures enable
+		//uint8_t adv_memo  	: 1; 	// advertising uses averaged measurements
+		uint8_t reserved	: 5;
 	} flg2;
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)
@@ -55,6 +56,14 @@ typedef struct __attribute__((packed)) _cfg_t {
 	uint8_t rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm (130..191)
 	uint8_t connect_latency; // +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
 	uint8_t min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
+	struct __attribute__((packed)) {
+		uint8_t hwver : 3; // 0 - LYWSD03MMC, 1 - MHO-C401
+		uint8_t clock : 1; // clock
+		uint8_t memo  : 1; // flash write measures
+		uint8_t trg	  : 1; // trigger out
+		uint8_t reserved   : 2;
+	} hw_cfg; // read only
+	uint8_t averaging_measurements; // * measure_interval, 0 - off, 1..255 * measure_interval
 }cfg_t;
 extern cfg_t cfg;
 extern const cfg_t def_cfg;
@@ -87,8 +96,12 @@ typedef struct __attribute__((packed)) _external_data_t {
 	} flg;
 } external_data_t, * pexternal_data_t;
 extern external_data_t ext;
-extern uint32_t vtime_count_us;
-extern uint32_t vtime_count_sec;
+extern uint32_t chow_tick_clk; // count chow validity time, in clock
+extern uint32_t chow_tick_sec; // count chow validity time, in sec
+
+#if	USE_CLOCK || USE_FLASH_MEMO
+extern uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
+#endif
 
 extern uint32_t pincode; // pincode (if = 0 - not used)
 

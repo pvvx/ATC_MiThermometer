@@ -4,7 +4,7 @@
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 #include "drivers.h"
 #include "drivers/8258/gpio_8258.h"
-
+#include "app.h"
 #include "i2c.h"
 #include "lcd.h"
 
@@ -136,9 +136,8 @@ _attribute_ram_code_ void show_small_number(int16_t number, bool percent){
 }
 
 #if	USE_CLOCK
-extern uint32_t utc_time;
 _attribute_ram_code_ void show_clock(void) {
-	uint32_t tmp = utc_time / 60;
+	uint32_t tmp = utc_time_sec / 60;
 	uint32_t min = tmp % 60;
 	uint32_t hrs = tmp / 60 % 24;
 	display_buff[0] = display_numbers[min % 10];

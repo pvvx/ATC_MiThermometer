@@ -28,7 +28,13 @@
 #define _flash_write(a,b,c) flash_write_all_size(FLASH_BASE_ADDR + a, b, (unsigned char *)c)
 #define _flash_read(a,b,c) flash_read_page(FLASH_BASE_ADDR + a, b, (u8 *)c)
 
-extern uint32_t utc_time;
+typedef struct _summ_data_t {
+	uint32_t	battery_mv; // mV
+	int32_t		temp; // x 0.01 C
+	uint32_t	humi; // x 0.01 %
+	uint32_t 	count;
+} summ_data_t;
+RAM summ_data_t summ_data;
 
 RAM memo_inf_t memo;
 RAM memo_rd_t rd_memo;
@@ -95,7 +101,7 @@ void memo_init(void) {
 					memo.faddr = faddr;
 					return;
 				}
-				utc_time = tmp + 5;
+				utc_time_sec = tmp + 5;
 				memo.cnt_cur_sec++;
 				faddr += sizeof(memo_blk_t);
 			}
@@ -140,21 +146,35 @@ unsigned get_memo(uint32_t bnum, pmemo_blk_t p) {
 _attribute_ram_code_
 void write_memo(void) {
 	memo_blk_t mblk;
-	if(utc_time == 0xffffffff)
-		return;
+	if(cfg.averaging_measurements == 1) {
+		mblk.temp = measured_data.temp;
+		mblk.humi = measured_data.humi;
+		mblk.vbat = measured_data.battery_mv;
+	} else {
+		summ_data.temp += measured_data.temp;
+		summ_data.humi += measured_data.humi;
+		summ_data.battery_mv += measured_data.battery_mv;
+		summ_data.count++;
+		if(cfg.averaging_measurements > summ_data.count)
+			return;
+		mblk.temp = summ_data.temp/summ_data.count;
+		mblk.humi = summ_data.humi/summ_data.count;
+		mblk.vbat = summ_data.battery_mv/summ_data.count;
+		memset(&summ_data, 0, sizeof(summ_data));
+	}
 	/* default c4: dcdc 1.8V  -> GD flash; 48M clock may error, need higher DCDC voltage
 	           c6: dcdc 1.9V
 	analog_write(0x0c, 0xc6);
 	*/
-	mblk.time = utc_time;
+	if(utc_time_sec == 0xffffffff)
+		mblk.time = 0xfffffffe;
+	else
+		mblk.time = utc_time_sec;
 	uint32_t faddr = memo.faddr;
 	if(!faddr) {
 		memo_init();
 		faddr = memo.faddr;
 	}
-	mblk.temp = measured_data.temp;
-	mblk.humi = measured_data.humi;
-	mblk.vbat = measured_data.battery_mv;
 	_flash_write(faddr, sizeof(memo_blk_t), &mblk);
 	faddr += sizeof(memo_blk_t);
 	faddr &= (~(FLASH_SECTOR_SIZE-1));
@@ -166,6 +186,5 @@ void write_memo(void) {
 		memo.faddr += sizeof(memo_blk_t);
 	}
 }
-
 
 #endif // USE_FLASH_MEMO

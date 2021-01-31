@@ -20,8 +20,8 @@
 
 void app_enter_ota_mode(void);
 
-RAM uint32_t vtime_count_us; // count validity time, in us
-RAM uint32_t vtime_count_sec; // count validity time, in sec
+RAM uint32_t chow_tick_clk; // count chow validity time, in clock
+RAM uint32_t chow_tick_sec; // count chow validity time, in sec
 RAM uint8_t show_stage; // count/stage update lcd code buffer
 RAM lcd_flg_t lcd_flg;
 
@@ -43,10 +43,8 @@ RAM uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = conn
 RAM uint32_t measurement_step_time; // = adv_interval * measure_interval
 RAM uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * 0.05 sec
 
-#if	USE_CLOCK || USE_FLASH_MEMO
-RAM u32 utc_time;
-RAM u32 utc_time_tick;
-#endif
+RAM uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
+RAM uint32_t utc_time_sec_tick;
 
 RAM scomfort_t cmf;
 const scomfort_t def_cmf = {
@@ -69,9 +67,18 @@ const cfg_t def_cfg = {
 #if DEVICE_TYPE == DEVICE_MHO_C401
 		.measure_interval = 8, // * advertising_interval = 20 sec
 		.min_step_time_update_lcd = 199, //x0.05 sec,   9.95 sec
+		.hw_cfg.hwver = 1,
 #else // DEVICE_LYWSD03MMC
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
+		.hw_cfg.hwver = 0,
+#endif
+#if USE_FLASH_MEMO || USE_CLOCK
+		.hw_cfg.clock = 1,
+#endif
+#if USE_FLASH_MEMO
+		.hw_cfg.memo = 1,
+		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
 #endif
 		.rf_tx_power = RF_POWER_P3p01dBm,
 		.connect_latency = 124 // (124+1)*1.25*16 = 2500 ms
@@ -106,18 +113,18 @@ void test_config(void) {
 		cfg.rf_tx_power = RF_POWER_P10p46dBm;
 	}
 	if (cfg.measure_interval == 0)
-		cfg.measure_interval = 1; // x1, T = cfg.measure_interval * advertising_interval_ms (ms),  Tmin = 1 * 1*62.5 = 62.5 ms / 1 * 160 * 62.5 = 10000 ms
-	else if (cfg.measure_interval > 10)
-		cfg.measure_interval = 10; // x10, T = cfg.measure_interval * advertising_interval_ms (ms),  Tmax = 10 * 1*62.5 = 625 ms / 10 * 160 * 62.5 = 100000 ms = 100 sec
+		cfg.measure_interval = 1; // T = cfg.measure_interval * advertising_interval_ms (ms),  Tmin = 1 * 1*62.5 = 62.5 ms / 1 * 160 * 62.5 = 10000 ms
+	else if (cfg.measure_interval > 25) // max = (0x100000000-1.5*10000000*16)/(10000000*16) = 25.3435456
+		cfg.measure_interval = 25; // T = cfg.measure_interval * advertising_interval_ms (ms),  Tmax = 25 * 160*62.5 = 250000 ms = 250 sec
 	if (cfg.flg.tx_measures)
-		tx_measures = 0xff;
+		tx_measures = 0xff; // always notify
 	if (cfg.advertising_interval == 0) // 0 ?
 		cfg.advertising_interval = 1; // 1*62.5 = 62.5 ms
-	else if (cfg.advertising_interval > 160) // 160*62.5 = 10000 ms
-		cfg.advertising_interval = 160;
+	else if (cfg.advertising_interval > 160) // max 160 : 160*62.5 = 10000 ms
+		cfg.advertising_interval = 160; // 160*62.5 = 10000 ms
 	adv_interval = cfg.advertising_interval * 100; // Tadv_interval = adv_interval * 62.5 ms
 	measurement_step_time = adv_interval * cfg.measure_interval * (625
-			* sys_tick_per_us) - 250; // measurement_step_time = adv_interval * 62.5 * measure_interval
+			* sys_tick_per_us) - 250; // measurement_step_time = adv_interval * 62.5 * measure_interval, max 250 sec
 	/* interval = 16;
 	 * connection_interval_ms = (interval * 125) / 100;
 	 * connection_latency_ms = (cfg.connect_latency + 1) * connection_interval_ms = (16*125/100)*(99+1) = 2000;
@@ -141,10 +148,12 @@ void test_config(void) {
 	if(cfg.min_step_time_update_lcd < 10)
 		cfg.min_step_time_update_lcd = 10; // min 10*0.05 = 0.5 sec
 	min_step_time_update_lcd = cfg.min_step_time_update_lcd * (100 * CLOCK_16M_SYS_TIMER_CLK_1MS);
-
+	cfg.hw_cfg.hwver = DEVICE_TYPE;
+	cfg.hw_cfg.clock = USE_CLOCK;
+	cfg.hw_cfg.memo = USE_FLASH_MEMO;
+	cfg.hw_cfg.trg = USE_TRIGGER_OUT;
 	my_RxTx_Data[0] = CMD_ID_CFG;
 	my_RxTx_Data[1] = VERSION;
-	my_RxTx_Data[sizeof(cfg)+2] = DEVICE_TYPE | (USE_CLOCK << 4);
 	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 }
 
@@ -158,7 +167,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 			set_trigger_out();
 #endif
 #if USE_FLASH_MEMO
-		if(cfg.flg2.memo_enable)
+		if(cfg.averaging_measurements)
 			write_memo();
 #endif
 		set_adv_data(cfg.flg.advertising_type);
@@ -272,13 +281,13 @@ _attribute_ram_code_ void lcd_set_ext_data(void) {
 
 _attribute_ram_code_ void lcd(void) {
 	bool set_small_number_and_bat = true;
-	while (vtime_count_sec && clock_time() - vtime_count_us
+	while (chow_tick_sec && clock_time() - chow_tick_clk
 			> CLOCK_16M_SYS_TIMER_CLK_1S) {
-		vtime_count_us += CLOCK_16M_SYS_TIMER_CLK_1S;
-		vtime_count_sec--;
+		chow_tick_clk += CLOCK_16M_SYS_TIMER_CLK_1S;
+		chow_tick_sec--;
 	}
 	show_stage++;
-	if (vtime_count_sec && (show_stage & 2)) { // show ext data
+	if (chow_tick_sec && (show_stage & 2)) { // show ext data
 		if (show_stage & 1) { // stage blinking or show battery
 			if (cfg.flg.show_batt_enabled || battery_level <= 5) { // Battery
 				show_smiley(0); // stage show battery
@@ -356,9 +365,9 @@ _attribute_ram_code_ void lcd(void) {
 _attribute_ram_code_ void main_loop(void) {
 	blt_sdk_main_loop();
 #if	USE_CLOCK || USE_FLASH_MEMO
-	while(clock_time() -  utc_time_tick > CLOCK_16M_SYS_TIMER_CLK_1S) {
-		utc_time_tick += CLOCK_16M_SYS_TIMER_CLK_1S;
-		utc_time++; // + 1 sec
+	while(clock_time() -  utc_time_sec_tick > CLOCK_16M_SYS_TIMER_CLK_1S) {
+		utc_time_sec_tick += CLOCK_16M_SYS_TIMER_CLK_1S;
+		utc_time_sec++; // + 1 sec
 	}
 #endif
 	if (wrk_measure

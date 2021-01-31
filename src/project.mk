@@ -1,4 +1,5 @@
 OBJS += \
+$(OUT_PATH)/utils.o \
 $(OUT_PATH)/app.o \
 $(OUT_PATH)/lcd.o \
 $(OUT_PATH)/epd.o \
@@ -11,6 +12,7 @@ $(OUT_PATH)/i2c.o \
 $(OUT_PATH)/cmd_parser.o \
 $(OUT_PATH)/flash_eep.o \
 $(OUT_PATH)/logger.o \
+$(OUT_PATH)/blt_common.o\
 $(OUT_PATH)/main.o
 
 

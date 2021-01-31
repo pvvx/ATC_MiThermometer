@@ -239,8 +239,8 @@ void cmd_parser(void * p) {
 			if(--len > sizeof(ext)) len = sizeof(ext);
 			if(len) {
 				memcpy(&ext, &req->dat[1], len);
-				vtime_count_sec = ext.vtime_sec;
-				vtime_count_us = clock_time();
+				chow_tick_sec = ext.vtime_sec;
+				chow_tick_clk = clock_time();
 			}
 			ble_send_ext();
 		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) { // Get/set config
@@ -373,13 +373,12 @@ void cmd_parser(void * p) {
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
 #if USE_CLOCK || USE_FLASH_MEMO
 		} else if (cmd == CMD_ID_UTC_TIME) { // Get/set utc time
-			extern uint32_t utc_time;
-			if(--len > sizeof(utc_time)) len = sizeof(utc_time);
+			if(--len > sizeof(utc_time_sec)) len = sizeof(utc_time_sec);
 			if(len)
-				memcpy(&utc_time, &req->dat[1], len);
+				memcpy(&utc_time_sec, &req->dat[1], len);
 			send_buf[0] = CMD_ID_UTC_TIME;
-			memcpy(&send_buf[1], &utc_time, sizeof(utc_time));
-			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(utc_time) + 1);
+			memcpy(&send_buf[1], &utc_time_sec, sizeof(utc_time_sec));
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(utc_time_sec) + 1);
 #endif
 #if USE_FLASH_MEMO
 		} else if (cmd == CMD_ID_LOGGER && len > 2) { // Read memory measures
