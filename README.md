@@ -150,3 +150,9 @@ History Firmware versions:
 1.9: Recording measurements to flash memory (cyclic buffer for 19632 measurements)
 
 2.0: Recording measurements with averaging to flash memory
+
+
+#### CJMCU-2557 BQ25570
+
+![SCH](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer/CJMCU-2557.jpg)
+
