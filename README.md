@@ -14,15 +14,15 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 [MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
 
 ### History Firmware versions:
->1.2: Bind, Set Pin-code, Support MHO-C401
->1.3: Get/Set comfort parameters
->1.4: Get/Set device name, Get/Set MAC
->1.5: Add Standard Device Information Characteristics
->1.6: Fix alternation of Advertising in mi mode
->1.7: Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled
->1.8: Time display (instead of a blinking smile)
->1.9: Recording measurements to flash memory (cyclic buffer for 19632 measurements)
->2.0: Recording measurements with averaging to flash memory
+>1.2 Bind, Set Pin-code, Support MHO-C401<br>
+>1.3 Get/Set comfort parameters<br>
+>1.4 Get/Set device name, Get/Set MAC<br>
+>1.5 Add Standard Device Information Characteristics<br>
+>1.6 Fix alternation of Advertising in mi mode<br>
+>1.7 Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled<br>
+>1.8 Time display (instead of a blinking smile)<br>
+>1.9 Recording measurements to flash memory (cyclic buffer for 19632 measurements)<br>
+>2.0 Recording measurements with averaging to flash memory<br>
 
 ### Average consumption:
 >* #### LYWSD03MMC - Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
