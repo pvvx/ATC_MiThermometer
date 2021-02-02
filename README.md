@@ -120,6 +120,7 @@ The video contains 2 cycles.
 > * IST3055NA0 LCD controller 
 
 [LYWSD03MMC BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
+
 ![TabPins](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout/TabPins.gif)
 
 #### Building firmware:
