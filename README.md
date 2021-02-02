@@ -5,12 +5,24 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
-
 [LYWSD03MMC Custom Firmware Version 2.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer20p.bin)
 
 [MHO-C401 Custom Firmware Version 2.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v20p.bin)
 
 [LYWSD03MMC Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
+
+[MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
+
+### History Firmware versions:
+>1.2: Bind, Set Pin-code, Support MHO-C401
+>1.3: Get/Set comfort parameters
+>1.4: Get/Set device name, Get/Set MAC
+>1.5: Add Standard Device Information Characteristics
+>1.6: Fix alternation of Advertising in mi mode
+>1.7: Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled
+>1.8: Time display (instead of a blinking smile)
+>1.9: Recording measurements to flash memory (cyclic buffer for 19632 measurements)
+>2.0: Recording measurements with averaging to flash memory
 
 ### Average consumption:
 >* #### LYWSD03MMC - Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
@@ -130,27 +142,6 @@ The video contains 2 cycles.
 [LYWSD03MMC Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251-lcd-termometr-lywsd03mmc-xiaomi-bluetooth-termometr.5263/)
 
 [MHO-C401 Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251f512et24-e-inc-display-termometr-mho-c401-bluetooth-termometr.5446/)
-
-History Firmware versions:
-
-1.2: Bind, Set Pin-code, Support MHO-C401
-
-1.3: Get/Set comfort parameters
-
-1.4: Get/Set device name, Get/Set MAC
-
-1.5: Add Standard Device Information Characteristics
-
-1.6: Fix alternation of Advertising in mi mode
-
-1.7: Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled
-
-1.8: Time display (instead of a blinking smile)
-
-1.9: Recording measurements to flash memory (cyclic buffer for 19632 measurements)
-
-2.0: Recording measurements with averaging to flash memory
-
 
 #### CJMCU-2557 BQ25570
 
