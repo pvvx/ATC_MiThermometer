@@ -61,7 +61,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 [GraphAtc2.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc2.html)
 [DevPoint.html](https://pvvx.github.io/ATC_MiThermometer/DevPoint.html)
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/GraphAtc_html.gif) 
+![GraphAtc_html](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/GraphAtc_html.gif) 
 
 ### Reading Measurements in Advertising Mode (experimental web platform features)
 [Advertising.html](https://pvvx.github.io/ATC_MiThermometer/Advertising.html)
@@ -69,10 +69,10 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 ### Reading Measurements from Flash (test)
 [GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html)
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/FlashData.gif)
+![FlashData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/FlashData.gif)
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/trg_menu.gif)
+![trg_menu](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/trg_menu.gif)
 
 Hysteresis: 
 > * =0 off, 
@@ -81,7 +81,7 @@ Hysteresis:
 
 Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off). 
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/OnOff.gif)
+![OnOff](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/OnOff.gif)
 
 
 ### Interface for receiving and displaying data on the LCD.
@@ -91,7 +91,7 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 > * Smiley, battery, degrees
 > * Setting the display time limit in sec
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/ShowData.gif) 
+![ShowData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/ShowData.gif) 
 
 
 ### The USB-COM adapter writes the firmware in explorer. Web version.
@@ -99,7 +99,7 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
 
-![SCH](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif)
+![USBCOMFlashTxHtml](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif)
 
 ### Sample show LCD
 
@@ -114,6 +114,13 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 The video contains 2 cycles.
 
+#### Chipset:
+1. TLSR8251F512ET24 (TLSR8258 in 24-pin TQFN). SoC: TC32 32-bit MCU 48Mhz, 64 KiB SRAM, 512 KiB Flash (GD25LE40C), Bluetooth 5.0: Mesh, 6LoWPAN, Zigbee, RF4CE, HomeKit, Long Range, Operating temperature: -40°C to +85°C, Power supply: 1.8V to 3.6V.
+2. SHTV3 sensor. Measurement range: Temperature -40°C to +125°C, Humidity 0 to 100 %RH. Power supply: 1.8V to 3.6V
+3. IST3055NA0 LCD controller 
+
+[LYWSD03MMC BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
+[!TabPins](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout/TabPins.gif)
 
 #### Building firmware:
 1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and getting IDE for TLSR8 Chips.
@@ -122,10 +129,6 @@ The video contains 2 cycles.
 4. Change 'Linked resousrce' and 'C/C++ Build/Build command'. Compile.
 
 [Telink Linux Tool Chain 2020-06-26](https://yadi.sk/d/pt_qTBB-t24i9A)
-
-[LYWSD03MMC BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
-
-[LYWSD03MMC Original Full Flash v1.0.0_0106 (512 KB)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_full_flash_Xiaomi_LYWSD03MMC.bin)
 
 [MHO-C401 Info](https://pvvx.github.io/MHO_C401/)
 
