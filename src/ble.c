@@ -305,7 +305,11 @@ _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 		p->uid = 0x16; // 16-bit UUID
 		p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 		p->ctrl = 0x3050;
+#if DEVICE_TYPE == DEVICE_MHO_C401
+		p->dev_id = 0x0387;
+#else // DEVICE_LYWSD03MMC
 		p->dev_id = 0x055b;
+#endif
 		p->nx10 = 0x10;
 		p->counter = (uint8_t)measured_data.count;
 		if (adv_mi_count & 1) {
