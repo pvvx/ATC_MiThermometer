@@ -13,6 +13,9 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 [MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
 
+### OTA and Custom Setup
+[TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html)
+
 ### History Firmware versions:
 >1.2 Bind, Set Pin-code, Support MHO-C401<br>
 >1.3 Get/Set comfort parameters<br>
@@ -52,8 +55,10 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 + PrimaryService (0x1F10):
 - Characteristic UUID 0x1F1F - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
-### OTA and Custom Setup
-[TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html)
+### Reading Measurements from Flash
+[GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html)
+
+![FlashData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/FlashData.gif)
 
 ### Reading Measurements in Connected Mode
 [GraphAtc.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc.html)
@@ -65,11 +70,6 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 ### Reading Measurements in Advertising Mode (experimental web platform features)
 [Advertising.html](https://pvvx.github.io/ATC_MiThermometer/Advertising.html)
-
-### Reading Measurements from Flash (test)
-[GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html)
-
-![FlashData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/FlashData.gif)
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
 ![trg_menu](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/trg_menu.gif)
@@ -83,7 +83,6 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 ![OnOff](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/OnOff.gif)
 
-
 ### Interface for receiving and displaying data on the LCD.
 >* LCD shows: 
 > * Big number: -99.5..1999.5 
@@ -92,7 +91,6 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 > * Setting the display time limit in sec
 
 ![ShowData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/ShowData.gif) 
-
 
 ### The USB-COM adapter writes the firmware in explorer. Web version.
 >* Connect only TX-SWS and GND wires.
