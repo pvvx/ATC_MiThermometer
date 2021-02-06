@@ -238,9 +238,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 	measured_data.battery_mv = get_battery_mv();
 	battery_level = get_battery_level(measured_data.battery_mv);
-#if DEVICE_TYPE != DEVICE_MHO_C401
 	init_lcd();
-#endif
 	if (measured_data.battery_mv < 2000) {
 		show_temp_symbol(0);
 		show_big_number(measured_data.battery_mv * 10);
