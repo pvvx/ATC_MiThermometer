@@ -15,7 +15,14 @@ RAM uint8_t display_cmp_buff[6];
 /* 0,1,2,3,4,5,6,7,8,9,A,b,C,d,E,F*/
 const uint8_t display_numbers[] = {0xf5,0x05,0xd3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7, 0x77,0xe6,0xf0,0xc7,0xf2,0x72 };
 
-void init_lcd(){	
+const uint8_t lcd_ota_img[6] = {1,1,0x57,1,1,1};
+
+void lcd_ota(void) {
+	memcpy(&display_buff, &lcd_ota_img, sizeof(display_buff));
+	update_lcd();
+}
+
+void init_lcd(void){
 	gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 	
 	pm_wait_ms(50);

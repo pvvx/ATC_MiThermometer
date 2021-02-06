@@ -223,6 +223,13 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 	return chk_stage;
 }
 
+static void erase_mikeys(void) {
+	int32_t tmp;
+	flash_read_page(FLASH_MIKEYS_ADDR, 4, (unsigned char *)&tmp);
+	if(tmp != -1)
+		flash_erase_sector(FLASH_MIKEYS_ADDR);
+}
+
 void cmd_parser(void * p) {
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*) p;
 	uint32_t len = req->l2cap - 3;
@@ -313,6 +320,8 @@ void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
 		} else if (cmd == CMD_MI_ID_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
+		} else if (cmd == CMD_MI_ID_CLR) {
+			erase_mikeys();
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
 			if(--len > sizeof(display_buff)) len = sizeof(display_buff);
 			if(len) {
@@ -385,11 +394,13 @@ void cmd_parser(void * p) {
 			rd_memo.cnt = req->dat[1] | (req->dat[2] << 8);
 			if(rd_memo.cnt) {
 				rd_memo.saved = memo;
-				rd_memo.cur = 0;
+				if(len > 4)
+					rd_memo.cur = req->dat[3] | (req->dat[4] << 8);
+				else
+					rd_memo.cur = 0;
 				bls_pm_setManualLatency(0);
-			} else {
+			} else
 				bls_pm_setManualLatency(cfg.connect_latency);
-			}
 #endif
 		// Debug commands (unsupported in different versions!):
 

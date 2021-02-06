@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x20
+#define VERSION 0x21	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0	// LCD display LYWSD03MMC
@@ -105,6 +105,18 @@ enum{
 #define pm_wait_us(t) cpu_stall_wakeup_by_timer0(t*CLOCK_SYS_CLOCK_1US);
 
 #define RAM _attribute_data_retention_ // short version, this is needed to keep the values in ram after sleep
+
+/* Flash map:
+  0x00000 Old Firmware bin
+  0x20000 OTA New bin storage Area
+  0x40000 User Data Area (Logger, saving measurements) (FLASH_ADDR_START_MEMO)
+  0x74000 Pair & Security info (CFG_ADR_BIND)
+  0x76000 MAC address (CFG_ADR_MAC)
+  0x78000 User Data Area (EEP, saving configuration) (FMEMORY_SCFG_BASE_ADDR)
+  0x80000 End Flash (FLASH_SIZE)
+ */
+/* flash sector address with binding information */
+#define		CFG_ADR_BIND	0x74000 //no master, slave device (blt_config.h)
 
 #include "vendor/common/default_config.h"
 

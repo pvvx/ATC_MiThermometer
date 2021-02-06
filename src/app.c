@@ -78,7 +78,11 @@ const cfg_t def_cfg = {
 #endif
 #if USE_FLASH_MEMO
 		.hw_cfg.memo = 1,
+#if DEVICE_TYPE == DEVICE_MHO_C401
+		.averaging_measurements = 30, // * measure_interval = 20 * 30 = 600 sec = 10 minutes
+#else // DEVICE_LYWSD03MMC
 		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
+#endif
 #endif
 		.rf_tx_power = RF_POWER_P3p01dBm,
 		.connect_latency = 124 // (124+1)*1.25*16 = 2500 ms
@@ -234,7 +238,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 	measured_data.battery_mv = get_battery_mv();
 	battery_level = get_battery_level(measured_data.battery_mv);
+#if DEVICE_TYPE != DEVICE_MHO_C401
 	init_lcd();
+#endif
 	if (measured_data.battery_mv < 2000) {
 		show_temp_symbol(0);
 		show_big_number(measured_data.battery_mv * 10);
@@ -444,9 +450,7 @@ _attribute_ram_code_ void main_loop(void) {
 #if DEVICE_TYPE == DEVICE_MHO_C401
 					if(!stage_lcd)
 #endif
-					{
 						update_lcd();
-					}
 					tim_last_chow = new;
 				}
 				bls_pm_setAppWakeupLowPower(0, 0);

@@ -8,10 +8,13 @@
 #include "drivers/8258/pm.h"
 #include "drivers/8258/timer.h"
 
+#define DEF_EPD_REFRESH_CNT	32
+
 RAM uint8_t display_buff[18];
 RAM uint8_t display_cmp_buff[18];
 RAM uint8_t stage_lcd;
 RAM uint8_t flg_lcd_init;
+RAM uint8_t lcd_refresh_cnt;
 
 //----------------------------------
 // LUTV, LUT_KK and LUT_KW values taken from the actual device with a
@@ -82,6 +85,12 @@ const uint8_t digits[16][11] = {
     {1, 5, 6, 7, 8, 9, 10, 11, 0, 0, 0}, // E
     {1, 6, 7, 8, 9, 10, 11, 0, 0, 0, 0}  // F
 };
+//								 0 1 2 3    4 5 6 7 8 9 0 1 2 3 4 5    6 7
+const uint8_t lcd_ota_img[18] = {0,0,0,0,0x80,1,4,0,4,0,0,0,4,0,9,0,0x40,0};
+// @TODO  OTA mode work no E-Inc update
+void lcd_ota(void) {
+	memcpy(&display_buff, &lcd_ota_img, sizeof(display_buff));
+}
 
 /* 0x00 = "  "
  * 0x20 = "°Г"
@@ -308,25 +317,24 @@ _attribute_ram_code_ void show_small_number(int16_t number, bool percent){
 	}
 }
 
-_attribute_ram_code_ void update_lcd(){
-	if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
-		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
-#if 0
-		if(gpio_read(EPD_BUSY)) {
-			// send Charge Pump ON command
-			transmit(0, POWER_ON);
-		    // wait ~30 ms for the display to become ready to receive new
-			stage_lcd = 2;
-		} else
-#endif
-			stage_lcd = 1;
-		flg_lcd_init = 0;
-	}
+void init_lcd(void) {
+	lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
+    stage_lcd = 1;
+    flg_lcd_init = 3;
 }
 
-void init_lcd(void) {
-    flg_lcd_init = 3;
-    stage_lcd = 1;
+_attribute_ram_code_ void update_lcd(void){
+	if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
+		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
+		if(lcd_refresh_cnt) {
+			lcd_refresh_cnt--;
+			flg_lcd_init = 0;
+		} else {
+			lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
+			flg_lcd_init = 3;
+		}
+		stage_lcd = 1;
+	}
 }
 
 _attribute_ram_code_ int task_lcd(void) {

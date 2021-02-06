@@ -5,9 +5,9 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 (Thanks @atc1441 for initial parsing and js code for OTA)
 
-[LYWSD03MMC Custom Firmware Version 2.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer20p.bin)
+[LYWSD03MMC Custom Firmware Version 2.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer21.bin)
 
-[MHO-C401 Custom Firmware Version 2.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v20p.bin)
+[MHO-C401 Custom Firmware Version 2.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v21.bin)
 
 [LYWSD03MMC Original Firmware v1.0.0_0106](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0106.bin)
 
@@ -26,6 +26,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 >1.8 Time display (instead of a blinking smile)<br>
 >1.9 Recording measurements to flash memory (cyclic buffer for 19632 measurements)<br>
 >2.0 Recording measurements with averaging to flash memory<br>
+>2.1 Periodic display refresh for MHO-C401, 'Erase mi-keys' option to return to original firmware<br>
 
 ### Average consumption:
 >* #### LYWSD03MMC - Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):

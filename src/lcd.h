@@ -50,6 +50,7 @@ void send_to_lcd_long(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4
 #if	USE_CLOCK
 void show_clock(void);
 #endif
+void lcd_ota(void);
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
 extern uint8_t display_buff[18];

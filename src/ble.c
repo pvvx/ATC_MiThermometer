@@ -39,6 +39,7 @@ uint8_t ota_is_working = 0;
 void app_enter_ota_mode(void) {
 	ota_is_working = 1;
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
+	lcd_ota();
 }
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
@@ -251,7 +252,7 @@ void init_ble(void) {
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 #if 0 // BLE_SECURITY_ENABLE && DEVICE_TYPE != DEVICE_MHO_C401
-	if(pincode && *((u32 *)(0x074000)) != 0xffffffff) {
+	if(pincode && *((u32 *)(CFG_ADR_BIND)) != 0xffffffff) {
 		smp_param_save_t  bondInfo;
 		u8 bond_number = blc_smp_param_getCurrentBondingDeviceNumber();  //get bonded device number
 		if(bond_number) {  // at least 1 bonding device exist
@@ -305,7 +306,11 @@ _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 		p->uid = 0x16; // 16-bit UUID
 		p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 		p->ctrl = 0x3050;
+#if DEVICE_TYPE == DEVICE_MHO_C401
+		p->dev_id = 0x0387;
+#else // DEVICE_LYWSD03MMC
 		p->dev_id = 0x055b;
+#endif
 		p->nx10 = 0x10;
 		p->counter = (uint8_t)measured_data.count;
 		if (adv_mi_count & 1) {
