@@ -126,7 +126,7 @@ The video contains 2 cycles.
 1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and getting IDE for TLSR8 Chips.
 2. Clone https://github.com/Ai-Thinker-Open/Telink_825X_SDK
 3. Install IDE and export the 'ATC_MiThermometer' project.
-4. Change 'Linked resousrce' and 'C/C++ Build/Build command'. Compile.
+4. Change 'Linked resource' and 'C/C++ Build/Build command'. Compile.
 
 [Telink Linux Tool Chain 2020-06-26](https://yadi.sk/d/pt_qTBB-t24i9A)
 
