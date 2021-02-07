@@ -3,7 +3,7 @@
 
 Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
-(Thanks @atc1441 for initial parsing and js code for OTA)
+*(Thanks @atc1441 for initial parsing and js code for OTA)*
 
 [LYWSD03MMC Custom Firmware Version 2.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer21.bin)
 
@@ -14,47 +14,73 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 [MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
 
 ### OTA and Custom Setup
-[TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html)
+[TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) - OTA and customize
 
 ### History Firmware versions:
->1.2 Bind, Set Pin-code, Support MHO-C401<br>
->1.3 Get/Set comfort parameters<br>
->1.4 Get/Set device name, Get/Set MAC<br>
->1.5 Add Standard Device Information Characteristics<br>
->1.6 Fix alternation of Advertising in mi mode<br>
->1.7 Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled<br>
->1.8 Time display (instead of a blinking smile)<br>
->1.9 Recording measurements to flash memory (cyclic buffer for 19632 measurements)<br>
->2.0 Recording measurements with averaging to flash memory<br>
->2.1 Periodic display refresh for MHO-C401, 'Erase mi-keys' option to return to original firmware<br>
+>1.2  Bind, Set Pin-code, Support MHO-C401<br>
+>1.3  Get/Set comfort parameters<br>
+>1.4  Get/Set device name, Get/Set MAC<br>
+>1.5  Add Standard Device Information Characteristics<br>
+>1.6  Fix alternation of Advertising in mi mode<br>
+>1.7  Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled<br>
+>1.8  Time display (instead of a blinking smile)<br>
+>1.9  Recording measurements to flash memory (cyclic buffer for 19632 measurements)<br>
+>2.0  Recording measurements with averaging to flash memory<br>
+>2.1  Periodic display refresh for MHO-C401, 'Erase mi-keys' option to return to original firmware<br>
 
 ### Average consumption:
 >* #### LYWSD03MMC - Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
-> * Advertisement: 20..25 uA 3.3V (CR2032 over 6 months)
-> * Connection: 19..25 uA 3.3V (CR2032 over 6 months)
+>
+>* Advertisement: 20..25 uA 3.3V ([CR2032](https://github.com/pvvx/ATC_MiThermometer/issues/23#issuecomment-766898945) [over 6 months](https://github.com/pvvx/ATC_MiThermometer/issues/36))
+>
+>* Connection: 19..25 uA 3.3V (CR2032 over 6 months)
+>
 >* #### MHO-C401 - Default settings (Advertising interval of 2.5 seconds, the measurement interval 20 sec):
-> * Advertisement: 12..30 uA 3.3V (depends on the amount of temperature or humidity changes over time to display)
-> * Connection: 15..30 uA 3.3V (depends on the amount of temperature or humidity changes over time to display)
+>
+>* Advertisement: 12..30 uA 3.3V ([depends on the amount of temperature or humidity changes over time to display](https://pvvx.github.io/MHO_C401/power_altfw.html))
+>
+>* Connection: 15..30 uA 3.3V (depends on the amount of temperature or humidity changes over time to display)
 
 **Advertising in 4 formats:**
 
-1. UUID 0x181A - size 16: [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware) 
-2. UUID 0x181A - size 19: custom - temperature x0.01C, humidity x0.01%, battery voltage in mV, battery charge level 0..100%, measurement count, GPIO-pin flags (mark “reset”) and triggers.
-3. UUID 0xFE95 - 0x0A: Xiaomi - battery charge level 0..100%, battery voltage in mV
-4. UUID 0xFE95 - 0x0D: Xiaomi - temperature x0.1C, humidity x0.1%
-
- ++ Configuring mode of transferring everything in turn 
+>1. UUID 0x181A - size 16: [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware) 
+>
+>2. UUID 0x181A - size 19: Custom format (all data little-endian):  
+>
+>   ```c
+>   uint8_t		size;	// = 19
+>   uint8_t		uid;	// = 0x16, 16-bit UUID
+>   uint16_t	UUID;	// = 0x181A, GATT Service 0x181A Environmental Sensing
+>   uint8_t		MAC[6]; // [0] - lo, .. [6] - hi digits
+>   int16_t		temperature;	// x 0.01 degree
+>   uint16_t	humidity;		// x 0.01 %
+>   uint16_t	battery_mv;		// mV
+>   uint8_t		battery_level;	// 0..100 %
+>   uint8_t		counter;		// measurement count
+>   uint8_t		flags;	// GPIO_TRG pin (marking "reset" on circuit board) flags: 
+>   					// bit0: GPIO_TRG pin input value (real level)
+>   					// bit1: GPIO_TRG pin output value (pull Up/Down)
+>   					// bit2: Output GPIO_TRG pin is controlled according to the set parameters
+>   					// bit3: Temperature trigger event
+>   					// bit4: Humidity trigger event
+>   ```
+>
+>3. UUID 0xFE95 - 0x0A: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - battery charge level 0..100%, battery voltage in mV
+>
+>4. UUID 0xFE95 - 0x0D: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - temperature x0.1C, humidity x0.1%
+>
+>+ Configuring mode of transferring everything in turn 
 
 **In Connection mode:**
 
-+ PrimaryService - Environmental Sensing Service (0x181A):
-- Characteristic UUID 0x2A1F - Notify temperature x0.1C
-- Characteristic UUID 0x2A6E - Notify temperature x0.01C
-- Characteristic UUID 0x2A6F - Notify about humidity x0.01%
-+ PrimaryService - Battery Service (0x180F):
-- Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
-+ PrimaryService (0x1F10):
-- Characteristic UUID 0x1F1F - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
+>+ Primary Service - Environmental Sensing Service (0x181A):
+>  + Characteristic UUID 0x2A1F - Notify temperature x0.1C
+>  + Characteristic UUID 0x2A6E - Notify temperature x0.01C
+>  + Characteristic UUID 0x2A6F - Notify about humidity x0.01%
+>+ Primary Service - Battery Service (0x180F):
+>  + Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
+>+ Primary Service (0x1F10):
+>  + Characteristic UUID 0x1F1F - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
 ### Reading Measurements from Flash
 [GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html)
@@ -102,7 +128,7 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 ### Sample show LCD
 
-[Display on LCD in a loop:](https://youtu.be/HzYh1vq8ikM)
+Display on LCD in a loop: ([YouTube video](https://youtu.be/HzYh1vq8ikM))
 
 (Battery and clock display are enabled in the settings. The rest of the settings in default.)
 
