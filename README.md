@@ -14,11 +14,7 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 [MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
 
 ### OTA and Custom Setup
-<<<<<<< .mine
 [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) - OTA and customize, auto-download files new firmware
-=======
-[TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) - OTA and customize
->>>>>>> .theirs
 
 ### History Firmware versions:
 >1.2  Bind, Set Pin-code, Support MHO-C401<br>
@@ -47,7 +43,6 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 
 **Advertising in 4 formats:**
 
-<<<<<<< .mine
 >1. UUID 0x181A - size 16: [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware) 
 >
 >2. UUID 0x181A - size 19: Custom format (all data little-endian):  
@@ -75,39 +70,9 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 >4. UUID 0xFE95 - 0x0D: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - temperature x0.1C, humidity x0.1%
 >
 >+ Configuring mode of transferring everything in turn 
-=======
->1. UUID 0x181A - size 16: [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware) 
->
->2. UUID 0x181A - size 19: Custom format (all data little-endian):  
->
->   ```c
->   uint8_t		size;	// = 19
->   uint8_t		uid;	// = 0x16, 16-bit UUID
->   uint16_t	UUID;	// = 0x181A, GATT Service 0x181A Environmental Sensing
->   uint8_t		MAC[6]; // [0] - lo, .. [6] - hi digits
->   int16_t		temperature;	// x 0.01 degree
->   uint16_t	humidity;		// x 0.01 %
->   uint16_t	battery_mv;		// mV
->   uint8_t		battery_level;	// 0..100 %
->   uint8_t		counter;		// measurement count
->   uint8_t		flags;	// GPIO_TRG pin (marking "reset" on circuit board) flags: 
->   					// bit0: GPIO_TRG pin input value (real level)
->   					// bit1: GPIO_TRG pin output value (pull Up/Down)
->   					// bit2: Output GPIO_TRG pin is controlled according to the set parameters
->   					// bit3: Temperature trigger event
->   					// bit4: Humidity trigger event
->   ```
->
->3. UUID 0xFE95 - 0x0A: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - battery charge level 0..100%, battery voltage in mV
->
->4. UUID 0xFE95 - 0x0D: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - temperature x0.1C, humidity x0.1%
->
->+ Configuring mode of transferring everything in turn 
->>>>>>> .theirs
 
 **In Connection mode:**
 
-<<<<<<< .mine
 >+ Primary Service - Environmental Sensing Service (0x181A):
 >> * Characteristic UUID 0x2A1F - Notify temperature x0.1C
 >> * Characteristic UUID 0x2A6E - Notify temperature x0.01C
@@ -116,16 +81,6 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 >> * Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
 >+ Primary Service (0x1F10):
 >> * Characteristic UUID 0x1F1F - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
-=======
->+ Primary Service - Environmental Sensing Service (0x181A):
->  + Characteristic UUID 0x2A1F - Notify temperature x0.1C
->  + Characteristic UUID 0x2A6E - Notify temperature x0.01C
->  + Characteristic UUID 0x2A6F - Notify about humidity x0.01%
->+ Primary Service - Battery Service (0x180F):
->  + Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
->+ Primary Service (0x1F10):
->  + Characteristic UUID 0x1F1F - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
->>>>>>> .theirs
 
 ### Reading Measurements from Flash
 [GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html)
