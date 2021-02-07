@@ -10,12 +10,13 @@
 
 #include "app_config.h"
 
+// GPIO_TRG pin (marking "reset" on circuit board) flags:
 typedef struct __attribute__((packed)) _trigger_flg_t {
-	uint8_t 	trg_input	:	1; // input GPIO_TRG
-	uint8_t 	trg_output	:	1; // output GPIO_TRG
-	uint8_t 	trigger_on	:	1; //
-	uint8_t 	temp_out_on :	1; //
-	uint8_t 	humi_out_on :	1; //
+	uint8_t 	trg_input	:	1; // GPIO_TRG pin input value (real level)
+	uint8_t 	trg_output	:	1; // GPIO_TRG pin output value (pull Up/Down)
+	uint8_t 	trigger_on	:	1; // Output GPIO_TRG pin is controlled according to the set parameters
+	uint8_t 	temp_out_on :	1; // Temperature trigger event
+	uint8_t 	humi_out_on :	1; // Humidity trigger event
 }trigger_flg_t;
 
 typedef struct __attribute__((packed)) _trigger_t {

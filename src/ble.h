@@ -19,6 +19,58 @@ extern uint8_t mac_public[6];
 extern uint8_t mac_random_static[6];
 extern uint8_t ble_name[12];
 
+#define XIAOMI_DEV_VERSION	5
+
+enum { // mijia ble version 5
+	XIAOMI_DEV_ID_LYWSDCGQ       = 0x01AA,
+	XIAOMI_DEV_ID_CGG1           = 0x0347,
+	XIAOMI_DEV_ID_CGG1_ENCRYPTED = 0x0B48,
+	XIAOMI_DEV_ID_CGDK2          = 0x066F,
+	XIAOMI_DEV_ID_LYWSD02        = 0x045B,
+	XIAOMI_DEV_ID_LYWSD03MMC     = 0x055B,
+	XIAOMI_DEV_ID_CGD1           = 0x0576,
+	XIAOMI_DEV_ID_MHO_C303       = 0x06d3,
+	XIAOMI_DEV_ID_MHO_C401       = 0x0387,
+	XIAOMI_DEV_ID_JQJCY01YM      = 0x02DF,
+	XIAOMI_DEV_ID_HHCCJCY01      = 0x0098,
+	XIAOMI_DEV_ID_GCLS002        = 0x03BC,
+	XIAOMI_DEV_ID_HHCCPOT002     = 0x015D,
+	XIAOMI_DEV_ID_WX08ZM         = 0x040A,
+	XIAOMI_DEV_ID_MCCGQ02HL      = 0x098B,
+	XIAOMI_DEV_ID_YM_K1501       = 0x0083,
+	XIAOMI_DEV_ID_YM_K1501EU     = 0x0113,
+	XIAOMI_DEV_ID_V_SK152        = 0x045C,
+	XIAOMI_DEV_ID_SJWS01LM       = 0x0863,
+	XIAOMI_DEV_ID_MJYD02YL       = 0x07F6
+}XIAOMI_DEV_ID;
+
+enum { // mijia ble version 5
+	XIAOMI_DATA_ID_Sleep				=0x1002,
+	XIAOMI_DATA_ID_RSSI					=0x1003,
+	XIAOMI_DATA_ID_Temperature			=0x1004,
+	XIAOMI_DATA_ID_Humidity				=0x1006,
+	XIAOMI_DATA_ID_LightIlluminance		=0x1007,
+	XIAOMI_DATA_ID_SoilMoisture			=0x1008,
+	XIAOMI_DATA_ID_SoilECvalue			=0x1009,
+	XIAOMI_DATA_ID_Power				=0x100A,
+	XIAOMI_DATA_ID_TempAndHumidity		=0x100D, // added pvvx - non-standard ?
+	XIAOMI_DATA_ID_Lock					=0x100E,
+	XIAOMI_DATA_ID_Gate					=0x100F,
+	XIAOMI_DATA_ID_Formaldehyde			=0x1010,
+	XIAOMI_DATA_ID_Bind					=0x1011,
+	XIAOMI_DATA_ID_Switch				=0x1012,
+	XIAOMI_DATA_ID_RemAmCons			=0x1013, // Remaining amount of consumables
+	XIAOMI_DATA_ID_Flooding				=0x1014,
+	XIAOMI_DATA_ID_Smoke				=0x1015,
+	XIAOMI_DATA_ID_Gas					=0x1016,
+	XIAOMI_DATA_ID_NoOneMoves			=0x1017,
+	XIAOMI_DATA_ID_LightIntensity		=0x1018,
+	XIAOMI_DATA_ID_DoorSensor			=0x1019,
+	XIAOMI_DATA_ID_WeightAttributes		=0x101A,
+	XIAOMI_DATA_ID_NoOneMovesOverTime 	=0x101B, // No one moves over time
+	XIAOMI_DATA_ID_SmartPillow			=0x101C
+} XIAOMI_DATA_ID;
+
 typedef struct
 {
   /** Minimum value for the connection event (interval. 0x0006 - 0x0C80 * 1.25 ms) */
@@ -61,37 +113,52 @@ typedef struct __attribute__((packed)) _adv_atc1441_t {
 	uint8_t		counter; // measurement count
 } adv_atc1441_t, * padv_atc1441_t;
 
-
 // UUID for Members 0xFE95 Xiaomi Inc. https://btprodspecificationrefs.blob.core.windows.net/assigned-values/16-bit%20UUID%20Numbers%20Document.pdf
-// All data little-endian, + https://github.com/Magalex2x14/LYWSD03MMC-info
+// All data little-endian, + https://github.com/pvvx/ATC_MiThermometer/tree/master/InfoMijiaBLE
 typedef struct __attribute__((packed)) _adv_mi_t {
 	uint8_t		size;	// = 21
 	uint8_t		uid;	// = 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
 	uint16_t	UUID;	// = 0xFE95, 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+#if 1
+	union { // Frame Control
+		struct __attribute__((packed)) {
+			uint16_t Factory: 		1; // reserved text
+			uint16_t Connected: 	1; // reserved text
+			uint16_t Central: 		1; // Keep
+			uint16_t isEncrypted: 	1; // 0: The package is not encrypted; 1: The package is encrypted
+			uint16_t MACInclude: 	1; // 0: Does not include the MAC address; 1: includes a fixed MAC address (the MAC address is included for iOS to recognize this device and connect)
+			uint16_t CapabilityInclude: 	1; // 0: does not include Capability; 1: includes Capability. Before the device is bound, this bit is forced to 1
+			uint16_t ObjectInclude:	1; // 0: does not contain Object; 1: contains Object
+			uint16_t Mesh: 			1; // 0: does not include Mesh; 1: includes Mesh. For standard BLE access products and high security level access, this item is mandatory to 0. This item is mandatory for Mesh access to 1.
+			uint16_t registered:	1; // 0: The device is not bound; 1: The device is registered and bound.
+			uint16_t solicited:		1; // 0: No operation; 1: Request APP to register and bind. It is only valid when the user confirms the pairing by selecting the device on the developer platform, otherwise set to 0. The original name of this item was bindingCfm, and it was renamed to solicited "actively request, solicit" APP for registration and binding
+			uint16_t AuthMode:		2; // 0: old version certification; 1: safety certification; 2: standard certification; 3: reserved
+			uint16_t version:		4; // Version number (currently v5)
+		} bit;
+		uint16_t	word;	// = 0x3050 Frame ctrl
+	} ctrl; // Frame Control
+#else
 	uint16_t	ctrl;	// = 0x3050 Frame ctrl
-	uint16_t    dev_id; // = 0x055B	Device type
-	uint8_t		counter; // 0..0xff..0 measurement count
-	uint8_t		MAC[6];	// [0] - lo, .. [6] - hi digits
-	// +15: 0x0A, 0x10, 0x01, t_lv, 0x02, b_lo, b_hi
-	// +15: 0x0D, 0x10, 0x04, t_lo, t_hi, h_lo, h_hi
-	uint8_t     data_id; 	// = 0x0A or 0x0D
-	uint8_t     nx10; 		// = 0x10
+#endif
+	uint16_t    dev_id;		// Device type (enum: XIAOMI_DEV_ID)
+	uint8_t		counter;	// 0..0xff Measurement count, Serial number, used for de-duplication, different event or attribute reporting requires different Frame Counter
+	uint8_t		MAC[6];		// [0] - lo, .. [6] - hi digits
+	uint8_t     data_id; 	// = 0x0A or 0x0D (lo byte XIAOMI_DATA_ID)
+	uint8_t     nx10; 		// = 0x10 (hi byte XIAOMI_DATA_ID)
 	union {
-		struct {
+		struct __attribute__((packed)) {
 			uint8_t		len1; // = 0x01
 			uint8_t		battery_level; // 0..100 %
 			uint8_t		len2; // = 0x02
 			uint16_t	battery_mv;
 		}t0a;
-		struct {
+		struct __attribute__((packed)) {
 			uint8_t		len; // = 0x04
 			int16_t		temperature; // x0.1 C
 			uint16_t	humidity; // x0.1 %
 		}t0d;
 	};
 } adv_mi_t, * padv_mi_t;
-
-
 
 ///////////////////////////////////// ATT  HANDLER define ///////////////////////////////////////
 typedef enum

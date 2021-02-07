@@ -293,8 +293,8 @@ _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
 		p->temperature = measured_data.temp; // x0.01 C
 		p->humidity = measured_data.humi; // x0.01 %
-		p->battery_mv = measured_data.battery_mv;
-		p->battery_level = battery_level;
+		p->battery_mv = measured_data.battery_mv; // x mV
+		p->battery_level = battery_level; // x1 %
 		p->counter = (uint8_t)measured_data.count;
 #if USE_TRIGGER_OUT
 		p->flags = *(uint8_t *)(&trg.flg);
@@ -305,25 +305,33 @@ _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 		p->size = sizeof(adv_mi_t) - 1;
 		p->uid = 0x16; // 16-bit UUID
 		p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
-		p->ctrl = 0x3050;
-#if DEVICE_TYPE == DEVICE_MHO_C401
-		p->dev_id = 0x0387;
-#else // DEVICE_LYWSD03MMC
-		p->dev_id = 0x055b;
+#if 0
+		p->ctrl.word = 0;
+		p->ctrl.bit.version = 3; // XIAOMI_DEV_VERSION
+		p->ctrl.bit.MACInclude = 1;
+		p->ctrl.bit.ObjectInclude = 1;
+#else
+		p->ctrl.word = 0x3050; // version = 3, MACInclude, ObjectInclude
 #endif
-		p->nx10 = 0x10;
+#if DEVICE_TYPE == DEVICE_MHO_C401
+		p->dev_id = XIAOMI_DEV_ID_MHO_C401;
+#else // DEVICE_LYWSD03MMC
+		p->dev_id = XIAOMI_DEV_ID_LYWSD03MMC;
+#endif
+		p->nx10 = (XIAOMI_DATA_ID_TempAndHumidity >> 8) & 0xff; // (hi byte XIAOMI_DATA_ID)
 		p->counter = (uint8_t)measured_data.count;
 		if (adv_mi_count & 1) {
-			p->data_id = 0x0d;
+			p->data_id = XIAOMI_DATA_ID_TempAndHumidity & 0xff; // (lo byte XIAOMI_DATA_ID)
 			p->t0d.len = 0x04;
 			p->t0d.temperature = last_temp; // x0.1 C
 			p->t0d.humidity = measured_data.humi / 10; // x0.1 %
 		} else {
-			p->data_id = 0x0a;
-			p->t0a.len1 = 0x01;
-			p->t0a.battery_level = battery_level;
-			p->t0a.len2 = 0x02;
-			p->t0a.battery_mv = measured_data.battery_mv;
+			p->data_id = XIAOMI_DATA_ID_Power & 0xff; // (lo byte XIAOMI_DATA_ID)
+			p->t0a.len1 = 1;
+			p->t0a.battery_level = battery_level; // Battery percentage, Range: 0-100
+			// added pvvx - non-standard
+			p->t0a.len2 = 2;
+			p->t0a.battery_mv = measured_data.battery_mv; // x1 mV
 		}
 	} else { // adv_type == 0
 		padv_atc1441_t p = (padv_atc1441_t)adv_buffer;
@@ -339,9 +347,9 @@ _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 		p->temperature[0] = (uint8_t)(last_temp >> 8);
 		p->temperature[1] = (uint8_t)last_temp; // x0.1 C
 		p->humidity = (uint8_t)last_humi; // x1 %
-		p->battery_level = battery_level;
+		p->battery_level = battery_level; // x1 %
 		p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
-		p->battery_mv[1] = (uint8_t)measured_data.battery_mv;
+		p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
 		p->counter = (uint8_t)measured_data.count;
 	}
 	bls_ll_setAdvData(adv_buffer, adv_buffer[0]+1);
