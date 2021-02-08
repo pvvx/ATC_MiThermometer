@@ -7,7 +7,7 @@ This document defines the Object ID and Object format in MiBeacon usage scenario
 |      Field      | length |     description     |
 | :-------------: | :----: | :-----------------: |
 |    Object ID    |   2    | Mijia definition ID |
-| Object Data Len |  one   |     Data length     |
+| Object Data Len |   1    |     Data length     |
 |   Object Data   |   N    |        data         |
 
 ## BLE gateway restrictions
@@ -118,7 +118,7 @@ In order to ensure that the events and attributes represented by the Object can 
 |     name     | length | description |
 | :----------: | :----: | :---------: |
 |    Key ID    |   4    |  See above  |
-| Match result |  one   |  see below  |
+| Match result |   1    |  see below  |
 
 Key ID is divided into the following categories:
 
@@ -139,7 +139,7 @@ The matching results are divided into the following categories:
 
 |  name  | length | description |
 | :----: | :----: | :---------: |
-| status |  one   |  see below  |
+| status |   1    |  see below  |
 
 The status is divided into the following categories:
 
@@ -154,7 +154,7 @@ The status is divided into the following categories:
 
 |       name        | length |        description        |
 | :---------------: | :----: | :-----------------------: |
-| Whether to enable |  one   | Open (0x01), close (0x00) |
+| Whether to enable |   1    | Open (0x01), close (0x00) |
 |     Timestamp     |   4    |    UTC time (optional)    |
 
 ### Gesture controller event
@@ -182,7 +182,7 @@ Gestures are divided into the following categories:
 
 |          name          | length |     description     |
 | :--------------------: | :----: | :-----------------: |
-|       operating        |  one   |      see below      |
+|       operating        |   1    |      see below      |
 | Key ID or Exception ID |   4    |      see below      |
 |       Timestamp        |   4    | Operation timestamp |
 
@@ -263,19 +263,19 @@ Internally triggered exceptions include:
 
 |       name        | length |                     description                      |
 | :---------------: | :----: | :--------------------------------------------------: |
-| Flooding incident |  one   | Flooding alarm (0x01), flooding alarm release (0x00) |
+| Flooding incident |   1    | Flooding alarm (0x01), flooding alarm release (0x00) |
 
 ### Smoke incident
 
 |      name      | length |                         description                          |
 | :------------: | :----: | :----------------------------------------------------------: |
-| Smoke incident |  one   | Normal monitoring (0x00), fire alarm (0x01), equipment failure (0x02), equipment self-check (0x03), analog alarm (0x04) |
+| Smoke incident |   1    | Normal monitoring (0x00), fire alarm (0x01), equipment failure (0x02), equipment self-check (0x03), analog alarm (0x04) |
 
 ### Gas incident
 
 |     name     | length |                         description                          |
 | :----------: | :----: | :----------------------------------------------------------: |
-| Gas incident |  one   | Normal monitoring (0x00), gas leakage alarm (0x01), equipment failure (0x02), sensor life expiration (0x03), sensor preheating (0x04), equipment self-checking (0x05), analog alarm (0x06) |
+| Gas incident |   1    | Normal monitoring (0x00), gas leakage alarm (0x01), equipment failure (0x02), sensor life expiration (0x03), sensor preheating (0x04), equipment self-checking (0x05), analog alarm (0x06) |
 
 ### Someone moving event (with light)
 
@@ -289,54 +289,54 @@ Remarks: This event is only used for human sensors with light sensors at the sam
 
 |       name       | length |                         description                          |
 | :--------------: | :----: | :----------------------------------------------------------: |
-|     Types of     |  one   |           0: Start of brushing, 1: End of brushing           |
-| Score (optional) |  one   | This parameter can be added to the end of brushing event: the score of this brushing, 0~100 |
+|     Types of     |   1    |           0: Start of brushing, 1: End of brushing           |
+| Score (optional) |   1    | This parameter can be added to the end of brushing event: the score of this brushing, 0~100 |
 
 ### Cat eye incident
 
 |    name    | length |                         description                          |
 | :--------: | :----: | :----------------------------------------------------------: |
-| Event type |  one   | 0: someone stays, 1: someone passes by, 2: someone rings the bell, 3: someone leaves a message, 4: damages the device, 5: duress alarm, 6: abnormal unlock |
+| Event type |   1    | 0: someone stays, 1: someone passes by, 2: someone rings the bell, 3: someone leaves a message, 4: damages the device, 5: duress alarm, 6: abnormal unlock |
 
 ### Weighing event
 
 |      name      | length |                       description                       |
 | :------------: | :----: | :-----------------------------------------------------: |
 | Weighing value |   2    |                      Unit is grams                      |
-| Weighing type  |  one   | 0: current weight, 1: reduce weight, 2: increase weight |
+| Weighing type  |   1    | 0: current weight, 1: reduce weight, 2: increase weight |
 
 ### Key event
 
 |   name   | length |                         description                          |
 | :------: | :----: | :----------------------------------------------------------: |
 |  Index   |   2    |                 Key number, value range 0~9                  |
-| Types of |  one   | Single click (0x00), double click (0x01), long press (0x02), triple click (0x03) |
+| Types of |   1    | Single click (0x00), double click (0x01), long press (0x02), triple click (0x03) |
 
 ### Flower and grass detector event
 
 |  name  | length |         description          |
 | :----: | :----: | :--------------------------: |
-| status |  one   | Normal (0x00), unplug (0x01) |
+| status |   1    | Normal (0x00), unplug (0x01) |
 
 ### Qingping sensor event
 
 |   name   | length |                  description                  |
 | :------: | :----: | :-------------------------------------------: |
-| position |  one   | Separate from the base (0x00), connect (0x01) |
+| position |   1    | Separate from the base (0x00), connect (0x01) |
 
 ### Qingping Pomodoro Event
 
 |    name    | length |                         description                          |
 | :--------: | :----: | :----------------------------------------------------------: |
-| Event type |  one   | 0-Start of Pomodoro, 1-End of Pomodoro, 2-Start of rest, 3-End of rest |
+| Event type |   1    | 0-Start of Pomodoro, 1-End of Pomodoro, 2-Start of rest, 3-End of rest |
 
 ### Beckham toothbrush incident
 
 |       name       | length |                         description                          |
 | :--------------: | :----: | :----------------------------------------------------------: |
-|     Types of     |  one   |           0: Start of brushing, 1: End of brushing           |
+|     Types of     |   1    |           0: Start of brushing, 1: End of brushing           |
 |    Timestamp     |   4    |                           UTC time                           |
-| Score (optional) |  one   | This parameter can be added to the end of brushing event: the score of this brushing, 0~100 |
+| Score (optional) |   1    | This parameter can be added to the end of brushing event: the score of this brushing, 0~100 |
 
 ## Attribute format definition
 
@@ -344,13 +344,13 @@ Remarks: This event is only used for human sensors with light sensors at the sam
 
 |  name  | length |              description               |
 | :----: | :----: | :------------------------------------: |
-| status |  one   | No sleep (0x00), falling asleep (0x01) |
+| status |   1    | No sleep (0x00), falling asleep (0x01) |
 
 ### RSSI attributes
 
 | name | length |      description      |
 | :--: | :----: | :-------------------: |
-| RSSI |  one   | Signal strength value |
+| RSSI |   1    | Signal strength value |
 
 ### Temperature attributes
 
@@ -374,7 +374,7 @@ Remarks: This event is only used for human sensors with light sensors at the sam
 
 |   name   | length |            description            |
 | :------: | :----: | :-------------------------------: |
-| humidity |  one   | Humidity percentage, range: 0-100 |
+| humidity |   1    | Humidity percentage, range: 0-100 |
 
 ### Soil EC properties
 
@@ -386,13 +386,13 @@ Remarks: This event is only used for human sensors with light sensors at the sam
 
 |        name        | length | description  |
 | :----------------: | :----: | :----------: |
-| Battery percentage |  one   | Range: 0-100 |
+| Battery percentage |   1    | Range: 0-100 |
 
 ### Lock attribute
 
 |  name  | length | description |
 | :----: | :----: | :---------: |
-| status |  one   |  see below  |
+| status |   1    |  see below  |
 
 - bit 0: square tongue state (1: eject; 0: retract)
 - bit 1: dull state (1: eject; 0: retract)
@@ -411,7 +411,7 @@ All normal combination states:
 
 |  name  | length |                         description                          |
 | :----: | :----: | :----------------------------------------------------------: |
-| status |  one   | Open the door (0x00), close the door (0x01), abnormal (0xFF) |
+| status |   1    | Open the door (0x00), close the door (0x01), abnormal (0xFF) |
 
 ### Formaldehyde properties
 
@@ -423,37 +423,37 @@ All normal combination states:
 
 |  name  | length |         description          |
 | :----: | :----: | :--------------------------: |
-| status |  one   | Unbound (0x00), bound (0x01) |
+| status |   1    | Unbound (0x00), bound (0x01) |
 
 ### Switch attribute
 
 |  name  | length |        description        |
 | :----: | :----: | :-----------------------: |
-| switch |  one   | Close (0x00), open (0x01) |
+| switch |   1    | Close (0x00), open (0x01) |
 
 ### Consumables remaining quantity attributes
 
 |   name    | length |            description            |
 | :-------: | :----: | :-------------------------------: |
-| remaining |  one   | Remaining percentage, range 0~100 |
+| remaining |   1    | Remaining percentage, range 0~100 |
 
 ### Flooding properties
 
 |      name       | length |              description               |
 | :-------------: | :----: | :------------------------------------: |
-| Submerged state |  one   | Submerged (0x01), not submerged (0x00) |
+| Submerged state |   1    | Submerged (0x01), not submerged (0x00) |
 
 ### Smoke properties
 
 |    name     | length |                         description                          |
 | :---------: | :----: | :----------------------------------------------------------: |
-| Smoke state |  one   | Normal monitoring (0x00), fire alarm (0x01), equipment failure (0x02) |
+| Smoke state |   1    | Normal monitoring (0x00), fire alarm (0x01), equipment failure (0x02) |
 
 ### Gas properties
 
 |    name    | length |              description               |
 | :--------: | :----: | :------------------------------------: |
-| Gas status |  one   | With leakage (0x01), no leakage (0x00) |
+| Gas status |   1    | With leakage (0x01), no leakage (0x00) |
 
 ### Unmanned mobile properties
 
@@ -467,7 +467,7 @@ Remarks: If someone moves, you need to report the attribute of unmanned movement
 
 |      name       | length |              description               |
 | :-------------: | :----: | :------------------------------------: |
-| Light intensity |  one   | Strong light (0x01), weak light (0x00) |
+| Light intensity |   1    | Strong light (0x01), weak light (0x00) |
 
 Note: If the child device can report accurate illuminance, please use the illuminance attribute (0x1007) to report
 
@@ -475,7 +475,7 @@ Note: If the child device can report accurate illuminance, please use the illumi
 
 |        name        | length |                         description                          |
 | :----------------: | :----: | :----------------------------------------------------------: |
-| Door sensor status |  one   | 0x00: open the door, 0x01: close the door, 0x02: not closed after timeout, 0x03: device reset |
+| Door sensor status |   1    | 0x00: open the door, 0x01: close the door, 0x02: not closed after timeout, 0x03: device reset |
 
 ### Weight attributes
 
@@ -487,7 +487,7 @@ Note: If the child device can report accurate illuminance, please use the illumi
 
 |  name  | length |                         description                          |
 | :----: | :----: | :----------------------------------------------------------: |
-| status |  one   | 0 means someone is moving, 1 means no one is moving in X seconds |
+| status |   1    | 0 means someone is moving, 1 means no one is moving in X seconds |
 
 > **Note: The** user configures X seconds for unmanned movement on the plug-in side, the firmware side stores this set value, and reports this object when the time expires.
 
@@ -495,7 +495,7 @@ Note: If the child device can report accurate illuminance, please use the illumi
 
 |  name  | length |                         description                          |
 | :----: | :----: | :----------------------------------------------------------: |
-| status |  one   | Current state of the smart pillow: 0x00: "Get out of bed" (not on the pillow); 0x01: "In bed" (lie on the pillow); 0x02-0xFF reserved |
+| status |   1    | Current state of the smart pillow: 0x00: "Get out of bed" (not on the pillow); 0x01: "In bed" (lie on the pillow); 0x02-0xFF reserved |
 
 ### Measure body temperature in seconds
 
@@ -503,27 +503,27 @@ Note: If the child device can report accurate illuminance, please use the illumi
 | :--------------: | :----: | :---------------------: |
 | Skin temperature |   2    | Accurate to 0.01 degree |
 | PCB temperature  |   2    | Accurate to 0.01 degree |
-|      Power       |  one   |   Battery percentage    |
+|      Power       |   1    |   Battery percentage    |
 
 ### Huami bracelet attributes
 
 |    name    | length |                description                |
 | :--------: | :----: | :---------------------------------------: |
 | Step count |   2    |               Current step                |
-|   Sleep    |  one   |    Fall asleep (0x01), wake up (0x02)     |
-|    RSSI    |  one   | Absolute value of current signal strength |
+|   Sleep    |   1    |    Fall asleep (0x01), wake up (0x02)     |
+|    RSSI    |   1    | Absolute value of current signal strength |
 
 ### Ruimi vacuum cleaner properties
 
 | name | length |                         description                          |
 | :--: | :----: | :----------------------------------------------------------: |
-| mode |  one   | Charging (0x00), standby (0x01), standard (0x02), strong (0x03), abnormal (0xFF) |
-| Gear |  one   |                    Current standard gear                     |
+| mode |   1    | Charging (0x00), standby (0x01), standard (0x02), strong (0x03), abnormal (0xFF) |
+| Gear |   1    |                    Current standard gear                     |
 
 ### Black plus bracelet attributes
 
 |    name    | length |       description       |
 | :--------: | :----: | :---------------------: |
 | Step count |   2    |    Steps in the day     |
-| Heart rate |  one   |     Last heart rate     |
-|   status   |  one   | Current activity status |
+| Heart rate |   1    |     Last heart rate     |
+|   status   |   1    | Current activity status |
