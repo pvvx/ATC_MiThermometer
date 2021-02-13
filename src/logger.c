@@ -157,9 +157,9 @@ void write_memo(void) {
 		summ_data.count++;
 		if(cfg.averaging_measurements > summ_data.count)
 			return;
-		mblk.temp = summ_data.temp/summ_data.count;
-		mblk.humi = summ_data.humi/summ_data.count;
-		mblk.vbat = summ_data.battery_mv/summ_data.count;
+		mblk.temp = (int16_t)(summ_data.temp/(int32_t)summ_data.count);
+		mblk.humi = (uint16_t)(summ_data.humi/summ_data.count);
+		mblk.vbat = (uint16_t)(summ_data.battery_mv/summ_data.count);
 		memset(&summ_data, 0, sizeof(summ_data));
 	}
 	/* default c4: dcdc 1.8V  -> GD flash; 48M clock may error, need higher DCDC voltage
