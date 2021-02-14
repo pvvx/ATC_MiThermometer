@@ -31,9 +31,9 @@ Initial forked from https://github.com/atc1441/ATC_MiThermometer
 ### Average consumption:
 >* #### LYWSD03MMC - Default settings (Advertising interval of 2.5 seconds, the measurement interval 10 sec):
 >
->* Advertisement: 20..25 uA 3.3V ([CR2032](https://github.com/pvvx/ATC_MiThermometer/issues/23#issuecomment-766898945) [over 6 months](https://github.com/pvvx/ATC_MiThermometer/issues/36))
+>* Advertisement: 15..20 uA 3.3V ([CR2032](https://pvvx.github.io/ATC_MiThermometer/CustPower.html) [over 6 months](https://github.com/pvvx/ATC_MiThermometer/issues/23#issuecomment-766898945))
 >
->* Connection: 19..25 uA 3.3V (CR2032 over 6 months)
+>* Connection: 14..25 uA 3.3V (CR2032 over 6 months)
 >
 >* #### MHO-C401 - Default settings (Advertising interval of 2.5 seconds, the measurement interval 20 sec):
 >
