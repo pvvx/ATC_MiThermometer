@@ -102,6 +102,8 @@ You can directly update/flash the firmware without downloading the binaries belo
 * [LYWSD03MMC Custom Firmware Version 2.1p](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer21p.bin)
 * [MHO-C401 Custom Firmware Version 2.1p](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v21p.bin)
 
+* [LYWSD03MMC Custom Firmware Version 2.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer22.bin)
+* [MHO-C401 Custom Firmware Version 2.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v22.bin)
 
 **Original Manufacturer Firmware Version**
 
@@ -124,6 +126,7 @@ In case you want to go back to the original firmware, you can download them here
 |     1.9 | Recording measurements to flash memory (cyclic buffer for 19632 measurements)
 |     2.0 | Recording measurements with averaging to flash memory
 |     2.1 | Periodic display refresh for MHO-C401 <br> 'Erase mi-keys' option to return to original firmware
+|     2.2 | Added parameter "Encrypted Mi Beacon" ([Compatible with Mi-Home?](https://github.com/pvvx/ATC_MiThermometer/issues/51))
 
 
 ## Applications

@@ -13,6 +13,9 @@
 #if USE_FLASH_MEMO
 #include "logger.h"
 #endif
+#if USE_MIHOME_BEACON
+#include "mi_beacon.h"
+#endif
 #include "cmd_parser.h"
 
 #define TX_MAX_SIZE	 (ATT_MTU_SIZE-3) // = 20
@@ -22,13 +25,6 @@
 
 RAM uint8_t mi_key_stage;
 RAM uint8_t mi_key_chk_cnt;
-
-#define MI_KEYTBIND_ID  0x10 // id token + bindkey
-#define MI_KEYCFG_ID    0x04 // id config
-#define MI_KEYDNAME_ID  0x01 // id device name
-#define MI_KEYDELETE_ID 0x00
-#define MI_KEYTBIND_SIZE (12+16) // buf token + bindkey size
-#define MI_KEYDNAME_SIZE (20) // device name buf size
 
 enum {
 	MI_KEY_STAGE_END = 0,
@@ -42,11 +38,6 @@ enum {
 	MI_KEY_STAGE_MAC = 0xfe
 } MI_KEY_STAGES;
 
-typedef struct __attribute__((packed)) _blk_mi_keys_t {
-	uint8_t id;
-	uint8_t klen;	// max length, end length, current length, ...
-	uint8_t data[MI_KEYTBIND_SIZE]; // token + bindkey
-} blk_mi_keys_t, * pblk_mi_keys_t;
 RAM blk_mi_keys_t keybuf;
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
@@ -184,7 +175,7 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 	case MI_KEY_STAGE_CFG:
 		chk_stage = MI_KEY_STAGE_KDEL;
 		keybuf.id = CMD_MI_ID_CFG;
-		if(find_mi_keys(MI_KEYCFG_ID, 1)) {
+		if(find_mi_keys(MI_KEYSEQNUM_ID, 1)) {
 			mi_key_chk_cnt = 0;
 			send_mi_key();
 		} else
@@ -252,8 +243,13 @@ void cmd_parser(void * p) {
 			ble_send_ext();
 		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) { // Get/set config
 			if(--len > sizeof(cfg)) len = sizeof(cfg);
-			if(len)
+			if(len) {
 				memcpy(&cfg, &req->dat[1], len);
+#if USE_MIHOME_BEACON
+				if(!pbindkey)
+					cfg.flg2.mi_beacon = 0;
+#endif
+			}
 			test_config();
 			ev_adv_timeout(0, 0, 0);
 			if(cmd != CMD_ID_CFG_NS) // Get/set config (not save to Flash)
@@ -321,6 +317,7 @@ void cmd_parser(void * p) {
 		} else if (cmd == CMD_MI_ID_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
 		} else if (cmd == CMD_MI_ID_CLR) {
+			cfg.flg2.mi_beacon = 0;
 			erase_mikeys();
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
 			if(--len > sizeof(display_buff)) len = sizeof(display_buff);

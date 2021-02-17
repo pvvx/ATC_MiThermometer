@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include "tl_common.h"
 #include "drivers.h"
-#include "vendor/common/user_config.h"
 #include "app_config.h"
 #include "drivers/8258/gpio_8258.h"
 #include "ble.h"
@@ -15,6 +14,9 @@
 #endif
 #if USE_FLASH_MEMO
 #include "logger.h"
+#endif
+#if USE_MIHOME_BEACON
+#include "mi_beacon.h"
 #endif
 
 RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
@@ -33,10 +35,13 @@ RAM uint8_t ble_name[12] = { 11, 0x09,
 RAM uint8_t mac_public[6];
 RAM uint8_t mac_random_static[6];
 RAM uint8_t adv_mi_count;
-RAM uint8_t adv_buffer[24];
+RAM uint8_t adv_buffer[28];
 uint8_t ota_is_working = 0;
 
 void app_enter_ota_mode(void) {
+#if USE_NEW_OTA
+	bls_ota_clearNewFwDataArea();
+#endif
 	ota_is_working = 1;
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
 	lcd_ota();
@@ -247,10 +252,30 @@ void init_ble(void) {
 	blc_pm_setDeepsleepRetentionThreshold(95, 95);
 	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
-
-	bls_ota_clearNewFwDataArea(); //must
+#if USE_NEW_OTA == 0
+	bls_ota_clearNewFwDataArea();
+#endif
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
+/*
+	//TODO проверить работу неописанной в lib функции: bls_set_advertise_prepare() - если работает, тогда упростить алгоритм.
+	void blc_l2cap_register_pre_handler(void *p); // add l2cap.h
+	void blc_set_l2cap_handle_fun(u8 flag);	// add l2cap.h
+	int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
+	    int ret = 0;
+		static u32 adv_sn = 0;
+		adv_sn++;
+		set_adv_mi_prehandler(p);
+		ret = 1;
+		return 1;		// = 1 ready to send ADV packet, = 0 not send ADV
+	}
+	...
+	bls_set_advertise_prepare(app_advertise_prepare_handler);
+*/
+#if USE_MIHOME_BEACON
+		mi_beacon_init();
+#endif
+
 #if 0 // BLE_SECURITY_ENABLE && DEVICE_TYPE != DEVICE_MHO_C401
 	if(pincode && *((u32 *)(CFG_ADR_BIND)) != 0xffffffff) {
 		smp_param_save_t  bondInfo;
@@ -300,39 +325,44 @@ _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 		p->flags = *(uint8_t *)(&trg.flg);
 #endif
 	} else if(adv_type & 2) { // adv_type == 2 or 3
-		padv_mi_t p = (padv_mi_t)adv_buffer;
-		memcpy(p->MAC, mac_public, 6);
-		p->size = sizeof(adv_mi_t) - 1;
-		p->uid = 0x16; // 16-bit UUID
-		p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+#if USE_MIHOME_BEACON
+		if(pbindkey && cfg.flg2.mi_beacon)
+			mi_encrypt_beacon(measured_data.count >> 2);
+		else
+#endif
+		{
+			padv_mi_t p = (padv_mi_t)adv_buffer;
+			memcpy(p->MAC, mac_public, 6);
+			p->size = sizeof(adv_mi_t) - 1;
+			p->uid = 0x16; // 16-bit UUID
+			p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 #if 0
-		p->ctrl.word = 0;
-		p->ctrl.bit.version = 3; // XIAOMI_DEV_VERSION
-		p->ctrl.bit.MACInclude = 1;
-		p->ctrl.bit.ObjectInclude = 1;
+			p->ctrl.word = 0;
+			p->ctrl.bit.version = 3; // XIAOMI_DEV_VERSION
+			p->ctrl.bit.MACInclude = 1;
+			p->ctrl.bit.ObjectInclude = 1;
 #else
-		p->ctrl.word = 0x3050; // version = 3, MACInclude, ObjectInclude
+			p->ctrl.word = 0x3050; // 0x3050 version = 3, MACInclude, ObjectInclude
 #endif
-#if DEVICE_TYPE == DEVICE_MHO_C401
-		p->dev_id = XIAOMI_DEV_ID_MHO_C401;
-#else // DEVICE_LYWSD03MMC
-		p->dev_id = XIAOMI_DEV_ID_LYWSD03MMC;
-#endif
-		p->nx10 = (XIAOMI_DATA_ID_TempAndHumidity >> 8) & 0xff; // (hi byte XIAOMI_DATA_ID)
-		p->counter = (uint8_t)measured_data.count;
-		if (adv_mi_count & 1) {
-			p->data_id = XIAOMI_DATA_ID_TempAndHumidity & 0xff; // (lo byte XIAOMI_DATA_ID)
-			p->t0d.len = 0x04;
-			p->t0d.temperature = last_temp; // x0.1 C
-			p->t0d.humidity = measured_data.humi / 10; // x0.1 %
-		} else {
-			p->data_id = XIAOMI_DATA_ID_Power & 0xff; // (lo byte XIAOMI_DATA_ID)
-			p->t0a.len1 = 1;
-			p->t0a.battery_level = battery_level; // Battery percentage, Range: 0-100
-			// added pvvx - non-standard
-			p->t0a.len2 = 2;
-			p->t0a.battery_mv = measured_data.battery_mv; // x1 mV
+			p->dev_id = DEVICE_TYPE;
+			p->nx10 = (XIAOMI_DATA_ID_TempAndHumidity >> 8) & 0xff; // (hi byte XIAOMI_DATA_ID)
+			p->counter = (uint8_t)measured_data.count;
+			if (adv_mi_count & 1) {
+				p->data_id = XIAOMI_DATA_ID_TempAndHumidity & 0xff; // (lo byte XIAOMI_DATA_ID)
+				p->t0d.len = 0x04;
+				p->t0d.temperature = last_temp; // x0.1 C
+				p->t0d.humidity = measured_data.humi / 10; // x0.1 %
+			} else {
+				p->data_id = XIAOMI_DATA_ID_Power & 0xff; // (lo byte XIAOMI_DATA_ID)
+				p->t0a.len1 = 1;
+				p->t0a.battery_level = battery_level; // Battery percentage, Range: 0-100
+				// added pvvx - non-standard
+				p->t0a.len2 = 2;
+				p->t0a.battery_mv = measured_data.battery_mv; // x1 mV
+			}
+#if USE_MIHOME_BEACON
 		}
+#endif
 	} else { // adv_type == 0
 		padv_atc1441_t p = (padv_atc1441_t)adv_buffer;
 		p->size = sizeof(adv_atc1441_t) - 1;

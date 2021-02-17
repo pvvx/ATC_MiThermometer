@@ -13,6 +13,8 @@ $(OUT_PATH)/cmd_parser.o \
 $(OUT_PATH)/flash_eep.o \
 $(OUT_PATH)/logger.o \
 $(OUT_PATH)/blt_common.o\
+$(OUT_PATH)/ccm.o \
+$(OUT_PATH)/mi_beacon.o \
 $(OUT_PATH)/main.o
 
 

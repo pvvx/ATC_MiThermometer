@@ -175,18 +175,21 @@ typedef enum
 	CONN_PARAM_CD_H,						//UUID: 2803, 	VALUE:  			Prop: Read
 	CONN_PARAM_DP_H,						//UUID: 2A04,   VALUE: connParameter
 
-	//// gatt ////
+	//// Gatt ////
 	/**********************************************************************************************/
 	GenericAttribute_PS_H,					//UUID: 2800, 	VALUE: uuid 1801
 	GenericAttribute_ServiceChanged_CD_H,	//UUID: 2803, 	VALUE:  			Prop: Indicate
 	GenericAttribute_ServiceChanged_DP_H,   //UUID:	2A05,	VALUE: service change
 	GenericAttribute_ServiceChanged_CCB_H,	//UUID: 2902,	VALUE: serviceChangeCCC
-	//// device information ////
+
 #if USE_DEVICE_INFO_CHR_UUID
+	//// device information ////
 	/**********************************************************************************************/
 	DeviceInformation_PS_H,					//UUID: 2800, 	VALUE: uuid 180A
 	DeviceInformation_ModName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
 	DeviceInformation_ModName_DP_H,			//UUID: 2A24,	VALUE: Model Number String
+	DeviceInformation_SerialN_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
+	DeviceInformation_SerialN_DP_H,			//UUID: 2A25,	VALUE: Serial Number String
 	DeviceInformation_FirmRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
 	DeviceInformation_FirmRev_DP_H,			//UUID: 2A26,	VALUE: Firmware Revision String
 	DeviceInformation_HardRev_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
@@ -196,7 +199,7 @@ typedef enum
 	DeviceInformation_ManName_CD_H,			//UUID: 2803, 	VALUE:  			Prop: Read
 	DeviceInformation_ManName_DP_H,			//UUID: 2A29,	VALUE: Manufacturer Name String
 #endif
-	//// battery service ////
+	//// Battery service ////
 	/**********************************************************************************************/
 	BATT_PS_H, 								//UUID: 2800, 	VALUE: uuid 180f
 	BATT_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
@@ -218,24 +221,66 @@ typedef enum
 	HUMI_LEVEL_INPUT_DP_H,					//UUID: 2A6F 	VALUE: measured_data.humi
 	HUMI_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: humiValCCC
 
-	//// Ota ////
+	//// Telink OTA ////
 	/**********************************************************************************************/
 	OTA_PS_H, 								//UUID: 2800, 	VALUE: telink ota service uuid
 	OTA_CMD_OUT_CD_H,						//UUID: 2803, 	VALUE:  			Prop: read | write_without_rsp
 	OTA_CMD_OUT_DP_H,						//UUID: telink ota uuid,  VALUE: otaData
 	OTA_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: otaName
 
-	//// RxTx ////
+	//// Custom RxTx ////
 	/**********************************************************************************************/
 	RxTx_PS_H, 								//UUID: 2800, 	VALUE: 1F10 RxTx service uuid
 	RxTx_CMD_OUT_CD_H,						//UUID: 2803, 	VALUE:  			Prop: read | write_without_rsp
 	RxTx_CMD_OUT_DP_H,						//UUID: 1F1F,  VALUE: RxTxData
 	RxTx_CMD_OUT_DESC_H,					//UUID: 2902, 	VALUE: RxTxValueInCCC
 
+#if USE_MIHOME_SERVICE
+	// Mi Service
+	/**********************************************************************************************/
+	Mi_Service_PS_H, 						//UUID: 2800, 	VALUE: 0xFE95 service uuid
+	Mi_Version_CD_H,						//UUID: 2803, 	VALUE: prop
+	Mi_Version_DP_H,						//UUID: 0004,   VALUE: //value "1.0.0_0001"
+	Mi_Version_DESC_H,						//UUID: 2902, 	VALUE: BLE_UUID_MI_VERS // "Version"
+
+	Mi_Authentication_CD_H,					//UUID: 2803, 	VALUE: prop
+	Mi_Authentication_DP_H,					//UUID: 0010,   VALUE: //value "1.0.0_0001"
+	Mi_Authentication_DESC_H,				//UUID: 2901, 	VALUE: // "Authentication"
+	Mi_Authentication_CCB_H,				//UUID: 2902, 	VALUE: CCC
+
+	Mi_OTA_Ctrl_CD_H,						//UUID: 2803, 	VALUE: prop
+	Mi_OTA_Ctrl_DP_H,						//UUID: 0017,   VALUE: //value
+	Mi_OTA_Ctrl_DESC_H,						//UUID: 2901, 	VALUE: // "ota_ctrl"
+	Mi_OTA_Ctrl_CCB_H,						//UUID: 2902, 	VALUE: CCC
+
+	Mi_OTA_data_CD_H,						//UUID: 2803, 	VALUE: prop
+	Mi_OTA_data_DP_H,						//UUID: 0018,   VALUE: //value
+	Mi_OTA_data_DESC_H,						//UUID: 2901, 	VALUE: // "ota_data"
+	Mi_OTA_data_CCB_H,						//UUID: 2902, 	VALUE: CCC
+
+	Mi_Standard_CD_H,						//UUID: 2803, 	VALUE: prop
+	Mi_Standard_DP_H,						//UUID: 0019,   VALUE: //value
+	Mi_Standard_DESC_H,						//UUID: 2901, 	VALUE: // "standard"
+	Mi_Standard_CCB_H,						//UUID: 2902, 	VALUE: CCC
+
+	// Mi STDIO Service
+	/**********************************************************************************************/
+	Mi_STDIO_PS_H,							//UUID: 2800, 	VALUE: stdio_uuid @0100
+	Mi_STDIO_RX_CD_H,						//UUID: 2803, 	VALUE: prop
+	Mi_STDIO_RX_DP_H,						//UUID: @1100,  VALUE: //value
+	Mi_STDIO_RX_DESC_H,						//UUID: 2901, 	VALUE: // "STDIO_RX"
+	Mi_STDIO_RX_CCB_H,						//UUID: 2902, 	VALUE: CCC
+
+	Mi_STDIO_TX_CD_H,						//UUID: 2803, 	VALUE: prop
+	Mi_STDIO_TX_DP_H,						//UUID: @2100,  VALUE: //value
+	Mi_STDIO_TX_DESC_H,						//UUID: 2901, 	VALUE: // "STDIO_TX"
+	Mi_STDIO_TX_CCB_H,						//UUID: 2902, 	VALUE: CCC
+
+#else
 	// Mi Advertising char
 	Mi_PS_H, 								//UUID: 2800, 	VALUE: 0xFE95 service uuid
 	Mi_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: my_MiName
-
+#endif
 	ATT_END_H,
 
 }ATT_HANDLE;

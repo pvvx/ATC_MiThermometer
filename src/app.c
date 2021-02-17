@@ -17,6 +17,9 @@
 #if USE_FLASH_MEMO
 #include "logger.h"
 #endif
+#if USE_MIHOME_BEACON
+#include "mi_beacon.h"
+#endif
 
 void app_enter_ota_mode(void);
 
@@ -152,7 +155,13 @@ void test_config(void) {
 	if(cfg.min_step_time_update_lcd < 10)
 		cfg.min_step_time_update_lcd = 10; // min 10*0.05 = 0.5 sec
 	min_step_time_update_lcd = cfg.min_step_time_update_lcd * (100 * CLOCK_16M_SYS_TIMER_CLK_1MS);
-	cfg.hw_cfg.hwver = DEVICE_TYPE;
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+	cfg.hw_cfg.hwver = 0;
+#elif DEVICE_TYPE == DEVICE_MHO_C401
+	cfg.hw_cfg.hwver = 1;
+#else
+	cfg.hw_cfg.hwver = 3;
+#endif
 	cfg.hw_cfg.clock = USE_CLOCK;
 	cfg.hw_cfg.memo = USE_FLASH_MEMO;
 	cfg.hw_cfg.trg = USE_TRIGGER_OUT;
@@ -173,6 +182,10 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 #if USE_FLASH_MEMO
 		if(cfg.averaging_measurements)
 			write_memo();
+#endif
+#if	USE_MIHOME_BEACON
+		if(cfg.flg2.mi_beacon && pbindkey)
+			mi_beacon_summ();
 #endif
 		set_adv_data(cfg.flg.advertising_type);
 		end_measure = 1;
@@ -406,7 +419,7 @@ _attribute_ram_code_ void main_loop(void) {
 				}
 			} else {
 				uint32_t new = clock_time();
-				if (blc_ll_getCurrentState() == BLS_LINK_STATE_CONN && blc_ll_getTxFifoNumber() < 9) {
+				if ((blc_ll_getCurrentState() & BLS_LINK_STATE_CONN) && blc_ll_getTxFifoNumber() < 9) {
 					if (end_measure) {
 						end_measure = 0;
 						if (RxTxValueInCCC[0] | RxTxValueInCCC[1]) {

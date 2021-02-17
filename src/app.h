@@ -46,8 +46,8 @@ typedef struct __attribute__((packed)) _cfg_t {
 	 * 6 = "^-^" sad
 	 * 7 = "oOo" */
 		uint8_t smiley 		: 3;	// 0..7
-		//uint8_t adv_memo  	: 1; 	// advertising uses averaged measurements
-		uint8_t reserved	: 5;
+		uint8_t mi_beacon  	: 1; 	// advertising uses mi crypto beacon
+		uint8_t reserved	: 4;
 	} flg2;
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)
@@ -57,11 +57,12 @@ typedef struct __attribute__((packed)) _cfg_t {
 	uint8_t connect_latency; // +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
 	uint8_t min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
 	struct __attribute__((packed)) {
-		uint8_t hwver : 3; // 0 - LYWSD03MMC, 1 - MHO-C401
-		uint8_t clock : 1; // clock
-		uint8_t memo  : 1; // flash write measures
-		uint8_t trg	  : 1; // trigger out
-		uint8_t reserved   : 2;
+		uint8_t hwver		: 3; // 0 - LYWSD03MMC, 1 - MHO-C401
+		uint8_t clock		: 1; // clock
+		uint8_t memo		: 1; // flash write measures
+		uint8_t trg			: 1; // trigger out
+		uint8_t mi_beacon	: 1; 	// advertising uses mi crypto beacon
+		uint8_t reserved	: 1;
 	} hw_cfg; // read only
 	uint8_t averaging_measurements; // * measure_interval, 0 - off, 1..255 * measure_interval
 }cfg_t;

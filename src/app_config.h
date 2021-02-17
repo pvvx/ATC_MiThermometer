@@ -4,11 +4,11 @@
 extern "C" {
 #endif
 
-#define VERSION 0x21	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x22	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
-#define DEVICE_LYWSD03MMC   0	// LCD display LYWSD03MMC
-#define DEVICE_MHO_C401   	1	// E-Ink display MHO-C401
+#define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
+#define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401
 
 #define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401
 
@@ -19,7 +19,10 @@ extern "C" {
 #define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
 
-#define USE_DEVICE_INFO_CHR_UUID 	1 // enable Device Information Characteristics
+#define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
+#define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0)
+#define USE_MIHOME_BEACON			1 // = 1 Compatible with MiHome beacon encryption
+#define USE_NEW_OTA					0 // = 1 keeping the old firmware, erasing the region when updating (test version only!)
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
 

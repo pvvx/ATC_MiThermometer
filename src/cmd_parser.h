@@ -29,6 +29,22 @@ enum {
 	CMD_ID_DEBUG    = 0xDE  // Test/Debug
 } CMD_MI_ID_KEYS;
 
+#define MI_KEYTBIND_ID  0x10 // id token + bindkey
+#define MI_KEYSEQNUM_ID 0x04 // id mibeacon SEQNUM
+#define MI_KEYDNAME_ID  0x01 // id device name
+#define MI_KEYDELETE_ID 0x00 // mark delete key
+#define MI_KEYTBIND_SIZE (12+16) // buf token + bindkey size
+#define MI_KEYDNAME_SIZE (20) // device name buf size
+
+typedef struct __attribute__((packed)) _blk_mi_keys_t {
+	uint8_t id;
+	uint8_t klen;	// max length, end length, current length, ...
+	uint8_t data[MI_KEYTBIND_SIZE]; // token + bindkey
+} blk_mi_keys_t, * pblk_mi_keys_t;
+extern blk_mi_keys_t keybuf;
+
+uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt);
+
 uint8_t mi_key_stage;
 uint8_t get_mi_keys(uint8_t chk_stage);
 
