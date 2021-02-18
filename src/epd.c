@@ -85,12 +85,6 @@ const uint8_t digits[16][11] = {
     {1, 5, 6, 7, 8, 9, 10, 11, 0, 0, 0}, // E
     {1, 6, 7, 8, 9, 10, 11, 0, 0, 0, 0}  // F
 };
-//								 0 1 2 3    4 5 6 7 8 9 0 1 2 3 4 5    6 7
-const uint8_t lcd_ota_img[18] = {0,0,0,0,0x80,1,4,0,4,0,0,0,4,0,9,0,0x40,0};
-// @TODO  OTA mode work no E-Inc update
-void lcd_ota(void) {
-	memcpy(&display_buff, &lcd_ota_img, sizeof(display_buff));
-}
 
 /* 0x00 = "  "
  * 0x20 = "°Г"

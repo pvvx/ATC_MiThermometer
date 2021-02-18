@@ -19,6 +19,8 @@
 #include "mi_beacon.h"
 #endif
 
+void bls_set_advertise_prepare(void *p); // add ll_adv.h
+
 RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
 uint8_t send_buf[20];
 
@@ -34,7 +36,8 @@ RAM uint8_t ble_name[12] = { 11, 0x09,
 		'A', 'T', 'C', '_', '0', '0', '0', '0',	'0', '0' };
 RAM uint8_t mac_public[6];
 RAM uint8_t mac_random_static[6];
-RAM uint8_t adv_mi_count;
+RAM uint32_t adv_send_count;
+RAM uint32_t adv_old_count;
 RAM uint8_t adv_buffer[28];
 uint8_t ota_is_working = 0;
 
@@ -44,7 +47,6 @@ void app_enter_ota_mode(void) {
 #endif
 	ota_is_working = 1;
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
-	lcd_ota();
 }
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
@@ -87,6 +89,13 @@ int otaWritePre(void * p) {
 	blt_ota_start_tick = clock_time() | 1;
 	otaWrite(p);
 	return 0;
+}
+
+_attribute_ram_code_
+int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
+	adv_send_count++;
+//	set_adv_data(cfg.flg.advertising_type);
+	return 1;		// = 1 ready to send ADV packet, = 0 not send ADV
 }
 
 _attribute_ram_code_ int RxTxWrite(void * p) {
@@ -257,21 +266,7 @@ void init_ble(void) {
 #endif
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
-/*
-	//TODO проверить работу неописанной в lib функции: bls_set_advertise_prepare() - если работает, тогда упростить алгоритм.
-	void blc_l2cap_register_pre_handler(void *p); // add l2cap.h
-	void blc_set_l2cap_handle_fun(u8 flag);	// add l2cap.h
-	int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
-	    int ret = 0;
-		static u32 adv_sn = 0;
-		adv_sn++;
-		set_adv_mi_prehandler(p);
-		ret = 1;
-		return 1;		// = 1 ready to send ADV packet, = 0 not send ADV
-	}
-	...
 	bls_set_advertise_prepare(app_advertise_prepare_handler);
-*/
 #if USE_MIHOME_BEACON
 		mi_beacon_init();
 #endif
@@ -301,8 +296,9 @@ void init_ble(void) {
 
 /* adv_type: 0 - atc1441, 1 - Custom,  2,3 - Mi  */
 _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
+	adv_old_count = adv_send_count;
 	if(adv_type == 3)
-		adv_type = adv_mi_count & 3;
+		adv_type = adv_old_count & 3;
 	if(adv_type == 1) {
 #if USE_TRIGGER_OUT
 		test_trg_input();
@@ -347,7 +343,7 @@ _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 			p->dev_id = DEVICE_TYPE;
 			p->nx10 = (XIAOMI_DATA_ID_TempAndHumidity >> 8) & 0xff; // (hi byte XIAOMI_DATA_ID)
 			p->counter = (uint8_t)measured_data.count;
-			if (adv_mi_count & 1) {
+			if (adv_old_count & 1) {
 				p->data_id = XIAOMI_DATA_ID_TempAndHumidity & 0xff; // (lo byte XIAOMI_DATA_ID)
 				p->t0d.len = 0x04;
 				p->t0d.temperature = last_temp; // x0.1 C

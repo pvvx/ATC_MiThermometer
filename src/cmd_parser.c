@@ -226,6 +226,9 @@ void cmd_parser(void * p) {
 	uint32_t len = req->l2cap - 3;
 	if(len) {
 		uint8_t cmd = req->dat[0];
+		send_buf[0] = cmd;
+		send_buf[1] = 0; // no err?
+		uint32_t olen = 0;
 		if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
 			if(len >= 2)
 				tx_measures = req->dat[1];
@@ -233,6 +236,7 @@ void cmd_parser(void * p) {
 				end_measure = 1;
 				tx_measures = 1;
 			}
+			olen = 2;
 		} else if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
 			if(--len > sizeof(ext)) len = sizeof(ext);
 			if(len) {
@@ -319,6 +323,7 @@ void cmd_parser(void * p) {
 		} else if (cmd == CMD_MI_ID_CLR) {
 			cfg.flg2.mi_beacon = 0;
 			erase_mikeys();
+			olen = 2;
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
 			if(--len > sizeof(display_buff)) len = sizeof(display_buff);
 			if(len) {
@@ -330,9 +335,8 @@ void cmd_parser(void * p) {
 		} else if (cmd == CMD_ID_LCD_FLG) { // Start/stop notify lcd dump and ...
 			 if (len > 1)
 				 lcd_flg.uc = req->dat[1];
-			 send_buf[0] = CMD_ID_LCD_FLG;
 			 send_buf[1] = lcd_flg.uc;
-			 bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
+ 			 olen = 2;
 #if BLE_SECURITY_ENABLE
 		} else if (cmd == CMD_ID_PINCODE && len > 4) { // Set new pinCode 0..999999
 			uint32_t old_pincode = pincode;
@@ -347,9 +351,8 @@ void cmd_parser(void * p) {
 					}
 					send_buf[1] = 1;
 				} else	send_buf[1] = 3;
-			} else send_buf[1] = 0;
-			send_buf[0] = CMD_ID_PINCODE;
-			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
+			} //else send_buf[1] = 0;
+			olen = 2;
 #endif
 		} else if (cmd == CMD_ID_COMFORT) { // Get/set comfort parameters
 			if(--len > sizeof(cfg)) len = sizeof(cmf);
@@ -364,9 +367,9 @@ void cmd_parser(void * p) {
 				ble_get_name();
 				ble_connected |= 0x80; // reset device on disconnect
 			}
-			send_buf[0] = CMD_ID_DNAME;
+//			send_buf[0] = CMD_ID_DNAME;
 			memcpy(&send_buf[1], &ble_name[2], ble_name[0] - 1);
-			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, ble_name[0]);
+			olen = ble_name[0];
 		} else if (cmd == CMD_MI_ID_DNAME) { // Mi key: DevNameId
 			if(len == MI_KEYDNAME_SIZE + 1)
 				store_mi_keys(MI_KEYDNAME_SIZE, MI_KEYDNAME_ID, &req->dat[1]);
@@ -382,9 +385,9 @@ void cmd_parser(void * p) {
 			if(--len > sizeof(utc_time_sec)) len = sizeof(utc_time_sec);
 			if(len)
 				memcpy(&utc_time_sec, &req->dat[1], len);
-			send_buf[0] = CMD_ID_UTC_TIME;
+//			send_buf[0] = CMD_ID_UTC_TIME;
 			memcpy(&send_buf[1], &utc_time_sec, sizeof(utc_time_sec));
-			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(utc_time_sec) + 1);
+			olen = sizeof(utc_time_sec) + 1;
 #endif
 #if USE_FLASH_MEMO
 		} else if (cmd == CMD_ID_LOGGER && len > 2) { // Read memory measures
@@ -398,20 +401,30 @@ void cmd_parser(void * p) {
 				bls_pm_setManualLatency(0);
 			} else
 				bls_pm_setManualLatency(cfg.connect_latency);
+		} else if (cmd == CMD_ID_CLRLOG && len > 2) { // Clear memory measures
+			if(req->dat[1] == 0x12 && req->dat[2] == 0x34) {
+				clear_memo();
+				olen = 2;
+			}
 #endif
-		// Debug commands (unsupported in different versions!):
-
 		} else if (cmd == CMD_ID_MTU && len > 1) { // Request Mtu Size Exchange
 			if(req->dat[1] > ATT_MTU_SIZE)
-			send_buf[1] = blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, req->dat[1]);
-			send_buf[0] = CMD_ID_MTU;
-			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
+				send_buf[1] = blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, req->dat[1]);
+			else
+				send_buf[1] = 0xff;
+			olen = 2;
+
+			// Debug commands (unsupported in different versions!):
+
 		} else if (cmd == CMD_ID_REBOOT) { // Set Reboot on disconnect
 			ble_connected |= 0x80; // reset device on disconnect
+			olen = 2;
 		} else if (cmd == CMD_ID_DEBUG && len > 3) { // test/debug
-			flash_read_page((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), sizeof(send_buf)-4, &send_buf[4]);
+			flash_read_page((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), 18, &send_buf[4]);
 			memcpy(send_buf, req->dat, 4);
-			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(send_buf));
+			olen = 18+4;
 		}
+		if(olen)
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, olen);
 	}
 }

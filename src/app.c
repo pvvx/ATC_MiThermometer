@@ -184,7 +184,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 			write_memo();
 #endif
 #if	USE_MIHOME_BEACON
-		if(cfg.flg2.mi_beacon && pbindkey)
+		if((cfg.flg.advertising_type & 2) && cfg.flg2.mi_beacon && pbindkey)
 			mi_beacon_summ();
 #endif
 		set_adv_data(cfg.flg.advertising_type);
@@ -276,7 +276,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 
 //------------------ user_init_deepRetn -------------------
 _attribute_ram_code_ void user_init_deepRetn(void) {//after sleep this will get executed
-	adv_mi_count++;
+//	adv_mi_count++;
 	blc_ll_initBasicMCU();
 	rf_set_power_level_index(cfg.rf_tx_power);
 	blc_ll_recoverDeepRetention();
@@ -469,7 +469,8 @@ _attribute_ram_code_ void main_loop(void) {
 		}
 		if((cfg.flg.advertising_type & 2) // type 2 - Mi and 3 - all
 			&& blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {
-			set_adv_data(cfg.flg.advertising_type);
+			if(adv_old_count != adv_send_count)
+				set_adv_data(cfg.flg.advertising_type);
 		}
 #if DEVICE_TYPE == DEVICE_MHO_C401
 		if(wrk_measure == 0 && stage_lcd) {

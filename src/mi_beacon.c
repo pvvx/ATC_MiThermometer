@@ -63,7 +63,6 @@ typedef struct __attribute__((packed)) _beacon_nonce_t{
 RAM uint8_t *pbindkey;
 RAM beacon_nonce_t beacon_nonce;
 //// Counters
-RAM uint8_t adv_mi_ndata; // count adv. data type 0..2, 0 - batt, 1 - temp, 2 - humi
 RAM uint32_t adv_mi_cnt = 0xffffffff; // counter of measurement numbers from sensors
 //// Buffers
 extern uint8_t adv_buffer[28];
@@ -115,7 +114,8 @@ void mi_encrypt_beacon(uint32_t cnt) {
 		return;
 	}
 	adv_mi_cnt = cnt; // new counter
-	if(!adv_mi_ndata) { //
+	beacon_nonce.cnt = cnt;
+	if((cnt & 3) == 0) { //
 		mi_beacon_data.temp = ((int16_t)(mib_summ_data.temp/(int32_t)mib_summ_data.count))/10;
 		mi_beacon_data.humi = ((uint16_t)(mib_summ_data.humi/mib_summ_data.count))/10;
 		mi_beacon_data.batt = get_battery_level((uint16_t)(mib_summ_data.batt/mib_summ_data.count));
@@ -125,9 +125,35 @@ void mi_encrypt_beacon(uint32_t cnt) {
 	p->uid = 0x16; // 16-bit UUID
 	p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 	p->dev_id = beacon_nonce.pid;
-	beacon_nonce.cnt = cnt;
 	p->counter = cnt;
 	memcpy(p->MAC, mac_public, 6);
+#endif
+	uint8_t *mic = (uint8_t *)p;
+	mic += sizeof(adv_mi_enc_t);
+	switch(cnt & 3) {
+		case 0:
+			p->data_id = XIAOMI_DATA_ID_Temperature; // XIAOMI_DATA_ID
+			p->data_len = 2;
+			*mic++ = mi_beacon_data.temp;	// Temperature, Range: -400..+1000 (x0.1 C)
+			*mic++ = mi_beacon_data.temp >> 8;
+			break;
+		case 1:
+			p->data_id = 0x08;
+			p->fctrl.word = 0x5830; // 0x5830
+			p->size = sizeof(adv_mi_enc_t) - 2 - 1;
+			return;
+		case 2:
+			p->data_id = XIAOMI_DATA_ID_Humidity; // byte XIAOMI_DATA_ID
+			p->data_len = 2;
+			*mic++ = mi_beacon_data.humi; // Humidity percentage, Range: 0..1000 (x0.1 %)
+			*mic++ = mi_beacon_data.humi >> 8;
+			break;
+		case 3:
+			p->data_id = XIAOMI_DATA_ID_Power; // XIAOMI_DATA_ID
+			p->data_len = 1;
+			*mic++ = mi_beacon_data.batt; // Battery percentage, Range: 0..100 %
+			break;
+	}
 #if 0
 	p->fctrl.word = 0;
 	p->fctrl.bit.isEncrypted = 1;
@@ -137,28 +163,7 @@ void mi_encrypt_beacon(uint32_t cnt) {
 	p->fctrl.bit.AuthMode = 2;
 	p->fctrl.bit.version = 5; // XIAOMI_DEV_VERSION
 #else
-	p->fctrl.word = 0x5858;
-#endif
-	uint8_t *mic = (uint8_t *)p;
-	mic += sizeof(adv_mi_enc_t);
-	if (adv_mi_ndata == 0) {
-		adv_mi_ndata++;
-		p->data_id = XIAOMI_DATA_ID_Power; // XIAOMI_DATA_ID
-		p->data_len = 1;
-		*mic++ = mi_beacon_data.batt; // Battery percentage, Range: 0..100 %
-	} else if (adv_mi_ndata == 1) {
-		adv_mi_ndata++;
-		p->data_id = XIAOMI_DATA_ID_Temperature; // XIAOMI_DATA_ID
-		p->data_len = 2;
-		*mic++ = mi_beacon_data.temp;	// Temperature, Range: -400..+1000 (x0.1 C)
-		*mic++ = mi_beacon_data.temp >> 8;
-	} else {
-		adv_mi_ndata = 0;
-		p->data_id = XIAOMI_DATA_ID_Humidity; // byte XIAOMI_DATA_ID
-		p->data_len = 2;
-		*mic++ = mi_beacon_data.humi; // Humidity percentage, Range: 0..1000 (x0.1 %)
-		*mic++ = mi_beacon_data.humi >> 8;
-	}
+	p->fctrl.word = 0x5858; // 0x5830
 	p->size = p->data_len + sizeof(adv_mi_enc_t) + 3 + 4 - 1;
 	*mic++ = beacon_nonce.ext_cnt[0];
 	*mic++ = beacon_nonce.ext_cnt[1];

@@ -126,7 +126,8 @@ In case you want to go back to the original firmware, you can download them here
 |     1.9 | Recording measurements to flash memory (cyclic buffer for 19632 measurements)
 |     2.0 | Recording measurements with averaging to flash memory
 |     2.1 | Periodic display refresh for MHO-C401 <br> 'Erase mi-keys' option to return to original firmware
-|     2.2 | Added parameter "Encrypted Mi Beacon" ([Compatible with Mi-Home?](https://github.com/pvvx/ATC_MiThermometer/issues/51))
+|     2.2 | Added parameter "Encrypted Mi Beacon"
+|     2.3 | Added "Delete all records"
 
 
 ## Applications
@@ -288,3 +289,31 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 ### CJMCU-2557 BQ25570
 
 ![CJMCU-2557](https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/ATC_MiThermometer/img/CJMCU-2557.jpg)
+
+## Characteristic UUID 0x1F1F
+
+|  ID  | Command                                       |
+| :--: | --------------------------------------------- |
+| 0x01 | Get/Set device name                           |
+| 0x10 | Get/Set MAC                                   |
+| 0x11 | Get/Set Mi key: DevNameId                     |
+| 0x12 | Get/Set Mi keys: Token & Bind                 |
+| 0x15 | Get all Mi keys                               |
+| 0x16 | Restore prev mi token & bindkeys              |
+| 0x17 | Delete all Mi keys                            |
+| 0x20 | Get/Set comfort parameters                    |
+| 0x22 | Get/Set show LCD ext.data                     |
+| 0x23 | Get/Set Time                                  |
+| 0x33 | Start/Stop notify measures in connection mode |
+| 0x35 | Read memory measures                          |
+| 0x36 | Clear memory measures                         |
+| 0x44 | Get/Set TRG config                            |
+| 0x45 | Set TRG output pin                            |
+| 0x4A | Get/Set TRG data (not save to Flash)          |
+| 0x55 | Get/Set device config                         |
+| 0x56 | Set default device config                     |
+| 0x5A | Get/Set device config (not save to Flash)     |
+| 0x60 | Get/Set LCD buffer                            |
+| 0x61 | Start/Stop notify LCD buffer                  |
+| 0x70 | Set PinCode                                   |
+

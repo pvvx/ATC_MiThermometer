@@ -90,13 +90,15 @@ static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.0_0010"
 static const u8 my_HardStr[] = {"V_14"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0110"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
-#else // DEVICE_TYPE == DEVICE_LYWSD03MMC
+#elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 static const u8 my_ModelStr[] = {"LYWSD03MMC"};
 static const u8 my_SerialStr[] = {"F1.0-CFMK-LB-ZCXTJ--"};
 static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.0_0109"
 static const u8 my_HardStr[] = {"B1.4"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
+#else
+#error "DEVICE_TYPE = ?"
 #endif
 //------------------
 #endif // USE_DEVICE_INFO_CHR_UUID

@@ -114,6 +114,20 @@ void memo_init(void) {
 	return;
 }
 
+void clear_memo(void) {
+	uint32_t tmp;
+	uint32_t faddr = FLASH_ADDR_START_MEMO + FLASH_SECTOR_SIZE;
+	memo.cnt_cur_sec = 0;
+	while(faddr < FLASH_ADDR_END_MEMO) {
+		_flash_read(faddr, sizeof(tmp), &tmp);
+		if(tmp != MEMO_SEC_ID)
+			_flash_erase_sector(faddr);
+		faddr += FLASH_SECTOR_SIZE;
+	}
+	memo_sec_init(FLASH_ADDR_START_MEMO);
+	return;
+}
+
 _attribute_ram_code_
 unsigned get_memo(uint32_t bnum, pmemo_blk_t p) {
 	memo_head_t mhs;

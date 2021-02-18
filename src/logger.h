@@ -38,6 +38,7 @@ extern memo_rd_t rd_memo;
 extern memo_inf_t memo;
 
 void memo_init(void);
+void clear_memo(void);
 unsigned get_memo(uint32_t bnum, pmemo_blk_t p);
 void write_memo(void);
 

@@ -14,17 +14,18 @@ enum {
 	CMD_ID_UTC_TIME = 0x23, // Get/set utc time (if USE_CLOCK = 1)
 	CMD_ID_MEASURE  = 0x33, // Start/stop notify measures in connection mode
 	CMD_ID_LOGGER   = 0x35, // Read memory measures
+	CMD_ID_CLRLOG	= 0x36, // Clear memory measures
 	CMD_ID_TRG      = 0x44, // Get/set trg data
 	CMD_ID_TRG_OUT  = 0x45, // Set trg out
 	CMD_ID_TRG_NS   = 0x4A, // Get/set trg data (not save to Flash)
-	CMD_ID_CFG      = 0x55,	// Get/set config
-	CMD_ID_CFG_DEF  = 0x56,	// Get default config
-	CMD_ID_CFG_NS   = 0x5A,	// Get/set config (not save to Flash)
+	CMD_ID_CFG      = 0x55,	// Get/set device config
+	CMD_ID_CFG_DEF  = 0x56,	// Set default device config
+	CMD_ID_CFG_NS   = 0x5A,	// Get/set device config (not save to Flash)
 	CMD_ID_LCD_DUMP = 0x60, // Get/set lcd buf
 	CMD_ID_LCD_FLG  = 0x61, // Start/stop notify lcd dump and ...
 	CMD_ID_PINCODE  = 0x70, // Set new PinCode 0..999999
-	// Debug commands (unsupported in different versions!):
 	CMD_ID_MTU		= 0x71, // Request Mtu Size Exchange (23..255)
+	// Debug commands (unsupported in different versions!):
 	CMD_ID_REBOOT	= 0x72, // Set Reboot on disconnect
 	CMD_ID_DEBUG    = 0xDE  // Test/Debug
 } CMD_MI_ID_KEYS;

@@ -7,7 +7,8 @@
 
 extern uint8_t ota_is_working;
 extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset device on disconnect
-extern uint8_t adv_mi_count;
+extern uint32_t adv_send_count;
+extern uint32_t adv_old_count;
 extern bool show_temp_humi_Mi;
 extern u8 batteryValueInCCC[2];
 extern u8 tempValueInCCC[2];
