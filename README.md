@@ -99,11 +99,8 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 2.1p](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer21p.bin)
-* [MHO-C401 Custom Firmware Version 2.1p](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v21p.bin)
-
-* [LYWSD03MMC Custom Firmware Version 2.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer22.bin)
-* [MHO-C401 Custom Firmware Version 2.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v22.bin)
+* [LYWSD03MMC Custom Firmware Version 2.3p](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer23p.bin)
+* [MHO-C401 Custom Firmware Version 2.3p](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v23p.bin)
 
 **Original Manufacturer Firmware Version**
 
