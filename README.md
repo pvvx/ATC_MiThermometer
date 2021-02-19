@@ -6,6 +6,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 **Key features**
 
+* Supports connections using **PIN-code** and encrypted **bindkey** beacon.
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
 * **Measurement values recording** & Charting. See [Reading Measurements from Flash](#reading-measurements-from-flash)
 * **Adjustable correction offsets** and **Comfort zones**
