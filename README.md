@@ -53,19 +53,21 @@ You can conveniently flash, update and configure the bluetooth thermometers remo
 
 To flash or update the firmware, use a Google Chrome, Microsoft Edge or Opera Browser.
 
-1. Go to the [Over-the-air Webupdater Page `TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html)
+1. Go to the [Over-the-air Webupdater Page `TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) *
 2. If using Linux: Ensure you enabled "experimental web platform features". Therefore copy the according link (i.e. `chrome://flags/#enable-experimental-web-platform-features` for Chrome), open a new browser tab, paste the copied URL. Now sten the _Experimental Web Platform features_ flag to _Enabled_. Then **restart the browser**.
 3. In the Telink Flasher Page: Press `Connect`: The browser should open a popup with visible Bluetooth devices. Choose the according target device (i.e. `LYWSD03MMC`) to pair. 
 4. After connection is established a _Do Acivation_ button appears. Press this button to start the decryption key process.
 5. Now you can press the _Custom Firmware ver x.x_ button to directly flash the custom firmware. Alternatively you can choose a specific firmware binary (i.e. the original firmware) via the file chooser
 6. Press _Start Flashing_.
 
+ * Use [TelinkOTA](https://pvvx.github.io/ATC_MiThermometer/TelinkOTA.html) to flash old or alternative versions ([ATC1441](https://atc1441.github.io/TelinkFlasher.html)).
+
 ### Configuration
-After you have flashed the firmware, the device has changed it's bluetooth name to something like `ATC_F02A`. Using the [`TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) you have various configuration options.
+After you have flashed the firmware, the device has changed it's bluetooth name to something like `ATC_F02AED`. Using the [`TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) you have various configuration options.
 
 **General process:**
 1. Press _Connect_
-2. Select the according device to connect/pair (i.e.  `ATC_F02A`)
+2. Select the according device to connect/pair (i.e.  `ATC_F02AED`)
 3. Several configuration options appear
 4. Choose _Send Config_ to send changed value to the device. Or press _Set default_ and then _Send config_ to revert to the Defaults
 
@@ -168,7 +170,7 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 * Bluetooth Connection: 15..30 uA 3.3V (depends on the amount of temperature or humidity changes over time to display)
 
 ### Bluetooth Advertising Formats
-The Firmware can be configured to support one of four different Bluetooth advertisements data formats. 
+The Firmware can be configured to support one of four different Bluetooth advertisements data formats. Supports bindkey beacon encryption.
 
 You can also configure to transferring everything in turn (round-robin)
 #### atc1441 format
