@@ -385,9 +385,18 @@ void cmd_parser(void * p) {
 			if(--len > sizeof(utc_time_sec)) len = sizeof(utc_time_sec);
 			if(len)
 				memcpy(&utc_time_sec, &req->dat[1], len);
-//			send_buf[0] = CMD_ID_UTC_TIME;
 			memcpy(&send_buf[1], &utc_time_sec, sizeof(utc_time_sec));
 			olen = sizeof(utc_time_sec) + 1;
+#if USE_TIME_ADJUST
+		} else if (cmd == CMD_ID_TADJUST) { // Get/set adjust time clock delta (in 1/16 us for 1 sec)
+			if(len > 2) {
+				int16_t delta = req->dat[1] | (req->dat[2] << 8);
+				utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S + delta;
+				flash_write_cfg(&utc_time_tick_step, EEP_ID_TIM, sizeof(utc_time_tick_step));
+			}
+			memcpy(&send_buf[1], &utc_time_tick_step, sizeof(utc_time_tick_step));
+			olen = sizeof(utc_time_tick_step) + 1;
+#endif
 #endif
 #if USE_FLASH_MEMO
 		} else if (cmd == CMD_ID_LOGGER && len > 2) { // Read memory measures

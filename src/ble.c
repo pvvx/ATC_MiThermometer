@@ -258,7 +258,7 @@ void init_ble(void) {
 	///////////////////// Power Management initialization///////////////////
 	blc_ll_initPowerManagement_module();
 	bls_pm_setSuspendMask(SUSPEND_DISABLE);
-	blc_pm_setDeepsleepRetentionThreshold(95, 95);
+	blc_pm_setDeepsleepRetentionThreshold(50, 30);
 	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
 #if USE_NEW_OTA == 0

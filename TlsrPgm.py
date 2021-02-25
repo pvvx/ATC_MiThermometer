@@ -2,6 +2,7 @@
 
 ##### TlsrPgm.py #####
 ###  Autor: pvvx   ###
+## https://github.com/pvvx/TLSRPGM ##
 
 import sys
 import signal
@@ -750,10 +751,9 @@ class TLSRPGM:
 			#print('ok') 
 		return True
 	# Test
-	def TestDebugPC(self, count = 1):
+	def TestDebugPC(self, count = 1, offset = 0x6bc):
 		if count < 1:
 			count = 1
-		offset = 0x6bc
 		flgsleep = False
 		flgrun = False
 		i = 0

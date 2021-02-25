@@ -12,6 +12,7 @@ enum {
 	CMD_ID_COMFORT  = 0x20, // Get/set comfort parameters
 	CMD_ID_EXTDATA  = 0x22, // Get/set show ext. data
 	CMD_ID_UTC_TIME = 0x23, // Get/set utc time (if USE_CLOCK = 1)
+	CMD_ID_TADJUST  = 0x24, // Get/set adjust time clock delta (in 1/16 us for 1 sec)
 	CMD_ID_MEASURE  = 0x33, // Start/stop notify measures in connection mode
 	CMD_ID_LOGGER   = 0x35, // Read memory measures
 	CMD_ID_CLRLOG	= 0x36, // Clear memory measures

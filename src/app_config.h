@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x23	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x24	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
@@ -17,6 +17,7 @@ extern "C" {
 
 #define USE_TRIGGER_OUT 	1 // use trigger out (GPIO_PA5)
 #define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
+#define USE_TIME_ADJUST		1 // = 1 time correction enabled
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics

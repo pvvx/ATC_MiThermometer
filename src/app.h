@@ -13,6 +13,7 @@
 #define EEP_ID_PCD (0xC0DE) // EEP ID pincode
 #define EEP_ID_CMF (0x0FCC) // EEP ID comfort data
 #define EEP_ID_DVN (0x0DB5) // EEP ID device name
+#define EEP_ID_TIM (0x0ADA) // EEP ID time adjust
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
@@ -102,6 +103,9 @@ extern uint32_t chow_tick_sec; // count chow validity time, in sec
 
 #if	USE_CLOCK || USE_FLASH_MEMO
 extern uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
+#endif
+#if	USE_CLOCK && USE_TIME_ADJUST
+extern uint32_t utc_time_tick_step; // adjust time clock (in 1/16 us for 1 sec)
 #endif
 
 extern uint32_t pincode; // pincode (if = 0 - not used)
