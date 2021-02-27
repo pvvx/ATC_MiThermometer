@@ -8,9 +8,9 @@
 BLEScan* pBLEScan;
 
 // The remote data device MAC
-BLEAddress inMacAddress = BLEAddress("a4:c1:38:56:58:70");
+BLEAddress inMacAddress = BLEAddress("a4:c1:38:0b:5e:ed");
 // The remote LCD device MAC
-BLEAddress outMacAddress = BLEAddress("a4:c1:38:0b:5e:ed");
+BLEAddress outMacAddress = BLEAddress("a4:c1:38:56:58:70");
 // The remote service we wish to connect to.
 static BLEUUID serviceUUID("00001f10-0000-1000-8000-00805f9b34fb");
 // The characteristic of the remote service we are interested in.
@@ -234,9 +234,10 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
               Serial.printf("MAC: "); printBuffer(serviceData + 4, 6);
               int16_t x = (serviceData[10] << 8) | serviceData[11];
               temp = x / 10.0;
+              humidity = serviceData[12];
               doScan = true;
               uint16_t vbat = x = (serviceData[14] << 8) | serviceData[15];
-              Serial.printf("Temp: %.1f°, Humidity: %d%%, Vbatt: %d, Battery: %d%%, cout: %d\n", temp, serviceData[12], vbat, serviceData[13], serviceData[16]);
+              Serial.printf("Temp: %.1f°, Humidity: %.0f%%, Vbatt: %d, Battery: %d%%, cout: %d\n", temp, humidity, vbat, serviceData[13], serviceData[16]);
             }
           }
         } else {
@@ -255,24 +256,6 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
       }
     }
 };
-
-#if 0
-class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
-    void onResult(BLEAdvertisedDevice advertisedDevice) {
-      if ((!connected) && devMacAddress.equals(advertisedDevice.getAddress())) {
-        Serial.println("Found device!");
-        BLEDevice::getScan()->stop();
-        myDevice = new BLEAdvertisedDevice(advertisedDevice);
-        doConnect = true;
-        doScan = true;
-        return;
-      } else {
-        Serial.print("Found device, MAC: ");
-        Serial.println(advertisedDevice.getAddress().toString().c_str());
-      }
-    }
-};
-#endif
 
 void setup() {
   Serial.begin(115200);
@@ -325,7 +308,7 @@ void loop() {
         blk[3] = hm;
         blk[4] = hm >> 8;
         blk[5] = 30;
-        blk[6] = 0;
+        blk[6] = 0xA0;
         Serial.print("New Data to LCD: ");
         printBuffer(blk, sizeof(blk));
         pRemoteCharacteristic->writeValue(blk, sizeof(blk));
