@@ -291,13 +291,15 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 
 ![CJMCU-2557](https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/ATC_MiThermometer/img/CJMCU-2557.jpg)
 
-## Characteristic UUID 0x1F1F
+## Control function ID when connected
+
+#### Primary Service UUID 0x1F10, Characteristic UUID 0x1F1F
 
 |  ID  | Command                                       |
 | :--: | --------------------------------------------- |
 | 0x01 | Get/Set device name                           |
 | 0x10 | Get/Set MAC                                   |
-| 0x11 | Get/Set Mi key: DevNameId                     |
+| 0x11 | Get/Set Mi key: DevNameID                     |
 | 0x12 | Get/Set Mi keys: Token & Bind                 |
 | 0x15 | Get all Mi keys                               |
 | 0x16 | Restore prev mi token & bindkeys              |
@@ -305,6 +307,7 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 | 0x20 | Get/Set comfort parameters                    |
 | 0x22 | Get/Set show LCD ext.data                     |
 | 0x23 | Get/Set Time                                  |
+| 0x24 | Get/set adjust time clock delta               |
 | 0x33 | Start/Stop notify measures in connection mode |
 | 0x35 | Read memory measures                          |
 | 0x36 | Clear memory measures                         |
@@ -317,4 +320,6 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 | 0x60 | Get/Set LCD buffer                            |
 | 0x61 | Start/Stop notify LCD buffer                  |
 | 0x70 | Set PinCode                                   |
+| 0x71 | Request Mtu Size Exchange                     |
+
 
