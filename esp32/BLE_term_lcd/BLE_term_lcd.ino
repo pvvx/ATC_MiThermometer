@@ -21,9 +21,18 @@ static boolean connected = false;
 static BLERemoteCharacteristic* pRemoteCharacteristic;
 static BLEAdvertisedDevice* myDevice;
 
-float temp, humidity;
-static boolean doScan = false;
-
+static struct {
+  uint8_t mac[8];
+  float temp;
+  float humidity;
+  uint16_t ctrl;
+  uint16_t dev_id;
+  uint16_t vbat;
+  uint8_t cnt;
+  uint8_t old_cnt;
+  uint8_t bat;
+  uint8_t en;
+} srvdata;
 
 void printBuffer(uint8_t* buf, int len) {
   for (int i = 0; i < len; i++) {
@@ -33,36 +42,43 @@ void printBuffer(uint8_t* buf, int len) {
 }
 
 void parse_value(uint8_t* buf, int len) {
-  int16_t x = buf[3];
-  if (buf[2] > 1)
-    x |=  buf[4] << 8;
-  switch (buf[0]) {
-    case 0x0D:
-      if (buf[2] && len > 6) {
-        temp = x / 10.0;
-        x =  buf[5] | (buf[6] << 8);
-        humidity = x / 10.0;
-        doScan = true;
-        Serial.printf("Temp: %.1f°, Humidity: %.1f %%\n", temp, humidity);
+  if (len < buf[2] + 3) // len data
+    return;
+  int16_t id = buf[0] + (buf[1] << 8);
+  int16_t value = buf[3];
+  if (len > 1)
+    value |=  buf[4] << 8;
+  switch (id) {
+    case 0x100D:
+      if (buf[2] == 4) {
+        srvdata.temp = value / 10.0;
+        value =  buf[5] | (buf[6] << 8);
+        srvdata.humidity = value / 10.0;
+        srvdata.en = true;
+        Serial.printf("Temp: %.1f°, Humidity: %.1f %%\n", srvdata.temp, srvdata.humidity);
       }
       break;
-    case 0x04: {
-        temp = x / 10.0;
-        doScan = true;
-        Serial.printf("Temp: %.1f°\n", temp);
+    case 0x1004:
+      if (buf[2] == 2) {
+        srvdata.temp = value / 10.0;
+        srvdata.en = true;
+        Serial.printf("Temp: %.1f°\n", srvdata.temp);
       }
       break;
-    case 0x06: {
-        humidity = x / 10.0;
-        doScan = true;
-        Serial.printf("Humidity: %.1f%%\n", humidity);
+    case 0x1006:
+      if (buf[2] == 2) {
+        srvdata.humidity = value / 10.0;
+        srvdata.en = true;
+        Serial.printf("Humidity: %.1f%%\n", srvdata.humidity);
       }
       break;
-    case 0x0A: {
-        Serial.printf("Battery: %d%%", x);
+    case 0x100A:
+      if (buf[2] == 1) {
+        srvdata.bat = value;
+        Serial.printf("Battery: %d%%", srvdata.bat);
         if (len > 5 && buf[4] == 2) {
-          uint16_t battery_mv = buf[5] | (buf[6] << 8);
-          Serial.printf(", %d mV", battery_mv);
+          srvdata.vbat = buf[5] | (buf[6] << 8);
+          Serial.printf(", %d mV", srvdata.vbat);
         }
         Serial.printf("\n");
       }
@@ -94,6 +110,7 @@ class MyClientCallback : public BLEClientCallbacks {
 
     void onDisconnect(BLEClient* pclient) {
       connected = false;
+      doConnect = false;
       Serial.println("onDisconnect");
     }
 };
@@ -145,6 +162,8 @@ bool connectToServer() {
   connected = true;
   return true;
 }
+
+
 /**
    Scan for BLE servers and find the first one that advertises the service we are looking for.
 */
@@ -180,66 +199,100 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
     void onResult(BLEAdvertisedDevice advertisedDevice) {
       if (connected) {
         if (inMacAddress.equals(advertisedDevice.getAddress())) {
-          uint8_t mac[6];
           uint8_t* payload = advertisedDevice.getPayload();
           size_t payloadLength = advertisedDevice.getPayloadLength();
           uint8_t serviceDataLength = 0;
           uint8_t* serviceData = findServiceData(payload, payloadLength, &serviceDataLength);
-          if (serviceData == nullptr || serviceDataLength < 15)
+          if (serviceData == nullptr || serviceDataLength < 17 || serviceData[1] != 0x16)
             return;
           uint16_t serviceType = *(uint16_t*)(serviceData + 2);
           Serial.printf("Found service '%04x' data len: %d, ", serviceType, serviceDataLength);
           printBuffer(serviceData, serviceDataLength);
           if (serviceType == 0xfe95) {
-            if (serviceData[5] & 0x10) {
-              mac[5] = serviceData[9];
-              mac[4] = serviceData[10];
-              mac[3] = serviceData[11];
-              mac[2] = serviceData[12];
-              mac[1] = serviceData[13];
-              mac[0] = serviceData[14];
-              Serial.printf("MAC: "); printBuffer(mac, 6);
-            }
-            if ((serviceData[5] & 0x08) == 0) { // not encrypted
-              serviceDataLength -= 15;
-              payload = &serviceData[15];
-              while (serviceDataLength > 3) {
-                parse_value(payload, serviceDataLength);
-                serviceDataLength -= payload[2] + 3;
-                payload += payload[2] + 3;
+            // 0  1  2    4    6    8  9            15   17
+            // 15 16 95fe 5030 5b05 06 ed5e0b38c1a4 0d10 04 2300 9d02
+            uint32_t i = 4;
+            srvdata.ctrl = *(uint16_t*)(serviceData + i);
+            i += 2; // = 6
+            Serial.printf("CTRL: %04x ", srvdata.ctrl);
+            srvdata.dev_id = *(uint16_t*)(serviceData + i);
+            i += 2; // = 8
+            Serial.printf("DEVID: %04x ", srvdata.dev_id);
+            srvdata.cnt = serviceData[i++]; // i = 9
+            if (srvdata.ctrl & 0x10) {
+              if (serviceDataLength < i + 6) {
+                Serial.printf("Error format! count: %d\n", srvdata.cnt);
+                return;
               }
-              Serial.printf("count: %d\n", serviceData[8]);
-            } else {
-              if (serviceDataLength > 19) { // aes-ccm  bindkey
-                Serial.printf("Crypted data[%d]! ", serviceDataLength - 15);
-              }
-              Serial.printf("count: %d\n", serviceData[8]);
+              srvdata.mac[5] = serviceData[i++];
+              srvdata.mac[4] = serviceData[i++];
+              srvdata.mac[3] = serviceData[i++];
+              srvdata.mac[2] = serviceData[i++];
+              srvdata.mac[1] = serviceData[i++];
+              srvdata.mac[0] = serviceData[i++]; // i = 15
+              Serial.printf("MAC: "); printBuffer(srvdata.mac, 6);
             }
-          } else { // serviceType == 0x181a
+            if (srvdata.ctrl & 0x20) { // Capability
+              if (serviceDataLength < i) {
+                Serial.printf("count: %d\n", srvdata.cnt);
+                return;
+              }
+              if (serviceData[i++] & 0x20) { // IO
+                if (serviceDataLength < i + 2) {
+                  Serial.printf("count: %d\n", srvdata.cnt);
+                  return;
+                }
+                i += 2;
+              }
+            }
+            if (srvdata.ctrl & 0x40) { // Data
+              if ((srvdata.ctrl & 0x08) == 0) { // not encrypted
+                serviceDataLength -= i;
+                payload = &serviceData[i];
+                if (serviceDataLength > 3) {
+                  parse_value(payload, serviceDataLength);
+                  serviceDataLength -= payload[2] + 3;
+                  payload += payload[2] + 3;
+                }
+              } else {
+                if (serviceDataLength > 19) { // aes-ccm  bindkey
+                  Serial.printf("Crypted data[%d]! ", serviceDataLength - 15);
+                }
+              }
+            }
+            Serial.printf("count: %d\n", srvdata.cnt);
+          } else if (serviceType == 0x181a) { //
             if (serviceDataLength > 18) { // custom format
-              mac[5] = serviceData[4];
-              mac[4] = serviceData[5];
-              mac[3] = serviceData[6];
-              mac[2] = serviceData[7];
-              mac[1] = serviceData[8];
-              mac[0] = serviceData[9];
+              srvdata.mac[5] = serviceData[4];
+              srvdata.mac[4] = serviceData[5];
+              srvdata.mac[3] = serviceData[6];
+              srvdata.mac[2] = serviceData[7];
+              srvdata.mac[1] = serviceData[8];
+              srvdata.mac[0] = serviceData[9];
               Serial.printf("MAC: ");
-              printBuffer(mac, 6);
-              temp = *(int16_t*)(serviceData + 10) / 100.0;
-              humidity = *(uint16_t*)(serviceData + 12) / 100.0;
-              doScan = true;
-              uint16_t vbat = *(uint16_t*)(serviceData + 14);
-              Serial.printf("Temp: %.2f°, Humidity: %.2f%%, Vbatt: %d, Battery: %d%%, flg: 0x%02x, cout: %d\n", temp, humidity, vbat, serviceData[16], serviceData[18], serviceData[17]);
+              printBuffer(srvdata.mac, 6);
+              srvdata.temp = *(int16_t*)(serviceData + 10) / 100.0;
+              srvdata.humidity = *(uint16_t*)(serviceData + 12) / 100.0;
+              srvdata.en = true;
+              srvdata.vbat = *(uint16_t*)(serviceData + 14);
+              srvdata.bat = serviceData[16];
+              srvdata.cnt = serviceData[17];
+              Serial.printf("Temp: %.2f°, Humidity: %.2f%%, Vbatt: %d, Battery: %d%%, flg: 0x%02x, cout: %d\n", srvdata.temp, srvdata.humidity, srvdata.vbat, srvdata.bat, serviceData[18], srvdata.cnt);
             } else if (serviceDataLength == 17) { // format atc1441
-              Serial.printf("MAC: "); printBuffer(serviceData + 4, 6);
+              memcpy(&srvdata.mac, &serviceData[4], 6);
+              Serial.printf("MAC: ");
+              printBuffer(srvdata.mac, 6);
               int16_t x = (serviceData[10] << 8) | serviceData[11];
-              temp = x / 10.0;
-              humidity = serviceData[12];
-              doScan = true;
-              uint16_t vbat = x = (serviceData[14] << 8) | serviceData[15];
-              Serial.printf("Temp: %.1f°, Humidity: %.0f%%, Vbatt: %d, Battery: %d%%, cout: %d\n", temp, humidity, vbat, serviceData[13], serviceData[16]);
+              srvdata.temp = x / 10.0;
+              srvdata.humidity = serviceData[12];
+              srvdata.en = true;
+              srvdata.bat = serviceData[13];
+              srvdata.vbat = (serviceData[14] << 8) | serviceData[15];
+              srvdata.cnt = serviceData[16];
+              Serial.printf("Temp: %.1f°, Humidity: %.0f%%, Vbatt: %d, Battery: %d%%, cout: %d\n", srvdata.temp, srvdata.humidity, srvdata.vbat, srvdata.bat, srvdata.cnt);
             }
           }
+          pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
         } else {
           Serial.print("Found device, MAC: ");
           Serial.println(advertisedDevice.getAddress().toString().c_str());
@@ -257,6 +310,12 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
     }
 };
 
+void Scan() {
+  pBLEScan->setInterval(125);
+  pBLEScan->setWindow(125);
+  pBLEScan->setActiveScan(false);
+  pBLEScan->start(5, false);
+}
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting Arduino BLE Client application...");
@@ -266,21 +325,16 @@ void setup() {
   // scan to run for 15 seconds.
   pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-  pBLEScan->setInterval(1349);
-  pBLEScan->setWindow(449);
-  pBLEScan->setActiveScan(false);
-  Serial.println("Start scan (15 sec).");
-  pBLEScan->start(15, false);
+  Serial.println("Start scan (5 sec).");
+  Scan();
 }
-
-uint32_t timer_tick;
 
 void loop() {
 
   // If the flag "doConnect" is true then we have scanned for and found the desired
   // BLE Server with which we wish to connect.  Now we connect to it.  Once we are
   // connected we set the connected flag to be true.
-  if (doConnect == true) {
+  if (doConnect) {
     if (connectToServer()) {
       Serial.println("We are now connected to the BLE Server.");
     } else {
@@ -288,40 +342,34 @@ void loop() {
     }
     doConnect = false;
   }
-
   // If we are connected to a peer BLE Server, update the characteristic each time we are reached
   // with the current time since boot.
   if (connected) {
-    if (millis() - timer_tick > 10000) {
-      timer_tick = millis();
-      Serial.print("Time since boot: ");
-      Serial.println(timer_tick / 1000);
-      pBLEScan->start(10, false);
-      if (doScan) {
-        doScan = false;
+    Serial.printf("Time since boot: %u. New scan.\n", (uint32_t)(millis() / 1000));
+    Scan();
+    if (srvdata.en) {
+      srvdata.en = false;
+      if (srvdata.old_cnt != srvdata.cnt) {
+        srvdata.old_cnt = srvdata.cnt;
         uint8_t blk[7];
-        int16_t tm = temp * 10.0;
-        uint16_t hm = humidity;
+        int16_t tm = srvdata.temp * 10.0;
+        uint16_t hm = srvdata.humidity;
         blk[0] = 0x22;
         blk[1] = tm;
         blk[2] = tm >> 8;
         blk[3] = hm;
         blk[4] = hm >> 8;
-        blk[5] = 30;
+        blk[5] = 60;
         blk[6] = 0xA0;
-        Serial.print("New Data to LCD: ");
+        Serial.printf("New Data to LCD: Temp: %.1f°, Humidity: %.0f%% : ", srvdata.temp, srvdata.humidity);
         printBuffer(blk, sizeof(blk));
         pRemoteCharacteristic->writeValue(blk, sizeof(blk));
       }
     }
+    delay(10);
   } else {
-    if (doScan) {
-      pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
-      doScan = false;
-    } else {
-      Serial.println("Start new scan 15 sec.");
-      pBLEScan->start(15, false);
-    }
+    delay(1000); // Delay a second between loops.
+    Serial.println("Start new scan 5 sec.");
+    Scan();
   }
-  delay(1000); // Delay a second between loops.
 }
