@@ -21,6 +21,9 @@ static boolean connected = false;
 static BLERemoteCharacteristic* pRemoteCharacteristic;
 static BLEAdvertisedDevice* myDevice;
 
+#define AD_PERIOD_MAX_MS 3000
+uint32_t tik_scan, rx_all_count = 0, rx_err_count = 0;
+
 static struct {
   uint8_t mac[8];
   float temp;
@@ -199,6 +202,15 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
     void onResult(BLEAdvertisedDevice advertisedDevice) {
       if (connected) {
         if (inMacAddress.equals(advertisedDevice.getAddress())) {
+          uint32_t tt = millis();
+          uint32_t delta = tt - tik_scan;
+          tik_scan = tt;
+          if (rx_all_count++) {
+            if (delta > AD_PERIOD_MAX_MS) {
+              rx_err_count++;
+            }
+          }
+          printf(" ------ delta: %d ms, lost: %d, rx total: %d\n", delta, rx_err_count, rx_all_count);
           uint8_t* payload = advertisedDevice.getPayload();
           size_t payloadLength = advertisedDevice.getPayloadLength();
           uint8_t serviceDataLength = 0;
@@ -277,7 +289,7 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
               srvdata.vbat = *(uint16_t*)(serviceData + 14);
               srvdata.bat = serviceData[16];
               srvdata.cnt = serviceData[17];
-              Serial.printf("Temp: %.2f°, Humidity: %.2f%%, Vbatt: %d, Battery: %d%%, flg: 0x%02x, cout: %d\n", srvdata.temp, srvdata.humidity, srvdata.vbat, srvdata.bat, serviceData[18], srvdata.cnt);
+              Serial.printf("Temp: %.2f°, Humidity: %.2f%%, Vbatt: %d, Battery: %d%%, flg: 0x%02x, count: %d\n", srvdata.temp, srvdata.humidity, srvdata.vbat, srvdata.bat, serviceData[18], srvdata.cnt);
             } else if (serviceDataLength == 17) { // format atc1441
               memcpy(&srvdata.mac, &serviceData[4], 6);
               Serial.printf("MAC: ");
@@ -289,13 +301,15 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
               srvdata.bat = serviceData[13];
               srvdata.vbat = (serviceData[14] << 8) | serviceData[15];
               srvdata.cnt = serviceData[16];
-              Serial.printf("Temp: %.1f°, Humidity: %.0f%%, Vbatt: %d, Battery: %d%%, cout: %d\n", srvdata.temp, srvdata.humidity, srvdata.vbat, srvdata.bat, srvdata.cnt);
+              Serial.printf("Temp: %.1f°, Humidity: %.0f%%, Vbatt: %d, Battery: %d%%, count: %d\n", srvdata.temp, srvdata.humidity, srvdata.vbat, srvdata.bat, srvdata.cnt);
             }
           }
           pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
         } else {
+#if SHOW_DEBUG
           Serial.print("Found device, MAC: ");
           Serial.println(advertisedDevice.getAddress().toString().c_str());
+#endif
         }
       }
       else if (outMacAddress.equals(advertisedDevice.getAddress())) {
@@ -304,8 +318,10 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
         myDevice = new BLEAdvertisedDevice(advertisedDevice);
         doConnect = true;
       } else {
+#if SHOW_DEBUG
         Serial.print("Found device, MAC: ");
         Serial.println(advertisedDevice.getAddress().toString().c_str());
+#endif
       }
     }
 };
