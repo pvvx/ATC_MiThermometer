@@ -175,7 +175,7 @@ void ble_get_name(void) {
 	}
 }
 
-void init_ble(void) {
+__attribute__((optimize("-Os"))) void init_ble(void) {
 	////////////////// BLE stack initialization //////////////////////
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 	/// if bls_ll_setAdvParam( OWN_ADDRESS_RANDOM ) ->  blc_ll_setRandomAddr(mac_random_static);
@@ -295,7 +295,7 @@ void init_ble(void) {
 }
 
 /* adv_type: 0 - atc1441, 1 - Custom,  2,3 - Mi  */
-_attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void set_adv_data(uint8_t adv_type) {
 	adv_old_count = adv_send_count;
 	if(adv_type == 3)
 		adv_type = adv_old_count & 3;
@@ -318,7 +318,7 @@ _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 		p->battery_level = battery_level; // x1 %
 		p->counter = (uint8_t)measured_data.count;
 #if USE_TRIGGER_OUT
-		p->flags = *(uint8_t *)(&trg.flg);
+		p->flags = (*(uint8_t *)(&trg.flg));
 #endif
 	} else if(adv_type & 2) { // adv_type == 2 or 3
 #if USE_MIHOME_BEACON
@@ -384,7 +384,12 @@ _attribute_ram_code_ void set_adv_data(uint8_t adv_type) {
 _attribute_ram_code_ void ble_send_measures(void) {
 	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
+#if	USE_TRIGGER_OUT
+	send_buf[sizeof(measured_data)] = (*(uint8_t *)(&trg.flg));
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 2);
+#else
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);
+#endif
 }
 
 void ble_send_ext(void) {
@@ -419,7 +424,7 @@ void ble_send_trg_flg(void) {
 #endif
 
 #if USE_FLASH_MEMO
-void send_memo_blk(void) {
+__attribute__((optimize("-Os"))) void send_memo_blk(void) {
 	send_buf[0] = CMD_ID_LOGGER;
 	if(++rd_memo.cur > rd_memo.cnt || (!get_memo(rd_memo.cur, (pmemo_blk_t)&send_buf[3]))) {
 		send_buf[1] = 0;

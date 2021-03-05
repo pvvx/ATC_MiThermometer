@@ -221,7 +221,7 @@ static void erase_mikeys(void) {
 		flash_erase_sector(FLASH_MIKEYS_ADDR);
 }
 
-void cmd_parser(void * p) {
+__attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*) p;
 	uint32_t len = req->l2cap - 3;
 	if(len) {

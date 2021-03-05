@@ -113,7 +113,7 @@ static const external_data_t def_ext = {
 RAM external_data_t ext;
 RAM uint32_t pincode;
 
-void test_config(void) {
+__attribute__((optimize("-Os"))) void test_config(void) {
 	if(cfg.rf_tx_power &BIT(7)) {
 		if (cfg.rf_tx_power < RF_POWER_N25p18dBm)
 			cfg.rf_tx_power = RF_POWER_N25p18dBm;
@@ -305,7 +305,7 @@ _attribute_ram_code_ void lcd_set_ext_data(void) {
 	show_big_number(ext.big_number);
 }
 
-_attribute_ram_code_ void lcd(void) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 	bool set_small_number_and_bat = true;
 	while (chow_tick_sec && clock_time() - chow_tick_clk
 			> CLOCK_16M_SYS_TIMER_CLK_1S) {

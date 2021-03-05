@@ -34,7 +34,7 @@ _attribute_ram_code_ void test_trg_on(void) {
 	}
 }
 
-_attribute_ram_code_ void set_trigger_out(void) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void set_trigger_out(void) {
 	if(trg.temp_hysteresis) {
 		if(trg.flg.temp_out_on) { // temp_out on
 			if(trg.temp_hysteresis < 0) {
@@ -61,21 +61,21 @@ _attribute_ram_code_ void set_trigger_out(void) {
 	if(trg.humi_hysteresis) {
 		if(trg.flg.humi_out_on) { // humi_out on
 			if(trg.humi_hysteresis < 0) {
-				if(measured_data.temp > trg.humi_threshold - trg.humi_hysteresis*10) {
+				if(measured_data.humi > trg.humi_threshold - trg.humi_hysteresis*10) {
 					trg.flg.humi_out_on = false;
 				}
 			} else {
-				if(measured_data.temp < trg.humi_threshold + trg.humi_hysteresis*10) {
+				if(measured_data.humi < trg.humi_threshold + trg.humi_hysteresis*10) {
 					trg.flg.humi_out_on = false;
 				}
 			}
 		} else { // humi_out off
 			if(trg.humi_hysteresis < 0) {
-				if(measured_data.temp < trg.humi_threshold + trg.humi_hysteresis*10) {
+				if(measured_data.humi < trg.humi_threshold + trg.humi_hysteresis*10) {
 					trg.flg.humi_out_on = true;
 				}
 			} else {
-				if(measured_data.temp > trg.humi_threshold - trg.humi_hysteresis*10) {
+				if(measured_data.humi > trg.humi_threshold - trg.humi_hysteresis*10) {
 					trg.flg.humi_out_on = true;
 				}
 			}

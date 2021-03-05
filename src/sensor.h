@@ -1,8 +1,6 @@
 #pragma once
 #include <stdint.h>
 
-extern int8_t temp_offset;
-extern int8_t humi_offset;
 extern volatile uint32_t timer_measure_cb;
 
 #define SENSOR_MEASURING_TIMEOUT  (11 * CLOCK_16M_SYS_TIMER_CLK_1MS) // 11 ms

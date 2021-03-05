@@ -47,7 +47,7 @@ _attribute_ram_code_ void read_sensor_start(uint16_t mcmd) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
 
-_attribute_ram_code_ int read_sensor_cb(void) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) int read_sensor_cb(void) {
 	uint16_t _temp;
 	uint16_t _humi;
 	uint8_t data, crc; // calculated checksum

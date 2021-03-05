@@ -82,7 +82,7 @@ void memo_init_count(void) {
 }
 #endif
 
-void memo_init(void) {
+__attribute__((optimize("-Os"))) void memo_init(void) {
 	memo_head_t mhs;
 	uint32_t tmp, fsec_end;
 	uint32_t faddr = FLASH_ADDR_START_MEMO;
@@ -129,6 +129,7 @@ void clear_memo(void) {
 }
 
 _attribute_ram_code_
+__attribute__((optimize("-Os")))
 unsigned get_memo(uint32_t bnum, pmemo_blk_t p) {
 	memo_head_t mhs;
 	uint32_t faddr;
@@ -158,6 +159,7 @@ unsigned get_memo(uint32_t bnum, pmemo_blk_t p) {
 }
 
 _attribute_ram_code_
+__attribute__((optimize("-Os")))
 void write_memo(void) {
 	memo_blk_t mblk;
 	if(cfg.averaging_measurements == 1) {

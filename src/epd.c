@@ -170,7 +170,7 @@ _attribute_ram_code_ void show_ble_symbol(bool state){
 }
 
 // 223 us
-_attribute_ram_code_ static void transmit(uint8_t cd, uint8_t data_to_send) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) static void transmit(uint8_t cd, uint8_t data_to_send) {
     gpio_write(EPD_SCL, LOW);
     // enable SPI
     gpio_write(EPD_CSB, LOW);
@@ -209,7 +209,7 @@ _attribute_ram_code_ static void transmit(uint8_t cd, uint8_t data_to_send) {
     pm_wait_us(delay_SPI_end_cycle);
 }
 
-_attribute_ram_code_ static void epd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
     // set the segments, there are up to 11 segments in a digit
     int segment_byte;
     int segment_bit;
@@ -230,7 +230,7 @@ _attribute_ram_code_ static void epd_set_digit(uint8_t *buf, uint8_t digit, cons
 }
 
 /* x0.1 (-995..19995) Show: -99 .. -9.9 .. 199.9 .. 1999 */
-_attribute_ram_code_ void show_big_number(int16_t number){
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number(int16_t number){
 	display_buff[11] = 0;
 	display_buff[12] = 0;
 	display_buff[13] = 0;
@@ -275,7 +275,7 @@ _attribute_ram_code_ void show_big_number(int16_t number){
 }
 
 /* -9 .. 99 */
-_attribute_ram_code_ void show_small_number(int16_t number, bool percent){
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
 	display_buff[0] = 0;
 	display_buff[1] = 0;
 	display_buff[2] = 0;
@@ -331,7 +331,7 @@ _attribute_ram_code_ void update_lcd(void){
 	}
 }
 
-_attribute_ram_code_ int task_lcd(void) {
+_attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
 	if(gpio_read(EPD_BUSY)) {
 		switch(stage_lcd) {
 		case 1: // Update/Init lcd, stage 1

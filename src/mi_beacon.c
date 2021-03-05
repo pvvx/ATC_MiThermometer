@@ -108,7 +108,7 @@ void mi_beacon_summ(void) {
 }
 
 /* Create encrypted mi beacon packet */
-void mi_encrypt_beacon(uint32_t cnt) {
+__attribute__((optimize("-Os"))) void mi_encrypt_beacon(uint32_t cnt) {
 	if(adv_mi_cnt == cnt) { // measurement counter update?
 		memcpy(adv_buffer, adv_crypt_buf, sizeof(adv_buffer));
 		return;
