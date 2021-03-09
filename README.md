@@ -219,6 +219,7 @@ UUID 0x181A - size 19: Custom format (all data little-endian):
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
 ![trg_menu](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/trg_menu.gif)
+![trg_grf](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/Trg_grf.gif)
 
 Hysteresis: 
 > * =0 off, 
