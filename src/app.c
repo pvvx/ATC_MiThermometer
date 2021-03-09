@@ -181,8 +181,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 		last_temp = measured_data.temp / 10;
 		last_humi = measured_data.humi / 100;
 #if	USE_TRIGGER_OUT
-		if(trg.flg.trigger_on)
-			set_trigger_out();
+		set_trigger_out();
 #endif
 #if USE_FLASH_MEMO
 		if(cfg.averaging_measurements)
@@ -234,7 +233,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 #if	USE_TRIGGER_OUT
 		if(flash_read_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG) != FEEP_SAVE_SIZE_TRG)
-			memcpy(&trg, &def_trg, sizeof(trg));
+			memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #endif
 	} else {
 		memcpy(&cfg, &def_cfg, sizeof(cfg));
@@ -243,7 +242,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 		pincode = 0;
 #endif
 #if	USE_TRIGGER_OUT
-		memcpy(&trg, &def_trg, sizeof(trg));
+		memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #endif
 	}
 	test_config();

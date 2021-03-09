@@ -385,7 +385,7 @@ _attribute_ram_code_ void ble_send_measures(void) {
 	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
 #if	USE_TRIGGER_OUT
-	send_buf[sizeof(measured_data)] = (*(uint8_t *)(&trg.flg));
+	send_buf[sizeof(measured_data)+1] = (*(uint8_t *)(&trg.flg));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 2);
 #else
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);
