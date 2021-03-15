@@ -14,7 +14,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Concurrent support for Xiaomi, ATC and Custom Bluetooth Advertisement format
 * Adjustable RF TX Power & Bluetooth advertising interval
 
-|Xiaomi Mijia (LYWSD03MMC) | [Xiaomi Miaomiaoce (MHO_C401)](https://pvvx.github.io/MHO-C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) |
+|Xiaomi Mijia (LYWSD03MMC) | [Xiaomi Miaomiaoce (MHO-C401)](https://pvvx.github.io/MHO_C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) |
 |:--:|:--:|:--:|
 |  <img src="https://tasmota.github.io/docs/_media/bluetooth/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="160"/> |  <img src="https://tasmota.github.io/docs/_media/bluetooth/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="160"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1.png" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="160"/> |
 
