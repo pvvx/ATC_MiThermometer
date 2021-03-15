@@ -1,4 +1,4 @@
-# Xiaomi Mijia (LYWSD03MMC) & Xiaomi Miaomiaoce (MHO-C401) Bluetooth Thermometer Firmware
+# Xiaomi Mijia (LYWSD03MMC) & Xiaomi Miaomiaoce (MHO-C401) & CGG1 Mijia Bluetooth Thermometer Firmware
 
 This repository contains custom firmware for two Xiaomi Mijia Smart Bluetooth Thermometer & Hygrometer devices.
 
@@ -14,9 +14,9 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Concurrent support for Xiaomi, ATC and Custom Bluetooth Advertisement format
 * Adjustable RF TX Power & Bluetooth advertising interval
 
-|Xiaomi Mijia (LYWSD03MMC) | Xiaomi Miaomiaoce (MHO-C401) |
+|Xiaomi Mijia (LYWSD03MMC) | Xiaomi Miaomiaoce (MHO-C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1)
 |:--:|:--:|
-|  <img src="https://tasmota.github.io/docs/_media/bluetooth/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="160"/> |  <img src="https://tasmota.github.io/docs/_media/bluetooth/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="160"/> |
+|  <img src="https://tasmota.github.io/docs/_media/bluetooth/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="160"/> |  <img src="https://tasmota.github.io/docs/_media/bluetooth/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="160"/> | <img src="https://pvvx.github.io/CGG1/img/cgg1_backside.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="160"/> |
 
 **Table of content**
 
@@ -102,8 +102,9 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 2.6](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer26.bin)
-* [MHO-C401 Custom Firmware Version 2.6](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v26.bin)
+* [LYWSD03MMC Custom Firmware Version 2.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer27.bin)
+* [MHO-C401 Custom Firmware Version 2.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v27.bin)
+* [CGG1 Custom Firmware Version 2.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v27.bin)
 
 **Original Manufacturer Firmware Version**
 
@@ -111,6 +112,7 @@ In case you want to go back to the original firmware, you can download them here
 
 * [LYWSD03MMC Original Firmware v1.0.0_0109](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin)
 * [MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
+* [CGG1 Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1_v1.0.1_0093.bin)
 
 ### Firmware version history
 
@@ -131,6 +133,7 @@ In case you want to go back to the original firmware, you can download them here
 |     2.4 | Added parameter "Clock time step"
 |     2.5 | Remove TRG/FLG errors, minor optimization
 |     2.6 | Expanding the ranges of threshold parameters (TRG)
+|     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding beta version for CGG1
 
 
 ## Applications
@@ -276,6 +279,8 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 * [Telink Linux Tool Chain 2020-06-26](https://yadi.sk/d/pt_qTBB-t24i9A)
 
 * [MHO-C401 Info](https://pvvx.github.io/MHO_C401/)
+
+* [CGG1-Mijia Info](https://pvvx.github.io/CGG1)
 
 * [Build Telink EVK on E104-BT10-G/N module (TLSR8269)](https://github.com/pvvx/TLSR8269-EVK)
 

@@ -5,12 +5,12 @@
 
 #include "battery.h"
 
-RAM	uint8_t 	lowBattDet_enable = 1;
-	uint8_t     adc_hw_initialized = 0;
 RAM uint16_t    batt_vol_mv;
-RAM	volatile unsigned int adc_dat_buf[8];
 
-_attribute_ram_code_ void adc_bat_init(void)
+uint8_t     adc_hw_initialized = 0;
+volatile unsigned int adc_dat_buf[8];
+
+_attribute_ram_code_ static void adc_bat_init(void)
 {
 	adc_power_on_sar_adc(0);
 	gpio_set_output_en(GPIO_PB5, 1);
@@ -25,9 +25,10 @@ _attribute_ram_code_ void adc_bat_init(void)
 	adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_1P2V);
 	adc_set_tsample_cycle_chn_misc(SAMPLING_CYCLES_6);
 	adc_set_ain_pre_scaler(ADC_PRESCALER_1F8);
-	adc_power_on_sar_adc(1);
+//	adc_power_on_sar_adc(1);
 }
 
+// Process takes about 83 μs.
 _attribute_ram_code_ uint16_t get_battery_mv(void)
 {
 	uint16_t temp;
@@ -70,16 +71,17 @@ _attribute_ram_code_ uint16_t get_battery_mv(void)
 	dfifo_disable_dfifo2();
 	u32 adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4] + adc_sample[5])/4;
 	adc_result = adc_average;
-	batt_vol_mv  = (adc_result * adc_vref_cfg.adc_vref) >> 10;
+	batt_vol_mv  = (adc_result * adc_vref_cfg.adc_vref) >> 10; // adc_vref default: 1175 (mV)
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	
 	return batt_vol_mv;
 }
 
+// 2200..3100 mv - 0..100%
 _attribute_ram_code_ uint8_t get_battery_level(uint16_t battery_mv){
 	uint8_t battery_level = 0;
-	if(battery_mv > 2200) {
-		battery_level = (battery_mv-2200)/(31-22);
+	if(battery_mv > MIN_VBAT_MV) {
+		battery_level = (battery_mv - MIN_VBAT_MV)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
 		if(battery_level > 100)
 			battery_level = 100;
 	}

@@ -66,7 +66,7 @@ uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	} while(id != 0xffff || len != 0xff  || p < pend);
 	return NULL;
 }
-#else // DEVICE_LYWSD03MMC
+#else // DEVICE_LYWSD03MMC & DEVICE_CGG1
 uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	uint8_t * p = (uint8_t *)(FLASH_MIKEYS_ADDR);
 	uint8_t * pend = p + FLASH_SECTOR_SIZE;

@@ -97,6 +97,13 @@ static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.0_0109"
 static const u8 my_HardStr[] = {"B1.4"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
+#elif DEVICE_TYPE == DEVICE_CGG1
+static const u8 my_ModelStr[] = {"CGG1"};
+static const u8 my_SerialStr[] = {"1234"};
+static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.1_0093"
+static const u8 my_HardStr[] = {"0001"};
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 #else
 #error "DEVICE_TYPE = ?"
 #endif

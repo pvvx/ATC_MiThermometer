@@ -2,7 +2,8 @@ OBJS += \
 $(OUT_PATH)/utils.o \
 $(OUT_PATH)/app.o \
 $(OUT_PATH)/lcd.o \
-$(OUT_PATH)/epd.o \
+$(OUT_PATH)/epd_mho_c401.o \
+$(OUT_PATH)/epd_cgg1.o \
 $(OUT_PATH)/sensor.o \
 $(OUT_PATH)/trigger.o \
 $(OUT_PATH)/app_att.o \

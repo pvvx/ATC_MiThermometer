@@ -15,7 +15,7 @@ RAM uint8_t display_cmp_buff[18];
 RAM uint8_t stage_lcd;
 RAM uint8_t flg_lcd_init;
 RAM uint8_t lcd_refresh_cnt;
-
+RAM uint8_t epd_updated;
 //----------------------------------
 // LUTV, LUT_KK and LUT_KW values taken from the actual device with a
 // logic analyzer
@@ -30,28 +30,17 @@ const uint8_t T_LUT_KW_update[15] = {0x47, 0x47, 0x01,  0x47, 0x47, 0x01,  0x47,
 // define segments
 // the data in the arrays consists of {byte, bit} pairs of each segment
 //----------------------------------
-const uint8_t top_left_1[2] = {12, 3};
 const uint8_t top_left[22] = {16, 7, 15, 4, 14, 1, 14, 7, 12, 5, 12, 4, 13, 3, 15, 7, 15, 6, 15, 5, 14, 0};
 const uint8_t top_middle[22] = {15, 0, 15, 1, 14, 6, 13, 0, 13, 5, 13, 4, 14, 5, 14, 4, 15, 3, 15, 2, 14, 3};
 const uint8_t top_right[22] = {13, 1, 13, 7, 12, 1, 12, 7, 11, 5, 11, 2, 12, 6, 12, 0, 13, 6, 13, 2, 12, 2};
 const uint8_t bottom_left[22] = {9, 1, 9, 7, 8, 5, 1, 1, 0, 3, 1, 4, 9, 4, 10, 0, 10, 6, 10, 3, 8, 2};
 const uint8_t bottom_right[22] = {7, 7, 6, 5, 2, 0, 2, 3, 0, 2, 1, 7, 2, 6, 7, 4, 7, 1, 8, 6, 6, 2};
-const uint8_t battery_low[2] = {16, 4};
-const uint8_t dashes[4] = {16, 6, 14, 2};
-const uint8_t face[14] = {3, 5, 5, 3, 5, 6, 4, 1, 4, 4, 4, 7, 3, 2};
-const uint8_t face_smile[8] = {4, 1, 5, 6, 3, 2, 4, 7};
-const uint8_t face_frown[6] = {5, 6, 4, 4, 4, 1};
-const uint8_t face_neutral[6] = {5, 6, 4, 1, 4, 7};
-const uint8_t sun[2] = {5, 0};
-const uint8_t fixed[2] = {16, 5};
-const uint8_t fixed_deg_C[2] = {14, 2};
-const uint8_t fixed_deg_F[2] = {16, 6};
-const uint8_t minus[2] = {14, 0};
-const uint8_t Atc[48] = {16, 7, 15, 4, 14, 1, 14, 7, 12, 4, 13, 3, 15, 7, 15, 6, 15, 5, 14, 0, 13, 5, 13, 4, 14, 5, 14, 4, 15, 3, 15, 2, 14, 3, 13, 1, 11, 5, 11, 2, 12, 6, 12, 0, 13, 6, 13, 2};
 
 // These values closely reproduce times captured with logic analyser
-#define delay_EPD_SCL_pulse 4
-#define delay_SPI_end_cycle 8
+//#define delay_SPI_end_cycle() pm_wait_us(3) // 1.5 us
+//#define delay_EPD_SCL_pulse() pm_wait_us(3) // 1.5 us
+#define delay_SPI_end_cycle() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*15)/10) // real clk 4.4 + 4.4 us : 114 kHz)
+#define delay_EPD_SCL_pulse() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*15)/10) // real clk 4.4 + 4.4 us : 114 kHz)
 
 /*
 Now define how each digit maps to the segments:
@@ -174,16 +163,16 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void transmit(uint8
     gpio_write(EPD_SCL, LOW);
     // enable SPI
     gpio_write(EPD_CSB, LOW);
-    pm_wait_us(delay_EPD_SCL_pulse);
+    delay_EPD_SCL_pulse();
 
     // send the first bit, this indicates if the following is a command or data
     if (cd != 0)
         gpio_write(EPD_SDA, HIGH);
     else
         gpio_write(EPD_SDA, LOW);
-    pm_wait_us(delay_EPD_SCL_pulse * 2 + 1);
+    delay_EPD_SCL_pulse();
     gpio_write(EPD_SCL, HIGH);
-    pm_wait_us(delay_EPD_SCL_pulse);
+    delay_EPD_SCL_pulse();
 
     // send 8 bits
     for (int i = 0; i < 8; i++) {
@@ -196,17 +185,17 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void transmit(uint8
             gpio_write(EPD_SDA, LOW);
         // prepare for the next bit
         data_to_send = (data_to_send << 1);
-        pm_wait_us(delay_EPD_SCL_pulse * 2 + 1);
+        delay_EPD_SCL_pulse();
         // the data is read at rising clock (halfway the time MOSI is set)
         gpio_write(EPD_SCL, HIGH);
-        pm_wait_us(delay_EPD_SCL_pulse);
+        delay_EPD_SCL_pulse();
     }
 
     // finish by ending the clock cycle and disabling SPI
     gpio_write(EPD_SCL, LOW);
-    pm_wait_us(delay_SPI_end_cycle);
+    delay_SPI_end_cycle();
     gpio_write(EPD_CSB, HIGH);
-    pm_wait_us(delay_SPI_end_cycle);
+    delay_SPI_end_cycle();
 }
 
 _attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
@@ -312,9 +301,14 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int
 }
 
 void init_lcd(void) {
+	// pulse RST_N low for 110 microseconds
+    gpio_write(EPD_RST, LOW);
+    pm_wait_us(110);
 	lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
     stage_lcd = 1;
+    epd_updated = 0;
     flg_lcd_init = 3;
+    gpio_write(EPD_RST, HIGH);
 }
 
 _attribute_ram_code_ void update_lcd(void){
@@ -323,125 +317,126 @@ _attribute_ram_code_ void update_lcd(void){
 		if(lcd_refresh_cnt) {
 			lcd_refresh_cnt--;
 			flg_lcd_init = 0;
+			stage_lcd = 1;
 		} else {
-			lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
-			flg_lcd_init = 3;
+			init_lcd(); // pulse RST_N low for 110 microseconds
 		}
-		stage_lcd = 1;
 	}
 }
 
-_attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
-	if(gpio_read(EPD_BUSY)) {
-		switch(stage_lcd) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) int task_lcd(void) {
+	if (gpio_read(EPD_BUSY)) {
+		switch (stage_lcd) {
 		case 1: // Update/Init lcd, stage 1
-			if(flg_lcd_init) {
+			if (flg_lcd_init)
 				flg_lcd_init--;
-				// pulse RST_N low for 110 microseconds
-		        gpio_write(EPD_RST, LOW);
-		        pm_wait_us(110);
-		        gpio_write(EPD_RST, HIGH);
-		        pm_wait_us(145);
-			}
 			// send Charge Pump ON command
-		    transmit(0, POWER_ON);
-		    // wait ~30 ms for the display to become ready to receive new
-	        stage_lcd = 2;
+			transmit(0, POWER_ON);
+			// wait ~30 ms for the display to become ready to receive new
+			stage_lcd = 2;
 			break;
 		case 2: // Update/Init lcd, stage 2
-		    // send next blocks ~25 ms
-		    transmit(0, PANEL_SETTING);
-		    transmit(1, 0x0B);
-		    transmit(0, POWER_SETTING);
-		    transmit(1, 0x46);
-		    transmit(1, 0x46);
-		    transmit(0, POWER_OFF_SEQUENCE_SETTING);
-		    if (flg_lcd_init)
-		        transmit(1, 0x00);
-		    else
-		        transmit(1, 0x06);
-		    // Frame Rate Control
-		    transmit(0, PLL_CONTROL);
-		    if (flg_lcd_init)
-		        transmit(1, 0x02);
-		    else
-		        transmit(1, 0x03);
-		    // NOTE: Original firmware makes partial refresh on update, but not when initialising the screen.
-		    if (!flg_lcd_init) {
-		        transmit(0, PARTIAL_DISPLAY_REFRESH);
-		        transmit(1, 0x00);
-		        transmit(1, 0x87);
-		        transmit(1, 0x01);
-		    }
-		    // send the e-paper voltage settings (waves)
-		    transmit(0, LUT_FOR_VCOM);
-		    for (int i = 0; i < 15; i++)
-		        transmit(1, T_LUTV_init[i]);
+			if (epd_updated == 0) {
+				// send next blocks ~25 ms
+				transmit(0, PANEL_SETTING);
+				transmit(1, 0x0B);
+				transmit(0, POWER_SETTING);
+				transmit(1, 0x46);
+				transmit(1, 0x46);
+				transmit(0, POWER_OFF_SEQUENCE_SETTING);
+				if (flg_lcd_init)
+					transmit(1, 0x00);
+				else
+					transmit(1, 0x06);
+				// Frame Rate Control
+				transmit(0, PLL_CONTROL);
+				if (flg_lcd_init)
+					transmit(1, 0x03); // transmit(1, 0x02);
+				else {
+					transmit(1, 0x07); // transmit(1, 0x03);
+					// NOTE: Original firmware makes partial refresh on update, but not when initialising the screen.
+					transmit(0, PARTIAL_DISPLAY_REFRESH);
+					transmit(1, 0x00);
+					transmit(1, 0x87);
+					transmit(1, 0x01);
+				}
+				// send the e-paper voltage settings (waves)
+				transmit(0, LUT_FOR_VCOM);
+				for (int i = 0; i < 15; i++)
+					transmit(1, T_LUTV_init[i]);
 
-		    if(flg_lcd_init) {
-	    		transmit(0, LUT_CMD_0x23);
-		    	if(flg_lcd_init == 1) { // pass 2
-		    		for (int i = 0; i < 15; i++)
-		    			transmit(1, T_LUT_KW_update[i]);
-		    		transmit(0, LUT_CMD_0x26);
-		    		for (int i = 0; i < 15; i++)
-		    			transmit(1, T_LUT_KK_update[i]);
-			        // start an initialization sequence (white - all 0x00)
-				    transmit(0, DATA_START_TRANSMISSION_1);
-				    for (int i = 0; i < 18; i++)
-				        transmit(1, 0);
-			        transmit(0, DATA_START_TRANSMISSION_2);
-			        for(int i = 0; i < 18; i++)
-			            transmit(1, 0);
-		    	} else { // pass 1
-		    		for (int i = 0; i < 15; i++)
-		    			transmit(1, T_LUT_KK_init[i]);
-		    		transmit(0, LUT_CMD_0x26);
-		    		for (int i = 0; i < 15; i++)
-		    			transmit(1, T_LUT_KW_init[i]);
-		    	    // start an initialization sequence (black - all 0xFF)
-				    transmit(0, DATA_START_TRANSMISSION_1);
-				    for (int i = 0; i < 18; i++)
-				        transmit(1, 0xff);
-			        transmit(0, DATA_START_TRANSMISSION_2);
-			        for(int i = 0; i < 18; i++)
-			            transmit(1, 0xff);
-		    	}
-		    } else {
-		        transmit(0, LUT_CMD_0x23);
-		        for (int i = 0; i < 15; i++)
-		            transmit(1, T_LUTV_init[i]);
+				if (flg_lcd_init) {
+					transmit(0, LUT_CMD_0x23);
+					if (flg_lcd_init == 1) { // pass 2
+						for (int i = 0; i < 15; i++)
+							transmit(1, T_LUT_KW_update[i]);
+						transmit(0, LUT_CMD_0x26);
+						for (int i = 0; i < 15; i++)
+							transmit(1, T_LUT_KK_update[i]);
+						// start an initialization sequence (white - all 0x00)
+						transmit(0, DATA_START_TRANSMISSION_1);
+						for (int i = 0; i < 18; i++)
+							transmit(1, 0);
+						transmit(0, DATA_START_TRANSMISSION_2);
+						for (int i = 0; i < 18; i++)
+							transmit(1, 0);
+					} else { // pass 1
+						for (int i = 0; i < 15; i++)
+							transmit(1, T_LUT_KK_init[i]);
+						transmit(0, LUT_CMD_0x26);
+						for (int i = 0; i < 15; i++)
+							transmit(1, T_LUT_KW_init[i]);
+						// start an initialization sequence (black - all 0xFF)
+						transmit(0, DATA_START_TRANSMISSION_1);
+						for (int i = 0; i < 18; i++)
+							transmit(1, 0xff);
+						transmit(0, DATA_START_TRANSMISSION_2);
+						for (int i = 0; i < 18; i++)
+							transmit(1, 0xff);
+					}
+				} else {
+					transmit(0, LUT_CMD_0x23);
+					for (int i = 0; i < 15; i++)
+						transmit(1, T_LUTV_init[i]);
 
-		        transmit(0, LUT_CMD_0x24);
-		        for (int i = 0; i < 15; i++)
-		            transmit(1, T_LUT_KK_update[i]);
+					transmit(0, LUT_CMD_0x24);
+					for (int i = 0; i < 15; i++)
+						transmit(1, T_LUT_KK_update[i]);
 
-		        transmit(0, LUT_CMD_0x25);
-		        for (int i = 0; i < 15; i++)
-		            transmit(1, T_LUT_KW_update[i]);
+					transmit(0, LUT_CMD_0x25);
+					for (int i = 0; i < 15; i++)
+						transmit(1, T_LUT_KW_update[i]);
 
-		        transmit(0, LUT_CMD_0x26);
-		        for (int i = 0; i < 15; i++)
-		            transmit(1, T_LUTV_init[i]);
-			    // send the actual data
-			    transmit(0, DATA_START_TRANSMISSION_1);
-			    for (int i = 0; i < 18; i++)
-			        transmit(1, display_buff[i]);
-		    }
-		    // Refresh
-		    transmit(0, DISPLAY_REFRESH);
-		    // wait ~1256 ms for the display to become ready to receive new
-	        stage_lcd = 3;
+					transmit(0, LUT_CMD_0x26);
+					for (int i = 0; i < 15; i++)
+						transmit(1, T_LUTV_init[i]);
+					// send the actual data
+					transmit(0, DATA_START_TRANSMISSION_1);
+					for (int i = 0; i < 18; i++)
+						transmit(1, display_buff[i]);
+				}
+			} else {
+				// send the actual data
+				transmit(0, DATA_START_TRANSMISSION_1);
+				for (int i = 0; i < 18; i++)
+					transmit(1, display_buff[i]);
+			}
+			stage_lcd = 3;
+			// Refresh
+			transmit(0, DISPLAY_REFRESH);
+			// wait ~1256 ms for the display to become ready to receive new
 			break;
 		case 3: // Update/Init lcd, stage 3
-		    // send Charge Pump OFF command
-		    transmit(0, POWER_OFF);
-		    transmit(1, 0x03);
-		    if(flg_lcd_init)
-		    	// wait ~20 ms for the display to become ready to receive new
-		    	stage_lcd = 1;
-		    else
-		    	stage_lcd = 0;
+			// send Charge Pump OFF command
+			transmit(0, POWER_OFF);
+			transmit(1, 0x03);
+			if (flg_lcd_init)
+				// wait ~20 ms for the display to become ready to receive new
+				stage_lcd = 1;
+			else {
+				epd_updated = 1;
+				stage_lcd = 0;
+			}
 			break;
 		default:
 			stage_lcd = 0;

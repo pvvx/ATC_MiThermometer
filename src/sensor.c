@@ -120,8 +120,8 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int read_sensor_cb(void) {
 
 _attribute_ram_code_ void read_sensor_deep_sleep(void) {
 	read_sensor_start(SHTC3_MEASURE);
-	gpio_setup_up_down_resistor(GPIO_PC2, PM_PIN_PULLUP_1M);
-	gpio_setup_up_down_resistor(GPIO_PC3, PM_PIN_PULLUP_1M);
+	gpio_setup_up_down_resistor(I2C_SCL, PM_PIN_PULLUP_1M);
+	gpio_setup_up_down_resistor(I2C_SDA, PM_PIN_PULLUP_1M);
 	timer_measure_cb = clock_time() | 1;
 }
 
