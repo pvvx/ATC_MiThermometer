@@ -10,7 +10,7 @@
 #include "drivers/8258/timer.h"
 
 #define DEF_EPD_SUMBOL_SIGMENTS	13
-#define DEF_EPD_REFRESH_CNT	32
+#define DEF_EPD_REFRESH_CNT		32
 
 RAM uint8_t display_buff[18];
 RAM uint8_t display_cmp_buff[18];
@@ -318,8 +318,9 @@ void init_lcd(void) {
 	lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
     stage_lcd = 1;
     epd_updated = 0;
-    flg_lcd_init = 3;
+    flg_lcd_init = 1;
     gpio_write(EPD_RST, HIGH);
+    // EPD_BUSY: Low 866 us
 }
 
 void show_batt_cgg1(void) {
@@ -349,121 +350,86 @@ _attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
 	if (gpio_read(EPD_BUSY)) {
 		switch (stage_lcd) {
 		case 1: // Update/Init lcd, stage 1
-			if (flg_lcd_init)
-				flg_lcd_init--;
 			// send Charge Pump ON command
 			transmit(0, POWER_ON);
-			// wait ~30 ms for the display to become ready to receive new
+			// EPD_BUSY: Low 32 ms from reset, 47.5 ms in refresh cycle
 			stage_lcd = 2;
 			break;
 		case 2: // Update/Init lcd, stage 2
 			if (epd_updated == 0) {
-				// send next blocks ~25 ms
 				transmit(0, PANEL_SETTING);
-				transmit(1, 0x0B); // transmit(1, 0x0F); // 0x0F - inverted
+				transmit(1, 0x0F);
 
 				transmit(0, POWER_SETTING);
-				transmit(1, 0x32);
-				transmit(1, 0x32);
+				transmit(1, 0x32); // transmit(1, 0x32);
+				transmit(1, 0x32); // transmit(1, 0x32);
 				transmit(0, POWER_OFF_SEQUENCE_SETTING);
-				if (flg_lcd_init)
-					transmit(1, 0x00);
-				else
-					transmit(1, 0x06);
+				transmit(1, 0x00);
 				// Frame Rate Control
 				transmit(0, PLL_CONTROL);
 				if (flg_lcd_init)
 					transmit(1, 0x03);
 				else {
 					transmit(1, 0x07);
-					// NOTE: Original firmware makes partial refresh on update, but not when initialising the screen.
 					transmit(0, PARTIAL_DISPLAY_REFRESH);
 					transmit(1, 0x00);
 					transmit(1, 0x87);
 					transmit(1, 0x01);
+					transmit(0, POWER_OFF_SEQUENCE_SETTING);
+					transmit(1, 0x06);
 				}
 				// send the e-paper voltage settings (waves)
 				transmit(0, LUT_FOR_VCOM);
-				for (int i = 0; i < 15; i++)
+				for (int i = 0; i < sizeof(T_LUTV_init); i++)
 					transmit(1, T_LUTV_init[i]);
 
 				if (flg_lcd_init) {
+					flg_lcd_init = 0;
 					transmit(0, LUT_CMD_0x23);
-					if (flg_lcd_init == 1) { // pass 2
-						for (int i = 0; i < 15; i++)
-							transmit(1, T_LUT_KW_update[i]);
-						transmit(0, LUT_CMD_0x26);
-						for (int i = 0; i < 15; i++)
-							transmit(1, T_LUT_KK_update[i]);
-						// start an initialization sequence (white - all 0x00)
-						transmit(0, DATA_START_TRANSMISSION_1);
-						for (int i = 0; i < 18; i++)
-							transmit(1, 0);
-#if 1
-						transmit(0, DATA_START_TRANSMISSION_2);
-						for (int i = 0; i < 18; i++)
-							transmit(1, 0);
-#endif
-
-					} else { // pass 1
-						for (int i = 0; i < 15; i++)
-							transmit(1, T_LUT_KK_init[i]);
-						transmit(0, LUT_CMD_0x26);
-						for (int i = 0; i < 15; i++)
-							transmit(1, T_LUT_KW_init[i]);
-						// start an initialization sequence (black - all 0xFF)
-						transmit(0, DATA_START_TRANSMISSION_1);
-						for (int i = 0; i < 18; i++)
-							transmit(1, 0xff);
-#if 1
-						transmit(0, DATA_START_TRANSMISSION_2);
-						for (int i = 0; i < 18; i++)
-							transmit(1, 0xff);
-#endif
-					}
+					for (int i = 0; i < sizeof(T_LUT_KK_init); i++)
+						transmit(1, T_LUT_KK_init[i]);
+					transmit(0, LUT_CMD_0x26);
+					for (int i = 0; i < sizeof(T_LUT_KW_init); i++)
+						transmit(1, T_LUT_KW_init[i]);
+					// start an initialization sequence (white - all 0x00)
+					stage_lcd = 2;
 				} else {
 					transmit(0, LUT_CMD_0x23);
-					for (int i = 0; i < 15; i++)
+					for (int i = 0; i < sizeof(T_LUTV_init); i++)
 						transmit(1, T_LUTV_init[i]);
 
 					transmit(0, LUT_CMD_0x24);
-					for (int i = 0; i < 15; i++)
+					for (int i = 0; i < sizeof(T_LUT_KK_update); i++)
 						transmit(1, T_LUT_KK_update[i]);
 
 					transmit(0, LUT_CMD_0x25);
-					for (int i = 0; i < 15; i++)
+					for (int i = 0; i < sizeof(T_LUT_KW_update); i++)
 						transmit(1, T_LUT_KW_update[i]);
 
 					transmit(0, LUT_CMD_0x26);
-					for (int i = 0; i < 15; i++)
+					for (int i = 0; i < sizeof(T_LUTV_init); i++)
 						transmit(1, T_LUTV_init[i]);
 					// send the actual data
-					transmit(0, DATA_START_TRANSMISSION_1);
-					for (int i = 0; i < 18; i++)
-						transmit(1, display_buff[i]);
+					stage_lcd = 3;
 				}
 			} else {
-				// send the actual data
-				transmit(0, DATA_START_TRANSMISSION_1);
-				for (int i = 0; i < 18; i++)
-					transmit(1, display_buff[i]);
+				stage_lcd = 3;
 			}
-			stage_lcd = 3;
+			// send the actual data
+			transmit(0, DATA_START_TRANSMISSION_1);
+			for (int i = 0; i < sizeof(display_buff); i++)
+				transmit(1, display_buff[i]^0xFF);
 			// Refresh
 			transmit(0, DISPLAY_REFRESH);
-			// wait ~700 ms for the display to become ready to receive new
+			// EPD_BUSY: Low 1217 ms from reset, 608.5 ms in refresh cycle
 			break;
-		case 3: // Update/Init lcd, stage 3
+		case 3: // Update lcd, stage 3
 			// send Charge Pump OFF command
 			transmit(0, POWER_OFF);
 			transmit(1, 0x03);
-			if (flg_lcd_init)
-				// wait ~20 ms for the display to become ready to receive new
-				stage_lcd = 1;
-			else {
-				epd_updated = 1;
-				stage_lcd = 0;
-			}
+			// EPD_BUSY: Low 9.82 ms in refresh cycle
+			epd_updated = 1;
+			stage_lcd = 0;
 			break;
 		default:
 			stage_lcd = 0;

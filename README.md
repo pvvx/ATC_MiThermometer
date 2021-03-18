@@ -133,7 +133,7 @@ In case you want to go back to the original firmware, you can download them here
 |     2.4 | Added parameter "Clock time step"
 |     2.5 | Remove TRG/FLG errors, minor optimization
 |     2.6 | Expanding the ranges of threshold parameters (TRG)
-|     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding beta version for CGG1
+|     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding version for CGG1
 
 
 ## Applications
