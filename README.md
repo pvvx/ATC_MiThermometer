@@ -290,7 +290,7 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 
 * [Reading and recovering Mi-Home keys](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/)
 
-* [HTML files](https://github.com/pvvx/pvvx.github.io/tree/master/ATC_MiThermometer)
+* [HTML files](https://github.com/pvvx/pvvx.github.io)
 
 * [LYWSD03MMC Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251-lcd-termometr-lywsd03mmc-xiaomi-bluetooth-termometr.5263/)
 
@@ -331,4 +331,6 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 | 0x70 | Set PinCode                                   |
 | 0x71 | Request Mtu Size Exchange                     |
 
+---
 
+![foto](https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/SensorsTH.jpg)
