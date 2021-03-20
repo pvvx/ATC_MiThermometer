@@ -5,6 +5,7 @@
 /* Based on source: https://github.com/znanev/ATC_MiThermometer */
 #include "app.h"
 #include "epd.h"
+#include "lcd.h"
 #include "battery.h"
 #include "drivers/8258/pm.h"
 #include "drivers/8258/timer.h"
@@ -97,11 +98,11 @@ _attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
 	else
 		display_buff[1] &= ~BIT(5); // "_"
 }
-/* CGG1 no symbol 'smiley'
- * 0,1,2,3,4,5 = "   " happy
- * 6,7 = "----" sad */
+
+/* CGG1 no symbol 'smiley' !
+ * =5 -> "---" happy, != 5 -> "    " sad */
 _attribute_ram_code_ void show_smiley(uint8_t state){
-	if(state > 5)
+	if(state & 1)
 		display_buff[7] |= BIT(2);
 	else
 		display_buff[7] &= ~BIT(2);
@@ -118,9 +119,9 @@ _attribute_ram_code_ void show_battery_symbol(bool state){
 			if(battery_level >= 33) {
 				display_buff[5] |= BIT(5);
 				if(battery_level >= 49) {
-					display_buff[6] |= BIT(1);
+					display_buff[6] |= BIT(7);
 					if(battery_level >= 67) {
-						display_buff[6] |= BIT(7);
+						display_buff[6] |= BIT(1);
 						if(battery_level >= 83) {
 							display_buff[7] |= BIT(5);
 						}
@@ -235,14 +236,14 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number(int16
 			// no point, show: -99..1999
 			if(number < 0){
 				number = -number;
-				display_buff[9] = BIT(3); // "-"
+				display_buff[9] |= BIT(3); // "-"
 			}
 			number = (number / 10) + ((number % 10) > 5); // round(div 10)
 		} else { // show: -9.9..199.9
 			display_buff[3] |= BIT(6); // point
 			if(number < 0){
 				number = -number;
-				display_buff[9] = BIT(3); // "-"
+				display_buff[9] |= BIT(3); // "-"
 			}
 		}
 		/* number: -99..1999 */
@@ -258,7 +259,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number(int16
 _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
 	display_buff[0] &= ~(BIT(0) | BIT(1) | BIT(2));
 	display_buff[3] &= ~(BIT(0) | BIT(1) | BIT(2) | BIT(3) | BIT(4) | BIT(5));
-	display_buff[5] &= ~BIT(1);
+	display_buff[5] &= ~(BIT(1) | BIT(2) | BIT(3));
 	display_buff[6] &= ~BIT(0);
 	display_buff[7] &= ~(BIT(3) | BIT(6) | BIT(7));
 	display_buff[8] &= ~(BIT(1) | BIT(2) | BIT(3) | BIT(4));
@@ -270,7 +271,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int
 	display_buff[16] &= ~(BIT(4) | BIT(5) | BIT(6) | BIT(7));
 	if(percent)
 		display_buff[5] |= BIT(3); // "%"
-	if(number > 999) {
+	if(number > 9995) {
 		// "Hi"
 		display_buff[9] |= BIT(5);
 		display_buff[10] |= BIT(4) | BIT(6);
@@ -278,7 +279,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int
 		display_buff[14] |= BIT(0) | BIT(1) | BIT(2) | BIT(3);
 		display_buff[15] |= BIT(0) |BIT(6) | BIT(7);
 		display_buff[16] |= BIT(4) | BIT(6) | BIT(7);
-	} else if(number < -99) {
+	} else if(number < -995) {
 		//"Lo"
 		display_buff[7] |= BIT(3);
 		display_buff[8] |= BIT(1) | BIT(4);
@@ -286,14 +287,14 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int
 		display_buff[10] |= BIT(4) | BIT(5) | BIT(6);
 		display_buff[14] |= BIT(1) | BIT(3);
 		display_buff[15] |= BIT(6);
-		display_buff[16] |= BIT(4) | BIT(5) | BIT(6);
+		display_buff[16] |= BIT(4) | BIT(5) | BIT(6) | BIT(7);
 	} else {
 		/* number: -99..999 */
 		if(number > 995 || number < -95) {
 			// no point, show: -99..999
 			if(number < 0){
 				number = -number;
-				display_buff[0] |= BIT(2); // "-"
+				display_buff[15] |= BIT(7); // "-"
 			}
 			number = (number / 10) + ((number % 10) > 5); // round(div 10)
 		} else { // show: -9.9..99.9
@@ -330,7 +331,7 @@ void show_batt_cgg1(void) {
 		if(battery_level > 995)
 			battery_level = 995;
 	}
-	show_small_number(battery_level, 1);
+	show_small_number(battery_level, false);
 }
 
 _attribute_ram_code_ void update_lcd(void){
