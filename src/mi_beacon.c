@@ -127,7 +127,6 @@ __attribute__((optimize("-Os"))) void mi_encrypt_beacon(uint32_t cnt) {
 	p->dev_id = beacon_nonce.pid;
 	p->counter = cnt;
 	memcpy(p->MAC, mac_public, 6);
-#endif
 	uint8_t *mic = (uint8_t *)p;
 	mic += sizeof(adv_mi_enc_t);
 	switch(cnt & 3) {
@@ -164,6 +163,7 @@ __attribute__((optimize("-Os"))) void mi_encrypt_beacon(uint32_t cnt) {
 	p->fctrl.bit.version = 5; // XIAOMI_DEV_VERSION
 #else
 	p->fctrl.word = 0x5858; // 0x5830
+#endif
 	p->size = p->data_len + sizeof(adv_mi_enc_t) + 3 + 4 - 1;
 	*mic++ = beacon_nonce.ext_cnt[0];
 	*mic++ = beacon_nonce.ext_cnt[1];
