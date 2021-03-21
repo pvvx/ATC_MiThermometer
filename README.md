@@ -204,11 +204,14 @@ UUID 0x181A - size 19: Custom format (all data little-endian):
                        // bit4: Humidity trigger event
    ```
 
-#### Xioami Battery Charge
+#### Xiaomi Battery Charge
 3. UUID 0xFE95 - 0x0A: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - battery charge level 0..100%, battery voltage in mV
 
-#### Xioami Temperature & Humidity
+#### Xiaomi Temperature & Humidity
 4. UUID 0xFE95 - 0x0D: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - temperature x0.1C, humidity x0.1%
+
+#### Xiaomi Encrypted (bindkey enable)
+5. UUID 0xFE95 - 0x0A, 0x04, 0x06 [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/Mijia%20BLE%20Object%20Definition.md) - battery charge level 0..100%, temperature x0.1C, humidity x0.1% (All data are averaged over a period of 16 measurements)
 
 ### Bluetooth Connection Mode
 + Primary Service - Environmental Sensing Service (0x181A):

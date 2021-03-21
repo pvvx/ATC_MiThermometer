@@ -115,7 +115,7 @@ __attribute__((optimize("-Os"))) void mi_encrypt_beacon(uint32_t cnt) {
 	}
 	adv_mi_cnt = cnt; // new counter
 	beacon_nonce.cnt = cnt;
-	if((cnt & 3) == 0) { //
+	if((cnt & 3) == 0) { // Data are averaged over a period of 16 measurements (cnt*4)
 		mi_beacon_data.temp = ((int16_t)(mib_summ_data.temp/(int32_t)mib_summ_data.count))/10;
 		mi_beacon_data.humi = ((uint16_t)(mib_summ_data.humi/mib_summ_data.count))/10;
 		mi_beacon_data.batt = get_battery_level((uint16_t)(mib_summ_data.batt/mib_summ_data.count));
