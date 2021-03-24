@@ -134,6 +134,7 @@ In case you want to go back to the original firmware, you can download them here
 |     2.5 | Remove TRG/FLG errors, minor optimization
 |     2.6 | Expanding the ranges of threshold parameters (TRG)
 |     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding version for CGG1
+|     2.8 | Added saving binkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults.
 
 
 ## Applications
@@ -316,6 +317,7 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 | 0x15 | Get all Mi keys                               |
 | 0x16 | Restore prev mi token & bindkeys              |
 | 0x17 | Delete all Mi keys                            |
+| 0x18 | Get/set binkey in EEP                         |
 | 0x20 | Get/Set comfort parameters                    |
 | 0x22 | Get/Set show LCD ext.data                     |
 | 0x23 | Get/Set Time                                  |

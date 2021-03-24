@@ -1,14 +1,15 @@
 #pragma once 
 enum {
 	CMD_ID_DNAME    = 0x01, // Get/Set device name, "\0" - default: ATC_xxxx
-	CMD_MI_ID_MAC	= 0x10, // Get/Set MAC [+RandMAC], [size][mac[6][randmac[2]]]
-	CMD_MI_ID_DNAME = 0x11, // Get/Set Mi key: DevNameId, [size]["\0"+miDevName]
-	CMD_MI_ID_TBIND = 0x12, // Get/Set Mi keys: Token & Bind, [size][keys]
-	CMD_MI_ID_CFG   = 0x13, // Mi cfg data, [size][data]
-	CMD_MI_ID_KDEL  = 0x14, // Mi marked as deleted keys, [size][data]
-	CMD_MI_ID_KALL  = 0x15, // Get all mi keys
-	CMD_MI_ID_REST  = 0x16, // Restore prev mi token & bindkeys
-	CMD_MI_ID_CLR	= 0x17, // Delete all mi keys
+	CMD_ID_DEV_MAC	= 0x10, // Get/Set MAC [+RandMAC], [size][mac[6][randmac[2]]]
+	CMD_ID_MI_DNAME = 0x11, // Get/Set Mi key: DevNameId, [size]["\0"+miDevName]
+	CMD_ID_MI_TBIND = 0x12, // Get/Set Mi keys: Token & Bind, [size][keys]
+	CMD_ID_MI_CFG   = 0x13, // Mi cfg data, [size][data]
+	CMD_ID_MI_KDEL  = 0x14, // Mi marked as deleted keys, [size][data]
+	CMD_ID_MI_KALL  = 0x15, // Get all mi keys
+	CMD_ID_MI_REST  = 0x16, // Restore prev mi token & bindkeys
+	CMD_ID_MI_CLR	= 0x17, // Delete all mi keys
+	CMD_ID_BKEY		= 0x18, // Get/set beacon bkey in EEP
 	CMD_ID_COMFORT  = 0x20, // Get/set comfort parameters
 	CMD_ID_EXTDATA  = 0x22, // Get/set show ext. data
 	CMD_ID_UTC_TIME = 0x23, // Get/set utc time (if USE_CLOCK = 1)
@@ -29,7 +30,7 @@ enum {
 	// Debug commands (unsupported in different versions!):
 	CMD_ID_REBOOT	= 0x72, // Set Reboot on disconnect
 	CMD_ID_DEBUG    = 0xDE  // Test/Debug
-} CMD_MI_ID_KEYS;
+} CMD_ID_KEYS;
 
 #define MI_KEYTBIND_ID  0x10 // id token + bindkey
 #define MI_KEYSEQNUM_ID 0x04 // id mibeacon SEQNUM

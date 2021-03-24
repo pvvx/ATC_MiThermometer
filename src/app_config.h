@@ -4,14 +4,14 @@
 extern "C" {
 #endif
 
-#define VERSION 0x27	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x28	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1 "Qingping Temp & RH Monitor"
 
-#define DEVICE_TYPE			DEVICE_CGG1 //DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1
 
 #define BLE_SECURITY_ENABLE 1
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
@@ -22,7 +22,7 @@ extern "C" {
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
-#define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0)
+#define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)
 #define USE_MIHOME_BEACON			1 // = 1 Compatible with MiHome beacon encryption
 #define USE_NEW_OTA					0 // = 1 keeping the old firmware, erasing the region when updating (test version only!)
 
@@ -161,8 +161,9 @@ extern "C" {
  * 16 MHz - 17.43 uA
  * 24 MHz - 17.28 uA
  * 32 MHz - 17.36 uA
+ * (TX +3 dB)
  * Average consumption Original Xiaomi LYWSD03MMC (advertising 1700 ms, measure 6800 ms):
- * 18.64 uA
+ * 18.64 uA (TX 0 dB)
  */
 #define CLOCK_SYS_CLOCK_HZ  	24000000 // 16000000, 24000000, 32000000, 48000000
 enum{

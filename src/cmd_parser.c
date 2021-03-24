@@ -157,7 +157,7 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 	switch(chk_stage) {
 	case MI_KEY_STAGE_DNAME:
 		chk_stage = MI_KEY_STAGE_TBIND;
-		keybuf.id = CMD_MI_ID_DNAME;
+		keybuf.id = CMD_ID_MI_DNAME;
 		if(find_mi_keys(MI_KEYDNAME_ID, 1)) {
 			send_mi_key();
 		} else
@@ -165,7 +165,7 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 		break;
 	case MI_KEY_STAGE_TBIND:
 		chk_stage = MI_KEY_STAGE_CFG;
-		keybuf.id = CMD_MI_ID_TBIND;
+		keybuf.id = CMD_ID_MI_TBIND;
 		if(find_mi_keys(MI_KEYTBIND_ID, 1)) {
 			mi_key_chk_cnt = 0;
 			send_mi_key();
@@ -174,7 +174,7 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 		break;
 	case MI_KEY_STAGE_CFG:
 		chk_stage = MI_KEY_STAGE_KDEL;
-		keybuf.id = CMD_MI_ID_CFG;
+		keybuf.id = CMD_ID_MI_CFG;
 		if(find_mi_keys(MI_KEYSEQNUM_ID, 1)) {
 			mi_key_chk_cnt = 0;
 			send_mi_key();
@@ -182,7 +182,7 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 			send_mi_no_key();
 		break;
 	case MI_KEY_STAGE_KDEL:
-		keybuf.id = CMD_MI_ID_KDEL;
+		keybuf.id = CMD_ID_MI_KDEL;
 		if(find_mi_keys(MI_KEYDELETE_ID, ++mi_key_chk_cnt)) {
 			send_mi_key();
 		} else {
@@ -191,7 +191,7 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 		}
 		break;
 	case MI_KEY_STAGE_RESTORE: // restore prev mi token & bindkeys
-		keybuf.id = CMD_MI_ID_TBIND;
+		keybuf.id = CMD_ID_MI_TBIND;
 		if(store_mi_keys(MI_KEYTBIND_SIZE, MI_KEYTBIND_ID, NULL)) {
 			chk_stage = MI_KEY_STAGE_WAIT_SEND;
 			send_mi_key();
@@ -206,7 +206,7 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 	default: // Start get all mi keys // MI_KEY_STAGE_MAC
 		memcpy(&keybuf.data,(uint8_t *)(FLASH_MIMAC_ADDR), 8); // MAC[6] + mac_random[2]
 		keybuf.klen = 8;
-		keybuf.id = CMD_MI_ID_MAC;
+		keybuf.id = CMD_ID_DEV_MAC;
 		chk_stage = MI_KEY_STAGE_DNAME;
 		send_mi_key();
 		break;
@@ -249,10 +249,6 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			if(--len > sizeof(cfg)) len = sizeof(cfg);
 			if(len) {
 				memcpy(&cfg, &req->dat[1], len);
-#if USE_MIHOME_BEACON
-				if(!pbindkey)
-					cfg.flg2.mi_beacon = 0;
-#endif
 			}
 			test_config();
 			ev_adv_timeout(0, 0, 0);
@@ -280,7 +276,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			test_trg_on();
 			ble_send_trg_flg();
 #endif // USE_TRIGGER_OUT
-		} else if (cmd == CMD_MI_ID_MAC) { // Get/Set mac
+		} else if (cmd == CMD_ID_DEV_MAC) { // Get/Set mac
 			if(len == 2 && req->dat[1] == 0) { // default MAC
 				flash_erase_sector(FLASH_MIMAC_ADDR);
 				blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
@@ -316,12 +312,25 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			}
 			get_mi_keys(MI_KEY_STAGE_MAC);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
-		} else if (cmd == CMD_MI_ID_KALL) { // Get all mi keys
+#if USE_MIHOME_BEACON
+		} else if (cmd == CMD_ID_BKEY) { // Get/set beacon bkey
+			if(len == sizeof(bindkey) + 1) {
+				memcpy(bindkey, &req->dat[1], sizeof(bindkey));
+				flash_write_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey));
+			}
+			if(flash_read_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey)) == sizeof(bindkey)) {
+				memcpy(&send_buf[1], bindkey, sizeof(bindkey));
+				olen = sizeof(bindkey) + 1;
+			} else {
+				send_buf[1] = 0xff; // err
+				olen = 2;
+			}
+#endif
+		} else if (cmd == CMD_ID_MI_KALL) { // Get all mi keys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
-		} else if (cmd == CMD_MI_ID_REST) { // Restore prev mi token & bindkeys
+		} else if (cmd == CMD_ID_MI_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
-		} else if (cmd == CMD_MI_ID_CLR) {
-			cfg.flg2.mi_beacon = 0;
+		} else if (cmd == CMD_ID_MI_CLR) {
 			erase_mikeys();
 			olen = 2;
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
@@ -370,12 +379,12 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 //			send_buf[0] = CMD_ID_DNAME;
 			memcpy(&send_buf[1], &ble_name[2], ble_name[0] - 1);
 			olen = ble_name[0];
-		} else if (cmd == CMD_MI_ID_DNAME) { // Mi key: DevNameId
+		} else if (cmd == CMD_ID_MI_DNAME) { // Mi key: DevNameId
 			if(len == MI_KEYDNAME_SIZE + 1)
 				store_mi_keys(MI_KEYDNAME_SIZE, MI_KEYDNAME_ID, &req->dat[1]);
 			get_mi_keys(MI_KEY_STAGE_DNAME);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
-		} else if (cmd == CMD_MI_ID_TBIND) { // Mi keys: Token & Bind
+		} else if (cmd == CMD_ID_MI_TBIND) { // Mi keys: Token & Bind
 			if(len == MI_KEYTBIND_SIZE + 1)
 				store_mi_keys(MI_KEYTBIND_SIZE, MI_KEYTBIND_ID, &req->dat[1]);
 			get_mi_keys(MI_KEY_STAGE_TBIND);

@@ -268,7 +268,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 	bls_set_advertise_prepare(app_advertise_prepare_handler);
 #if USE_MIHOME_BEACON
-		mi_beacon_init();
+	mi_beacon_init();
 #endif
 
 #if 0 // BLE_SECURITY_ENABLE && DEVICE_TYPE != DEVICE_MHO_C401
@@ -322,7 +322,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void set_adv_data(uint8_t 
 #endif
 	} else if(adv_type & 2) { // adv_type == 2 or 3
 #if USE_MIHOME_BEACON
-		if(pbindkey && cfg.flg2.mi_beacon)
+		if(cfg.flg2.mi_beacon)
 			mi_encrypt_beacon(measured_data.count >> 2);
 		else
 #endif

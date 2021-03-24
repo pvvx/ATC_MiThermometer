@@ -14,6 +14,7 @@
 #define EEP_ID_CMF (0x0FCC) // EEP ID comfort data
 #define EEP_ID_DVN (0x0DB5) // EEP ID device name
 #define EEP_ID_TIM (0x0ADA) // EEP ID time adjust
+#define EEP_ID_KEY (0xBEAC) // EEP ID bkey
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {

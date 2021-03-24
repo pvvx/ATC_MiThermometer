@@ -61,6 +61,8 @@ typedef struct __attribute__((packed)) _beacon_nonce_t{
 
 //// Init data
 RAM uint8_t *pbindkey;
+RAM uint8_t bindkey[16];
+
 RAM beacon_nonce_t beacon_nonce;
 //// Counters
 RAM uint32_t adv_mi_cnt = 0xffffffff; // counter of measurement numbers from sensors
@@ -83,19 +85,22 @@ typedef struct _summ_data_t {
 RAM mib_summ_data_t mib_summ_data;
 
 /* Initializing mi beacon */
-int mi_beacon_init(void) {
+void mi_beacon_init(void) {
 	uint8_t *p_key = find_mi_keys(MI_KEYTBIND_ID, 1);
 	if(p_key) {
 		pbindkey = p_key + 12;
 		p_key = find_mi_keys(MI_KEYSEQNUM_ID, 1);
 		if(p_key)
 			memcpy(&beacon_nonce.cnt, p_key, 4);
-		memcpy(beacon_nonce.mac, mac_public, 6);
-		beacon_nonce.pid = DEVICE_TYPE;
-		return 0;
+	} else {
+		pbindkey = bindkey;
+		if(flash_read_cfg(pbindkey, EEP_ID_KEY, sizeof(bindkey)) != sizeof(bindkey)) {
+			generateRandomNum(sizeof(bindkey), pbindkey);
+			flash_write_cfg(pbindkey, EEP_ID_KEY, sizeof(bindkey));
+		}
 	}
-	pbindkey = NULL;
-	return 1;
+	memcpy(beacon_nonce.mac, mac_public, 6);
+	beacon_nonce.pid = DEVICE_TYPE;
 }
 
 /* Averaging measurements */

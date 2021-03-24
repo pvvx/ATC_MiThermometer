@@ -96,7 +96,7 @@ const cfg_t def_cfg = {
 		.averaging_measurements = 30, // * measure_interval = 20 * 30 = 600 sec = 10 minutes
 #endif
 #endif
-		.rf_tx_power = RF_POWER_P3p01dBm,
+		.rf_tx_power = RF_POWER_P0p04dBm, // RF_POWER_P3p01dBm,
 		.connect_latency = 124 // (124+1)*1.25*16 = 2500 ms
 		};
 RAM cfg_t cfg;
@@ -189,7 +189,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 			write_memo();
 #endif
 #if	USE_MIHOME_BEACON
-		if((cfg.flg.advertising_type & 2) && cfg.flg2.mi_beacon && pbindkey)
+		if((cfg.flg.advertising_type & 2) && cfg.flg2.mi_beacon)
 			mi_beacon_summ();
 #endif
 		set_adv_data(cfg.flg.advertising_type);
