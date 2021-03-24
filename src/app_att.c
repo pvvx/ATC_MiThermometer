@@ -110,7 +110,7 @@ static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 //------------------
 #endif // USE_DEVICE_INFO_CHR_UUID
 
-RAM gap_periConnectParams_t my_periConnParameters = {20, 40, 0, 1000};
+RAM gap_periConnectParams_t my_periConnParameters = {8, 40, 0, 1000};
 
 static u16 serviceChangeVal[2] = {0};
 
@@ -317,7 +317,7 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_appearanceCharVal),(u8*)(&my_characterUUID), (u8*)(my_appearanceCharVal), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof (my_appearance), (u8*)(&my_appearanceUIID), 	(u8*)(&my_appearance), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_periConnParamCharVal),(u8*)(&my_characterUUID), (u8*)(my_periConnParamCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof (my_periConnParameters),(u8*)(&my_periConnParamUUID), 	(u8*)(&my_periConnParameters), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_periConnParameters),(u8*)(&my_periConnParamUUID),(u8*)(&my_periConnParameters), 0},
 	// 0008 - 000b gatt
 	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_gattServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_serviceChangeCharVal),(u8*)(&my_characterUUID), 		(u8*)(my_serviceChangeCharVal), 0},

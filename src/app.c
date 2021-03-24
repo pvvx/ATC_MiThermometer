@@ -148,7 +148,7 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 		connection_timeout = 100;	//x10 ms,  1 sec
 	if(!cfg.connect_latency) {
 		my_periConnParameters.intervalMin = (cfg.advertising_interval * 625 / 30) - 1; // Tmin = 20*1.25 = 25 ms, Tmax = 3333*1.25 = 4166.25 ms
-		my_periConnParameters.intervalMax = my_periConnParameters.intervalMin + 2;
+		my_periConnParameters.intervalMax = my_periConnParameters.intervalMin + 5;
 		my_periConnParameters.latency = 0;
 	} else {
 		my_periConnParameters.intervalMin = 16; // 10*1.25 = 12.5 ms
