@@ -102,9 +102,9 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 2.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer27.bin)
-* [MHO-C401 Custom Firmware Version 2.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v27.bin)
-* [CGG1 Custom Firmware Version 2.7s](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v27s.bin)
+* [LYWSD03MMC Custom Firmware Version 2.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer28c.bin)
+* [MHO-C401 Custom Firmware Version 2.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v28c.bin)
+* [CGG1 Custom Firmware Version 2.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v28c.bin)
 
 **Original Manufacturer Firmware Version**
 
@@ -134,7 +134,7 @@ In case you want to go back to the original firmware, you can download them here
 |     2.5 | Remove TRG/FLG errors, minor optimization
 |     2.6 | Expanding the ranges of threshold parameters (TRG)
 |     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding version for CGG1
-|     2.8 | Added saving binkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults.
+|     2.8 | Added saving bindkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults.
 
 
 ## Applications
