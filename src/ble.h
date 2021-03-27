@@ -9,13 +9,21 @@ extern uint8_t ota_is_working;
 extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset device on disconnect
 extern uint32_t adv_send_count;
 extern uint32_t adv_old_count;
+#define ADV_BUFFER_SIZE		28
+typedef struct __attribute__((packed)) _adv_buf_t {
+	uint8_t flag[3];
+	uint8_t data[ADV_BUFFER_SIZE];
+}adv_buf_t;
+extern adv_buf_t adv_buf;
+//extern uint8_t adv_buffer[ADV_BUFFER_SIZE];
 extern bool show_temp_humi_Mi;
 extern u8 batteryValueInCCC[2];
 extern u8 tempValueInCCC[2];
 extern u8 temp2ValueInCCC[2];
 extern u8 humiValueInCCC[2];
 extern u8 RxTxValueInCCC[2];
-extern uint8_t send_buf[20];
+#define SEND_BUFFER_SIZE	20
+extern uint8_t send_buf[SEND_BUFFER_SIZE];
 extern uint8_t mac_public[6];
 extern uint8_t mac_random_static[6];
 extern uint8_t ble_name[12];

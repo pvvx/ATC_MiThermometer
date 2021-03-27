@@ -214,11 +214,13 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 	return chk_stage;
 }
 
-static void erase_mikeys(void) {
+static int32_t erase_mikeys(void) {
 	int32_t tmp;
 	flash_read_page(FLASH_MIKEYS_ADDR, 4, (unsigned char *)&tmp);
-	if(tmp != -1)
+	if(++tmp) {
 		flash_erase_sector(FLASH_MIKEYS_ADDR);
+	}
+	return tmp;
 }
 
 __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
@@ -317,6 +319,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			if(len == sizeof(bindkey) + 1) {
 				memcpy(bindkey, &req->dat[1], sizeof(bindkey));
 				flash_write_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey));
+				mi_beacon_init();
 			}
 			if(flash_read_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey)) == sizeof(bindkey)) {
 				memcpy(&send_buf[1], bindkey, sizeof(bindkey));
@@ -330,8 +333,13 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
 		} else if (cmd == CMD_ID_MI_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
-		} else if (cmd == CMD_ID_MI_CLR) {
+		} else if (cmd == CMD_ID_MI_CLR) { // Delete all mi keys
+#if USE_MIHOME_BEACON
+			if(erase_mikeys())
+					mi_beacon_init();
+#else
 			erase_mikeys();
+#endif
 			olen = 2;
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
 			if(--len > sizeof(display_buff)) len = sizeof(display_buff);
@@ -355,7 +363,6 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 				if (flash_write_cfg(&pincode, EEP_ID_PCD, sizeof(pincode))) {
 					if((pincode != 0) ^ (old_pincode != 0)) {
 						bls_smp_eraseAllParingInformation();
-//						cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER, clock_time() + 5*CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 5 sec
 						ble_connected |= 0x80; // reset device on disconnect
 					}
 					send_buf[1] = 1;
@@ -376,7 +383,6 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 				ble_get_name();
 				ble_connected |= 0x80; // reset device on disconnect
 			}
-//			send_buf[0] = CMD_ID_DNAME;
 			memcpy(&send_buf[1], &ble_name[2], ble_name[0] - 1);
 			olen = ble_name[0];
 		} else if (cmd == CMD_ID_MI_DNAME) { // Mi key: DevNameId
@@ -431,12 +437,12 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			else
 				send_buf[1] = 0xff;
 			olen = 2;
-
-			// Debug commands (unsupported in different versions!):
-
 		} else if (cmd == CMD_ID_REBOOT) { // Set Reboot on disconnect
 			ble_connected |= 0x80; // reset device on disconnect
 			olen = 2;
+
+			// Debug commands (unsupported in different versions!):
+
 		} else if (cmd == CMD_ID_DEBUG && len > 3) { // test/debug
 			flash_read_page((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), 18, &send_buf[4]);
 			memcpy(send_buf, req->dat, 4);

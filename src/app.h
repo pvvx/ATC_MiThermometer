@@ -118,6 +118,7 @@ typedef struct _measured_data_t {
 	uint16_t 	count;
 } measured_data_t;
 extern measured_data_t measured_data;
+
 extern uint8_t battery_level; // 0..100%
 extern int16_t last_temp; // x0.1 C
 extern uint16_t last_humi; // x1 %

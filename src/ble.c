@@ -22,11 +22,7 @@
 void bls_set_advertise_prepare(void *p); // add ll_adv.h
 
 RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
-uint8_t send_buf[20];
-
-extern uint8_t my_tempVal[2];
-extern uint8_t my_humiVal[2];
-extern uint8_t my_batVal[1];
+uint8_t send_buf[SEND_BUFFER_SIZE];
 
 RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
 RAM my_fifo_t blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b, };
@@ -44,7 +40,7 @@ RAM uint8_t mac_public[6];
 RAM uint8_t mac_random_static[6];
 RAM uint32_t adv_send_count;
 RAM uint32_t adv_old_count;
-RAM uint8_t adv_buffer[28];
+RAM adv_buf_t adv_buf;
 uint8_t ota_is_working = 0;
 
 void app_enter_ota_mode(void) {
@@ -319,7 +315,9 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 }
 
 /* adv_type: 0 - atc1441, 1 - Custom,  2,3 - Mi  */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void set_adv_data(uint8_t adv_type) {
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void set_adv_data(uint8_t adv_type) {
 	adv_old_count = adv_send_count;
 	if(adv_type == 3)
 		adv_type = adv_old_count & 3;
@@ -327,14 +325,14 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void set_adv_data(uint8_t 
 #if USE_TRIGGER_OUT
 		test_trg_input();
 #endif
-		padv_custom_t p = (padv_custom_t)adv_buffer;
+		padv_custom_t p = (padv_custom_t)&adv_buf.data;
 		memcpy(p->MAC, mac_public, 6);
 #if USE_TRIGGER_OUT
 		p->size = sizeof(adv_custom_t) - 1;
 #else
 		p->size = sizeof(adv_custom_t) - 2;
 #endif
-		p->uid = 0x16; // 16-bit UUID
+		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
 		p->temperature = measured_data.temp; // x0.01 C
 		p->humidity = measured_data.humi; // x0.01 %
@@ -351,10 +349,10 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void set_adv_data(uint8_t 
 		else
 #endif
 		{
-			padv_mi_t p = (padv_mi_t)adv_buffer;
+			padv_mi_t p = (padv_mi_t)&adv_buf.data;
 			memcpy(p->MAC, mac_public, 6);
 			p->size = sizeof(adv_mi_t) - 1;
-			p->uid = 0x16; // 16-bit UUID
+			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 			p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 #if 0
 			p->ctrl.word = 0;
@@ -384,9 +382,9 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void set_adv_data(uint8_t 
 		}
 #endif
 	} else { // adv_type == 0
-		padv_atc1441_t p = (padv_atc1441_t)adv_buffer;
+		padv_atc1441_t p = (padv_atc1441_t)&adv_buf.data;
 		p->size = sizeof(adv_atc1441_t) - 1;
-		p->uid = 0x16; // 16-bit UUID
+		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
 		p->MAC[0] = mac_public[5];
 		p->MAC[1] = mac_public[4];
@@ -402,7 +400,18 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void set_adv_data(uint8_t 
 		p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
 		p->counter = (uint8_t)measured_data.count;
 	}
-	bls_ll_setAdvData(adv_buffer, adv_buffer[0]+1);
+	adv_buf.flag[0] = 0x02; // size
+	adv_buf.flag[1] = GAP_ADTYPE_FLAGS; // type
+	/*	Flags:
+	 	bit0: LE Limited Discoverable Mode
+		bit1: LE General Discoverable Mode
+		bit2: BR/EDR Not Supported
+		bit3: Simultaneous LE and BR/EDR to Same Device Capable (Controller)
+		bit4: Simultaneous LE and BR/EDR to Same Device Capable (Host)
+		bit5..7: Reserved
+	 */
+	adv_buf.flag[2] = 0x06; // Flags
+	bls_ll_setAdvData((u8 *)&adv_buf, adv_buf.data[0] + 4);
 }
 
 _attribute_ram_code_ void ble_send_measures(void) {

@@ -4,12 +4,12 @@
 extern "C" {
 #endif
 
-#define VERSION 0x28	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x29	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401
-#define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1 "Qingping Temp & RH Monitor"
+#define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
 
 #define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1
 
