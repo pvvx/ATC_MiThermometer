@@ -61,7 +61,7 @@ To flash or update the firmware, use a Google Chrome, Microsoft Edge or Opera Br
 5. Now you can press the _Custom Firmware ver x.x_ button to directly flash the custom firmware. Alternatively you can choose a specific firmware binary (i.e. the original firmware) via the file chooser
 6. Press _Start Flashing_.
 
- * Use [TelinkOTA](https://pvvx.github.io/ATC_MiThermometer/TelinkOTA.html) to flash old or alternative versions ([ATC1441](https://atc1441.github.io/TelinkFlasher.html)).
+ * Use [TelinkOTA](https://pvvx.github.io/ATC_MiThermometer/TelinkOTA.html) to flash old or alternative versions ([ATC1441](https://atc1441.github.io/TelinkFlasher.html)). This is a program for OTA projects with Telink SDK, no third-party (mijia) protections.
 
 ### Configuration
 After you have flashed the firmware, the device has changed it's bluetooth name to something like `ATC_F02AED`. Using the [`TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) you have various configuration options.
@@ -102,9 +102,9 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 2.9](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer29.bin)
-* [MHO-C401 Custom Firmware Version 2.9](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v29.bin)
-* [CGG1 Custom Firmware Version 2.9](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v29.bin)
+* [LYWSD03MMC Custom Firmware Version 3.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer30.bin)
+* [MHO-C401 Custom Firmware Version 3.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v30.bin)
+* [CGG1 Custom Firmware Version 3.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v30.bin)
 
 **Original Manufacturer Firmware Version**
 
@@ -134,8 +134,9 @@ In case you want to go back to the original firmware, you can download them here
 |     2.5 | Remove TRG/FLG errors, minor optimization
 |     2.6 | Expanding the ranges of threshold parameters (TRG)
 |     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding version for CGG1
-|     2.8 | Added saving bindkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults.
-|     2.9 | Added additional flags to advertising packages
+|     2.8 | Added saving bindkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults
+|     2.9 | Added additional id flags to advertising packages
+|     3.0 | Added toggle support for advertising package structures for third-party software written by unqualified authors
 
 
 ## Applications

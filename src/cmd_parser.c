@@ -324,8 +324,8 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			if(flash_read_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey)) == sizeof(bindkey)) {
 				memcpy(&send_buf[1], bindkey, sizeof(bindkey));
 				olen = sizeof(bindkey) + 1;
-			} else {
-				send_buf[1] = 0xff; // err
+			} else { // No bindkey in EEP!
+				send_buf[1] = 0xff;
 				olen = 2;
 			}
 #endif
@@ -333,6 +333,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
 		} else if (cmd == CMD_ID_MI_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
+			ble_connected |= 0x80; // reset device on disconnect
 		} else if (cmd == CMD_ID_MI_CLR) { // Delete all mi keys
 #if USE_MIHOME_BEACON
 			if(erase_mikeys())

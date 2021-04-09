@@ -60,22 +60,21 @@ typedef struct __attribute__((packed)) _beacon_nonce_t{
 } beacon_nonce_t, * pbeacon_nonce_t;
 
 //// Init data
-RAM uint8_t *pbindkey;
 RAM uint8_t bindkey[16];
-
 RAM beacon_nonce_t beacon_nonce;
 //// Counters
 RAM uint32_t adv_mi_cnt = 0xffffffff; // counter of measurement numbers from sensors
 //// Buffers
 RAM uint8_t adv_crypt_buf[ADV_BUFFER_SIZE];
 /// Vars
-RAM struct {
+typedef struct _mi_beacon_data_t { // out data
 	int16_t temp;	// x0.1 C
 	uint16_t humi;	// x0.1 %
 	uint8_t batt;	// 0..100 %
-} mi_beacon_data;
+} mi_beacon_data_t;
+RAM mi_beacon_data_t mi_beacon_data;
 
-typedef struct _summ_data_t {
+typedef struct _summ_data_t { // calk summ data
 	uint32_t	batt; // mv
 	int32_t		temp; // x 0.01 C
 	uint32_t	humi; // x 0.01 %
@@ -83,19 +82,18 @@ typedef struct _summ_data_t {
 } mib_summ_data_t;
 RAM mib_summ_data_t mib_summ_data;
 
-/* Initializing mi beacon */
+/* Initializing data for mi beacon */
 void mi_beacon_init(void) {
 	uint8_t *p_key = find_mi_keys(MI_KEYTBIND_ID, 1);
 	if(p_key) {
-		pbindkey = p_key + 12;
+		memcpy(&bindkey, p_key + 12, sizeof(bindkey)); 
 		p_key = find_mi_keys(MI_KEYSEQNUM_ID, 1);
 		if(p_key)
 			memcpy(&beacon_nonce.cnt, p_key, 4); // BLE_GAP_AD_TYPE_FLAGS
 	} else {
-		pbindkey = bindkey;
-		if(flash_read_cfg(pbindkey, EEP_ID_KEY, sizeof(bindkey)) != sizeof(bindkey)) {
-			generateRandomNum(sizeof(bindkey), pbindkey);
-			flash_write_cfg(pbindkey, EEP_ID_KEY, sizeof(bindkey));
+		if(flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey)) != sizeof(bindkey)) {
+			generateRandomNum(sizeof(bindkey), (unsigned char *)&bindkey);
+			flash_write_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey));
 		}
 	}
 	memcpy(beacon_nonce.mac, mac_public, 6);
@@ -140,7 +138,16 @@ void mi_encrypt_beacon(uint32_t cnt) {
 				break;
 			case 1:
 				p->data_id = 0x08;
+#if 0
+				p->fctrl.word = 0;
+				p->fctrl.bit.MACInclude = 1;
+				p->fctrl.bit.CapabilityInclude = 1;
+				p->fctrl.bit.registered = 1;
+				p->fctrl.bit.AuthMode = 2;
+				p->fctrl.bit.version = 5; // XIAOMI_DEV_VERSION
+#else
 				p->fctrl.word = 0x5830; // 0x5830
+#endif
 				p->size = sizeof(adv_mi_enc_t) - 2 - 1;
 				return;
 			case 2:
@@ -164,14 +171,14 @@ void mi_encrypt_beacon(uint32_t cnt) {
 		p->fctrl.bit.AuthMode = 2;
 		p->fctrl.bit.version = 5; // XIAOMI_DEV_VERSION
 #else
-		p->fctrl.word = 0x5858; // 0x5830
+		p->fctrl.word = 0x5858; // 0x5858
 #endif
 		p->size = p->data_len + sizeof(adv_mi_enc_t) + 3 + 4 - 1;
 		*mic++ = beacon_nonce.ext_cnt[0];
 		*mic++ = beacon_nonce.ext_cnt[1];
 		*mic++ = beacon_nonce.ext_cnt[2];
 	    uint8_t aad = 0x11;
-		aes_ccm_encrypt_and_tag(pbindkey,
+		aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey,
 							   (uint8_t*)&beacon_nonce, sizeof(beacon_nonce),
 							   &aad, sizeof(aad),
 							   (uint8_t *)&p->data_id, p->data_len + 3,

@@ -22,7 +22,7 @@ extern u8 tempValueInCCC[2];
 extern u8 temp2ValueInCCC[2];
 extern u8 humiValueInCCC[2];
 extern u8 RxTxValueInCCC[2];
-#define SEND_BUFFER_SIZE	20
+#define SEND_BUFFER_SIZE	(ATT_MTU_SIZE-3) // = 20
 extern uint8_t send_buf[SEND_BUFFER_SIZE];
 extern uint8_t mac_public[6];
 extern uint8_t mac_random_static[6];

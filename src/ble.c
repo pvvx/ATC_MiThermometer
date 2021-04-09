@@ -87,7 +87,7 @@ int app_conn_param_update_response(u8 id, u16  result) {
 	if(result == CONN_PARAM_UPDATE_ACCEPT)
 		ble_connected |= 2;
 	else if(result == CONN_PARAM_UPDATE_REJECT) {
-		bls_l2cap_requestConnParamUpdate(160, 160, 4, 300); // (200 ms, 200 ms, 1 s, 3 s)
+		// bls_l2cap_requestConnParamUpdate(160, 160, 4, 300); // (200 ms, 200 ms, 1 s, 3 s)
 	}
 	return 0;
 }
@@ -400,18 +400,21 @@ void set_adv_data(uint8_t adv_type) {
 		p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
 		p->counter = (uint8_t)measured_data.count;
 	}
-	adv_buf.flag[0] = 0x02; // size
-	adv_buf.flag[1] = GAP_ADTYPE_FLAGS; // type
-	/*	Flags:
-	 	bit0: LE Limited Discoverable Mode
-		bit1: LE General Discoverable Mode
-		bit2: BR/EDR Not Supported
-		bit3: Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-		bit4: Simultaneous LE and BR/EDR to Same Device Capable (Host)
-		bit5..7: Reserved
-	 */
-	adv_buf.flag[2] = 0x06; // Flags
-	bls_ll_setAdvData((u8 *)&adv_buf, adv_buf.data[0] + 4);
+	if(cfg.flg2.adv_flags) {
+		adv_buf.flag[0] = 0x02; // size
+		adv_buf.flag[1] = GAP_ADTYPE_FLAGS; // type
+		/*	Flags:
+		 	bit0: LE Limited Discoverable Mode
+			bit1: LE General Discoverable Mode
+			bit2: BR/EDR Not Supported
+			bit3: Simultaneous LE and BR/EDR to Same Device Capable (Controller)
+			bit4: Simultaneous LE and BR/EDR to Same Device Capable (Host)
+			bit5..7: Reserved
+		 */
+		adv_buf.flag[2] = 0x06; // Flags
+		bls_ll_setAdvData((u8 *)&adv_buf, adv_buf.data[0] + 4);
+	} else
+		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data[0] + 1);
 }
 
 _attribute_ram_code_ void ble_send_measures(void) {

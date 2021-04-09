@@ -9,7 +9,7 @@
 #define MI_BEACON_H_
 
 extern uint8_t bindkey[16];
-extern uint8_t *pbindkey;
+//extern uint8_t *pbindkey;
 
 void mi_beacon_summ(void); // averaging measurements
 void mi_encrypt_beacon(uint32_t cnt);
