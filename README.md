@@ -102,9 +102,9 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 3.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer30.bin)
-* [MHO-C401 Custom Firmware Version 3.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v30.bin)
-* [CGG1 Custom Firmware Version 3.0](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v30.bin)
+* [LYWSD03MMC Custom Firmware Version 3.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer31.bin)
+* [MHO-C401 Custom Firmware Version 3.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v31.bin)
+* [CGG1 Custom Firmware Version 3.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v31.bin)
 
 **Original Manufacturer Firmware Version**
 
@@ -136,7 +136,8 @@ In case you want to go back to the original firmware, you can download them here
 |     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding version for CGG1
 |     2.8 | Added saving bindkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults
 |     2.9 | Added additional id flags to advertising packages
-|     3.0 | Added toggle support for advertising package structures for third-party software written by unqualified authors
+|     3.0 | Added toggle support for advertising package structures for third-party software
+|     3.1 | Fix security attributes for pincode
 
 
 ## Applications

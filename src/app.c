@@ -23,8 +23,8 @@
 
 void app_enter_ota_mode(void);
 
-RAM uint32_t chow_tick_clk; // count chow validity time, in clock
-RAM uint32_t chow_tick_sec; // count chow validity time, in sec
+RAM uint32_t chow_tick_clk; // count show validity time, in clock
+RAM uint32_t chow_tick_sec; // count show validity time, in sec
 RAM uint8_t show_stage; // count/stage update lcd code buffer
 RAM lcd_flg_t lcd_flg;
 

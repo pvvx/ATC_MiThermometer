@@ -220,7 +220,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	if(pincode) {
 		//bls_smp_configParingSecurityInfoStorageAddr(0x074000);
 		//bls_smp_eraseAllParingInformation();
-		//blc_smp_param_setBondingDeviceMaxNumber(SMP_BONDING_DEVICE_MAX_NUM);
+		//blc_smp_param_setBondingDeviceMaxNumber(SMP_BONDING_DEVICE_MAX_NUM); //if not set, default is : SMP_BONDING_DEVICE_MAX_NUM
 #if 0
 		//set security level: "LE_Security_Mode_1_Level_2"
 		blc_smp_setSecurityLevel(Unauthenticated_Paring_with_Encryption);  //if not set, default is : LE_Security_Mode_1_Level_2(Unauthenticated_Paring_with_Encryption)

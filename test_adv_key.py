@@ -94,7 +94,7 @@ def main():
 	decrypt_aes_ccm(binkey, pkt);
 
 	print()
-	print("====== Test deccode ------------------------------------------")
+	print("====== Test decode -------------------------------------------")
 	# 0  1  2 3  4 5  6 7  8  9         14 15                    26
 	# 1a 16 95fe 5858 5b05 a8 ed5e0b38c1a4 0239ff0e350000002f044957
 	#                 pid  cnt mac         crypt data      mic

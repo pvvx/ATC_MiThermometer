@@ -423,8 +423,8 @@ RAM attribute_t my_Attributes[] = {
 
 void my_att_init(void) {
 	if(pincode) {
-		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_AUTHOR_RDWR;
-		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_AUTHOR_RDWR;
+		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;
+		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;
 	} else {
 		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_RDWR;
 		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_RDWR;
