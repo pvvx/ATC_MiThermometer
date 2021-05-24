@@ -26,9 +26,13 @@ _attribute_ram_code_ void test_trg_on(void) {
 	if(trg.temp_hysteresis || trg.humi_hysteresis) {
 		trg.flg.trigger_on = true;
 		trg.flg.trg_output = (trg.flg.humi_out_on || trg.flg.temp_out_on);
-	} else
+	} else {
 		trg.flg.trigger_on = false;
+	}
 	gpio_setup_up_down_resistor(GPIO_TRG, trg.flg.trg_output ? PM_PIN_PULLUP_10K : PM_PIN_PULLDOWN_100K);
+#ifdef GPIO_RDS
+	gpio_setup_up_down_resistor(GPIO_RDS, PM_PIN_PULLUP_1M);
+#endif
 }
 
 _attribute_ram_code_ __attribute__((optimize("-Os"))) void set_trigger_out(void) {

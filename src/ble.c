@@ -95,8 +95,7 @@ int app_conn_param_update_response(u8 id, u16  result) {
 extern u32 blt_ota_start_tick;
 int otaWritePre(void * p) {
 	blt_ota_start_tick = clock_time() | 1;
-	otaWrite(p);
-	return 0;
+	return otaWrite(p);
 }
 
 _attribute_ram_code_
@@ -322,26 +321,27 @@ void set_adv_data(uint8_t adv_type) {
 	if(adv_type == 3)
 		adv_type = adv_old_count & 3;
 	if(adv_type == 1) {
+		if(cfg.flg2.mi_beacon)
+			pvvx_encrypt_beacon(measured_data.count);
+		else {
+			padv_custom_t p = (padv_custom_t)&adv_buf.data;
+			memcpy(p->MAC, mac_public, 6);
 #if USE_TRIGGER_OUT
-		test_trg_input();
-#endif
-		padv_custom_t p = (padv_custom_t)&adv_buf.data;
-		memcpy(p->MAC, mac_public, 6);
-#if USE_TRIGGER_OUT
-		p->size = sizeof(adv_custom_t) - 1;
+			p->size = sizeof(adv_custom_t) - 1;
 #else
-		p->size = sizeof(adv_custom_t) - 2;
+			p->size = sizeof(adv_custom_t) - 2;
 #endif
-		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
-		p->temperature = measured_data.temp; // x0.01 C
-		p->humidity = measured_data.humi; // x0.01 %
-		p->battery_mv = measured_data.battery_mv; // x mV
-		p->battery_level = battery_level; // x1 %
-		p->counter = (uint8_t)measured_data.count;
+			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+			p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
+			p->temperature = measured_data.temp; // x0.01 C
+			p->humidity = measured_data.humi; // x0.01 %
+			p->battery_mv = measured_data.battery_mv; // x mV
+			p->battery_level = battery_level; // x1 %
+			p->counter = (uint8_t)measured_data.count;
 #if USE_TRIGGER_OUT
-		p->flags = (*(uint8_t *)(&trg.flg));
+			p->flags = trg.flg_byte;
 #endif
+		}
 	} else if(adv_type & 2) { // adv_type == 2 or 3
 #if USE_MIHOME_BEACON
 		if(cfg.flg2.mi_beacon)
@@ -374,31 +374,37 @@ void set_adv_data(uint8_t adv_type) {
 				p->data_id = XIAOMI_DATA_ID_Power & 0xff; // (lo byte XIAOMI_DATA_ID)
 				p->t0a.len1 = 1;
 				p->t0a.battery_level = battery_level; // Battery percentage, Range: 0-100
-				// added pvvx - non-standard
+#if 0
+				// non-standard
 				p->t0a.len2 = 2;
 				p->t0a.battery_mv = measured_data.battery_mv; // x1 mV
+#endif
 			}
 #if USE_MIHOME_BEACON
 		}
 #endif
 	} else { // adv_type == 0
-		padv_atc1441_t p = (padv_atc1441_t)&adv_buf.data;
-		p->size = sizeof(adv_atc1441_t) - 1;
-		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-		p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
-		p->MAC[0] = mac_public[5];
-		p->MAC[1] = mac_public[4];
-		p->MAC[2] = mac_public[3];
-		p->MAC[3] = mac_public[2];
-		p->MAC[4] = mac_public[1];
-		p->MAC[5] = mac_public[0];
-		p->temperature[0] = (uint8_t)(last_temp >> 8);
-		p->temperature[1] = (uint8_t)last_temp; // x0.1 C
-		p->humidity = (uint8_t)last_humi; // x1 %
-		p->battery_level = battery_level; // x1 %
-		p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
-		p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
-		p->counter = (uint8_t)measured_data.count;
+		if(cfg.flg2.mi_beacon)
+			atc_encrypt_beacon(measured_data.count);
+		else {
+			padv_atc1441_t p = (padv_atc1441_t)&adv_buf.data;
+			p->size = sizeof(adv_atc1441_t) - 1;
+			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+			p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
+			p->MAC[0] = mac_public[5];
+			p->MAC[1] = mac_public[4];
+			p->MAC[2] = mac_public[3];
+			p->MAC[3] = mac_public[2];
+			p->MAC[4] = mac_public[1];
+			p->MAC[5] = mac_public[0];
+			p->temperature[0] = (uint8_t)(last_temp >> 8);
+			p->temperature[1] = (uint8_t)last_temp; // x0.1 C
+			p->humidity = (uint8_t)last_humi; // x1 %
+			p->battery_level = battery_level; // x1 %
+			p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
+			p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
+			p->counter = (uint8_t)measured_data.count;
+		}
 	}
 	if(cfg.flg2.adv_flags) {
 		adv_buf.flag[0] = 0x02; // size
@@ -421,7 +427,7 @@ _attribute_ram_code_ void ble_send_measures(void) {
 	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
 #if	USE_TRIGGER_OUT
-	send_buf[sizeof(measured_data)+1] = (*(uint8_t *)(&trg.flg));
+	send_buf[sizeof(measured_data)+1] = trg.flg_byte;
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 2);
 #else
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);

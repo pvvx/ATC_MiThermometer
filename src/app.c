@@ -192,11 +192,17 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 		if((cfg.flg.advertising_type & 2) && cfg.flg2.mi_beacon)
 			mi_beacon_summ();
 #endif
+#if USE_TRIGGER_OUT && defined(GPIO_RDS)
+		test_trg_input();
+#endif
 		set_adv_data(cfg.flg.advertising_type);
 		end_measure = 1;
 	}
 	timer_measure_cb = 0;
 	wrk_measure = 0;
+#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
+	rds_input_off();
+#endif
 }
 
 _attribute_ram_code_ void suspend_exit_cb(u8 e, u8 *p, int n) {
@@ -263,9 +269,6 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 	}
 	test_config();
-#if	USE_TRIGGER_OUT
-	test_trg_on();
-#endif
 	memcpy(&ext, &def_ext, sizeof(ext));
 	init_ble();
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
@@ -283,6 +286,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	read_sensor_low_power();
 	wrk_measure = 1;
 	WakeupLowPowerCb(0);
+#if	USE_TRIGGER_OUT
+	test_trg_on();
+#endif
 	lcd();
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	update_lcd();
@@ -444,6 +450,9 @@ _attribute_ram_code_ void main_loop(void) {
 					read_sensor_deep_sleep();
 					measured_data.battery_mv = get_battery_mv();
 					if (measured_data.battery_mv < 2000) {
+#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
+						rds_input_off();
+#endif
 						pm_wait_ms(11);
 						read_sensor_cb();
 						low_vbat();

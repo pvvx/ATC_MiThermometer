@@ -8,6 +8,6 @@ extern volatile uint32_t timer_measure_cb;
 void init_sensor();
 void read_sensor_deep_sleep(void);
 void read_sensor_low_power(void);
-int read_sensor_sleep(void);
 int read_sensor_cb(void);
+//int read_sensor_sleep(void);
 

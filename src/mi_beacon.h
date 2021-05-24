@@ -15,4 +15,7 @@ void mi_beacon_summ(void); // averaging measurements
 void mi_encrypt_beacon(uint32_t cnt);
 void mi_beacon_init(void);
 
+void atc_encrypt_beacon(uint32_t cnt);
+void pvvx_encrypt_beacon(uint32_t cnt);
+
 #endif /* MI_BEACON_H_ */

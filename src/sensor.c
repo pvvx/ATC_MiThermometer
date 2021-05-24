@@ -10,6 +10,9 @@
 #include "i2c.h"
 #include "sensor.h"
 #include "app.h"
+#if	USE_TRIGGER_OUT
+#include "trigger.h"
+#endif
 
 #define SHTC3_WAKEUP		0x1735 // Wake-up command of the sensor
 #define SHTC3_SOFT_RESET	0x5d80 // Soft reset command
@@ -40,6 +43,9 @@ void init_sensor(){
 
 _attribute_ram_code_ void read_sensor_start(uint16_t mcmd) {
 	send_sensor(SHTC3_WAKEUP); //	Wake-up command of the sensor
+#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
+	rds_input_on();
+#endif
 	sleep_us(240);
 	reg_i2c_id = 0xE0;
 	reg_i2c_adr_dat = mcmd; // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First

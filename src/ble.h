@@ -62,7 +62,7 @@ enum { // mijia ble version 5
 	XIAOMI_DATA_ID_SoilMoisture			=0x1008,
 	XIAOMI_DATA_ID_SoilECvalue			=0x1009,
 	XIAOMI_DATA_ID_Power				=0x100A,
-	XIAOMI_DATA_ID_TempAndHumidity		=0x100D, // added pvvx - non-standard ?
+	XIAOMI_DATA_ID_TempAndHumidity		=0x100D,
 	XIAOMI_DATA_ID_Lock					=0x100E,
 	XIAOMI_DATA_ID_Gate					=0x100F,
 	XIAOMI_DATA_ID_Formaldehyde			=0x1010,
@@ -96,7 +96,7 @@ extern gap_periConnectParams_t my_periConnParameters;
 // GATT Service 0x181A Environmental Sensing
 // All data little-endian
 typedef struct __attribute__((packed)) _adv_custom_t {
-	uint8_t		size;	// = 19
+	uint8_t		size;	// = 18
 	uint8_t		uid;	// = 0x16, 16-bit UUID
 	uint16_t	UUID;	// = 0x181A, GATT Service 0x181A Environmental Sensing
 	uint8_t		MAC[6]; // [0] - lo, .. [6] - hi digits
@@ -158,6 +158,7 @@ typedef struct __attribute__((packed)) _adv_mi_t {
 		struct __attribute__((packed)) {
 			uint8_t		len1; // = 0x01
 			uint8_t		battery_level; // 0..100 %
+			// options, non-standard for mijia:
 			uint8_t		len2; // = 0x02
 			uint16_t	battery_mv;
 		}t0a;

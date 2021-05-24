@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x31	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x32	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
@@ -27,6 +27,18 @@ extern "C" {
 #define USE_NEW_OTA					0 // = 1 keeping the old firmware, erasing the region when updating (test version only!)
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
+
+// TLSR8251F512ET24
+// GPIO_PA5 - used EPD_SHD
+// GPIO_PA6 - used EPD_RST
+// GPIO_PA7 - SWS, free
+// GPIO_PB6 - used KEY, pcb mark "P5"
+// GPIO_PB7 - used EPD_SDA
+// GPIO_PC2 - SDA, used I2C
+// GPIO_PC3 - SCL, used I2C
+// GPIO_PC4 - used EPD_SHD
+// GPIO_PD2 - used EPD_CSB
+// GPIO_PD7 - used EPD_SCL
 
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
@@ -81,6 +93,25 @@ extern "C" {
 
 #elif DEVICE_TYPE == DEVICE_CGG1
 
+// TLSR8253F512ET32
+// GPIO_PA0 - used EPD_RST
+// GPIO_PA1 - used EPD_SHD
+// GPIO_PA7 - SWS, free
+// GPIO_PB1 - free
+// GPIO_PB4 - free
+// GPIO_PB5 - free
+// GPIO_PB6 - free
+// GPIO_PB7 - used EPD_SDA
+// GPIO_PC0 - SDA, used I2C
+// GPIO_PC1 - SCL, used I2C
+// GPIO_PC2 - TX, free
+// GPIO_PC3 - RX, free
+// GPIO_PC4 - used KEY
+// GPIO_PD2 - used EPD_CSB
+// GPIO_PD3 - free
+// GPIO_PD4 - used EPD_BUSY
+// GPIO_PD7 - used EPD_SCL
+
 #define I2C_SCL 	GPIO_PC0
 #define I2C_SDA 	GPIO_PC1
 #define I2C_GROUP 	I2C_GPIO_GROUP_C0C1
@@ -134,9 +165,27 @@ extern "C" {
 #define PC3_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLDOWN_100K
 
+#define GPIO_RDS 			GPIO_PD3	// Reed Switch, input
+#define PD3_INPUT_ENABLE	1
+#define PD3_DATA_OUT		0
+#define PD3_OUTPUT_ENABLE	0
+#define PD3_FUNC			AS_GPIO
+
 #endif // USE_TRIGGER_OUT
 
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
+
+// TLSR8251F512ET24
+// GPIO_PA5 - DM, free, pcb mark "reset" (TRG)
+// GPIO_PA6 - DP, free, pcb mark "P10" (RDS)
+// GPIO_PA7 - SWS, free, pcb mark "P14"
+// GPIO_PB6 - used LCD, set "1"
+// GPIO_PB7 - free, pcb mark "B1" (ADC)
+// GPIO_PC2 - SDA, used I2C, pcb mark "P12"
+// GPIO_PC3 - SCL, used I2C, pcb mark "P15"
+// GPIO_PC4 - free, pcb mark "P9" (PWM)
+// GPIO_PD2 - CS/PWM, free
+// GPIO_PD7 - free, pcb mark "P7" (IR)
 
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
@@ -144,12 +193,23 @@ extern "C" {
 
 #if USE_TRIGGER_OUT
 
-#define GPIO_TRG			GPIO_PA5	// pcb mark "reset"
+#define GPIO_TRG			GPIO_PA5	// Trigger, output, pcb mark "reset"
 #define PA5_INPUT_ENABLE	1
 #define PA5_DATA_OUT		0
 #define PA5_OUTPUT_ENABLE	0
 #define PA5_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA5	PM_PIN_PULLDOWN_100K
+
+#define GPIO_RDS 			GPIO_PA6	// Reed Switch, input, pcb mark "P10"
+#define PA5_INPUT_ENABLE	1
+#define PA5_DATA_OUT		0
+#define PA5_OUTPUT_ENABLE	0
+#define PA5_FUNC			AS_GPIO
+
+#if 0 // in new version ...
+#define GPIO_ADC 			GPIO_PB7	// ADC input, pcb mark "B1"
+#define GPIO_PWM 			GPIO_PC4	// PWM output, pcb mark "B1"
+#endif
 
 #endif // USE_TRIGGER_OUT
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
