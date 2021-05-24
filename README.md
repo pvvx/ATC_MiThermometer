@@ -138,7 +138,7 @@ In case you want to go back to the original firmware, you can download them here
 |     2.9 | Added additional id flags to advertising packages
 |     3.0 | Added toggle support for advertising package structures for third-party software
 |     3.1 | Fix security attributes (for pincode)
-|     3.2 | Added new encrypted beacon formats, reed switch maintenance.
+|     3.2 | Added [new encrypted beacon formats](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018), reed switch maintenance.
 
 
 ## Applications
