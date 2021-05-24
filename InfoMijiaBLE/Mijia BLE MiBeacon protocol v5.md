@@ -52,7 +52,7 @@ In order to facilitate users to quickly discover and establish a connection with
 | 6       | Object Include     | 0: does not contain Object; 1: contains Object               |
 | 7       | Mesh               | 0: does not include Mesh; 1: includes Mesh. For standard BLE access products and high security level access, this item is mandatory to 0. This item is mandatory for Mesh access to 1. For more information about Mesh access, please refer to Mesh related documents |
 | 8       | registered         | 0: The device is not bound; 1: The device is registered and bound. This item is used to indicate whether the device is reset |
-| 8       | solicited          | 0: No operation; 1: Request APP to register and bind. It is only valid when the user confirms the pairing by selecting the device on the developer platform, otherwise set to 0. The original name of this item was bindingCfm, and it was renamed to solicited "actively request, solicit" APP for registration and binding |
+| 9       | solicited          | 0: No operation; 1: Request APP to register and bind. It is only valid when the user confirms the pairing by selecting the device on the developer platform, otherwise set to 0. The original name of this item was bindingCfm, and it was renamed to solicited "actively request, solicit" APP for registration and binding |
 | 10 ~ 11 | Auth Mode          | 0: old version certification; 1: safety certification; 2: standard certification; 3: reserved |
 | 12 ~ 15 | version            | Version number (currently v5)                                |
 

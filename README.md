@@ -137,7 +137,8 @@ In case you want to go back to the original firmware, you can download them here
 |     2.8 | Added saving bindkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults
 |     2.9 | Added additional id flags to advertising packages
 |     3.0 | Added toggle support for advertising package structures for third-party software
-|     3.1 | Fix security attributes for pincode
+|     3.1 | Fix security attributes (for pincode)
+|     3.2 | Added new encrypted beacon formats, reed switch maintenance.
 
 
 ## Applications
