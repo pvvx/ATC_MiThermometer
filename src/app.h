@@ -16,9 +16,19 @@
 #define EEP_ID_TIM (0x0ADA) // EEP ID time adjust
 #define EEP_ID_KEY (0xBEAC) // EEP ID bkey
 
+enum {
+	ADV_TYPE_ATC = 0,
+	ADV_TYPE_PVVX, // (default)
+	ADV_TYPE_MI,
+	ADV_TYPE_ALL
+} ADV_TYPE_ENUM;
+
+#define ADV_TYPE_MASK_REF		2 // advertising_type & ADV_TYPE_MASK_REF = ADV_TYPE_MI, ADV_TYPE_ALL -> refresh all beacon -> set_adv_data() in main cycle
+#define ADV_TYPE_DEFAULT	ADV_TYPE_PVVX
+
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
-		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom, 2 - Mi, 3 - all
+		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - all
 		uint8_t comfort_smiley		: 1;
 		uint8_t blinking_time_smile	: 1; //(USE_CLOCK = 0 - smile, =1 time)
 		uint8_t temp_F_or_C			: 1;
@@ -48,7 +58,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	 * 6 = "^-^" sad
 	 * 7 = "oOo" */
 		uint8_t smiley 		: 3;	// 0..7
-		uint8_t mi_beacon  	: 1; 	// advertising uses mi crypto beacon
+		uint8_t mi_beacon  	: 1; 	// advertising uses crypto beacon
 		uint8_t adv_flags  	: 1; 	// advertising add flags
 		uint8_t reserved	: 3;
 	} flg2;

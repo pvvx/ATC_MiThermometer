@@ -69,7 +69,7 @@ const cfg_t def_cfg = {
 		.flg2.smiley = 0, // 0 = "     " off
 		.flg.blinking_time_smile = false,
 		.flg.show_batt_enabled = false,
-		.flg.advertising_type = 3,
+		.flg.advertising_type = ADV_TYPE_DEFAULT,
 		.flg.tx_measures = false,
 		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
@@ -189,13 +189,13 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 			write_memo();
 #endif
 #if	USE_MIHOME_BEACON
-		if((cfg.flg.advertising_type & 2) && cfg.flg2.mi_beacon)
+		if((cfg.flg.advertising_type & ADV_TYPE_MASK_REF) && cfg.flg2.mi_beacon)
 			mi_beacon_summ();
 #endif
 #if USE_TRIGGER_OUT && defined(GPIO_RDS)
 		test_trg_input();
 #endif
-		set_adv_data(cfg.flg.advertising_type);
+		set_adv_data();
 		end_measure = 1;
 	}
 	timer_measure_cb = 0;
@@ -515,10 +515,10 @@ _attribute_ram_code_ void main_loop(void) {
 				bls_pm_setAppWakeupLowPower(0, 0);
 			}
 		}
-		if((cfg.flg.advertising_type & 2) // type 2 - Mi and 3 - all
+		if((cfg.flg.advertising_type & ADV_TYPE_MASK_REF) // type 2 - Mi and 3 - all
 			&& blc_ll_getCurrentState() == BLS_LINK_STATE_ADV) {
 			if(adv_old_count != adv_send_count)
-				set_adv_data(cfg.flg.advertising_type);
+				set_adv_data();
 		}
 #if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
 		if(wrk_measure == 0 && stage_lcd) {

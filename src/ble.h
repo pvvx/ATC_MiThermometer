@@ -28,6 +28,9 @@ extern uint8_t mac_public[6];
 extern uint8_t mac_random_static[6];
 extern uint8_t ble_name[12];
 
+#define ADV_CUSTOM_UUID16 0x181A // 16-bit UUID Service 0x181A Environmental Sensing
+#define ADV_XIAOMI_UUID16 0xFE95 // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+
 #define XIAOMI_DEV_VERSION	5
 
 enum { // mijia ble version 5
@@ -295,7 +298,7 @@ typedef enum
 
 }ATT_HANDLE;
 
-void set_adv_data(uint8_t adv_type); // 0 - atc1441, 1 - Custom, 2 - Mi, 3 - all
+void set_adv_data(void);
 
 extern u8 my_RxTx_Data[16];
 

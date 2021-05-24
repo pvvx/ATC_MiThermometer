@@ -49,16 +49,27 @@ typedef struct __attribute__((packed)) _adv_mi_enc_t {
 	uint16_t    dev_id;		// Device type (enum: XIAOMI_DEV_ID)
 	uint8_t		counter;	// 0..0xff Measurement count, Serial number, used for de-duplication, different event or attribute reporting requires different Frame Counter
 	uint8_t		MAC[6];		// [0] - lo, .. [6] - hi digits
-	union {
-		struct {
-			uint16_t     data_id; 	// = 0x1004, 0x1006, 0x100a (XIAOMI_DATA_ID)
-			uint8_t 	 data_len;
-		};
-		uint8_t 	 capability;
-	};
-} adv_mi_enc_t, * padv_mi_enc_t;
+} adv_mi_head_t, * padv_head_enc_t;
 
-typedef struct __attribute__((packed)) _beacon_nonce_t{
+typedef struct __attribute__((packed)) _adv_mi_data_t {
+	uint16_t     id; 	// = 0x1004, 0x1006, 0x100a (XIAOMI_DATA_ID)
+	uint8_t 	 len;
+	union {
+		int16_t 	 data_i16;
+		uint16_t 	 data_u16;
+		uint8_t 	 data_u8;
+	};
+} adv_mi_data_t, * padv_mi_data_t;
+
+typedef struct __attribute__((packed)) _adv_struct_data_t {
+	adv_mi_head_t head;
+	union {
+		adv_mi_data_t data;
+		uint8_t capability;
+	};
+} adv_mi_struct_data_t, * padv_mi_struct_data_t;
+
+typedef struct __attribute__((packed)) _mi_beacon_nonce_t{
     uint8_t  mac[6];
 	uint16_t pid;
 	union {
@@ -68,7 +79,7 @@ typedef struct __attribute__((packed)) _beacon_nonce_t{
 		};
 		uint32_t cnt32;
     };
-} beacon_nonce_t, * pbeacon_nonce_t;
+} mi_beacon_nonce_t, * pmi_beacon_nonce_t;
 
 /* Encrypted custom beacon structs */
 typedef struct __attribute__((packed)) _adv_cust_head_t {
@@ -114,9 +125,11 @@ typedef struct __attribute__((packed)) _enc_beacon_nonce_t{
 
 //// Init data
 RAM uint8_t bindkey[16];
-RAM beacon_nonce_t beacon_nonce;
+RAM mi_beacon_nonce_t beacon_nonce;
 //// Counters
 RAM uint32_t adv_mi_cnt = 0xffffffff; // counter of measurement numbers from sensors
+RAM uint32_t adv_atc_cnt = 0xffffffff; // counter of measurement numbers from sensors
+RAM uint32_t adv_cust_cnt = 0xffffffff; // counter of measurement numbers from sensors
 //// Buffers
 RAM uint8_t adv_crypt_buf[ADV_BUFFER_SIZE];
 /// Vars
@@ -166,15 +179,15 @@ void mi_beacon_summ(void) {
  * https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-842846036 */
 __attribute__((optimize("-Os")))
 void atc_encrypt_beacon(uint32_t cnt) {
-	if(adv_mi_cnt != cnt) { // measurement counter update?
-		adv_mi_cnt = cnt; // new counter
+	if(adv_atc_cnt != cnt) { // measurement counter update?
+		adv_atc_cnt = cnt; // new counter
 		padv_atc_enc_t p = (padv_atc_enc_t)&adv_crypt_buf;
 		enc_beacon_nonce_t cbn;
 		adv_atc_data_t data;
 		uint8_t aad = 0x11;
 		p->head.size = sizeof(adv_atc_enc_t) - 1;
 		p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-		p->head.UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian) (or 0x181C 'User Data'?)
+		p->head.UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian) (or 0x181C 'User Data'?)
 		p->head.counter = (uint8_t)cnt;
 		data.temp = measured_data.temp / 50 + 4000 / 50;
 		data.humi = measured_data.humi / 50;
@@ -194,15 +207,15 @@ void atc_encrypt_beacon(uint32_t cnt) {
 
 __attribute__((optimize("-Os")))
 void pvvx_encrypt_beacon(uint32_t cnt) {
-	if(adv_mi_cnt != cnt) { // measurement counter update?
-		adv_mi_cnt = cnt; // new counter
+	if(adv_cust_cnt != cnt) { // measurement counter update?
+		adv_cust_cnt = cnt; // new counter
 		padv_cust_enc_t p = (padv_cust_enc_t)&adv_crypt_buf;
 		enc_beacon_nonce_t cbn;
 		adv_cust_data_t data;
 		uint8_t aad = 0x11;
 		p->head.size = sizeof(adv_cust_enc_t) - 1;
 		p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-		p->head.UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian) (or 0x181C 'User Data'?)
+		p->head.UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian) (or 0x181C 'User Data'?)
 		p->head.counter = (uint8_t)cnt;
 		data.temp = measured_data.temp;
 		data.humi = measured_data.humi;
@@ -226,83 +239,82 @@ void mi_encrypt_beacon(uint32_t cnt) {
 	if(adv_mi_cnt != cnt) { // measurement counter update?
 		adv_mi_cnt = cnt; // new counter
 		beacon_nonce.cnt32 = cnt;
-		if((cnt & 3) == 0) { // Data are averaged over a period of 16 measurements (cnt*4)
+		if((cnt & 3) == 0) { // Data are averaged over a period of 16 measurements (if cnt*4)
 			mi_beacon_data.temp = ((int16_t)(mib_summ_data.temp/(int32_t)mib_summ_data.count))/10;
 			mi_beacon_data.humi = ((uint16_t)(mib_summ_data.humi/mib_summ_data.count))/10;
 			mi_beacon_data.batt = get_battery_level((uint16_t)(mib_summ_data.batt/mib_summ_data.count));
 			memset(&mib_summ_data, 0, sizeof(mib_summ_data));
 		}
-		padv_mi_enc_t p = (padv_mi_enc_t)&adv_crypt_buf;
-		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-		p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
-		p->dev_id = beacon_nonce.pid;
-		p->counter = cnt;
-		memcpy(p->MAC, mac_public, 6);
-		uint8_t *mic = (uint8_t *)p;
-		mic += sizeof(adv_mi_enc_t);
+		padv_mi_struct_data_t p = (padv_mi_struct_data_t)&adv_crypt_buf;
+		p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+		p->head.UUID = ADV_XIAOMI_UUID16; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+		p->head.dev_id = beacon_nonce.pid;
+		p->head.counter = cnt;
+		adv_mi_data_t data;
+		memcpy(p->head.MAC, mac_public, 6);
 		switch(cnt & 3) {
 			case 0:
-				p->data_id = XIAOMI_DATA_ID_Temperature; // XIAOMI_DATA_ID
-				p->data_len = 2;
-				*mic++ = mi_beacon_data.temp;	// Temperature, Range: -400..+1000 (x0.1 C)
-				*mic++ = mi_beacon_data.temp >> 8;
+				data.id = XIAOMI_DATA_ID_Temperature; // XIAOMI_DATA_ID
+				data.len = 2;
+				data.data_i16 = mi_beacon_data.temp;	// Temperature, Range: -400..+1000 (x0.1 C)
 				break;
 			case 1:
-#if 0
-				p->fctrl.word = 0;
-				p->fctrl.bit.MACInclude = 1;
-				p->fctrl.bit.CapabilityInclude = 1;
-				p->fctrl.bit.registered = 1;
-				p->fctrl.bit.AuthMode = 2;
-				p->fctrl.bit.version = 5; // XIAOMI_DEV_VERSION
-#else
-				p->fctrl.word = 0x5830; // 0x5830
-#endif
-				p->capability = 0x08; // capability
-				p->size = sizeof(adv_mi_enc_t) - 2 - 1;
-				return;
+				data.id = XIAOMI_DATA_ID_Humidity; // byte XIAOMI_DATA_ID
+				data.len = 2;
+				data.data_u16 = mi_beacon_data.humi; // Humidity percentage, Range: 0..1000 (x0.1 %)
+				break;
 			case 2:
-				p->data_id = XIAOMI_DATA_ID_Humidity; // byte XIAOMI_DATA_ID
-				p->data_len = 2;
-				*mic++ = mi_beacon_data.humi; // Humidity percentage, Range: 0..1000 (x0.1 %)
-				*mic++ = mi_beacon_data.humi >> 8;
+				data.id = XIAOMI_DATA_ID_Power; // XIAOMI_DATA_ID
+				data.len = 1;
+				data.data_u8 = mi_beacon_data.batt; // Battery percentage, Range: 0..100 %
 				break;
 			case 3:
-				p->data_id = XIAOMI_DATA_ID_Power; // XIAOMI_DATA_ID
-				p->data_len = 1;
-				*mic++ = mi_beacon_data.batt; // Battery percentage, Range: 0..100 %
-				break;
+#if 0
+				p->head.fctrl.word = 0;
+				p->head.fctrl.bit.MACInclude = 1;
+				p->head.fctrl.bit.CapabilityInclude = 1;
+				p->head.fctrl.bit.registered = 1;
+				p->head.fctrl.bit.AuthMode = 2;
+				p->head.fctrl.bit.version = 5; // XIAOMI_DEV_VERSION
+#else
+				p->head.fctrl.word = 0x5830; // 0x5830
+#endif
+				p->capability = 0x08; // capability
+				p->head.size = sizeof(adv_mi_head_t);
+				return;
 		}
 #if 0
-		p->fctrl.word = 0;
-		p->fctrl.bit.isEncrypted = 1;
-		p->fctrl.bit.MACInclude = 1;
-		p->fctrl.bit.ObjectInclude = 1;
-		p->fctrl.bit.registered = 1;
-		p->fctrl.bit.AuthMode = 2;
-		p->fctrl.bit.version = 5; // XIAOMI_DEV_VERSION
+		p->head.fctrl.word = 0;
+		p->head.fctrl.bit.isEncrypted = 1;
+		p->head.fctrl.bit.MACInclude = 1;
+		p->head.fctrl.bit.ObjectInclude = 1;
+		p->head.fctrl.bit.registered = 1;
+		p->head.fctrl.bit.AuthMode = 2;
+		p->head.fctrl.bit.version = 5; // XIAOMI_DEV_VERSION
 #else
-		p->fctrl.word = 0x5858; // 0x5858
+		p->head.fctrl.word = 0x5858; // 0x5858
 #endif
-		p->size = p->data_len + sizeof(adv_mi_enc_t) + 3 + 4 - 1; // + counter bit8..31 + mic 32 bits
-		*mic++ = beacon_nonce.ext_cnt[0];
-		*mic++ = beacon_nonce.ext_cnt[1];
-		*mic++ = beacon_nonce.ext_cnt[2];
+		p->head.size = data.len + sizeof(adv_mi_head_t) + 3 + 3 + 4 - 1; //size data + size ads head + size data head + size counter bit8..31 bits + size mic 32 bits - 1
+		uint8_t * pmic = (uint8_t *)p;
+		pmic += data.len + sizeof(adv_mi_head_t) + 3; //size data + size ads head + size data head
+		*pmic++ = beacon_nonce.ext_cnt[0];
+		*pmic++ = beacon_nonce.ext_cnt[1];
+		*pmic++ = beacon_nonce.ext_cnt[2];
 	    uint8_t aad = 0x11;
 #if 0
 	    ccm_auth_crypt(0, (const unsigned char *)&bindkey,
 				   (uint8_t*)&beacon_nonce, sizeof(beacon_nonce),
 				   &aad, sizeof(aad),
-				   (uint8_t *)&p->data_id, p->data_len + 3,
+				   (uint8_t *)&p->data.id, p->data.len + 3, // + size data head
 				   (uint8_t *)&p->data_id,
 				   mic, 4);
 #else
 		aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey,
 							   (uint8_t*)&beacon_nonce, sizeof(beacon_nonce),
 							   &aad, sizeof(aad),
-							   (uint8_t *)&p->data_id, p->data_len + 3,
-							   (uint8_t *)&p->data_id,
-							   mic, 4);
+							   (uint8_t *)&data, data.len + 3, // + size data head
+							   (uint8_t *)&p->data,
+							   pmic, 4);
 #endif
 	}
 	memcpy(&adv_buf.data, &adv_crypt_buf, min(sizeof(adv_crypt_buf), ADV_BUFFER_SIZE));

@@ -101,7 +101,7 @@ int otaWritePre(void * p) {
 _attribute_ram_code_
 int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	adv_send_count++;
-//	set_adv_data(cfg.flg.advertising_type);
+//	set_adv_data();
 	return 1;		// = 1 ready to send ADV packet, = 0 not send ADV
 }
 
@@ -313,14 +313,15 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	ev_adv_timeout(0,0,0);
 }
 
-/* adv_type: 0 - atc1441, 1 - Custom,  2,3 - Mi  */
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-void set_adv_data(uint8_t adv_type) {
+void set_adv_data() {
+	uint8_t adv_type = cfg.flg.advertising_type; // 0 - atc1441, 1 - pvvx, 2 - Mi, 3 - all
 	adv_old_count = adv_send_count;
-	if(adv_type == 3)
+	if(adv_type == ADV_TYPE_ALL)
 		adv_type = adv_old_count & 3;
-	if(adv_type == 1) {
+	/* adv_type: 0 - atc1441, 1 - Custom,  2,3 - Mi  */
+	if(adv_type == ADV_TYPE_PVVX) {
 		if(cfg.flg2.mi_beacon)
 			pvvx_encrypt_beacon(measured_data.count);
 		else {
@@ -332,7 +333,7 @@ void set_adv_data(uint8_t adv_type) {
 			p->size = sizeof(adv_custom_t) - 2;
 #endif
 			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
+			p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
 			p->temperature = measured_data.temp; // x0.01 C
 			p->humidity = measured_data.humi; // x0.01 %
 			p->battery_mv = measured_data.battery_mv; // x mV
@@ -342,10 +343,14 @@ void set_adv_data(uint8_t adv_type) {
 			p->flags = trg.flg_byte;
 #endif
 		}
-	} else if(adv_type & 2) { // adv_type == 2 or 3
+	} else if(adv_type & ADV_TYPE_MASK_REF) { // adv_type == 2 or 3
 #if USE_MIHOME_BEACON
-		if(cfg.flg2.mi_beacon)
-			mi_encrypt_beacon(measured_data.count >> 2);
+		if(cfg.flg2.mi_beacon) {
+			if(cfg.flg.advertising_type == ADV_TYPE_ALL)
+				mi_encrypt_beacon(measured_data.count);
+			else
+				mi_encrypt_beacon(measured_data.count >> 2);
+		}
 		else
 #endif
 		{
@@ -353,7 +358,7 @@ void set_adv_data(uint8_t adv_type) {
 			memcpy(p->MAC, mac_public, 6);
 			p->size = sizeof(adv_mi_t) - 1;
 			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = 0xFE95; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+			p->UUID = ADV_XIAOMI_UUID16; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 #if 0
 			p->ctrl.word = 0;
 			p->ctrl.bit.version = 3; // XIAOMI_DEV_VERSION
@@ -374,23 +379,18 @@ void set_adv_data(uint8_t adv_type) {
 				p->data_id = XIAOMI_DATA_ID_Power & 0xff; // (lo byte XIAOMI_DATA_ID)
 				p->t0a.len1 = 1;
 				p->t0a.battery_level = battery_level; // Battery percentage, Range: 0-100
-#if 0
-				// non-standard
-				p->t0a.len2 = 2;
-				p->t0a.battery_mv = measured_data.battery_mv; // x1 mV
-#endif
 			}
 #if USE_MIHOME_BEACON
 		}
 #endif
-	} else { // adv_type == 0
+	} else { // adv_type == 0 == ADV_TYPE_ATC
 		if(cfg.flg2.mi_beacon)
 			atc_encrypt_beacon(measured_data.count);
 		else {
 			padv_atc1441_t p = (padv_atc1441_t)&adv_buf.data;
 			p->size = sizeof(adv_atc1441_t) - 1;
 			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian)
+			p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
 			p->MAC[0] = mac_public[5];
 			p->MAC[1] = mac_public[4];
 			p->MAC[2] = mac_public[3];
