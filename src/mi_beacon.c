@@ -172,7 +172,7 @@ void atc_encrypt_beacon(uint32_t cnt) {
 		enc_beacon_nonce_t cbn;
 		adv_atc_data_t data;
 		uint8_t aad = 0x11;
-		p->head.size = sizeof(adv_cust_enc_t) - 1;
+		p->head.size = sizeof(adv_atc_enc_t) - 1;
 		p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 		p->head.UUID = 0x181A; // GATT Service 0x181A Environmental Sensing (little-endian) (or 0x181C 'User Data'?)
 		p->head.counter = (uint8_t)cnt;
