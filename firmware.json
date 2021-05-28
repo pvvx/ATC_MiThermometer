@@ -1,3 +1,3 @@
 {"version": 50, 
-"custom":["ATC_Thermometer32r.bin", "MHO_C401_v32r.bin", "CGG1_v32r.bin"], 
+"custom":["ATC_Thermometer32n.bin", "MHO_C401_v32n.bin", "CGG1_v32n.bin"], 
 "original":["Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin","Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin","Original_OTA_CGG1_v1.0.1_0093.bin"]}

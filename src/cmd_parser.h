@@ -9,7 +9,7 @@ enum {
 	CMD_ID_MI_KALL  = 0x15, // Get all mi keys
 	CMD_ID_MI_REST  = 0x16, // Restore prev mi token & bindkeys
 	CMD_ID_MI_CLR	= 0x17, // Delete all mi keys
-	CMD_ID_BKEY		= 0x18, // Get/set beacon bkey in EEP
+	CMD_ID_BKEY		= 0x18, // Get/set beacon bindkey in EEP
 	CMD_ID_COMFORT  = 0x20, // Get/set comfort parameters
 	CMD_ID_EXTDATA  = 0x22, // Get/set show ext. data
 	CMD_ID_UTC_TIME = 0x23, // Get/set utc time (if USE_CLOCK = 1)
@@ -46,7 +46,7 @@ typedef struct __attribute__((packed)) _blk_mi_keys_t {
 } blk_mi_keys_t, * pblk_mi_keys_t;
 extern blk_mi_keys_t keybuf;
 
-uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt);
+uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt);
 
 uint8_t mi_key_stage;
 uint8_t get_mi_keys(uint8_t chk_stage);

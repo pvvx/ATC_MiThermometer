@@ -18,6 +18,8 @@
 #endif
 #include "cmd_parser.h"
 
+#define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (uint32_t)faddr, len, (uint8_t *)pbuf)
+
 #define TX_MAX_SIZE	 (ATT_MTU_SIZE-3) // = 20
 #define FLASH_MIMAC_ADDR CFG_ADR_MAC // 0x76000
 #define FLASH_MIKEYS_ADDR 0x78000
@@ -41,53 +43,58 @@ enum {
 RAM blk_mi_keys_t keybuf;
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
-uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt) {
-	uint8_t * p = (uint8_t *)(FLASH_MIKEYS_ADDR);
-	uint8_t * pend = p + FLASH_SECTOR_SIZE;
+uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
+	uint32_t faddr = FLASH_MIKEYS_ADDR;
+	uint32_t faend = faddr + FLASH_SECTOR_SIZE;
 	pblk_mi_keys_t pk = &keybuf;
 	uint16_t id;
 	uint8_t len;
+	uint8_t fbuf[4];
 	do {
-		len = p[1];
-		id = p[2] | (p[3] << 8);
-		if(p[0] == 0xA5) {
-			p += 8;
+		_flash_read(faddr, sizeof(fbuf), &fbuf);
+		len = fbuf[1];
+		id = fbuf[2] | (fbuf[3] << 8);
+		if(fbuf[0] == 0xA5) {
+			faddr += 8;
 			if(len <= sizeof(keybuf.data)
 				&& len > 0
 				&& id == chk_id
 				&& --cnt == 0) {
 					pk->klen = len;
-					memcpy(&pk->data, p, len);
-					return p;
+					_flash_read(faddr, len, &pk->data);
+					return faddr;
 			}
 		}
-		p += len + 0x0f;
-		p = (uint8_t *)((uint32_t)(p) & 0xfffffff0);
-	} while(id != 0xffff || len != 0xff  || p < pend);
-	return NULL;
+		faddr += len + 0x0f;
+		faddr &= 0xfffffff0;
+	} while(id != 0xffff || len != 0xff  || faddr < faend);
+	return 0;
 }
 #else // DEVICE_LYWSD03MMC & DEVICE_CGG1
-uint8_t * find_mi_keys(uint16_t chk_id, uint8_t cnt) {
-	uint8_t * p = (uint8_t *)(FLASH_MIKEYS_ADDR);
-	uint8_t * pend = p + FLASH_SECTOR_SIZE;
+/* if return != 0 -> keybuf = keys */
+uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
+	uint32_t faddr = FLASH_MIKEYS_ADDR;
+	uint32_t faend = faddr + FLASH_SECTOR_SIZE;
 	pblk_mi_keys_t pk = &keybuf;
 	uint16_t id;
 	uint8_t len;
+	uint8_t fbuf[3];
 	do {
-		id = p[0] | (p[1] << 8);
-		len = p[2];
-		p += 3;
+		_flash_read(faddr, sizeof(fbuf), &fbuf);
+		id = fbuf[0] | (fbuf[1] << 8);
+		len = fbuf[2];
+		faddr += 3;
 		if(len <= sizeof(keybuf.data)
 			&& len > 0
 			&& id == chk_id
 			&& --cnt == 0) {
 				pk->klen = len;
-				memcpy(&pk->data, p, len);
-				return p;
+				_flash_read(faddr, len, &pk->data);
+				return faddr;
 		}
-		p += len;
-	} while(id != 0xffff || len != 0xff  || p < pend);
-	return NULL;
+		faddr += len;
+	} while(id != 0xffff || len != 0xff  || faddr < faend);
+	return 0;
 }
 #endif
 
@@ -110,35 +117,35 @@ void send_mi_no_key(void) {
 	keybuf.klen = 0;
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *) &keybuf, 2);
 }
-
+/* if pkey == NULL -> write new key, else: change deleted keys and current keys*/
 uint8_t store_mi_keys(uint8_t klen, uint16_t key_id, uint8_t * pkey) {
 	uint8_t key_chk_cnt = 0;
-	uint8_t * pfoldkey = NULL;
-	uint8_t * pfnewkey;
-	uint8_t * p;
+	uint32_t faoldkey = 0;
+	uint32_t fanewkey;
+	uint32_t faddr;
 	if(pkey == NULL) {
-		while((p = find_mi_keys(MI_KEYDELETE_ID, ++key_chk_cnt)) != NULL) {
-		if(p && keybuf.klen == klen)
-			pfoldkey = p;
+		while((faddr = find_mi_keys(MI_KEYDELETE_ID, ++key_chk_cnt)) != 0) {
+		if(faddr && keybuf.klen == klen)
+			faoldkey = faddr;
 		}
 	};
-	if(pfoldkey || pkey) {
-		pfnewkey = find_mi_keys(key_id, 1);
-		if(pfnewkey && keybuf.klen == klen) {
+	if(faoldkey || pkey) {
+		fanewkey = find_mi_keys(key_id, 1);
+		if(fanewkey && keybuf.klen == klen) {
 			uint8_t backupsector[FLASH_SECTOR_SIZE];
-			memcpy(&backupsector,(uint8_t *)(FLASH_MIKEYS_ADDR), sizeof(backupsector));
+			_flash_read(FLASH_MIKEYS_ADDR, sizeof(backupsector), &backupsector);
 			if(pkey) {
-				if(memcmp(pfnewkey, pkey, keybuf.klen)) {
-					memcpy(&backupsector[(uint32_t)pfnewkey - FLASH_MIKEYS_ADDR], pkey, keybuf.klen);
+				if(memcmp(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], pkey, keybuf.klen)) {
+					memcpy(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], pkey, keybuf.klen);
 					flash_erase_sector(FLASH_MIKEYS_ADDR);
 					flash_write_all_size(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
 					return 1;
 				}
-			} else {
-				if(memcmp(pfnewkey, pfoldkey, keybuf.klen)) {
-					memcpy(&backupsector[(uint32_t)pfoldkey - FLASH_MIKEYS_ADDR], pfnewkey, keybuf.klen);
-					memcpy(&keybuf.data, pfoldkey, keybuf.klen);
-					memcpy(&backupsector[(uint32_t)pfnewkey - FLASH_MIKEYS_ADDR], pfoldkey, keybuf.klen);
+			} else if (faoldkey) {
+				if(memcmp(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], &backupsector[faoldkey - FLASH_MIKEYS_ADDR], keybuf.klen)) {
+					// memcpy(&keybuf.data, &backupsector[faoldkey - FLASH_MIKEYS_ADDR], keybuf.klen);
+					memcpy(&backupsector[faoldkey - FLASH_MIKEYS_ADDR], &backupsector[fanewkey - FLASH_MIKEYS_ADDR], keybuf.klen);
+					memcpy(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], &keybuf.data, keybuf.klen);
 					flash_erase_sector(FLASH_MIKEYS_ADDR);
 					flash_write_all_size(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
 					return 1;
@@ -315,7 +322,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			get_mi_keys(MI_KEY_STAGE_MAC);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
 #if USE_MIHOME_BEACON
-		} else if (cmd == CMD_ID_BKEY) { // Get/set beacon bkey
+		} else if (cmd == CMD_ID_BKEY) { // Get/set beacon bindkey
 			if(len == sizeof(bindkey) + 1) {
 				memcpy(bindkey, &req->dat[1], sizeof(bindkey));
 				flash_write_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey));

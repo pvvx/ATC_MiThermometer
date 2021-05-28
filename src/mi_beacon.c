@@ -150,12 +150,12 @@ RAM mib_summ_data_t mib_summ_data;
 
 /* Initializing data for mi beacon */
 void mi_beacon_init(void) {
-	uint8_t *p_key = find_mi_keys(MI_KEYTBIND_ID, 1);
-	if(p_key) {
-		memcpy(&bindkey, p_key + 12, sizeof(bindkey)); 
-		p_key = find_mi_keys(MI_KEYSEQNUM_ID, 1);
-		if(p_key)
-			memcpy(&beacon_nonce.cnt32, p_key, 4); // BLE_GAP_AD_TYPE_FLAGS
+	uint32_t faddr = find_mi_keys(MI_KEYTBIND_ID, 1);
+	if(faddr) {
+		memcpy(&bindkey, &keybuf.data[12], sizeof(bindkey));
+		faddr = find_mi_keys(MI_KEYSEQNUM_ID, 1);
+		if(faddr)
+			memcpy(&beacon_nonce.cnt32, &keybuf.data, 4); // BLE_GAP_AD_TYPE_FLAGS
 	} else {
 		if(flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey)) != sizeof(bindkey)) {
 			generateRandomNum(sizeof(bindkey), (unsigned char *)&bindkey);
