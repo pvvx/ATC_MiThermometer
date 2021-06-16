@@ -37,7 +37,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
     - [Bluetooth Advertising Formats](#bluetooth-advertising-formats)
     - [Bluetooth Connection Mode](#bluetooth-connection-mode)
     - [Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)](#temperature-or-humidity-trigger-on-gpio-pa5-label-on-the-reset-pin)
-    - [Reed Switch on GPIO PA6 (label on the "P10" pin)](#reed_switch_on_gpio_pa6_label_on_the_p10_pin)
+    - [Reed Switch on GPIO PA6 (label on the "P10" pin)](#reed-switch-on-gpio-pa6-label-on-the-p10-pin)
     - [Interface for receiving and displaying data on the LCD.](#interface-for-receiving-and-displaying-data-on-the-lcd)
     - [The USB-COM adapter writes the firmware in explorer. Web version.](#the-usb-com-adapter-writes-the-firmware-in-explorer-web-version)
 - [Related Work](#related-work)
