@@ -201,10 +201,10 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PA5	PM_PIN_PULLDOWN_100K
 
 #define GPIO_RDS 			GPIO_PA6	// Reed Switch, input, pcb mark "P10"
-#define PA5_INPUT_ENABLE	1
-#define PA5_DATA_OUT		0
-#define PA5_OUTPUT_ENABLE	0
-#define PA5_FUNC			AS_GPIO
+#define PA6_INPUT_ENABLE	1
+#define PA6_DATA_OUT		0
+#define PA6_OUTPUT_ENABLE	0
+#define PA6_FUNC			AS_GPIO
 
 #if 0 // in new version ...
 #define GPIO_ADC 			GPIO_PB7	// ADC input, pcb mark "B1"

@@ -37,6 +37,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
     - [Bluetooth Advertising Formats](#bluetooth-advertising-formats)
     - [Bluetooth Connection Mode](#bluetooth-connection-mode)
     - [Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)](#temperature-or-humidity-trigger-on-gpio-pa5-label-on-the-reset-pin)
+    - [Reed Switch on GPIO PA6 (label on the "P10" pin)](#reed_switch_on_gpio_pa6_label_on_the_p10_pin)
     - [Interface for receiving and displaying data on the LCD.](#interface-for-receiving-and-displaying-data-on-the-lcd)
     - [The USB-COM adapter writes the firmware in explorer. Web version.](#the-usb-com-adapter-writes-the-firmware-in-explorer-web-version)
 - [Related Work](#related-work)
@@ -202,7 +203,7 @@ UUID 0x181A - size 19: Custom format (all data little-endian):
    uint8_t     battery_level;  // 0..100 %
    uint8_t     counter;        // measurement count
    uint8_t     flags;  // GPIO_TRG pin (marking "reset" on circuit board) flags: 
-                       // bit0: GPIO_TRG pin input value (real level)
+                       // bit0: Reed Switch, input
                        // bit1: GPIO_TRG pin output value (pull Up/Down)
                        // bit2: Output GPIO_TRG pin is controlled according to the set parameters
                        // bit3: Temperature trigger event
@@ -229,6 +230,11 @@ UUID 0x181A - size 19: Custom format (all data little-endian):
  * Characteristic UUID 0x1F1F - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
+
+Xiaomi LYWSD03MMC has a PCB soldering test point. Available without disassembling the case and [marked "Reset"](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout). 
+Use as a trigger output with adjustable temperature and / or humidity hysteresis. 
+Hysteresis and thresholds are set in TelinkMiFlasher.html. The output status is displayed in the advertising package.
+
 ![trg_menu](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/trg_menu.gif)
 
 ![trg_grf](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/trg_grf.gif)
@@ -241,6 +247,11 @@ Hysteresis:
 Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off). 
 
 ![OnOff](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/OnOff.gif)
+
+### Reed Switch on GPIO PA6 (label on the "P10" pin)
+
+It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P10" and GND.
+The state of the reed switch is transferred to the advertising package.
 
 ### Interface for receiving and displaying data on the LCD.
 >* LCD shows: 
