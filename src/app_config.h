@@ -177,7 +177,7 @@ extern "C" {
 
 // TLSR8251F512ET24
 // GPIO_PA5 - DM, free, pcb mark "reset" (TRG)
-// GPIO_PA6 - DP, free, pcb mark "P10" (RDS)
+// GPIO_PA6 - DP, free, pcb mark "P8" (RDS)
 // GPIO_PA7 - SWS, free, pcb mark "P14"
 // GPIO_PB6 - used LCD, set "1"
 // GPIO_PB7 - free, pcb mark "B1" (ADC)

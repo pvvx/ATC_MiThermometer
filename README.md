@@ -248,6 +248,8 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 ![OnOff](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/OnOff.gif)
 
+[Trigger and reed switch status receiver on JDY-10 module ($1).](https://github.com/pvvx/AdScanerTrg)
+
 ### Reed Switch on GPIO PA6 (label on the "P8" pin)
 
 It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P8" and GND.
