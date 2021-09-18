@@ -37,7 +37,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
     - [Bluetooth Advertising Formats](#bluetooth-advertising-formats)
     - [Bluetooth Connection Mode](#bluetooth-connection-mode)
     - [Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)](#temperature-or-humidity-trigger-on-gpio-pa5-label-on-the-reset-pin)
-    - [Reed Switch on GPIO PA6 (label on the "P10" pin)](#reed-switch-on-gpio-pa6-label-on-the-p10-pin)
+    - [Reed Switch on GPIO PA6 (label on the "P8" pin)](#reed-switch-on-gpio-pa6-label-on-the-p8-pin)
     - [Interface for receiving and displaying data on the LCD.](#interface-for-receiving-and-displaying-data-on-the-lcd)
     - [The USB-COM adapter writes the firmware in explorer. Web version.](#the-usb-com-adapter-writes-the-firmware-in-explorer-web-version)
 - [Related Work](#related-work)
@@ -248,10 +248,11 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 ![OnOff](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/OnOff.gif)
 
-### Reed Switch on GPIO PA6 (label on the "P10" pin)
+### Reed Switch on GPIO PA6 (label on the "P8" pin)
 
-It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P10" and GND.
+It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P8" and GND.
 The state of the reed switch is transferred to the advertising package.
+For CGG1 - GPIO_PD3, MHO_C401 - no free pins.
 
 ### Interface for receiving and displaying data on the LCD.
 >* LCD shows: 

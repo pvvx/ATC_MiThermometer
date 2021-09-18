@@ -11,7 +11,7 @@ extern "C" {
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
 
-#define DEVICE_TYPE			DEVICE_CGG1 // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1
 
 #define BLE_SECURITY_ENABLE 1
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
@@ -200,7 +200,7 @@ extern "C" {
 #define PA5_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA5	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PA6	// Reed Switch, input, pcb mark "P10"
+#define GPIO_RDS 			GPIO_PA6	// Reed Switch, input, pcb mark "P8"
 #define PA6_INPUT_ENABLE	1
 #define PA6_DATA_OUT		0
 #define PA6_OUTPUT_ENABLE	0
