@@ -178,26 +178,31 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
-	if (wrk_measure && read_sensor_cb()) {
-		last_temp = measured_data.temp / 10;
-		last_humi = measured_data.humi / 100;
+	if (wrk_measure) {
+#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
+		rds_input_on();
+#endif
+		if(read_sensor_cb()) {
+			last_temp = measured_data.temp / 10;
+			last_humi = measured_data.humi / 100;
 #if	USE_TRIGGER_OUT
-		set_trigger_out();
+			set_trigger_out();
 #endif
 #if USE_FLASH_MEMO
-		if(cfg.averaging_measurements)
-			write_memo();
+			if(cfg.averaging_measurements)
+				write_memo();
 #endif
 #if	USE_MIHOME_BEACON
-		if((cfg.flg.advertising_type & ADV_TYPE_MASK_REF) && cfg.flg2.mi_beacon)
-			mi_beacon_summ();
+			if((cfg.flg.advertising_type & ADV_TYPE_MASK_REF) && cfg.flg2.mi_beacon)
+				mi_beacon_summ();
 #endif
 #if USE_TRIGGER_OUT && defined(GPIO_RDS)
-		test_trg_input();
+			test_trg_input();
 #endif
-		set_adv_data();
-		end_measure = 1;
-	}
+			set_adv_data();
+			end_measure = 1;
+		}
+	}	
 	timer_measure_cb = 0;
 	wrk_measure = 0;
 #if	USE_TRIGGER_OUT && defined(GPIO_RDS)
