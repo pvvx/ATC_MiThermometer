@@ -202,12 +202,12 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 			set_adv_data();
 			end_measure = 1;
 		}
+#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
+		rds_input_off();
+#endif
 	}	
 	timer_measure_cb = 0;
 	wrk_measure = 0;
-#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
-	rds_input_off();
-#endif
 }
 
 _attribute_ram_code_ void suspend_exit_cb(u8 e, u8 *p, int n) {
