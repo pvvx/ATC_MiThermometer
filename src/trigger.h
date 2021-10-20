@@ -39,7 +39,7 @@ void test_trg_on(void);
 
 #ifdef GPIO_RDS
 static inline void test_trg_input(void) {
-	trg.flg.rds_input = ((BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_TRG & 0xff))? 1 : 0);
+	trg.flg.rds_input = ((BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff))? 1 : 0);
 }
 
 static inline void rds_input_off(void) {

@@ -160,7 +160,13 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 		cfg.min_step_time_update_lcd = 10; // min 10*0.05 = 0.5 sec
 	min_step_time_update_lcd = cfg.min_step_time_update_lcd * (100 * CLOCK_16M_SYS_TIMER_CLK_1MS);
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
+
+#if HTSENSOR ==	HTSENSOR_SHTV3
 	cfg.hw_cfg.hwver = 0;
+#else
+	cfg.hw_cfg.hwver = 3;
+#endif
+
 #elif DEVICE_TYPE == DEVICE_MHO_C401
 	cfg.hw_cfg.hwver = 1;
 #elif DEVICE_TYPE == DEVICE_CGG1
