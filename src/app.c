@@ -132,6 +132,7 @@ void set_hw_version(void) {
 		cfg.hw_cfg.shtc3 = 0; // = 0 - sensor SHT4x or ?
 }
 #endif
+
 __attribute__((optimize("-Os"))) void test_config(void) {
 	if(cfg.rf_tx_power &BIT(7)) {
 		if (cfg.rf_tx_power < RF_POWER_N25p18dBm)

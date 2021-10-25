@@ -88,7 +88,7 @@ static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
 #define bwpc 9
 #endif
 
-void lcd_send_uart(void) {
+_attribute_ram_code_ void lcd_send_uart(void) {
 	// init uart
 	reg_clk_en0 |= FLD_CLK0_UART_EN;
 	///reg_clk_en1 |= FLD_CLK1_DMA_EN;
@@ -113,7 +113,7 @@ void lcd_send_uart(void) {
 	// start send DMA
 	reg_dma_tx_rdy0 |= FLD_DMA_CHN_UART_TX; // start tx
 	// wait send (3.35 ms), sleep?
-	pm_wait_us(3330);
+	pm_wait_us(3330); // 13 bytes * 10 bits / 38400 baud = 0.0033854 sec = 3.4 ms power ~3 mA
 	//while(reg_dma_tx_rdy0 & FLD_DMA_CHN_UART_TX); ?
 	while(!(reg_uart_status1 & FLD_UART_TX_DONE));
 	// set low/off power UART
@@ -199,7 +199,7 @@ void init_lcd(void){
 		send_to_lcd();
 		return;
 	}
-	// B1.6 (UART)
+	// B1.6 (UART), lcd_i2c_addr = 0
 	// utxb.dma_len = 0;
 	// utxb.head = 0;
 	utxb.start = 0xAA;

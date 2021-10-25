@@ -2,7 +2,6 @@
 #include "tl_common.h"
 #include "drivers.h"
 #include "vendor/common/user_config.h"
-#if (HTSENSOR == HTSENSOR_SHTC3)
 #include "app_config.h"
 #include "drivers/8258/gpio_8258.h"
 #include "drivers/8258/pm.h"
@@ -22,11 +21,12 @@
 #define SHTC3_MEASURE		0x6678 // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First
 #define SHTC3_LPMEASURE		0x9C60 // Measurement commands, Clock Stretching Disabled, Low Power Mode, Read T First
 
-// Sensor SHT4x https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT4x_Datasheet.pdf
+// Sensor SHT4x https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_Datasheet.pdf
 //#define SHT4x_I2C_ADDR		0x44
 #define SHT4x_SOFT_RESET	0x94 // Soft reset command
 #define SHT4x_SOFT_RESET_us	900  // max 1 ms
 #define SHT4x_MEASURE_HI	0xFD // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First
+#define SHT4x_MEASURE_HI_us 7000 // 6.9..8.2 ms
 #define SHT4x_MEASURE_LO	0xE0 // Measurement commands, Clock Stretching Disabled, Low Power Mode, Read T First
 #define SHT4x_MEASURE_LO_us 1700 // 1.7 ms
 
@@ -172,6 +172,3 @@ _attribute_ram_code_ void read_sensor_low_power(void) {
 		sleep_us(SHT4x_MEASURE_LO_us); // 1700 us
 	}
 }
-
-
-#endif // (HTSENSOR == HTSENSOR_SHTC3)
