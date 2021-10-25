@@ -94,7 +94,7 @@ static const u8 my_ManStr[] = {"miaomiaoce.com"};
 static const u8 my_ModelStr[] = {"LYWSD03MMC"};
 static const u8 my_SerialStr[] = {"F1.0-CFMK-LB-ZCXTJ--"};
 static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.0_0109"
-static const u8 my_HardStr[] = {"B1.4"};
+RAM u8 my_HardStr[4];// = {"B1.4"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_CGG1
@@ -429,6 +429,12 @@ void my_att_init(void) {
 		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_RDWR;
 		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_RDWR;
 	}
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+	my_HardStr[0] = 'B';
+	my_HardStr[1] = '1';
+	my_HardStr[2] = '.';
+	my_HardStr[3] = '?';
+#endif
 	bls_att_setAttributeTable ((u8 *)my_Attributes);
 }
 

@@ -10,6 +10,13 @@
 #define TMP_SYM_C	0xA0	// "°C"
 #define TMP_SYM_F	0x60	// "°F"
 
+#define B14_I2C_ADDR		0x3C
+#define B16_I2C_ADDR		0	// UART
+#define B19_I2C_ADDR		0x3E
+
+extern uint8_t lcd_i2c_addr;
+
+
 void init_lcd();
 void update_lcd();
 /* 0x00 = "  "

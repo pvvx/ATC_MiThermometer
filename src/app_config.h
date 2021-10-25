@@ -4,19 +4,14 @@
 extern "C" {
 #endif
 
-#define VERSION 0x32	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x33	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
 
-#define HTSENSOR_SHTV3		0 
-#define HTSENSOR_SHV4		1 // not tested
-
 #define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1
-#define HTSENSOR			HTSENSOR_SHTV3 // HTSENSOR_SHTV3 or HTSENSOR_SHV4
-
 
 #define BLE_SECURITY_ENABLE 1
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
@@ -190,7 +185,7 @@ extern "C" {
 // GPIO_PC3 - SCL, used I2C, pcb mark "P15"
 // GPIO_PC4 - free, pcb mark "P9" (PWM)
 // GPIO_PD2 - CS/PWM, free
-// GPIO_PD7 - free, pcb mark "P7" (IR)
+// GPIO_PD7 - free [B1.4], pcb mark "P7" (UART TX LCD [B1.6])
 
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
@@ -210,6 +205,10 @@ extern "C" {
 #define PA6_DATA_OUT		0
 #define PA6_OUTPUT_ENABLE	0
 #define PA6_FUNC			AS_GPIO
+
+#define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX (B1.6)
+//#define PD7_INPUT_ENABLE	1
+//#define PD7_FUNC			AS_UART
 
 #if 0 // in new version ...
 #define GPIO_ADC 			GPIO_PB7	// ADC input, pcb mark "B1"

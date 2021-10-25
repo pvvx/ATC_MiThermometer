@@ -2,7 +2,7 @@
 
 This repository contains custom firmware for two Xiaomi Mijia Smart Bluetooth Thermometer & Hygrometer devices.
 
-Warning! New versions of [Xiaomi LYWSD03MMC with HW: B1.5 onwards](https://github.com/pvvx/ATC_MiThermometer/issues/125) (released after 2021-03) are temporarily not supported.
+Warning! New versions of [Xiaomi LYWSD03MMC with HW: B1.5 onwards](https://github.com/pvvx/ATC_MiThermometer/issues/125) (released after 2021-03) are temporarily not supported (testing only).
 
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time.
 

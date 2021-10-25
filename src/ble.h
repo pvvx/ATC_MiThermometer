@@ -28,6 +28,10 @@ extern uint8_t mac_public[6];
 extern uint8_t mac_random_static[6];
 extern uint8_t ble_name[12];
 
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+extern u8 my_HardStr[4];
+#endif
+
 #define ADV_CUSTOM_UUID16 0x181A // 16-bit UUID Service 0x181A Environmental Sensing
 #define ADV_XIAOMI_UUID16 0xFE95 // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 

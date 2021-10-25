@@ -112,6 +112,26 @@ static const external_data_t def_ext = {
 RAM external_data_t ext;
 RAM uint32_t pincode;
 
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+void set_hw_version(void) {
+	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
+		cfg.hw_cfg.hwver = 0; // HW:B1.4
+		my_HardStr[3] = '4';
+	}
+	else if (lcd_i2c_addr == (B19_I2C_ADDR << 1)) {
+		cfg.hw_cfg.hwver = 3; // HW:B1.9
+		my_HardStr[3] = '9';
+	}
+	else {
+		cfg.hw_cfg.hwver = 4; // HW:B1.6
+		my_HardStr[3] = '6';
+	}
+	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
+		cfg.hw_cfg.shtc3 = 1; // =1 - sensor SHTC3
+	else
+		cfg.hw_cfg.shtc3 = 0; // = 0 - sensor SHT4x or ?
+}
+#endif
 __attribute__((optimize("-Os"))) void test_config(void) {
 	if(cfg.rf_tx_power &BIT(7)) {
 		if (cfg.rf_tx_power < RF_POWER_N25p18dBm)
@@ -160,13 +180,7 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 		cfg.min_step_time_update_lcd = 10; // min 10*0.05 = 0.5 sec
 	min_step_time_update_lcd = cfg.min_step_time_update_lcd * (100 * CLOCK_16M_SYS_TIMER_CLK_1MS);
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
-
-#if HTSENSOR ==	HTSENSOR_SHTV3
-	cfg.hw_cfg.hwver = 0;
-#else
-	cfg.hw_cfg.hwver = 3;
-#endif
-
+	set_hw_version();
 #elif DEVICE_TYPE == DEVICE_MHO_C401
 	cfg.hw_cfg.hwver = 1;
 #elif DEVICE_TYPE == DEVICE_CGG1
@@ -228,7 +242,7 @@ _attribute_ram_code_ void suspend_enter_cb(u8 e, u8 *p, int n) {
 		&& timer_measure_cb
 		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT - 3*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 			WakeupLowPowerCb(0);
-			bls_pm_setAppWakeupLowPower(0, 0);
+			bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 	}
 }
 
@@ -248,6 +262,7 @@ void low_vbat(void) {
 	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 			clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 }
+
 //------------------ user_init_normal -------------------
 void user_init_normal(void) {//this will get executed one time after power up
 	random_generator_init(); //must
@@ -294,6 +309,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	if (measured_data.battery_mv < 2000) {
 		low_vbat();
 	}
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+	set_hw_version();
+#endif
 	read_sensor_low_power();
 	wrk_measure = 1;
 	WakeupLowPowerCb(0);
@@ -439,7 +457,7 @@ _attribute_ram_code_ void main_loop(void) {
 		&& timer_measure_cb
 		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT) {
 			WakeupLowPowerCb(0);
-			bls_pm_setAppWakeupLowPower(0, 0);
+			bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 	}
 	if (ota_is_working) {
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN); // SUSPEND_DISABLE
@@ -473,7 +491,7 @@ _attribute_ram_code_ void main_loop(void) {
 						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
 						bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
 					} else {
-						bls_pm_setAppWakeupLowPower(0, 0);
+						bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 					}
 				}
 			} else {
