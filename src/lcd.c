@@ -35,7 +35,7 @@ typedef struct __attribute__((packed)) _dma_uart_buf_t {
 	uint8_t end;
 } dma_uart_buf_t;
 
-dma_uart_buf_t utxb;
+RAM dma_uart_buf_t utxb;
 
 /* 0,1,2,3,4,5,6,7,8,9,A,b,C,d,E,F*/
 const uint8_t display_numbers[] = {0xf5,0x05,0xd3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7, 0x77,0xe6,0xf0,0xc7,0xf2,0x72};
@@ -112,8 +112,8 @@ void lcd_send_uart(void) {
 
 	// start send DMA
 	reg_dma_tx_rdy0 |= FLD_DMA_CHN_UART_TX; // start tx
-	// wait send (>4.4 ms), sleep?
-	pm_wait_us(4400);
+	// wait send (3.35 ms), sleep?
+	pm_wait_us(3330);
 	//while(reg_dma_tx_rdy0 & FLD_DMA_CHN_UART_TX); ?
 	while(!(reg_uart_status1 & FLD_UART_TX_DONE));
 	// set low/off power UART
