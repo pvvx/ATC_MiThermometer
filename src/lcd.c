@@ -22,6 +22,7 @@ RAM uint8_t lcd_i2c_addr;
 const uint8_t lcd_init_cmd_b14[] =	{0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
 								//	{0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6};
 const uint8_t lcd_init_clr_b14[] =	{0x80,0x40,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0x00,0xC0,0x00};
+const uint8_t lcd_init_clr_b19[] =	{0x00,0x00,0x00,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x00,0x00,0x00,0x00,0x00,0x00};
 
 RAM uint8_t display_buff[6];
 RAM uint8_t display_cmp_buff[6];
@@ -151,16 +152,16 @@ _attribute_ram_code_ void send_to_lcd(){
 			reg_i2c_adr_dat = 0;
 			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
 			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+			reg_i2c_adr = reverse(*p++);
 			reg_i2c_do = reverse(*p++);
-			reg_i2c_di = reverse(*p++);
-			reg_i2c_ctrl = FLD_I2C_CMD_DO | FLD_I2C_CMD_DI;
+			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
 			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 			reg_i2c_adr_dat = 0;
 			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
 			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-			reg_i2c_do = reverse(*p++);
-			reg_i2c_di = reverse(*p);
-			reg_i2c_ctrl = FLD_I2C_CMD_DO | FLD_I2C_CMD_DI | FLD_I2C_CMD_STOP;
+			reg_i2c_adr = reverse(*p++);
+			reg_i2c_do = reverse(*p);
+			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO | FLD_I2C_CMD_STOP;
 		}
 		while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 	} else {
@@ -196,7 +197,8 @@ void init_lcd(void){
 		lcd_send_i2c_byte(0xBC);
 		lcd_send_i2c_byte(0xF0);
 		lcd_send_i2c_byte(0xFC);
-		send_to_lcd();
+		lcd_send_i2c_buf((uint8_t *) lcd_init_clr_b19, sizeof(lcd_init_clr_b19));
+		lcd_send_i2c_byte(0xC8);
 		return;
 	}
 	// B1.6 (UART), lcd_i2c_addr = 0
