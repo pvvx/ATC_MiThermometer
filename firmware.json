@@ -1,3 +1,3 @@
 {"version": 51, 
-"custom":["ATC_B14V33.bin", "MHO_C401_v33.bin", "CGG1_v33.bin", "ATC_B16V33t2.bin", "ATC_B19V33t2.bin"], 
+"custom":["ATC_V33.bin", "MHO_C401_v33.bin", "CGG1_v33.bin", "ATC_V33.bin", "ATC_V33.bin"], 
 "original":["Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin","Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin","Original_OTA_CGG1_v1.0.1_0093.bin","Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin","Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin"]}

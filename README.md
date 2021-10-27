@@ -103,9 +103,9 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 3.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_Thermometer31.bin)
-* [MHO-C401 Custom Firmware Version 3.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v31.bin)
-* [CGG1 Custom Firmware Version 3.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v31.bin)
+* [LYWSD03MMC Custom Firmware Version 3.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_V33.bin)
+* [MHO-C401 Custom Firmware Version 3.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v33.bin)
+* [CGG1 Custom Firmware Version 3.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v33.bin)
 
 **Original Manufacturer Firmware Version**
 
@@ -284,14 +284,15 @@ For CGG1 - GPIO_PD3, MHO_C401 - no free pins.
 ![USBCOMFlashTxHtml](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif)
 
 
-#### Chipset
+#### Chipset LYWSD03MMC HW:B1.4
 > * TLSR8251F512ET24 (TLSR8258 in 24-pin TQFN). SoC: TC32 32-bit MCU 48Mhz, 64 KiB SRAM, 512 KiB Flash (GD25LE40C), Bluetooth 5.0: Mesh, 6LoWPAN, Zigbee, RF4CE, HomeKit, Long Range, Operating temperature: -40°C to +85°C, Power supply: 1.8V to 3.6V.
 > * SHTV3 sensor. Measurement range: Temperature -40°C to +125°C, Humidity 0 to 100 %RH. Power supply: 1.8V to 3.6V
 > * IST3055NA0 LCD controller 
 
-[LYWSD03MMC BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
+[LYWSD03MMC B1.4 BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
 
 ![TabPins](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout/TabPins.gif)
+
 
 #### Building the firmware
 
