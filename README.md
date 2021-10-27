@@ -173,9 +173,12 @@ This requires the _Experimental Web Platform Features_ flag enabled in your brow
 Using the default settings for advertising interval of 2.5 seconds
 and measurement interval of 10 seconds:
 
-* Bluetooth Advertisement: 15..20 uA 3.3V ([CR2032](https://pvvx.github.io/ATC_MiThermometer/CustPower.html) [over 6 months](https://github.com/pvvx/ATC_MiThermometer/issues/23#issuecomment-766898945))
+* Bluetooth Advertisement: 14..20 uA 3.3V ([CR2032](https://pvvx.github.io/ATC_MiThermometer/CustPower.html) [over 6 months](https://github.com/pvvx/ATC_MiThermometer/issues/23#issuecomment-766898945))
 * Bluetooth Connection: 14..25 uA 3.3V (CR2032 over 6 months)
 
+![PowerAdvInt](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/PowerAdvInt.gif)
+
+![PowerLife.gif](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/PowerLife.gif)
 
 **Xiaomi Miaomiaoce (MHO-C401)**
 
