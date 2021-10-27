@@ -1,8 +1,6 @@
-# Xiaomi Mijia (LYWSD03MMC HW:B1.4) & Xiaomi Miaomiaoce (MHO-C401) & CGG1 Mijia Bluetooth Thermometer Firmware
+# Xiaomi Mijia (LYWSD03MMC HW:B1.4,B1.6,B1.9) & Xiaomi Miaomiaoce (MHO-C401) & CGG1 Mijia Bluetooth Thermometer Firmware
 
 This repository contains custom firmware for two Xiaomi Mijia Smart Bluetooth Thermometer & Hygrometer devices.
-
-Warning! New versions of [Xiaomi LYWSD03MMC with HW: B1.5 onwards](https://github.com/pvvx/ATC_MiThermometer/issues/125) (released after 2021-03) are temporarily not supported (testing only).
 
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time.
 
@@ -143,6 +141,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.0 | Added toggle support for advertising package structures for third-party software
 |     3.1 | Fix security attributes (for pincode)
 |     3.2 | Added [new encrypted beacon formats](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018), reed switch maintenance.
+|     3.3 | Added autodetection for LYWSD03MMC hardware versions B1.6 and B1.9. For CGG1-M and MHO-C401 - autodetection of SHTV3 or SHT4x sensors.
 
 
 ## Applications
