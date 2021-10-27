@@ -147,7 +147,13 @@ In case you want to go back to the original firmware, you can download them here
 ## Applications
 
 ### Reading Measurements from Flash
+
 [GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html)
+
+For recording measurement results in flash memory for recording measurement results in flash memory, a cyclic buffer for 19632 measurements.
+The recording step interval is set in the interface.
+With the default settings, the recording step is 10 minutes, which gives a recording depth of 4 and a half months.
+During the step period, the sensor data and battery voltage are averaged, time stamped, and written to flash memory.
 
 ![FlashData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/FlashData.gif)
 
