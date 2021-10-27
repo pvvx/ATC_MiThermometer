@@ -1,6 +1,6 @@
 # Xiaomi Mijia (LYWSD03MMC HW:B1.4,B1.6,B1.9) & Xiaomi Miaomiaoce (MHO-C401) & CGG1 Mijia Bluetooth Thermometer Firmware
 
-This repository contains custom firmware for two Xiaomi Mijia Smart Bluetooth Thermometer & Hygrometer devices.
+This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
 
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time.
 
@@ -111,8 +111,8 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 In case you want to go back to the original firmware, you can download them here:
 
-* [LYWSD03MMC Original Firmware v1.0.0_0109](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin)
-* [LYWSD03MMC Original Firmware v1.0.0_0130](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin)
+* [LYWSD03MMC Original Firmware v1.0.0_0109](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin) (B1.4 only)
+* [LYWSD03MMC Original Firmware v1.0.0_0130](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin) (B1.4, B1.6, B1.9)
 * [MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
 * [CGG1 Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1_v1.0.1_0093.bin)
 
