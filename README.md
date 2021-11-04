@@ -141,7 +141,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.0 | Added toggle support for advertising package structures for third-party software
 |     3.1 | Fix security attributes (for pincode)
 |     3.2 | Added [new encrypted beacon formats](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018), reed switch maintenance.
-|     3.3 | Added autodetection for LYWSD03MMC hardware versions B1.6 and B1.9. For CGG1-M and MHO-C401 - autodetection of SHTV3 or SHT4x sensors.
+|     3.3 | Added autodetection for [LYWSD03MMC hardware versions B1.6 and B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125). For CGG1-M and MHO-C401 - autodetection of SHTV3 or SHT4x sensors.
 
 
 ## Applications
@@ -154,6 +154,8 @@ To record the measurement results, a cyclic buffer in the flash memory for 19632
 The recording step interval is set in the interface.
 With the default settings, the recording step is 10 minutes, which gives a recording depth of 4 and a half months.
 During the step period, the sensor data and battery voltage are averaged, time stamped, and written to flash memory.
+
+Setting the value to 0 disable logging to internal storage.
 
 ![FlashData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/FlashData.gif)
 
@@ -258,6 +260,8 @@ Hysteresis:
 Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off). 
 
 ![OnOff](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/OnOff.gif)
+
+![ESP01Relay](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/TriggerESP01Relay.gif)
 
 [Trigger and reed switch status receiver on JDY-10 module ($1).](https://github.com/pvvx/AdScanerTrg)
 
