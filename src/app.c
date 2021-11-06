@@ -445,6 +445,18 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 	show_ble_symbol(ble_connected);
 }
 
+//--- check battery
+_attribute_ram_code_ void check_battery(void) {
+	measured_data.battery_mv = get_battery_mv();
+	if (measured_data.battery_mv < 2000) {
+		if(wrk_measure && timer_measure_cb) {
+			pm_wait_ms(11);
+			read_sensor_cb();
+		}
+		low_vbat();
+	}
+	battery_level = get_battery_level(measured_data.battery_mv);
+}
 //----------------------- main_loop()
 _attribute_ram_code_ void main_loop(void) {
 	blt_sdk_main_loop();
@@ -457,8 +469,8 @@ _attribute_ram_code_ void main_loop(void) {
 	if (wrk_measure
 		&& timer_measure_cb
 		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT) {
-			WakeupLowPowerCb(0);
 			bls_pm_setAppWakeupLowPower(0, 0); // clear callback
+			WakeupLowPowerCb(0);
 	}
 	if (ota_is_working) {
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN); // SUSPEND_DISABLE
@@ -469,25 +481,18 @@ _attribute_ram_code_ void main_loop(void) {
 				wrk_measure = 1;
 				start_measure = 0;
 				if (cfg.flg.lp_measures) {
-					read_sensor_low_power();
-					measured_data.battery_mv = get_battery_mv();
-					if (measured_data.battery_mv < 2000) {
-						low_vbat();
+					if (cfg.hw_cfg.shtc3) {
+						read_sensor_low_power();
+						check_battery();
+						WakeupLowPowerCb(0);
+					} else { // sensor SHT4x
+						// no callback, data read sensor is next cycle
+						read_sensor_deep_sleep();
+						check_battery();
 					}
-					battery_level = get_battery_level(measured_data.battery_mv);
-					WakeupLowPowerCb(0);
 				} else {
 					read_sensor_deep_sleep();
-					measured_data.battery_mv = get_battery_mv();
-					if (measured_data.battery_mv < 2000) {
-#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
-						rds_input_off();
-#endif
-						pm_wait_ms(11);
-						read_sensor_cb();
-						low_vbat();
-					}
-					battery_level = get_battery_level(measured_data.battery_mv);
+					check_battery();
 					if (bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
 						bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
