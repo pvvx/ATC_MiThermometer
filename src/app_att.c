@@ -116,10 +116,6 @@ static u16 serviceChangeVal[2] = {0};
 
 static u8 serviceChangeCCC[2] = {0,0};
 
-//static const u8 my_devName[] = {'A','T','C'};
-
-//static const u8 my_PnPtrs [] = {0x02, 0x8a, 0x24, 0x66, 0x82, 0x01, 0x00};
-
 //////////////////////// Battery /////////////////////////////////////////////////
 static const u16 my_batServiceUUID        = SERVICE_UUID_BATTERY;
 static const u16 my_batCharUUID       	  = CHARACTERISTIC_UUID_BATTERY_LEVEL;
@@ -151,10 +147,6 @@ static const u16 mi_primary_service_uuid = 0xfe95;
 #if (!defined(USE_MIHOME) || USE_MIHOME == 0)
 static const u8  my_MiName[] = {'M', 'i'};
 #endif
-
-// Include attribute (Battery service)
-static const u16 include[3] = {BATT_PS_H, BATT_LEVEL_INPUT_CCB_H, SERVICE_UUID_BATTERY};
-
 
 //// GAP attribute values
 static const u8 my_devNameCharVal[5] = {

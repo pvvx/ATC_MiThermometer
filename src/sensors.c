@@ -54,12 +54,12 @@ static _attribute_ram_code_ void send_sensor_byte(uint8_t cmd) {
 	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
 
-static void soft_reset_sensor(void) {
+void soft_reset_sensor(void) {
 	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
 		send_sensor_word(SHTC3_SOFT_RESET); // Soft reset command
 		sleep_us(SHTC3_SOFT_RESET_us); // 240 us
 		send_sensor_word(SHTC3_GO_SLEEP); // Sleep command of the sensor
-	} else {
+	} else if((sensor_i2c_addr) == SHT4x_I2C_ADDR << 1) {
 		send_sensor_byte(SHT4x_SOFT_RESET); // Soft reset command
 		sleep_us(SHT4x_SOFT_RESET_us); // max 1 ms
 	}
@@ -68,7 +68,7 @@ static void soft_reset_sensor(void) {
 void init_sensor() {
 	if((sensor_i2c_addr = (uint8_t) scan_i2c_addr(SHTC3_I2C_ADDR << 1)) != 0) {
 		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
-		cfg.hw_cfg.shtc3 = 1; // =1 - sensor SHTC3
+		cfg.hw_cfg.shtc3 = 1; // = 1 - sensor SHTC3
 		sleep_us(SHTC3_WAKEUP_us);	// 240 us
 		soft_reset_sensor();
 		return;
@@ -155,7 +155,7 @@ _attribute_ram_code_ void read_sensor_deep_sleep(void) {
 		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
 		sleep_us(SHTC3_WAKEUP_us - 5);	// 240 us
 		send_sensor_word(SHTC3_MEASURE);
-	} else // if(sensor_i2c_addr == (SHT4x_I2C_ADDR << 1))
+	} else if(sensor_i2c_addr == (SHT4x_I2C_ADDR << 1))
 		send_sensor_byte(SHT4x_MEASURE_HI);
 	gpio_setup_up_down_resistor(I2C_SCL, PM_PIN_PULLUP_1M);
 	gpio_setup_up_down_resistor(I2C_SDA, PM_PIN_PULLUP_1M);
@@ -167,7 +167,7 @@ _attribute_ram_code_ void read_sensor_low_power(void) {
 		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
 		sleep_us(SHTC3_WAKEUP_us);	// 240 us
 		send_sensor_word(SHTC3_LPMEASURE);
-	} else { // if((sensor_i2c_addr) == SHT4x_I2C_ADDR << 1) {
+	} else if((sensor_i2c_addr) == SHT4x_I2C_ADDR << 1) {
 		send_sensor_byte(SHT4x_MEASURE_LO);
 		sleep_us(SHT4x_MEASURE_LO_us); // 1700 us
 	}

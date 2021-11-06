@@ -112,8 +112,8 @@ static const external_data_t def_ext = {
 RAM external_data_t ext;
 RAM uint32_t pincode;
 
-#if DEVICE_TYPE == DEVICE_LYWSD03MMC
 void set_hw_version(void) {
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 		cfg.hw_cfg.hwver = 0; // HW:B1.4
 		my_HardStr[3] = '4';
@@ -126,12 +126,18 @@ void set_hw_version(void) {
 		cfg.hw_cfg.hwver = 4; // HW:B1.6
 		my_HardStr[3] = '6';
 	}
+#elif DEVICE_TYPE == DEVICE_MHO_C401
+	cfg.hw_cfg.hwver = 1;
+#elif DEVICE_TYPE == DEVICE_CGG1
+	cfg.hw_cfg.hwver = 2;
+#else
+	cfg.hw_cfg.hwver = 3;
+#endif
 	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
-		cfg.hw_cfg.shtc3 = 1; // =1 - sensor SHTC3
+		cfg.hw_cfg.shtc3 = 1; // = 1 - sensor SHTC3
 	else
 		cfg.hw_cfg.shtc3 = 0; // = 0 - sensor SHT4x or ?
 }
-#endif
 
 __attribute__((optimize("-Os"))) void test_config(void) {
 	if(cfg.rf_tx_power &BIT(7)) {
@@ -180,15 +186,7 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 	if(cfg.min_step_time_update_lcd < 10)
 		cfg.min_step_time_update_lcd = 10; // min 10*0.05 = 0.5 sec
 	min_step_time_update_lcd = cfg.min_step_time_update_lcd * (100 * CLOCK_16M_SYS_TIMER_CLK_1MS);
-#if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	set_hw_version();
-#elif DEVICE_TYPE == DEVICE_MHO_C401
-	cfg.hw_cfg.hwver = 1;
-#elif DEVICE_TYPE == DEVICE_CGG1
-	cfg.hw_cfg.hwver = 2;
-#else
-	cfg.hw_cfg.hwver = 3;
-#endif
 	cfg.hw_cfg.clock = USE_CLOCK;
 	cfg.hw_cfg.memo = USE_FLASH_MEMO;
 	cfg.hw_cfg.trg = USE_TRIGGER_OUT;
@@ -226,9 +224,9 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 #if	USE_TRIGGER_OUT && defined(GPIO_RDS)
 		rds_input_off();
 #endif
+		wrk_measure = 0;
 	}	
 	timer_measure_cb = 0;
-	wrk_measure = 0;
 }
 
 _attribute_ram_code_ void suspend_exit_cb(u8 e, u8 *p, int n) {
@@ -248,6 +246,8 @@ _attribute_ram_code_ void suspend_enter_cb(u8 e, u8 *p, int n) {
 }
 
 void low_vbat(void) {
+	if(cfg.hw_cfg.shtc3 && wrk_measure)
+		soft_reset_sensor();
 	show_temp_symbol(0);
 	show_big_number(measured_data.battery_mv * 10);
 #if DEVICE_TYPE == DEVICE_CGG1
@@ -264,8 +264,19 @@ void low_vbat(void) {
 			clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 }
 
+//--- check battery
+_attribute_ram_code_ void check_battery(void) {
+	measured_data.battery_mv = get_battery_mv();
+	if (measured_data.battery_mv < 2000) {
+		low_vbat();
+	}
+	battery_level = get_battery_level(measured_data.battery_mv);
+}
 //------------------ user_init_normal -------------------
 void user_init_normal(void) {//this will get executed one time after power up
+	if (get_battery_mv() < MIN_VBAT_MV) // 2.2V
+		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
+				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 	random_generator_init(); //must
 	// Read config
 	if (flash_supported_eep_ver(EEP_SUP_VER, VERSION)) {
@@ -304,17 +315,11 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if USE_FLASH_MEMO
 	memo_init();
 #endif
-	measured_data.battery_mv = get_battery_mv();
-	battery_level = get_battery_level(measured_data.battery_mv);
 	init_lcd();
-	if (measured_data.battery_mv < 2000) {
-		low_vbat();
-	}
-#if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	set_hw_version();
-#endif
-	read_sensor_low_power();
 	wrk_measure = 1;
+	read_sensor_low_power();
+	check_battery();
 	WakeupLowPowerCb(0);
 #if	USE_TRIGGER_OUT
 	test_trg_on();
@@ -445,18 +450,6 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 	show_ble_symbol(ble_connected);
 }
 
-//--- check battery
-_attribute_ram_code_ void check_battery(void) {
-	measured_data.battery_mv = get_battery_mv();
-	if (measured_data.battery_mv < 2000) {
-		if(wrk_measure && timer_measure_cb) {
-			pm_wait_ms(11);
-			read_sensor_cb();
-		}
-		low_vbat();
-	}
-	battery_level = get_battery_level(measured_data.battery_mv);
-}
 //----------------------- main_loop()
 _attribute_ram_code_ void main_loop(void) {
 	blt_sdk_main_loop();
