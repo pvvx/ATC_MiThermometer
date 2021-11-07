@@ -112,7 +112,7 @@ static const external_data_t def_ext = {
 RAM external_data_t ext;
 RAM uint32_t pincode;
 
-void set_hw_version(void) {
+__attribute__((optimize("-Os"))) void set_hw_version(void) {
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 		cfg.hw_cfg.hwver = 0; // HW:B1.4
@@ -316,14 +316,11 @@ void user_init_normal(void) {//this will get executed one time after power up
 	memo_init();
 #endif
 	init_lcd();
-	set_hw_version();
+	test_config();
 	wrk_measure = 1;
 	read_sensor_low_power();
 	check_battery();
 	WakeupLowPowerCb(0);
-#if	USE_TRIGGER_OUT
-	test_trg_on();
-#endif
 	lcd();
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	update_lcd();
