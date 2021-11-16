@@ -234,11 +234,11 @@ UUID 0x181A - size 19: Custom format (all data little-endian):
 
 ### Bluetooth Connection Mode
 + Primary Service - Environmental Sensing Service (0x181A):
- * Characteristic UUID 0x2A1F - Notify temperature x0.1C
- * Characteristic UUID 0x2A6E - Notify temperature x0.01C
- * Characteristic UUID 0x2A6F - Notify about humidity x0.01%
+ * Characteristic UUID [0x2A1F](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.temperature_celsius.xml) - Notify temperature x0.1C
+ * Characteristic UUID [0x2A6E](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.temperature.xml) - Notify temperature x0.01C
+ * Characteristic UUID [0x2A6F](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.humidity.xml) - Notify about humidity x0.01%
 + Primary Service - Battery Service (0x180F):
- * Characteristic UUID 0x2A19 - Notify the battery charge level 0..99%
+ * Characteristic UUID [0x2A19](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.battery_level.xml) - Notify the battery charge level 0..99%
 + Primary Service (0x1F10):
  * Characteristic UUID 0x1F1F - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
