@@ -414,6 +414,7 @@ RAM attribute_t my_Attributes[] = {
 };
 
 void my_att_init(void) {
+#if BLE_SECURITY_ENABLE
 	if(pincode) {
 		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;
 		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;
@@ -421,6 +422,7 @@ void my_att_init(void) {
 		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_RDWR;
 		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_RDWR;
 	}
+#endif
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	my_HardStr[0] = 'B';
 	my_HardStr[1] = '1';

@@ -110,19 +110,28 @@ static const external_data_t def_ext = {
 		.flg.temp_symbol = 5 // 5 = "°C", ... app.h
 		};
 RAM external_data_t ext;
+#if BLE_SECURITY_ENABLE
 RAM uint32_t pincode;
+#endif
 
 __attribute__((optimize("-Os"))) void set_hw_version(void) {
+	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
+		cfg.hw_cfg.shtc3 = 1; // = 1 - sensor SHTC3
+	else
+		cfg.hw_cfg.shtc3 = 0; // = 0 - sensor SHT4x or ?
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
-		cfg.hw_cfg.hwver = 0; // HW:B1.4
-		my_HardStr[3] = '4';
-	}
-	else if (lcd_i2c_addr == (B19_I2C_ADDR << 1)) {
+		if(cfg.hw_cfg.shtc3) { // sensor SHTC3 ?
+			cfg.hw_cfg.hwver = 0; // HW:B1.4
+			my_HardStr[3] = '4';
+		} else { // sensor SHT4x or ?
+			cfg.hw_cfg.hwver = 5; // HW:B1.7
+			my_HardStr[3] = '7';
+		}
+	} else if (lcd_i2c_addr == (B19_I2C_ADDR << 1)) {
 		cfg.hw_cfg.hwver = 3; // HW:B1.9
 		my_HardStr[3] = '9';
-	}
-	else {
+	} else {
 		cfg.hw_cfg.hwver = 4; // HW:B1.6
 		my_HardStr[3] = '6';
 	}
@@ -133,10 +142,6 @@ __attribute__((optimize("-Os"))) void set_hw_version(void) {
 #else
 	cfg.hw_cfg.hwver = 3;
 #endif
-	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
-		cfg.hw_cfg.shtc3 = 1; // = 1 - sensor SHTC3
-	else
-		cfg.hw_cfg.shtc3 = 0; // = 0 - sensor SHT4x or ?
 }
 
 __attribute__((optimize("-Os"))) void test_config(void) {
