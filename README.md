@@ -103,18 +103,20 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 3.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_V33.bin)
-* [MHO-C401 Custom Firmware Version 3.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v33.bin)
-* [CGG1 Custom Firmware Version 3.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v33.bin)
+* [LYWSD03MMC Custom Firmware Version 3.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_V34d.bin)
+* [MHO-C401 Custom Firmware Version 3.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v34c.bin)
+* [CGG1 Custom Firmware Version 3.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v34c.bin)
 
 **Original Manufacturer Firmware Version**
 
 In case you want to go back to the original firmware, you can download them here:
 
-* [LYWSD03MMC Original Firmware v1.0.0_0109](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin) (B1.4 only)
-* [LYWSD03MMC Original Firmware v1.0.0_0130](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin) (B1.4, B1.6, B1.9)
-* [MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
-* [CGG1 Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1_v1.0.1_0093.bin)
+* [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0109 HW:B1.4)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin) (B1.4 only)
+* [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0130 HW:B1.4..B1.9)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin) (B1.4, B1.6, B1.9)
+* [Xiaomi MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
+* [Azarton MHO_C401 Original Firmware v1.0.0_0016](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Azarton_MHO_C401_v1.0.0_0016.bin)
+* [Qingping CGG1-M Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1_v1.0.1_0093.bin)
+* [Qingping CGPR1 Original Firmware v1.1.1_0228](https://pvvx.github.io/CGPR1/img/Original_OTA_CGPR1_v1.1.1_0228.bin)
 
 ### Firmware version history
 
