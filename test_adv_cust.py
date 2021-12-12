@@ -1,7 +1,7 @@
 import asyncio
 import struct
 import binascii
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES #pip install pycryptodome
 
 def parse_value(hexvalue):
 	vlength = len(hexvalue)

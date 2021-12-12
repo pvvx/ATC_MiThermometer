@@ -136,7 +136,10 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int read_sensor_cb(void) {
 			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 			if(crc == data && _temp != 0xffff) {
 				measured_data.temp = ((int32_t)(17500*_temp) >> 16) - 4500 + cfg.temp_offset * 10; // x 0.01 C
-				measured_data.humi = ((uint32_t)(10000*_humi) >> 16) + cfg.humi_offset * 10; // x 0.01 %
+				if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
+					measured_data.humi = ((uint32_t)(10000*_humi) >> 16) + cfg.humi_offset * 10; // x 0.01 %
+				 else
+					measured_data.humi = ((uint32_t)(12500*_humi) >> 16) - 600 + cfg.humi_offset * 10; // x 0.01 %
 				if(measured_data.humi < 0) measured_data.humi = 0;
 				else if(measured_data.humi > 9999) measured_data.humi = 9999;
 				measured_data.count++;
