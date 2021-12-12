@@ -374,7 +374,7 @@ void set_adv_data() {
 				p->data_id = XIAOMI_DATA_ID_TempAndHumidity & 0xff; // (lo byte XIAOMI_DATA_ID)
 				p->t0d.len = 0x04;
 				p->t0d.temperature = last_temp; // x0.1 C
-				p->t0d.humidity = measured_data.humi / 10; // x0.1 %
+				p->t0d.humidity = (measured_data.humi + 5) / 10; // x0.1 %
 			} else {
 				p->data_id = XIAOMI_DATA_ID_Power & 0xff; // (lo byte XIAOMI_DATA_ID)
 				p->t0a.len1 = 1;

@@ -207,8 +207,8 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 		rds_input_on();
 #endif
 		if(read_sensor_cb()) {
-			last_temp = measured_data.temp / 10;
-			last_humi = measured_data.humi / 100;
+			last_temp = (measured_data.temp + 5)/ 10;
+			last_humi = (measured_data.humi + 50)/ 100;
 #if	USE_TRIGGER_OUT
 			set_trigger_out();
 #endif
@@ -435,7 +435,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 		if (set_small_number_and_bat) {
 #if DEVICE_TYPE == DEVICE_CGG1
 			show_battery_symbol(!cfg.flg.show_batt_enabled);
-			show_small_number(measured_data.humi / 10, 1);
+			show_small_number((measured_data.humi + 5) / 10, 1);
 #else
 			show_battery_symbol(0);
 			show_small_number(last_humi, 1);

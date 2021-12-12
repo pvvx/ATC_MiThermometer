@@ -145,7 +145,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.2 | Added [new encrypted beacon formats](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018), reed switch maintenance
 |     3.3 | Added autodetection for [LYWSD03MMC hardware versions B1.6 and B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125). For CGG1-M and MHO-C401 - autodetection of SHTV3 or SHT4x sensors
 |     3.4 | Correct Hardware Version Setting for [LYWSD03MMC B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145)
-|     3.5 | Correction of moisture readings for SHT4x sensors.
+|     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163)
 
 
 ## Applications

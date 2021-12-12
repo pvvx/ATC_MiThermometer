@@ -189,8 +189,8 @@ void atc_encrypt_beacon(uint32_t cnt) {
 		p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 		p->head.UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian) (or 0x181C 'User Data'?)
 		p->head.counter = (uint8_t)cnt;
-		data.temp = measured_data.temp / 50 + 4000 / 50;
-		data.humi = measured_data.humi / 50;
+		data.temp = (measured_data.temp + 25) / 50 + 4000 / 50;
+		data.humi = (measured_data.humi + 25) / 50;
 		data.bat = battery_level | ((trg.flg.trigger_on)? 0x80 : 0);
 
 		memcpy(&cbn.MAC, mac_public, sizeof(cbn.MAC));
