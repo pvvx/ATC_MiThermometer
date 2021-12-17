@@ -13,6 +13,12 @@ extern "C" {
 
 #define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1
 
+// Special DIY version LYWSD03MMC - Voltage Logger:
+// Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, pcb mark "B1"
+// Humidity 0..36.00 = ADC pin PC4 input 0..3.6V, pcb mark "P9"
+// Set DIY_ADC_TO_TH_LYWSD03MMC 1
+#define DIY_ADC_TO_TH_LYWSD03MMC 0
+
 #define BLE_SECURITY_ENABLE 1
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
 
@@ -210,9 +216,17 @@ extern "C" {
 //#define PD7_INPUT_ENABLE	1
 //#define PD7_FUNC			AS_UART
 
-#if 0 // in new version ...
-#define GPIO_ADC 			GPIO_PB7	// ADC input, pcb mark "B1"
-#define GPIO_PWM 			GPIO_PC4	// PWM output, pcb mark "B1"
+#if DIY_ADC_TO_TH_LYWSD03MMC // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
+#define GPIO_ADC1 			GPIO_PB7	// ADC input, pcb mark "B1"
+#define PB7_OUTPUT_ENABLE	0
+#define PB7_FUNC			AS_ADC
+#endif
+
+#if DIY_ADC_TO_TH_LYWSD03MMC // Special version: Humidity 0..36 = ADC pin PC4 input 0..3.6В, pcb mark "P9"
+#define GPIO_ADC2 			GPIO_PC4	// ADC input, pcb mark "P9"
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_DATA_STRENGTH	0
+#define PC4_FUNC			AS_GPIO
 #endif
 
 #endif // USE_TRIGGER_OUT

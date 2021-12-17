@@ -37,7 +37,7 @@ extern u8 my_HardStr[4];
 
 #define XIAOMI_DEV_VERSION	5
 
-enum { // mijia ble version 5
+enum {
 	XIAOMI_DEV_ID_LYWSDCGQ       = 0x01AA,
 	XIAOMI_DEV_ID_CGG1           = 0x0347,
 	XIAOMI_DEV_ID_CGG1_ENCRYPTED = 0x0B48,
@@ -60,7 +60,30 @@ enum { // mijia ble version 5
 	XIAOMI_DEV_ID_MJYD02YL       = 0x07F6
 }XIAOMI_DEV_ID;
 
-enum { // mijia ble version 5
+enum { // mijia ble version 5, General events
+	XIAOMI_DATA_EV_Base					=0x0000,
+	XIAOMI_DATA_EV_Connect				=0x0001,
+	XIAOMI_DATA_EV_SimplrPair			=0x0002,
+	XIAOMI_DATA_EV_Motion				=0x0003,
+	XIAOMI_DATA_EV_KeepAway				=0x0004,
+	XIAOMI_DATA_EV_LockObsolete			=0x0005,
+	XIAOMI_DATA_EV_FingerPrint			=0x0006,
+	XIAOMI_DATA_EV_Door					=0x0007,
+	XIAOMI_DATA_EV_Armed				=0x0008,
+	XIAOMI_DATA_EV_GestureController	=0x0009,
+	XIAOMI_DATA_EV_BodyTemp				=0x000a,
+	XIAOMI_DATA_EV_Lock					=0x000b,
+	XIAOMI_DATA_EV_Flooding				=0x000c,
+	XIAOMI_DATA_EV_Smoke				=0x000d,
+	XIAOMI_DATA_EV_Gas					=0x000e,
+	XIAOMI_DATA_EV_MovingWithLight		=0x000f, // Someone is moving (with light)
+	XIAOMI_DATA_EV_ToothbrushIncident	=0x0010,
+	XIAOMI_DATA_EV_CatEyeIncident		=0x0011,
+	XIAOMI_DATA_EV_WeighingEvent		=0x0012,
+	XIAOMI_DATA_EV_Button				=0x1001
+} XIAOMI_DATA_EV;
+
+enum { // mijia ble version 5, General attributes
 	XIAOMI_DATA_ID_Sleep				=0x1002,
 	XIAOMI_DATA_ID_RSSI					=0x1003,
 	XIAOMI_DATA_ID_Temperature			=0x1004,

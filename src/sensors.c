@@ -175,3 +175,8 @@ _attribute_ram_code_ void read_sensor_low_power(void) {
 		sleep_us(SHT4x_MEASURE_LO_us); // 1700 us
 	}
 }
+
+_attribute_ram_code_ void sensor_go_sleep(void) {
+	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
+		send_sensor_word(SHTC3_GO_SLEEP); // Sleep command of the sensor
+}

@@ -206,7 +206,17 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 #if	USE_TRIGGER_OUT && defined(GPIO_RDS)
 		rds_input_on();
 #endif
+#if (defined(GPIO_ADC1) || defined(GPIO_ADC2))
+		if(1) {
+#else
 		if(read_sensor_cb()) {
+#endif
+#ifdef GPIO_ADC1 // Test only!
+			measured_data.temp = get_adc_mv(8);
+#endif
+#ifdef GPIO_ADC2 // Test only!
+			measured_data.humi = get_adc_mv(9);
+#endif
 			last_temp = (measured_data.temp + 5)/ 10;
 			last_humi = (measured_data.humi + 50)/ 100;
 #if	USE_TRIGGER_OUT
@@ -323,7 +333,11 @@ void user_init_normal(void) {//this will get executed one time after power up
 	init_lcd();
 	test_config();
 	wrk_measure = 1;
+#if defined(GPIO_ADC1) || defined(GPIO_ADC2)
+	sensor_go_sleep();
+#else
 	read_sensor_low_power();
+#endif
 	check_battery();
 	WakeupLowPowerCb(0);
 	lcd();
@@ -475,6 +489,10 @@ _attribute_ram_code_ void main_loop(void) {
 			if (start_measure) {
 				wrk_measure = 1;
 				start_measure = 0;
+#if defined(GPIO_ADC1) || defined(GPIO_ADC2)
+				check_battery();
+				WakeupLowPowerCb(0);
+#else
 				if (cfg.flg.lp_measures) {
 					if (cfg.hw_cfg.shtc3) {
 						read_sensor_low_power();
@@ -495,6 +513,7 @@ _attribute_ram_code_ void main_loop(void) {
 						bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 					}
 				}
+#endif
 			} else {
 				uint32_t new = clock_time();
 				if ((blc_ll_getCurrentState() & BLS_LINK_STATE_CONN) && blc_ll_getTxFifoNumber() < 9) {

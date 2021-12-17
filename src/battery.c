@@ -9,17 +9,13 @@ uint8_t adc_hw_initialized = 0;
 #define ADC_BUF_COUNT	8
 volatile unsigned int adc_dat_buf[ADC_BUF_COUNT];
 
-_attribute_ram_code_ static void adc_bat_init(void) {
-	adc_power_on_sar_adc(0);
-	gpio_set_output_en(GPIO_PB5, 1);
-	gpio_set_input_en(GPIO_PB5, 0);
-	gpio_write(GPIO_PB5, 1);
+_attribute_ram_code_ static void adc_channel_init(ADC_InputPchTypeDef p_ain) {
 	adc_set_sample_clk(5);
 	adc_set_left_right_gain_bias(GAIN_STAGE_BIAS_PER100, GAIN_STAGE_BIAS_PER100);
 	adc_set_chn_enable_and_max_state_cnt(ADC_MISC_CHN, 2);
 	adc_set_state_length(240, 0, 10);
 	analog_write(anareg_adc_res_m, RES14 | FLD_ADC_EN_DIFF_CHN_M);
-	adc_set_ain_chn_misc(B5P, GND);
+	adc_set_ain_chn_misc(p_ain, GND);
 	adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_1P2V);
 	adc_set_tsample_cycle_chn_misc(SAMPLING_CYCLES_6);
 	adc_set_ain_pre_scaler(ADC_PRESCALER_1F8);
@@ -27,12 +23,18 @@ _attribute_ram_code_ static void adc_bat_init(void) {
 }
 
 // Process takes about 83 μs.
-_attribute_ram_code_ uint16_t get_battery_mv(void) {
+_attribute_ram_code_ uint16_t get_adc_mv(ADC_InputPchTypeDef p_ain) {
 	uint16_t temp;
 	int i, j;
-	if (!adc_hw_initialized) {
-		adc_hw_initialized = 1;
-		adc_bat_init();
+	if (adc_hw_initialized != p_ain) {
+		adc_hw_initialized = p_ain;
+		adc_power_on_sar_adc(0);
+		if(p_ain == B5P) {
+			gpio_set_output_en(GPIO_PB5, 1);
+			gpio_set_input_en(GPIO_PB5, 0);
+			gpio_write(GPIO_PB5, 1);
+		}
+		adc_channel_init(p_ain);
 	}
 	adc_power_on_sar_adc(1); // + 0.4 mA
 	adc_reset_adc_module();
@@ -67,6 +69,7 @@ _attribute_ram_code_ uint16_t get_battery_mv(void) {
 		}
 	}
 	dfifo_disable_dfifo2();
+	//adc_set_ain_chn_misc(NOINPUTP, GND);
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4]
 			+ adc_sample[5]) / 4;

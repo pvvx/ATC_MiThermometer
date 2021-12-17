@@ -16,5 +16,6 @@ void read_sensor_deep_sleep(void);
 void read_sensor_low_power(void);
 int read_sensor_cb(void);
 void soft_reset_sensor(void);
+void sensor_go_sleep(void);
 
 
