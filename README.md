@@ -76,9 +76,9 @@ After you have flashed the firmware, the device has changed it's bluetooth name 
 | Option | Description |
 | ------ | ----------- |
 | _Temperature and Humidity offset_ | Enter a value to correct the offset of the Temperature or Humidity displayed: For example `-1.4` will decrease the Temperature by 1.4°
-|  _Smiley or Comfort_ | Choose a static smiley or check the "Comfort" Radio box to change the smiley depending on current Temperature and Humidity. |
+| _Smiley or Comfort_ | Choose a static smiley or check the "Comfort" Radio box to change the smiley depending on current Temperature and Humidity. |
 | _Comfort Parameters_ | Defines the Lower (Lo) and Upper (Hi) Range for Temperature and Humidity interpreted as comfort zone. In the default configuration a smiley will appear.
-| _Advertising Type_ | Type of supported [Bluetooth Advertising Formats](#bluetooth-advertising-formats). By default all formats are enabled.
+| _Advertising Type_ | Type of supported [Bluetooth Advertising Formats](#bluetooth-advertising-formats).
 | _Set time_ | sends the current time to the device
 | _Comfort, Show batt, Clock_ | Ticking the according boxes you can enable interval rotation between different LCD screens. See the example video below.
 
@@ -103,9 +103,9 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 3.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_V34d.bin) (HW: B1.4, B1.6, B1.7, B1.9)
-* [MHO-C401 Custom Firmware Version 3.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v34c.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [CGG1 Custom Firmware Version 3.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v34c.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [LYWSD03MMC Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_V35a.bin) (HW: B1.4, B1.6, B1.7, B1.9)
+* [MHO-C401 Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v35a.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [CGG1 Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v35a.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
 
 **Original Manufacturer Firmware Version**
 
@@ -147,7 +147,6 @@ In case you want to go back to the original firmware, you can download them here
 |     3.4 | Correct Hardware Version Setting for [LYWSD03MMC B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145)
 |     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163)
 
-
 ## Applications
 
 ### Reading Measurements from Flash
@@ -164,6 +163,7 @@ Setting the value to 0 disable logging to internal storage.
 ![FlashData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/FlashData.gif)
 
 ### Reading Measurements in Connected Mode
+
 [GraphAtc.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc.html)
 [GraphAtc1.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc1.html)
 [GraphAtc2.html](https://pvvx.github.io/ATC_MiThermometer/GraphAtc2.html)
@@ -203,7 +203,7 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 The Firmware can be configured to support one of four different Bluetooth advertisements data formats. Supports bindkey beacon encryption.
 
 You can also configure to transferring everything in turn (round-robin)
-#### atc1441 format
+#### atc1441 format:
 UUID 0x181A - size 16: [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware) 
 
 #### Custom format (all data little-endian):  
@@ -226,6 +226,10 @@ UUID 0x181A - size 19: Custom format (all data little-endian):
                        // bit3: Temperature trigger event
                        // bit4: Humidity trigger event
    ```
+### Encrypted beacon formats (uses bindkey):
+
+* [Mijia standard format](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md)
+* [Energy efficient format (low security level)](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018)
 
 #### Xiaomi Battery Charge
 3. UUID 0xFE95 - 0x0A: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - battery charge level 0..100%, battery voltage in mV
@@ -244,7 +248,7 @@ UUID 0x181A - size 19: Custom format (all data little-endian):
 + Primary Service - Battery Service (0x180F):
  * Characteristic UUID [0x2A19](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.battery_level.xml) - Notify the battery charge level 0..99%
 + Primary Service (0x1F10):
- * Characteristic UUID 0x1F1F - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
+ * Characteristic UUID [0x1F1F](https://github.com/pvvx/ATC_MiThermometer#primary-service-uuid-0x1f10-characteristic-uuid-0x1f1f) - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
 ### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
 
@@ -316,8 +320,9 @@ For CGG1 - GPIO_PD3, MHO_C401 - no free pins.
 ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.com/atc1441), who developed the [initial custom firmware version and the web-based OTA flasher (Source)](https://github.com/atc1441/ATC_MiThermometer).
 
 
-
 ## Resources & Links
+* [HTML files](https://github.com/pvvx/pvvx.github.io)
+
 * [Telink Linux Tool Chain 2020-06-26](https://yadi.sk/d/pt_qTBB-t24i9A)
 
 * [MHO-C401 Info](https://pvvx.github.io/MHO_C401/)
@@ -331,8 +336,6 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 * [Additional information on the format Advertising for Xiaomi LYWSD03MMC](https://github.com/Magalex2x14/LYWSD03MMC-info)
 
 * [Reading and recovering Mi-Home keys](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/)
-
-* [HTML files](https://github.com/pvvx/pvvx.github.io)
 
 * [LYWSD03MMC Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251-lcd-termometr-lywsd03mmc-xiaomi-bluetooth-termometr.5263/)
 
