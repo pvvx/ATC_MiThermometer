@@ -23,7 +23,7 @@ _attribute_ram_code_ static void adc_channel_init(ADC_InputPchTypeDef p_ain) {
 }
 
 // Process takes about 83 μs.
-_attribute_ram_code_ uint16_t get_adc_mv(ADC_InputPchTypeDef p_ain) {
+_attribute_ram_code_ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDef
 	uint16_t temp;
 	int i, j;
 	if (adc_hw_initialized != p_ain) {

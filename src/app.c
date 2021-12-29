@@ -336,7 +336,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if defined(GPIO_ADC1) || defined(GPIO_ADC2)
 	sensor_go_sleep();
 #else
-	read_sensor_low_power();
+	start_measure_sensor_low_power();
 #endif
 	check_battery();
 	WakeupLowPowerCb(0);
@@ -495,16 +495,17 @@ _attribute_ram_code_ void main_loop(void) {
 #else
 				if (cfg.flg.lp_measures) {
 					if (cfg.hw_cfg.shtc3) {
-						read_sensor_low_power();
+						start_measure_sensor_low_power();
 						check_battery();
 						WakeupLowPowerCb(0);
 					} else { // sensor SHT4x
 						// no callback, data read sensor is next cycle
-						read_sensor_deep_sleep();
+						WakeupLowPowerCb(0);
 						check_battery();
+						start_measure_sensor_deep_sleep();
 					}
 				} else {
-					read_sensor_deep_sleep();
+					start_measure_sensor_deep_sleep();
 					check_battery();
 					if (bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);

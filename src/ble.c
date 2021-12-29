@@ -391,12 +391,16 @@ void set_adv_data() {
 			p->size = sizeof(adv_atc1441_t) - 1;
 			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 			p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
+#if 1
+			SwapMacAddress(p->MAC, mac_public);
+#else
 			p->MAC[0] = mac_public[5];
 			p->MAC[1] = mac_public[4];
 			p->MAC[2] = mac_public[3];
 			p->MAC[3] = mac_public[2];
 			p->MAC[4] = mac_public[1];
 			p->MAC[5] = mac_public[0];
+#endif
 			p->temperature[0] = (uint8_t)(last_temp >> 8);
 			p->temperature[1] = (uint8_t)last_temp; // x0.1 C
 			p->humidity = (uint8_t)last_humi; // x1 %

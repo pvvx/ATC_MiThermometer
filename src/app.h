@@ -169,4 +169,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n);
 void test_config(void);
 void reset_cache(void);
 
+void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand);
+void SwapMacAddress(u8 *mac_out, u8 *mac_in);
+
 #endif /* MAIN_H_ */

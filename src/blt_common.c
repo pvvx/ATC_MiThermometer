@@ -23,57 +23,69 @@
 #include "tl_common.h"
 #include "drivers.h"
 
-
 /*
  * VVWWXX38C1A4YYZZ
  * public_mac: 		  VVWWXX 38C1A4
  * random_static_mac: VVWWXXYYZZ C0
  */
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void SwapMacAddress(u8 *mac_out, u8 *mac_in) {
+	mac_out[0] = mac_in[5];
+	mac_out[1] = mac_in[4];
+	mac_out[2] = mac_in[3];
+	mac_out[3] = mac_in[2];
+	mac_out[4] = mac_in[1];
+	mac_out[5] = mac_in[0];
+}
 
-__attribute__((optimize("-Os"))) void blc_initMacAddress(int flash_addr, u8 *mac_public, u8 *mac_random_static)
-{
-//	u8  mac_public[6] 		 = {0x00, 0x00, 0x00, 0x38, 0xC1, 0xA4};  //company id: 0xA4C138
-//	u8  mac_random_static[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0xC0};
+__attribute__((optimize("-Os")))
+void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand) {
+	u8 mac_flash[8];
+	flash_erase_sector(flash_addr);
+#if DEVICE_TYPE == DEVICE_CGG1
+	SwapMacAddress(mac_flash, mac_pub);
+#else
+	memcpy(mac_flash, mac_pub, 6);
+#endif
+	mac_flash[6] = mac_rand[3];
+	mac_flash[7] = mac_rand[4];
+	flash_write_page(flash_addr, sizeof(mac_flash), mac_flash);
+}
 
+__attribute__((optimize("-Os")))
+void blc_initMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand) {
 	u8 mac_read[8];
+	u32 * p = (u32 *) &mac_read;
 	flash_read_page(flash_addr, 8, mac_read);
 
-	u8 value_rand[5];
-	generateRandomNum(5, value_rand);
-
-	u8 ff_six_byte[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-	if ( memcmp(mac_read, ff_six_byte, 6) ) {
-		memcpy(mac_public, mac_read, 6);  //copy public address from flash
+	if(p[0] == 0xffffffff && p[1] == 0xffffffff) {
+		// no public address on flash
+#if DEVICE_TYPE == DEVICE_CGG1
+		mac_read[0] = 0x58; // company id: 0x582D34
+		mac_read[1] = 0x2D;
+		mac_read[2] = 0x34;
+		generateRandomNum(5, &mac_read[3]);
+		flash_write_page(flash_addr, sizeof(mac_read), mac_read);
 	}
-	else{  //no public address on flash
-		mac_public[0] = value_rand[0];
-		mac_public[1] = value_rand[1];
-		mac_public[2] = value_rand[2];
-		mac_public[3] = 0x38;             //company id: 0xA4C138
-		mac_public[4] = 0xC1;
-		mac_public[5] = 0xA4;
-
-		flash_write_page (flash_addr, 6, mac_public);
+	// copy public address
+	SwapMacAddress(mac_pub, mac_read);
+#else
+		generateRandomNum(3, mac_read);
+		mac_read[3] = 0x38;             //company id: 0xA4C138
+		mac_read[4] = 0xC1;
+		mac_read[5] = 0xA4;
+		generateRandomNum(2, &mac_read[6]);
+		flash_write_page(flash_addr, sizeof(mac_read), mac_read);
 	}
-
-
-
-
-
-	mac_random_static[0] = mac_public[0];
-	mac_random_static[1] = mac_public[1];
-	mac_random_static[2] = mac_public[2];
-	mac_random_static[5] = 0xC0; 			//for random static
-
-	u16 high_2_byte = (mac_read[6] | mac_read[7]<<8);
-	if(high_2_byte != 0xFFFF){
-		memcpy( (u8 *)(mac_random_static + 3), (u8 *)(mac_read + 6), 2);
-	}
-	else{
-		mac_random_static[3] = value_rand[3];
-		mac_random_static[4] = value_rand[4];
-
-		flash_write_page (flash_addr + 6, 2, (u8 *)(mac_random_static + 3) );
-	}
+	// copy public address
+	memcpy(mac_pub, mac_read, 6);
+#endif
+	mac_rand[0] = mac_pub[0];
+	mac_rand[1] = mac_pub[1];
+	mac_rand[2] = mac_pub[2];
+	mac_rand[3] = mac_read[6];
+	mac_rand[4] = mac_read[7];
+	mac_rand[5] = 0xC0; 			//for random static
 }
 

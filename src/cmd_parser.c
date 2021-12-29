@@ -211,7 +211,23 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 		chk_stage = MI_KEY_STAGE_END;
 		break;
 	default: // Start get all mi keys // MI_KEY_STAGE_MAC
+#if 1
+#if DEVICE_TYPE == DEVICE_CGG1
+		_flash_read(FLASH_MIMAC_ADDR, 8, &keybuf.data[8]); // MAC[6] + mac_random[2]
+		SwapMacAddress(keybuf.data, &keybuf.data[8]);
+		keybuf.data[6] = keybuf.data[8+6];
+		keybuf.data[7] = keybuf.data[8+7];
+#else
+		_flash_read(FLASH_MIMAC_ADDR, 8, keybuf.data); // MAC[6] + mac_random[2]
+#endif
+#else
+#if DEVICE_TYPE == DEVICE_CGG1
+		memcpy(&keybuf.data[8],(uint8_t *)(FLASH_MIMAC_ADDR), 8); // MAC[6] + mac_random[2]
+		SwapMacAddress(keybuf.data, &keybuf.data[8]);
+#else
 		memcpy(&keybuf.data,(uint8_t *)(FLASH_MIMAC_ADDR), 8); // MAC[6] + mac_random[2]
+#endif
+#endif
 		keybuf.klen = 8;
 		keybuf.id = CMD_ID_DEV_MAC;
 		chk_stage = MI_KEY_STAGE_DNAME;
@@ -223,7 +239,7 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 
 static int32_t erase_mikeys(void) {
 	int32_t tmp;
-	flash_read_page(FLASH_MIKEYS_ADDR, 4, (unsigned char *)&tmp);
+	_flash_read(FLASH_MIKEYS_ADDR, 4, &tmp);
 	if(++tmp) {
 		flash_erase_sector(FLASH_MIKEYS_ADDR);
 	}
@@ -288,7 +304,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 		} else if (cmd == CMD_ID_DEV_MAC) { // Get/Set mac
 			if(len == 2 && req->dat[1] == 0) { // default MAC
 				flash_erase_sector(FLASH_MIMAC_ADDR);
-				blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
+				blc_initMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
 				ble_connected |= 0x80; // reset device on disconnect
 			} else if(len == sizeof(mac_public)+2 && req->dat[1] == sizeof(mac_public)) {
 				if(memcmp(&mac_public, &req->dat[2], sizeof(mac_public))) {
@@ -298,9 +314,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 					mac_random_static[2] = mac_public[2];
 					generateRandomNum(2, &mac_random_static[3]);
 					mac_random_static[5] = 0xC0; 			//for random static
-					flash_erase_sector(FLASH_MIMAC_ADDR);
-					flash_write_page(FLASH_MIMAC_ADDR, sizeof(mac_public), mac_public);
-					flash_write_page(FLASH_MIMAC_ADDR + sizeof(mac_public), 2, &mac_random_static[3]);
+					blc_newMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
 					ble_connected |= 0x80; // reset device on disconnect
 				}
 			} else	if(len == sizeof(mac_public)+2+2 && req->dat[1] == sizeof(mac_public)+2) {
@@ -314,8 +328,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 					mac_random_static[3] = req->dat[2+6];
 					mac_random_static[4] = req->dat[2+7];
 					mac_random_static[5] = 0xC0; 			//for random static
-					flash_erase_sector(FLASH_MIMAC_ADDR);
-					flash_write_page(FLASH_MIMAC_ADDR, sizeof(mac_public)+2, &req->dat[2]);
+					blc_newMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
 					ble_connected |= 0x80; // reset device on disconnect
 				}
 			}
@@ -452,7 +465,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			// Debug commands (unsupported in different versions!):
 
 		} else if (cmd == CMD_ID_DEBUG && len > 3) { // test/debug
-			flash_read_page((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), 18, &send_buf[4]);
+			_flash_read((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), 18, &send_buf[4]);
 			memcpy(send_buf, req->dat, 4);
 			olen = 18+4;
 		}

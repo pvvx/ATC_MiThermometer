@@ -153,7 +153,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int read_sensor_cb(void) {
 	return 0;
 }
 
-_attribute_ram_code_ void read_sensor_deep_sleep(void) {
+_attribute_ram_code_ void start_measure_sensor_deep_sleep(void) {
 	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
 		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
 		sleep_us(SHTC3_WAKEUP_us - 5);	// 240 us
@@ -165,7 +165,7 @@ _attribute_ram_code_ void read_sensor_deep_sleep(void) {
 	timer_measure_cb = clock_time() | 1;
 }
 
-_attribute_ram_code_ void read_sensor_low_power(void) {
+_attribute_ram_code_ void start_measure_sensor_low_power(void) {
 	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
 		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
 		sleep_us(SHTC3_WAKEUP_us);	// 240 us
