@@ -28,7 +28,7 @@ RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
 RAM my_fifo_t blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b, };
 RAM uint8_t blt_txfifo_b[40 * 16] = { 0 };
 RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
-RAM uint8_t ble_name[12] = { 11, 0x09,
+RAM uint8_t ble_name[32] = { 11, 0x09,
 #if DEVICE_TYPE == DEVICE_MHO_C401
 		'M', 'H', 'O', '_', '0', '0', '0', '0',	'0', '0' };
 #elif DEVICE_TYPE == DEVICE_CGG1
@@ -50,6 +50,33 @@ void app_enter_ota_mode(void) {
 	ota_is_working = 1;
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
 }
+
+#define BLE_ADV_TIME 0 // Test Only!
+#if BLE_ADV_TIME
+typedef struct __attribute__((packed)) _resp_time_t {
+	uint8_t len;
+	uint8_t type;
+	uint16_t uuid;
+	uint32_t utime;
+}resp_time_t, * presp_time_t;
+
+void add_resp_time() {
+	uint8_t len = ble_name[0];
+	presp_time_t p;
+	if (len < (sizeof(ble_name)-1-sizeof(resp_time_t))) {
+		p = (presp_time_t) &ble_name[len+1];
+		p->len = sizeof(resp_time_t) - 1;
+		p->type = 0x16;
+		p->uuid = 0x1f11;
+		p->utime = utc_time_sec;
+	} else
+		ble_name[len+1] = 0;
+}
+void ble_scan_response_callback(uint8_t e, uint8_t *p, int n) {
+	add_resp_time();
+	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0] + 1 + ble_name[ble_name[0]+1] + 1);
+}
+#endif
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	if(ble_connected & 0x80) // reset device on disconnect?
@@ -119,7 +146,7 @@ _attribute_ram_code_ void user_set_rf_power(u8 e, u8 *p, int n) {
  * blt_event_callback_t(): */
 _attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
-	bls_ll_setAdvParam(adv_interval, adv_interval + 50,
+	bls_ll_setAdvParam(adv_interval, adv_interval + 10,
 			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
 			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 	bls_ll_setAdvEnable(1);
@@ -161,7 +188,7 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 extern attribute_t my_Attributes[ATT_END_H];
 const char* hex_ascii = { "0123456789ABCDEF" };
 void ble_get_name(void) {
-	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, sizeof(ble_name)-2);
+	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, 31-2));
 	if(len < 1) {
 		//Set the BLE Name to the last three MACs the first ones are always the same
 #if DEVICE_TYPE == DEVICE_MHO_C401
@@ -192,6 +219,10 @@ void ble_get_name(void) {
 		my_Attributes[GenericAccess_DeviceName_DP_H].attrLen = len;
 		ble_name[0] = (uint8_t)(len + 1);
 	}
+	ble_name[1] = 0x09;
+#if BLE_ADV_TIME
+	add_resp_time();
+#endif
 }
 
 __attribute__((optimize("-Os"))) void init_ble(void) {
@@ -267,12 +298,19 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_smp_setSecurityLevel(No_Security);
 
 	///////////////////// USER application initialization ///////////////////
+#if BLE_ADV_TIME
+	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0] + 1 + ble_name[ble_name[0]+1] + 1);
+#else
 	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
+#endif
 	rf_set_power_level_index(cfg.rf_tx_power);
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power);
 	bls_app_registerEventCallback(BLT_EV_FLAG_CONNECT, &ble_connect_callback);
 	bls_app_registerEventCallback(BLT_EV_FLAG_TERMINATE,
 			&ble_disconnect_callback);
+#if BLE_ADV_TIME
+	bls_app_registerEventCallback(BLT_EV_FLAG_SCAN_RSP,	&ble_scan_response_callback);
+#endif
 
 	///////////////////// Power Management initialization///////////////////
 	blc_ll_initPowerManagement_module();

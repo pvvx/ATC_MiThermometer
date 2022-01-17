@@ -29,10 +29,11 @@ _attribute_ram_code_ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDe
 	if (adc_hw_initialized != p_ain) {
 		adc_hw_initialized = p_ain;
 		adc_power_on_sar_adc(0);
-		if(p_ain == B5P) {
-			gpio_set_output_en(GPIO_PB5, 1);
-			gpio_set_input_en(GPIO_PB5, 0);
-			gpio_write(GPIO_PB5, 1);
+		if(p_ain == SHL_ADC_VBAT) {
+			// Set missing pin on case TLSR8251F512ET24/TLSR8253F512ET32
+			gpio_set_output_en(GPIO_VBAT, 1);
+			gpio_set_input_en(GPIO_VBAT, 0);
+			gpio_write(GPIO_VBAT, 1);
 		}
 		adc_channel_init(p_ain);
 	}

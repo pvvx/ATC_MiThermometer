@@ -26,7 +26,7 @@ extern u8 RxTxValueInCCC[2];
 extern uint8_t send_buf[SEND_BUFFER_SIZE];
 extern uint8_t mac_public[6];
 extern uint8_t mac_random_static[6];
-extern uint8_t ble_name[12];
+extern uint8_t ble_name[32];
 
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 extern u8 my_HardStr[4];

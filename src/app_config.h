@@ -46,6 +46,9 @@ extern "C" {
 // GPIO_PD2 - used EPD_CSB
 // GPIO_PD7 - used EPD_SCL
 
+#define SHL_ADC_VBAT	6  // "B5P" in adc.h
+#define GPIO_VBAT	GPIO_PB5 // missing pin on case TLSR8251F512ET24
+
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
 #define I2C_GROUP 	I2C_GPIO_GROUP_C2C3
@@ -117,6 +120,9 @@ extern "C" {
 // GPIO_PD3 - free
 // GPIO_PD4 - used EPD_BUSY
 // GPIO_PD7 - used EPD_SCL
+
+#define SHL_ADC_VBAT	1  // "B0P" in adc.h
+#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8253F512ET32
 
 #define I2C_SCL 	GPIO_PC0
 #define I2C_SDA 	GPIO_PC1
@@ -192,6 +198,9 @@ extern "C" {
 // GPIO_PC4 - free, pcb mark "P9" (PWM)
 // GPIO_PD2 - CS/PWM, free
 // GPIO_PD7 - free [B1.4], pcb mark "P7" (UART TX LCD [B1.6])
+
+#define SHL_ADC_VBAT	6  // "B5P" in adc.h
+#define GPIO_VBAT	GPIO_PB5 // missing pin on case TLSR8251F512ET24
 
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
