@@ -199,8 +199,8 @@ extern "C" {
 // GPIO_PD2 - CS/PWM, free
 // GPIO_PD7 - free [B1.4], pcb mark "P7" (UART TX LCD [B1.6])
 
-#define SHL_ADC_VBAT	6  // "B5P" in adc.h
-#define GPIO_VBAT	GPIO_PB5 // missing pin on case TLSR8251F512ET24
+#define SHL_ADC_VBAT	1  // "B0P" in adc.h
+#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
 
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
