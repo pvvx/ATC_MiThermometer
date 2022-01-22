@@ -46,8 +46,8 @@ extern "C" {
 // GPIO_PD2 - used EPD_CSB
 // GPIO_PD7 - used EPD_SCL
 
-#define SHL_ADC_VBAT	6  // "B5P" in adc.h
-#define GPIO_VBAT	GPIO_PB5 // missing pin on case TLSR8251F512ET24
+#define SHL_ADC_VBAT	1  // "B0P" in adc.h
+#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
 
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3

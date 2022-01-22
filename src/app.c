@@ -548,9 +548,12 @@ _attribute_ram_code_ void main_loop(void) {
 					}
 				}
 				if (new - tim_measure >= measurement_step_time) {
-					start_measure = 1;
 					tim_measure = new;
+					start_measure = 1;
 				}
+#if (DEVICE_TYPE == DEVICE_CGG1) // Can be bypassed by measurements when there is no E-Ink update (https://github.com/pvvx/ATC_MiThermometer/issues/180)
+				else
+#endif
 				if (new - tim_last_chow >= min_step_time_update_lcd) {
 					if (!lcd_flg.b.ext_data) {
 						lcd_flg.b.new_update = lcd_flg.b.notify_on;
@@ -574,10 +577,9 @@ _attribute_ram_code_ void main_loop(void) {
 		if(wrk_measure == 0 && stage_lcd) {
 			if(gpio_read(EPD_BUSY) && (!task_lcd())) {
 				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
-			}
-			else if(stage_lcd && ((bls_pm_getSystemWakeupTick() - clock_time())) > 25 * CLOCK_16M_SYS_TIMER_CLK_1MS) {
+			} else if((bls_pm_getSystemWakeupTick() - clock_time()) > 25 * CLOCK_16M_SYS_TIMER_CLK_1MS) {
 				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable
-				bls_pm_setWakeupSource(PM_WAKEUP_PAD);//|PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
+				bls_pm_setWakeupSource(PM_WAKEUP_PAD);  // gpio pad wakeup suspend/deepsleep
 			}
 		}
 #endif
