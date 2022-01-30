@@ -131,7 +131,7 @@ _attribute_ram_code_ void send_to_lcd(){
 		reg_i2c_id = lcd_i2c_addr;
 
 		if(lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
-			// B1.4
+			// B1.4, B1.7, B2.0
 			reg_i2c_adr_dat = 0x4080;
 			reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
 			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
@@ -180,7 +180,7 @@ _attribute_ram_code_ void send_to_lcd(){
 
 void init_lcd(void){
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B14_I2C_ADDR << 1);
-	if(lcd_i2c_addr) { // B1.4
+	if(lcd_i2c_addr) { // B1.4, B1.7, B2.0
 		gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 		pm_wait_ms(50);
 		lcd_send_i2c_buf((uint8_t *) lcd_init_cmd_b14, sizeof(lcd_init_cmd_b14));

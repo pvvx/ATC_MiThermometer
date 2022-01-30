@@ -114,19 +114,29 @@ RAM external_data_t ext;
 RAM uint32_t pincode;
 #endif
 
-__attribute__((optimize("-Os"))) void set_hw_version(void) {
+__attribute__((optimize("-Os")))
+static void set_hw_version(void) {
 	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
 		cfg.hw_cfg.shtc3 = 1; // = 1 - sensor SHTC3
 	else
 		cfg.hw_cfg.shtc3 = 0; // = 0 - sensor SHT4x or ?
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
+	if(flash_read_cfg(&my_HardStr, EEP_ID_HWV, sizeof(my_HardStr)) != sizeof(my_HardStr)
+	|| my_HardStr[0] != 'B'
+	|| my_HardStr[2] != '.' ) {
+		my_HardStr[0] = 'B';
+		my_HardStr[1] = '1';
+		my_HardStr[2] = '.';
+		my_HardStr[3] = '?';
+	}
 	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 		if(cfg.hw_cfg.shtc3) { // sensor SHTC3 ?
 			cfg.hw_cfg.hwver = 0; // HW:B1.4
 			my_HardStr[3] = '4';
 		} else { // sensor SHT4x or ?
 			cfg.hw_cfg.hwver = 5; // HW:B1.7
-			my_HardStr[3] = '7';
+			if(my_HardStr[1] == '1') // HW:B1.?
+				my_HardStr[3] = '7';
 		}
 	} else if (lcd_i2c_addr == (B19_I2C_ADDR << 1)) {
 		cfg.hw_cfg.hwver = 3; // HW:B1.9
@@ -191,7 +201,7 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 	if(cfg.min_step_time_update_lcd < 10)
 		cfg.min_step_time_update_lcd = 10; // min 10*0.05 = 0.5 sec
 	min_step_time_update_lcd = cfg.min_step_time_update_lcd * (100 * CLOCK_16M_SYS_TIMER_CLK_1MS);
-	set_hw_version();
+
 	cfg.hw_cfg.clock = USE_CLOCK;
 	cfg.hw_cfg.memo = USE_FLASH_MEMO;
 	cfg.hw_cfg.trg = USE_TRIGGER_OUT;
@@ -287,12 +297,35 @@ _attribute_ram_code_ void check_battery(void) {
 	}
 	battery_level = get_battery_level(measured_data.battery_mv);
 }
+
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+/*
+ * Read HW version
+ * Flash:
+ * 00055000:  42 31 2E 34 46 31 2E 30 2D 43 46 4D 4B 2D 4C 42  B1.4F1.0-CFMK-LB
+ * 00055010:  2D 5A 43 58 54 4A 2D 2D FF FF FF FF FF FF FF FF  -ZCXTJ--
+ */
+uint32_t get_mi_hw_version(void) {
+	uint32_t hw;
+	flash_read_page(0x55000, sizeof(hw), (unsigned char *)&hw);
+	if((hw & 0xf0fff0ff) != 0x302E3042) {
+		if(flash_read_cfg(&hw, EEP_ID_HWV, sizeof(hw)) != sizeof(hw))
+			hw = 0;
+		else if((hw & 0xf0fff0ff) != 0x302E3042)
+			hw = 0;
+	}
+	return hw;
+}
+#endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
 //------------------ user_init_normal -------------------
 void user_init_normal(void) {//this will get executed one time after power up
 	if (get_battery_mv() < MIN_VBAT_MV) // 2.2V
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 	random_generator_init(); //must
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+	uint32_t hw_ver = get_mi_hw_version();
+#endif
 	// Read config
 	if (flash_supported_eep_ver(EEP_SUP_VER, VERSION)) {
 		if(flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg))
@@ -320,6 +353,10 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if	USE_TRIGGER_OUT
 		memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #endif
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+		if(hw_ver)
+			flash_write_cfg(&hw_ver, EEP_ID_HWV, sizeof(hw_ver));
+#endif
 	}
 	test_config();
 	memcpy(&ext, &def_ext, sizeof(ext));
@@ -331,7 +368,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 	memo_init();
 #endif
 	init_lcd();
-	test_config();
+	set_hw_version();
 	wrk_measure = 1;
 #if defined(GPIO_ADC1) || defined(GPIO_ADC2)
 	sensor_go_sleep();

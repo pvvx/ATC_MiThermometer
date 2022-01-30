@@ -103,7 +103,7 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_V35c.bin) (HW: B1.4, B1.6, B1.7, B1.9)
+* [LYWSD03MMC Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_V35d.bin) (HW: B1.4, B1.6, B1.7, B1.9)
 * [MHO-C401 Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v35c.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
 * [CGG1 Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v35d.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
 
@@ -146,6 +146,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.3 | Added autodetection for [LYWSD03MMC hardware versions B1.6 and B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125). For CGG1-M and MHO-C401 - autodetection of SHTV3 or SHT4x sensors
 |     3.4 | Correct Hardware Version Setting for [LYWSD03MMC B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145)
 |     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163)
+|     3.5d | Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M.
 
 ## Applications
 

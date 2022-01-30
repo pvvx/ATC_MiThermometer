@@ -15,6 +15,7 @@
 #define EEP_ID_DVN (0x0DB5) // EEP ID device name
 #define EEP_ID_TIM (0x0ADA) // EEP ID time adjust
 #define EEP_ID_KEY (0xBEAC) // EEP ID bkey
+#define EEP_ID_HWV (0x1234) // EEP ID Mi HW version
 
 enum {
 	ADV_TYPE_ATC = 0,

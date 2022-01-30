@@ -423,12 +423,6 @@ void my_att_init(void) {
 		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_RDWR;
 	}
 #endif
-#if DEVICE_TYPE == DEVICE_LYWSD03MMC
-	my_HardStr[0] = 'B';
-	my_HardStr[1] = '1';
-	my_HardStr[2] = '.';
-	my_HardStr[3] = '?';
-#endif
 	bls_att_setAttributeTable ((u8 *)my_Attributes);
 }
 
