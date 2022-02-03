@@ -139,6 +139,7 @@ ifeq ($(COMPILEOS),$(LINUX_OS))
 ifneq ($(TC32_PATH)tc32-elf-gcc, $(wildcard $(TC32_PATH)tc32-elf-gcc))
 	@wget -P $(TOOLS_PATH) http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32_gcc_v2.0.tar.bz2 
 	@tar -xvjf $(TOOLS_PATH)tc32_gcc_v2.0.tar.bz2 -C $(TOOLS_PATH)
+	@chmod a+x $(TL_Check)
 endif
 endif
 
