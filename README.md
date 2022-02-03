@@ -309,12 +309,19 @@ For CGG1 - GPIO_PD3, MHO_C401 - no free pins.
 
 #### Building the firmware
 
-1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and get the IDE for TLSR8 Chips.
-2. Clone https://github.com/Ai-Thinker-Open/Telink_825X_SDK
-3. Install the IDE and import the 'ATC_MiThermometer' project
-4. Change 'Linked resource' and 'C/C++ Build/Build command'. 
-5. Compile the project
+Windows:
 
+1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and get the IDE for TLSR8 Chips.
+2. Install the IDE and import the 'ATC_MiThermometer' project
+3. Compile the project
+
+Ubuntu:
+
+```
+  git clone https://github.com/pvvx/ATC_MiThermometer.git
+  cd ATC_MiThermometer
+  make
+```
 
 ## Related Work
 

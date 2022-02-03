@@ -38,16 +38,17 @@ def arg_auto_int(x):
 	
 class ELFFile:
 
-	def __init__(self, name):
+	def __init__(self, name, tool_nm):
 		self.name = name
+		self.tool_nm = tool_nm
 		self.symbols = {}
 		try:
-			tool_nm = "tc32-elf-nm"
+			#tool_nm = "tc32-elf-nm"
 			#if sys.platform == 'linux2':
 			#	tool_nm = "tc32-elf-nm"
-			proc = subprocess.Popen([tool_nm, self.name], stdout=subprocess.PIPE)
+			proc = subprocess.Popen([self.tool_nm, self.name], stdout=subprocess.PIPE)
 		except OSError:
-			print("Error calling " + tool_nm + ", do you have toolchain in PATH?")
+			print("Error calling " + self.tool_nm + ", do you have toolchain in PATH?")
 			sys.exit(1)
 		for l in proc.stdout:
 			fields = l.strip().split()
@@ -91,7 +92,8 @@ def main():
 		help="Chip SRAM Size (default: 65536)",
 		type=arg_auto_int, 
 		default=65536)
-	parser.add_argument('elffname', help='Name of elf file')		
+	parser.add_argument('-t','--tools', help='Path and name tc32-elf-nm', default = 'tc32-elf-nm');
+	parser.add_argument('elffname', help='Name of elf file')
 	args = parser.parse_args()
 
 	print('%s version %s' % (__progname__, __version__))
@@ -104,7 +106,7 @@ def main():
 	sec_end_add =   [0, 0, 0, 0, 0, 0, 0x800, 0, 0, 0, SRAM_BASE_ADDR, 0]
 	sec_size = []
 
-	e = ELFFile(args.elffname);
+	e = ELFFile(args.elffname, args.tools);
 	if e.get_symbol_addr(b"_start_bss_") > 0:
 		chip_sram_size = e.get_symbol_addr(b"__RAM_SIZE_MAX");
 	else:

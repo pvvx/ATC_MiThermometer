@@ -38,16 +38,16 @@ def arg_auto_int(x):
 	
 class ELFFile:
 
-	def __init__(self, name):
+	def __init__(self, name, tool_nm):
 		self.name = name
+		self.tool_nm = tool_nm
 		self.symbols = {}
 		try:
-			tool_nm = "tc32-elf-nm"
 			#if sys.platform == 'linux2':
 			#	tool_nm = "tc32-elf-nm"
-			proc = subprocess.Popen([tool_nm, self.name], stdout=subprocess.PIPE)
+			proc = subprocess.Popen([self.tool_nm, self.name], stdout=subprocess.PIPE)
 		except OSError:
-			print("Error calling " + tool_nm + ", do you have toolchain in PATH?")
+			print("Error calling " + self.tool_nm + ", do you have toolchain in PATH?")
 			sys.exit(1)
 		for l in proc.stdout:
 			fields = l.strip().split()
@@ -72,10 +72,11 @@ def main():
 
 	signal.signal(signal.SIGINT, signal_handler);
 	parser = argparse.ArgumentParser(description='%s version %s' % (__progname__, __version__), prog=__filename__);
-	parser.add_argument('-o','--output', help='Name of elf file', default = 'out.elf');
+	parser.add_argument('-e','--elffile', help='Name of elf file', default = 'out.elf');
+	parser.add_argument('-t','--tools', help='Path and name tc32-elf-nm', default = 'tc32-elf-nm');
 	args = parser.parse_args();
 
-	e = ELFFile(args.output);
+	e = ELFFile(args.elffile, args.tools);
 	rrs = e.get_symbol_addr(b"_retention_data_end_");
 	if rrs == 0:
 		rrs = e.get_symbol_addr(b"_ictag_start_");
