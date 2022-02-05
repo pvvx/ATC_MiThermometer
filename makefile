@@ -13,15 +13,15 @@ ifneq ($(TEL_PATH)/components/drivers/8258/gpio_8258.c, $(wildcard $(TEL_PATH)/c
 $(error "Please check SDK Path and set TEL_PATH.")
 endif
 
+TL_Check = $(PROJECT_PATH)/../utils/tl_check_fw.py
+
 COMPILEOS = $(shell uname -o)
 LINUX_OS = GNU/Linux
 
 ifeq ($(COMPILEOS),$(LINUX_OS))
-	TL_Check = $(PROJECT_PATH)/../utils/check_fw
 	TOOLS_PATH := $(TEL_PATH)/tools/linux/
 	TC32_PATH := $(TOOLS_PATH)tc32/bin/
 else
-	TL_Check = $(PROJECT_PATH)/../utils/tl_check_fw2.exe
 	TOOLS_PATH := $(TEL_PATH)/tools/windows/
 ifeq ($(TOOLS_PATH)tc32/bin/tc32-elf-gcc.exe, $(wildcard $(TOOLS_PATH)tc32/bin/tc32-elf-gcc.exe))
 	TC32_PATH := $(TOOLS_PATH)tc32/bin/
@@ -120,7 +120,7 @@ $(LST_FILE): $(ELF_FILE)
 $(BIN_FILE): $(ELF_FILE)
 	@echo 'Create Flash image (binary format)'
 	@$(TC32_PATH)tc32-elf-objcopy -v -O binary $(ELF_FILE)  $(BIN_FILE)
-	@$(TL_Check) $(BIN_FILE)
+	@python3 $(TL_Check) $(BIN_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '
 
@@ -138,8 +138,7 @@ pre-build:
 ifeq ($(COMPILEOS),$(LINUX_OS))
 ifneq ($(TC32_PATH)tc32-elf-gcc, $(wildcard $(TC32_PATH)tc32-elf-gcc))
 	@wget -P $(TOOLS_PATH) http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32_gcc_v2.0.tar.bz2 
-	@tar -xvjf $(TOOLS_PATH)tc32_gcc_v2.0.tar.bz2 -C $(TOOLS_PATH)
-	@chmod a+x $(TL_Check)
+	@tar -xvjf $(TOOLS_PATH)tc32_gcc_v2.0.tar.bz2 -C $(TOOLS_PATH)	
 endif
 endif
 
