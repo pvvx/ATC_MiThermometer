@@ -280,9 +280,9 @@ void low_vbat(void) {
 	if(cfg.hw_cfg.shtc3 && wrk_measure)
 		soft_reset_sensor();
 	show_temp_symbol(0);
-	show_big_number(measured_data.battery_mv * 10);
+	show_big_number_x10(measured_data.battery_mv * 10);
 #if (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK22)
-	show_small_number(-1023, 1); // "Lo"
+	show_small_number_x10(-1023, 1); // "Lo"
 #else
 	show_small_number(-123, 1); // "Lo"
 #endif
@@ -432,7 +432,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 #endif
 #else
 				show_small_number((battery_level >= 100) ? 99 : battery_level, 1);
-#endif
+#endif // (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK22)
 				set_small_number_and_bat = false;
 			} else if (cfg.flg.blinking_time_smile) { // blinking on
 #if	USE_CLOCK
@@ -448,10 +448,14 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 			show_smiley(*((uint8_t *) &ext.flg));
 		if (set_small_number_and_bat) {
 			show_battery_symbol(ext.flg.battery);
+#if	(DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK22)
+			show_small_number_x10(ext.small_number, ext.flg.percent_on);
+#else
 			show_small_number(ext.small_number, ext.flg.percent_on);
+#endif
 		}
 		show_temp_symbol(*((uint8_t *) &ext.flg));
-		show_big_number(ext.big_number);
+		show_big_number_x10(ext.big_number);
 	} else {
 		if (show_stage & 1) { // stage blinking or show battery
 #if	USE_CLOCK
@@ -475,8 +479,9 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 #else
 				show_batt_cgdk22();
 #endif
+#else
 				show_small_number((battery_level >= 100) ? 99 : battery_level, 1);
-#endif
+#endif // (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK22)
 				set_small_number_and_bat = false;
 			} else if (cfg.flg.blinking_time_smile) { // blinking on
 #if	USE_CLOCK
@@ -501,7 +506,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 		if (set_small_number_and_bat) {
 #if	(DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK22)
 			show_battery_symbol(!cfg.flg.show_batt_enabled);
-			show_small_number((measured_data.humi + 5) / 10, 1);
+			show_small_number_x10((measured_data.humi + 5) / 10, 1);
 #else
 			show_battery_symbol(0);
 			show_small_number(last_humi, 1);
@@ -509,10 +514,10 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 		}
 		if (cfg.flg.temp_F_or_C) {
 			show_temp_symbol(TMP_SYM_F); // "°F"
-			show_big_number((((measured_data.temp / 5) * 9) + 3200) / 10); // convert C to F
+			show_big_number_x10((((measured_data.temp / 5) * 9) + 3200) / 10); // convert C to F
 		} else {
 			show_temp_symbol(TMP_SYM_C); // "°C"
-			show_big_number(last_temp);
+			show_big_number_x10(last_temp);
 		}
 	}
 	show_ble_symbol(ble_connected);

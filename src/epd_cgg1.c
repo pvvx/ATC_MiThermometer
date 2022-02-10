@@ -198,8 +198,8 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(
     }
 }
 
-/* x0.1 (-995..19995) Show: -99 .. -9.9 .. 199.9 .. 1999 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number(int16_t number){
+/* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 	display_buff[1] &= ~(BIT(0) | BIT(1) | BIT(6) | BIT(7));
 	display_buff[2] = 0;
 	display_buff[3] &= ~(BIT(6) | BIT(7));
@@ -255,8 +255,8 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number(int16
 	}
 }
 
-/* -9.9 .. 99.9 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
+/* number in 0.1 (-99..999) -> show:  -9.9 .. 99.9 */
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10(int16_t number, bool percent){
 	display_buff[0] &= ~(BIT(0) | BIT(1) | BIT(2));
 	display_buff[3] &= ~(BIT(0) | BIT(1) | BIT(2) | BIT(3) | BIT(4) | BIT(5));
 	display_buff[5] &= ~(BIT(1) | BIT(2) | BIT(3));
@@ -331,7 +331,7 @@ void show_batt_cgg1(void) {
 		if(battery_level > 995)
 			battery_level = 995;
 	}
-	show_small_number(battery_level, false);
+	show_small_number_x10(battery_level, false);
 }
 
 _attribute_ram_code_ void update_lcd(void){

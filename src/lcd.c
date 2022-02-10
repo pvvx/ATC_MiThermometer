@@ -254,8 +254,8 @@ _attribute_ram_code_ void show_battery_symbol(bool state){
 		display_buff[1] &= ~LCD_SYM_BAT;
 }
 
-/* x0.1 (-995..19995) Show: -99 .. -9.9 .. 199.9 .. 1999 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number(int16_t number){
+/* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 //	display_buff[4] = point?0x08:0x00;
 	if(number > 19995) {
    		display_buff[3] = 0;

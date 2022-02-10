@@ -51,9 +51,8 @@ void show_temp_symbol(uint8_t symbol);
  * 6 = "^-^" sad
  * 7 = "oOo" */
 void show_smiley(uint8_t state);
-void show_big_number(int16_t number); // x0.1, (-995..19995), point auto: -99 .. -9.9 .. 199.9 .. 1999
-void show_small_number(int16_t number, bool percent); // -9 .. 99
 void show_battery_symbol(bool state);
+void show_big_number_x10(int16_t number); // x0.1, (-995..19995), point auto: -99 .. -9.9 .. 199.9 .. 1999
 void show_ble_symbol(bool state);
 #if	USE_CLOCK
 void show_clock(void);
@@ -62,17 +61,21 @@ void show_clock(void);
 #if DEVICE_TYPE == DEVICE_MHO_C401
 extern uint8_t display_buff[18];
 extern uint8_t stage_lcd;
+void show_small_number(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
 #elif DEVICE_TYPE == DEVICE_CGG1
 extern uint8_t display_buff[18];
 extern uint8_t stage_lcd;
+void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
 void show_batt_cgg1(void);
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 extern uint8_t display_buff[6];
+void show_small_number(int16_t number, bool percent); // -9 .. 99
 #elif DEVICE_TYPE == DEVICE_CGDK22
 extern uint8_t display_buff[18];
 void show_batt_cgdk22(void);
+void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 #else
 #error "Set DEVICE_TYPE!"
 #endif

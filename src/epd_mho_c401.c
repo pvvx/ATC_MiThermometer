@@ -218,8 +218,8 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(
     }
 }
 
-/* x0.1 (-995..19995) Show: -99 .. -9.9 .. 199.9 .. 1999 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number(int16_t number){
+/* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 	display_buff[11] = 0;
 	display_buff[12] = 0;
 	display_buff[13] = 0;
