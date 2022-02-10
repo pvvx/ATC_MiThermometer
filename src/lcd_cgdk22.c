@@ -5,181 +5,306 @@
 #include "drivers.h"
 #include "drivers/8258/gpio_8258.h"
 #include "app.h"
+#include "battery.h"
 #include "i2c.h"
 #include "lcd.h"
-#include "battery.h"
-
-/*
-  CGDK2-2 LCD buffer:  byte.bit
-
-       ---------1.5-------------      O 17.6  :--17.6---
-       |                       |              |
-      ||    |   |   |   |   |  |             17.6
-      ||   1.6 1.7 1.3 1.2 1.1 |              |
-      ||    |   |   |   |   |  |              :--17.5---
-       |                       |              |
-       -------------------------             17.6
-                                              |
-                                              :--17.4---
-
-   |   2.7---2.3---5.7  3.3---4.7---5.6       0.7---0.6--17.3
-   |    |           |    |           |         |           |
-   |   2.6         3.7  3.2         4.3       0.3        17.2
-   |    |           |    |           |         |           |
-  1.0  2.5---2.2---3.6  3.1---4.6---4.2       0.2---0.5--17.1
-   |    |           |    |           |         |           |
-   |   2.4         3.5  3.0         4.1       0.1        17.0
-   |    |           |    |           |   5.4   |           |
-   |   2.0---2.1---3.4  4.4---4.5---4.0   *   0.0---0.4---5.5
-
-  ------------------------------5.4--------------------------
-
-   5.3---6.7---8.3  7.7---7.3---8.2   %   9.7---9.3--17.7
-    |           |    |           |   8.1   |           |
-   5.2         6.3  7.6         8.7       9.6        10.7
-    |           |    |           |         |           |
-   5.1---6.6---6.2  7.5---7.2---8.6       9.5---9.2--10.6
-    |           |    |           |         |           |
-   5.0         6.1  7.4         8.5       9.4        10.5
-    |           |    |           |   8.0   |           |
-   6.4---6.5---6.0  7.0---7.1---8.4   *   9.0---9.1--10.4
 
 
-none: 1.4, 10.0-10.3, 11.0-16.7
-*/
+/* t,H,h,L,o,i  0xe2,0x67,0x66,0xe0,0xC6,0x40 */
+#define LCD_SYM_H   0x67    // "H"
+#define LCD_SYM_i   0x40    // "i"
+#define LCD_SYM_L   0xE0    // "L"
+#define LCD_SYM_o   0xC6    // "o"
 
-#define DEF_CGDK22_SUMBOL_SIGMENTS	13
-/*
-Now define how each digit maps to the segments:
-  12-----1-----2
-   |           |
-  11           3
-   |           |
-  10----13-----4
-   |           |
-   9           5
-   |           |
-   8-----7-----6
-*/
+#define LCD_SYM_BLE 0x10    // connect
+#define LCD_SYM_BAT 0x08    // battery
+#define LCD_I2C_ADDR 0x7C   // I2C slave address of the LCD controller (including R/~W bit)
 
-const uint8_t digits[16][DEF_CGDK22_SUMBOL_SIGMENTS + 1] = {
-    {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0},  // 0
-    {2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0},        // 1
-    {1, 2, 3, 4, 6, 7, 8, 9, 10, 12, 13, 0, 0, 0},  // 2
-    {1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 13, 0, 0, 0},  // 3
-    {2, 3, 4, 5, 6, 10, 11, 12, 13, 0, 0, 0, 0, 0}, // 4
-    {1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 0, 0, 0}, // 5
-    {1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 0, 0}, // 6
-    {1, 2, 3, 4, 5, 6, 12, 0, 0, 0, 0, 0, 0, 0},    // 7
-    {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 0}, // 8
-    {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 0, 0}, // 9
-    {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 0, 0}, // A
-    {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 0, 0, 0, 0}, // b
-    {1, 2, 6, 7, 8, 9, 10, 11, 12, 0, 0, 0, 0, 0},  // C
-    {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 0},  // d
-    {1, 2, 4, 6, 7, 8, 9, 10, 11, 12, 0, 0, 0, 0},  // E
-    {1, 2, 8, 9, 10, 11, 12, 13, 0, 0, 0, 0, 0, 0}  // F
+RAM uint8_t display_buff[12];
+static RAM uint8_t display_cmp_buff[12];
+
+#define LCD_CMD_MORE 0x80
+
+#define LCD_CMD_ADDRESS_SET_OPERATION       0 /* Address in nibbles (half byte). 5 LSB bits. MSB bit is handled using SET_IC command */
+
+#define LCD_CMD_SET_IC_OPERATION            0x68
+#define LCD_CMD_SET_IC_EXTERNAL_CLOCK       BIT(0)
+#define LCD_CMD_SET_IC_RESET                BIT(1)
+#define LCD_CMD_SET_IC_RAM_MSB              BIT(2)
+
+#define LCD_CMD_DISPLAY_CONTROL_OPERATION   0x20
+#define LCD_CMD_DISPLAY_CONTROL_POWER(X)    (X) /* (X <= 3) Lower power, less consumption but less visibility. Default: 2 */
+#define LCD_CMD_DISPLAY_CONTROL_FRAME_INV   4 /* Frame inversion consumes less power: use it if possible */
+#define LCD_CMD_DISPLAY_CONTROL_80HZ        (0 * BIT(3))
+#define LCD_CMD_DISPLAY_CONTROL_71HZ        (1 * BIT(3))
+#define LCD_CMD_DISPLAY_CONTROL_64HZ        (2 * BIT(3))
+#define LCD_CMD_DISPLAY_CONTROL_53HZ        (3 * BIT(3)) /* Lower refresh rate, lower consumer but can be visible flicker */
+
+#define LCD_CMD_MODE_SET_OPERATION          0x40
+#define LCD_CMD_MODE_SET_1_3_BIAS           0
+#define LCD_CMD_MODE_SET_1_2_BIAS           4
+#define LCD_CMD_MODE_SET_DISPLAY_OFF        0
+#define LCD_CMD_MODE_SET_DISPLAY_ON         8
+
+#define LCD_CMD_BLINK_CONTROL_OPERATION     0x70
+#define LCD_CMD_BLINK_OFF                   0
+#define LCD_CMD_BLINK_HALF_HZ               1
+#define LCD_CMD_BLINK_1_HZ                  2
+#define LCD_CMD_BLINK_2_HZ                  3
+
+#define LCD_CMD_ALL_PIXELS_OPERATION        0x7C
+#define LCD_CMD_ALL_PIXELS_ON               BIT(1)
+#define LCD_CMD_ALL_PIXELS_OFF              BIT(2)
+
+
+// LCD cells where we can show characters
+enum cell_t {
+    CELL_A, // Top Left
+    CELL_B,
+    CELL_C,
+    CELL_X,
+    CELL_Y,
+    CELL_Z, // Bottom right
 };
 
-//----------------------------------
-// define segments
-// the data in the arrays consists of {byte, bit} pairs of each segment
-//----------------------------------
-const uint8_t top_left[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {2, 3, 5, 7, 3, 7, 3, 6, 3, 5, 3, 4, 2, 1, 2, 0, 2, 4, 2, 5, 2, 6, 2, 7, 2, 2};
-const uint8_t top_middle[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {4, 7, 5, 6, 4, 3, 4, 2, 4, 1, 4, 0, 4, 5, 4, 4, 3, 0, 3, 1, 3, 2, 3, 3, 4, 6};
-const uint8_t top_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {0, 6, 17, 3, 17, 2, 17, 1, 17, 0, 5, 5, 0, 4, 0, 0, 0, 1, 0, 2, 0, 3, 0, 7, 0, 5};
-const uint8_t bottom_left[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {6, 7, 8, 3, 6, 3, 6, 2, 6, 1, 6, 0, 6, 5, 6, 4, 5, 0, 5, 1, 5, 2, 5, 3, 6, 6};
-const uint8_t bottom_middle[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {7, 3, 8, 2, 8, 7, 8, 6, 8, 5, 8, 4, 7, 1, 7, 0, 7, 4, 7, 5, 7, 6, 7, 7, 7, 2};
-const uint8_t bottom_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {9, 3, 17, 7, 10, 7, 10, 6, 10, 5, 10, 4, 9, 1, 9, 0, 9, 4, 9, 5, 9, 6, 9, 7, 9, 2};
+// Characters that we can render in a cell
+enum lcd_char_t {
+    CHR_0,
+    CHR_1,
+    CHR_2,
+    CHR_3,
+    CHR_4,
+    CHR_5,
+    CHR_6,
+    CHR_7,
+    CHR_8,
+    CHR_9,
+    CHR_L,
+    CHR_o,
+    CHR_H,
+    CHR_i,
+    CHR_MINUS,
+    CHR_SPACE
+};
 
-/* LCD controller initialize:
-1. 0xea - Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
-2. 0xbe - Display control (DISCTL): Power save mode3, FRAME flip 1, Normal mode // (0xb6) Power save mode2
-3. 0xf0 - Blink control (BLKCTL): Off
-4. 0xfc - All pixel control (APCTL): Normal
-*/
-const uint8_t lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc};
 
-RAM uint8_t lcd_i2c_addr;
-RAM uint8_t display_buff[18];
-RAM uint8_t display_cmp_buff[18];
+// Segments of a cell, following SEG_<ROW><COL> format, where
+//   ROW is a number from 1 to 5. 1 is the bottom, 3 the middle, 5 the top
+//   COL is either L(eft), M(iddle) or R(ight)
+enum cell_segment_t {
+    SEG_2L,
+    SEG_3L,
+    SEG_4L,
+    SEG_5L,
+    SEG_1L,
+    SEG_1M,
+    SEG_3M,
+    SEG_5M,
+    SEG_1R,
+    SEG_2R,
+    SEG_3R,
+    SEG_4R,
+    SEG_5R,
+    SEG_LAST, // For iteration
+};
 
-static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
-	if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
-			init_i2c();
-	uint8_t * p = dataBuf;
-	reg_i2c_id = lcd_i2c_addr;
-	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID;
-	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-	while(dataLen--) {
-		reg_i2c_do = *p++;
-		reg_i2c_ctrl = FLD_I2C_CMD_DO;
-		while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-	}
+// Other segments in the LCD
+enum other_segment_t {
+    SEG_DEGREE_CELSIUS = 4,
+    SEG_DEGREE_FAHRENHEIT,
+    SEG_DEGREE_COMMON,
+
+    SEG_BIG_ONE_HUNDRED = 2 * 8,
+    SEG_BATTERY_L1,
+    SEG_BATTERY_L2,
+    SEG_BATTERY_L3,
+    SEG_BLUETOOTH,
+    SEG_BATTERY,
+    SEG_BATTERY_L5,
+    SEG_BATTERY_L4,
+
+    SEG_BIG_DECIMAL_DOT = 6 * 8 + 4,
+
+    SEG_SMALL_DECIMAL_DOT = 9 * 8,
+    SEG_PERCENTAGE,
+};
+
+// Segments associated with each char
+static const uint16_t char_segment_bitmap[] = {
+    // 0
+    BIT(SEG_1M) | BIT(SEG_2L) | BIT(SEG_2R) | BIT(SEG_3L) | BIT(SEG_3R) | BIT(SEG_4L) | BIT(SEG_4R) | BIT(SEG_5M),
+    // 1
+    BIT(SEG_1R) | BIT(SEG_2R) | BIT(SEG_3R) | BIT(SEG_4R) | BIT(SEG_5R),
+    // 2
+    BIT(SEG_1M) | BIT(SEG_2L) | BIT(SEG_3M) | BIT(SEG_4R) | BIT(SEG_5M),
+    // 3
+    BIT(SEG_1M) | BIT(SEG_2R) | BIT(SEG_3M) | BIT(SEG_4R) | BIT(SEG_5M),
+    // 4
+    BIT(SEG_1R) | BIT(SEG_2R) | BIT(SEG_3M) | BIT(SEG_3R) | BIT(SEG_4L) | BIT(SEG_4R) | BIT(SEG_5L),
+    // 5
+    BIT(SEG_1M) | BIT(SEG_2R) | BIT(SEG_3L) | BIT(SEG_3M) | BIT(SEG_4L) | BIT(SEG_5L) | BIT(SEG_5M),
+    // 6
+    BIT(SEG_1M) | BIT(SEG_2R) | BIT(SEG_2L) | BIT(SEG_3L) | BIT(SEG_3M) | BIT(SEG_4L) | BIT(SEG_5M),
+    // 7
+    BIT(SEG_1R) | BIT(SEG_2R) | BIT(SEG_3R) | BIT(SEG_4R) | BIT(SEG_5M) | BIT(SEG_5R),
+    // 8
+    BIT(SEG_1M) | BIT(SEG_2L) | BIT(SEG_2R) | BIT(SEG_3M) | BIT(SEG_4L) | BIT(SEG_4R) | BIT(SEG_5M),
+    // 9
+    BIT(SEG_1R) | BIT(SEG_2R) | BIT(SEG_3M) | BIT(SEG_3R) | BIT(SEG_4L) | BIT(SEG_4R) | BIT(SEG_5M),
+    // L
+    BIT(SEG_1R) | BIT(SEG_1M) | BIT(SEG_2L) | BIT(SEG_3L) | BIT(SEG_4L),
+    // o
+    BIT(SEG_1M) | BIT(SEG_2L) | BIT(SEG_2R) | BIT(SEG_3M),
+    // H
+    BIT(SEG_1L) | BIT(SEG_1R) | BIT(SEG_2L) | BIT(SEG_2R) | BIT(SEG_3L) | BIT(SEG_3M) | BIT(SEG_3R)
+        | BIT(SEG_4L) | BIT(SEG_4R) | BIT(SEG_5L) | BIT(SEG_5R),
+    // i
+    BIT(SEG_1L) | BIT(SEG_2L) | BIT(SEG_5L),
+    // MINUS
+    BIT(SEG_3M),
+    // SPACE
+    0,
+};
+
+static const uint8_t cell_c_segment_bit[] = {
+    9,  //SEG_2L,
+    10, //SEG_3L,
+    11, //SEG_4L,
+    15, //SEG_5L,
+    8,  //SEG_1L,
+    12, //SEG_1M,
+    13, //SEG_3M,
+    14, //SEG_5M,
+    53, //SEG_1R,
+    0,  //SEG_2R,
+    1,  //SEG_3R,
+    2,  //SEG_4R,
+    3,  //SEG_5R,
+};
+
+static const uint8_t segment_5r_bit[] = {
+    6*8 + 7,  // CELL_A
+    6*8 + 6,  // CELL_B
+    6*8 + 0,  // CELL_C
+    9*8 + 3,  // CELL_X
+    9*8 + 2,  // CELL_Y
+    0*8 + 7,  // CELL_Z
+};
+
+static const uint8_t cell_base_bit[] = {
+    3*8  + 0, // CELL_A
+    4*8  + 4, // CELL_B
+    0,
+    6*8  + 4, // CELL_X
+    8*8  + 0, // CELL_Y
+    10*8 + 0  // CELL_Z
+};
+
+static void lcd_send_start() {
+    if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
+        init_i2c();
+    reg_i2c_id = LCD_I2C_ADDR;
+    reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID;
+    while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+}
+
+static void lcd_send_stop() {
     reg_i2c_ctrl = FLD_I2C_CMD_STOP;
     while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
 
+static void lcd_send_byte(uint8_t byte) {
+    reg_i2c_do = byte;
+    reg_i2c_ctrl = FLD_I2C_CMD_DO;
+    while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+}
 
-_attribute_ram_code_ void send_to_lcd(){
-	unsigned int buff_index;
-	uint8_t * p = display_buff;
-	if(lcd_i2c_addr) {
-		if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
-			init_i2c();
-		reg_i2c_id = lcd_i2c_addr;
-		reg_i2c_adr_dat = 0xE800; // 0xe8 - Set IC Operarion(ICSET): Do not execute Software Reset, Internal oscillator circuit; 0x00 - ADSET
-		reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
-		while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+static inline void lcd_send_cmd(uint8_t cmd) {
+    lcd_send_byte(LCD_CMD_MORE | cmd);
+}
 
-		for(buff_index = 0; buff_index < sizeof(display_buff) - 1; buff_index++) {
-			reg_i2c_do = *p++;
-			reg_i2c_ctrl = FLD_I2C_CMD_DO;
-			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-		}
-		reg_i2c_do = *p;
-		reg_i2c_ctrl = FLD_I2C_CMD_DO | FLD_I2C_CMD_STOP;
-		while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-
-		reg_i2c_adr = 0xC8; // 0xc8 - Mode Set (MODE SET): Display ON, 1/3 Bias
-		reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_STOP;
-		while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-	}
+static void lcd_send_last_cmd(uint8_t cmd, uint8_t * dataBuf, uint32_t dataLen) {
+    lcd_send_byte(cmd);
+    while (dataLen--) lcd_send_byte(*dataBuf++);
+    lcd_send_stop();
 }
 
 void init_lcd(void){
-	lcd_i2c_addr = (uint8_t) scan_i2c_addr(CGDK2_I2C_ADDR << 1);
-	if(lcd_i2c_addr) { // LCD CGDK2_I2C_ADDR ?
-		lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd));
-		pm_wait_us(200);
-		send_to_lcd();
-	}
+    // Ensure than 100us has been elapsed since the IC was powered on
+    pm_wait_us(100);
+
+    // Ensure that there is no open I2C transaction
+    lcd_send_start();
+    lcd_send_stop();
+
+     // Send reset command
+    lcd_send_start();
+    lcd_send_last_cmd(LCD_CMD_SET_IC_OPERATION
+            | LCD_CMD_SET_IC_RESET, 0, 0);
+
+    // Configure and clean the display
+    memset(display_buff, 0, sizeof display_buff);
+    memset(display_cmp_buff, 0, sizeof display_cmp_buff);
+    lcd_send_start();
+    lcd_send_cmd(LCD_CMD_DISPLAY_CONTROL_OPERATION
+            | LCD_CMD_DISPLAY_CONTROL_FRAME_INV
+            | LCD_CMD_DISPLAY_CONTROL_64HZ
+            | LCD_CMD_DISPLAY_CONTROL_POWER(1));
+    lcd_send_cmd(LCD_CMD_MODE_SET_OPERATION | LCD_CMD_MODE_SET_DISPLAY_ON);
+    lcd_send_last_cmd(LCD_CMD_ADDRESS_SET_OPERATION, display_buff, sizeof display_buff);
 }
 
 _attribute_ram_code_ void update_lcd(){
-	if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
-		send_to_lcd();
-		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
-	}
+    for (int i = 0; i < sizeof display_buff; ++i) {
+        if (display_buff[i] != display_cmp_buff[i]) {
+            int j = 12;
+            while (j > i && display_buff[j-1] == display_cmp_buff[j-1]) {
+                --j;
+            }
+            lcd_send_start();
+            lcd_send_last_cmd(LCD_CMD_ADDRESS_SET_OPERATION + i * 2, display_buff + i, j - i);
+            memcpy(display_cmp_buff + i, display_buff + i, j - i);
+            return;
+        }
+    }
 }
 
-_attribute_ram_code_ __attribute__((optimize("-Os"))) static void cgdk22_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
-    // set the segments, there are up to 11 segments in a digit
-    int segment_byte;
-    int segment_bit;
-    for (int i = 0; i < DEF_CGDK22_SUMBOL_SIGMENTS; i++) {
-        // get the segment needed to display the digit 'digit',
-        // this is stored in the array 'digits'
-        int segment = digits[digit][i] - 1;
-        // segment = -1 indicates that there are no more segments to display
-        if (segment >= 0) {
-            segment_byte = segments[2 * segment];
-            segment_bit = segments[1 + 2 * segment];
-            buf[segment_byte] |= (1 << segment_bit);
+
+static _attribute_ram_code_ void draw_segment(int bit, int value) {
+    int byte = bit / 8;
+    if (byte < sizeof display_buff) {
+        uint8_t mask = 1 << (bit % 8);
+        if (value) {
+            display_buff[byte] |= mask;
+        } else {
+            display_buff[byte] &= ~mask;
         }
-        else
-            // there are no more segments to be displayed
-            break;
+    }
+}
+
+static _attribute_ram_code_ int get_cell_segment_bit(enum cell_t cell, enum cell_segment_t segment) {
+    if (cell == CELL_C) {
+        // Digit C does not follow the pattern of other digits
+        return cell_c_segment_bit[segment];
+    } else if (segment == SEG_5R) {
+        // 5R segments do not follow the pattern of the other segments
+        return segment_5r_bit[cell];
+    } else {
+        // The remaining segments can be calculated easily if we swap nibbles
+        int bit = cell_base_bit[cell] + segment;
+        if (bit % 8 < 4) {
+            bit += 4;
+        } else {
+            bit -= 4;
+        }
+        return bit;
+    }
+}
+
+static _attribute_ram_code_ void draw_cell(enum cell_t cell, enum lcd_char_t c) {
+    uint16_t bits = char_segment_bitmap[c];
+    for (int segment = 0; segment < SEG_LAST; ++segment) {
+        draw_segment(get_cell_segment_bit(cell, segment), bits & BIT(segment));
     }
 }
 
@@ -192,171 +317,128 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void cgdk22_set_dig
  * 0xC0 = " ="
  * 0xE0 = "°E" */
 _attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
-	if(symbol & 0x20)
-		display_buff[17] |= BIT(6);
-	else
-		display_buff[17] &= ~(BIT(6));
-	if(symbol & 0x40)
-		display_buff[17] |= BIT(5); //"-"
-	else
-		display_buff[17] &= ~BIT(5); //"-"
-	if(symbol & 0x80)
-		display_buff[17] |= BIT(4); // "_"
-	else
-		display_buff[17] &= ~BIT(4); // "_"
+    draw_segment(SEG_DEGREE_COMMON, symbol & 0x20);
+    draw_segment(SEG_DEGREE_FAHRENHEIT, symbol & 0x40);
+    draw_segment(SEG_DEGREE_CELSIUS, symbol & 0x80);
 }
 
-/* CGDK22 no symbol 'smiley' !
- * =5 -> "---" happy, != 5 -> "    " sad */
+/* 0 = "     " off,
+ * 1 = " ^-^ "
+ * 2 = " -^- "
+ * 3 = " ooo "
+ * 4 = "(   )"
+ * 5 = "(^-^)" happy
+ * 6 = "(-^-)" sad
+ * 7 = "(ooo)" */
 _attribute_ram_code_ void show_smiley(uint8_t state){
-	(void) state;
-//	if(state & 1)
-//		display_buff[x] |= BIT(x);
-//	else
-//		display_buff[x] &= ~BIT(x);
-}
-_attribute_ram_code_ void show_battery_symbol(bool state){
-	display_buff[1] &= ~(BIT(1) | BIT(2) | BIT(3) | BIT(5) | BIT(6) | BIT(7));
-	if(state) {
-		display_buff[1] |= BIT(5);
-		if(battery_level >= 16) {
-			display_buff[1] |= BIT(1);
-			if(battery_level >= 33) {
-				display_buff[1] |= BIT(2);
-				if(battery_level >= 49) {
-					display_buff[1] |= BIT(3);
-					if(battery_level >= 67) {
-						display_buff[1] |= BIT(7);
-						if(battery_level >= 83) {
-							display_buff[1] |= BIT(6);
-						}
-					}
-				}
-			}
-		}
-	}
+    // No smiley in this LCD
 }
 
-/* CGDK22 no symbol 'ble' ! */
 _attribute_ram_code_ void show_ble_symbol(bool state){
-	(void) state;
-//	if(state)
-//		display_buff[x] |= BIT(x); // "*"
-//	else
-//		display_buff[x] &= ~BIT(x);
+    draw_segment(SEG_BLUETOOTH, state);
 }
 
-/* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
-	display_buff[0] = 0;
-	display_buff[1] &= ~(BIT(0));
-	display_buff[2] = 0;
-	display_buff[3] = 0;
-	display_buff[4] = 0;
-	display_buff[5] &= ~(BIT(4) | BIT(5) | BIT(6) | BIT(7));
-	display_buff[17] &= ~(BIT(0) | BIT(1) | BIT(2) | BIT(3));
-	if(number > 19995) {
-		// "Hi"
-		display_buff[2] |= BIT(0) | BIT(2) | BIT(4) | BIT(5) | BIT(6) | BIT(7);
-		display_buff[3] |= BIT(0) | BIT(1) | BIT(3) | BIT(4) | BIT(5) | BIT(6);
-		display_buff[4] |= BIT(4);
-	} else if(number < -995) {
-		// "Lo"
-		display_buff[2] |= BIT(0) | BIT(1) | BIT(4) | BIT(5) | BIT(6) | BIT(7);
-		display_buff[3] |= BIT(0) | BIT(1) | BIT(4);
-		display_buff[4] |= BIT(0) | BIT(1) | BIT(2) | BIT(4) | BIT(5) | BIT(6);
-	} else {
-		/* number: -995..19995 */
-		if(number > 1995 || number < -95) {
-			// no point, show: -99..1999
-			if(number < 0){
-				number = -number;
-				display_buff[2] |= BIT(2); // "-"
-			}
-			number = (number / 10) + ((number % 10) > 5); // round(div 10)
-		} else { // show: -9.9..199.9
-			display_buff[5] |= BIT(4); // point
-			if(number < 0){
-				number = -number;
-				display_buff[2] |= BIT(2); // "-"
-			}
-		}
-		/* number: -99..1999 */
-		if(number > 999) display_buff[1] |= BIT(0); // "1" 1000..1999
-		if(number > 99) cgdk22_set_digit(display_buff, number / 100 % 10, top_left);
-		if(number > 9) cgdk22_set_digit(display_buff, number / 10 % 10, top_middle);
-		else cgdk22_set_digit(display_buff, 0, top_middle);
-		cgdk22_set_digit(display_buff, number % 10, top_right);
-	}
+_attribute_ram_code_ void show_battery_symbol(bool state){
+    draw_segment(SEG_BATTERY, state);
+    draw_segment(SEG_BATTERY_L1, state && battery_level >= 16);
+    draw_segment(SEG_BATTERY_L2, state && battery_level >= 33);
+    draw_segment(SEG_BATTERY_L3, state && battery_level >= 49);
+    draw_segment(SEG_BATTERY_L4, state && battery_level >= 67);
+    draw_segment(SEG_BATTERY_L5, state && battery_level >= 83);
 }
 
-/* number in 0.1 (-99..999) -> show:  -9.9 .. 99.9 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10(int16_t number, bool percent){
-	display_buff[5] &= ~(BIT(0) | BIT(1) | BIT(2) | BIT(3));
-	display_buff[6] = 0;
-	display_buff[7] = 0;
-	display_buff[8] = 0;
-	display_buff[9] = 0;
-	display_buff[10] &= ~(BIT(4) | BIT(5) | BIT(6) | BIT(7));
-	display_buff[17] &= ~(BIT(7));
-	if(percent)
-		display_buff[8] |= BIT(1); // "%"
-	if(number > 9995) {
-		// "Hi"
-		display_buff[5] |= BIT(0) | BIT(1) | BIT(2) | BIT(3);
-		display_buff[6] |= BIT(0) | BIT(1) | BIT(2) | BIT(4) | BIT(6);
-		display_buff[7] |= BIT(0) | BIT(4) | BIT(5) | BIT(7);
-	} else if(number < -995) {
-		//"Lo"
-		display_buff[5] |= BIT(0) | BIT(1) | BIT(2) | BIT(3);
-		display_buff[6] |= BIT(0) | BIT(4) | BIT(5);
-		display_buff[7] |= BIT(0) | BIT(1) | BIT(2) | BIT(4) | BIT(5);
-		display_buff[8] |= BIT(4) | BIT(5) | BIT(6);
-	} else {
-		/* number: -99..999 */
-		if(number > 995 || number < -95) {
-			// no point, show: -99..999
-			if(number < 0){
-				number = -number;
-				display_buff[6] |= BIT(6); // "-"
-			}
-			number = (number / 10) + ((number % 10) > 5); // round(div 10)
-		} else { // show: -9.9..99.9
-			display_buff[8] |= BIT(0); // point
-			if(number < 0){
-				number = -number;
-				display_buff[6] |= BIT(6); // "-"
-			}
-		}
-		/* number: -99..999 */
-		if(number > 99) cgdk22_set_digit(display_buff, number / 100 % 10, bottom_left);
-		if(number > 9) cgdk22_set_digit(display_buff, number / 10 % 10, bottom_middle);
-		else cgdk22_set_digit(display_buff, 0, bottom_middle);
-		cgdk22_set_digit(display_buff, number % 10, bottom_right);
-	}
+static _attribute_ram_code_ void draw_number(enum cell_t where, int16_t number, int dot_segment, int hundreds_segment)
+{
+    int max_value = (hundreds_segment ? 1999 : 999);
+    bool show_decimal = (number >= -99 && number <= max_value);
+    if (!show_decimal) {
+        // Divide by ten and round: first add 5 to absolute value
+        number += (number < 0 ? -5 : 5);
+        // Then divide by then (which always rounds towards zero
+        number /= 10;
+    }
+    draw_segment(dot_segment, show_decimal);
+    if (hundreds_segment) {
+        draw_segment(hundreds_segment, number >= 1000 && number <= 1999);
+    }
+    if (number < -99) {
+        draw_cell(where++, CHR_L);
+        draw_cell(where++, CHR_o);
+        draw_cell(where, CHR_SPACE);
+    } else if (number > max_value) {
+        draw_cell(where++, CHR_H);
+        draw_cell(where++, CHR_i);
+        draw_cell(where, CHR_SPACE);
+    } else if (number < 0) {
+        number = -number;
+        draw_cell(where+2, CHR_0 + number % 10);
+        number /= 10;
+        draw_cell(where+1, CHR_0 + number);
+        draw_cell(where, CHR_MINUS);
+    } else {
+        draw_cell(where+2, CHR_0 + number % 10);
+        number /= 10;
+        draw_cell(where+1, CHR_0 + number % 10);
+        number /= 10;
+        if (number == 0) {
+            draw_cell(where, CHR_SPACE);
+        } else {
+            draw_cell(where, CHR_0 + number % 10);
+        }
+    }
 }
+
+
+/* x0.1 (-995..19995) Show: -99 .. -9.9 .. 199.9 .. 1999 */
+static RAM int16_t last_big_number = -32768;
+_attribute_ram_code_ void show_big_number_x10(int16_t number){
+    if (last_big_number != number) {
+        draw_number(CELL_A, number, SEG_BIG_DECIMAL_DOT, SEG_BIG_ONE_HUNDRED);
+        last_big_number = number;
+    }
+}
+
+/* -9.9 .. 99.9 */
+static RAM int16_t last_small_number = -32768;
+_attribute_ram_code_ void show_small_number_x10(int16_t number, bool percent){
+    if (last_small_number != number) {
+        draw_number(CELL_X, number, SEG_SMALL_DECIMAL_DOT, 0);
+        last_small_number = number;
+    }
+    draw_segment(SEG_PERCENTAGE, percent);
+}
+
 
 void show_batt_cgdk22(void) {
-	uint16_t battery_level = 0;
-	if(measured_data.battery_mv > MIN_VBAT_MV) {
-		battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
-		if(battery_level > 995)
-			battery_level = 995;
-	}
-	show_small_number_x10(battery_level, false);
+    uint16_t battery_level = 0;
+    if(measured_data.battery_mv > MIN_VBAT_MV) {
+        battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+        if (battery_level > 999) {
+            battery_level = 999;
+        }
+    }
+    show_small_number_x10(battery_level, false);
 }
 
-#if	USE_CLOCK
+#if USE_CLOCK
 _attribute_ram_code_ void show_clock(void) {
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = tmp / 60 % 24;
-	memset(display_buff, 0, sizeof(display_buff));
-	cgdk22_set_digit(display_buff, min / 10 % 10, bottom_left);
-	cgdk22_set_digit(display_buff, min % 10, bottom_middle);
-	cgdk22_set_digit(display_buff, hrs / 10 % 10, top_left);
-	cgdk22_set_digit(display_buff, hrs % 10, top_middle);
+    uint32_t tmp = utc_time_sec / 60;
+    uint32_t min = tmp % 60;
+    uint32_t hrs = tmp / 60 % 24;
+    draw_segment(SEG_BIG_ONE_HUNDRED, false);
+    draw_segment(SEG_PERCENTAGE, false);
+    draw_segment(SEG_BIG_DECIMAL_DOT, false);
+    draw_segment(SEG_SMALL_DECIMAL_DOT, false);
+    show_temp_symbol(0);
+    draw_cell(CELL_A, CHR_0 + hrs / 10);
+    draw_cell(CELL_B, CHR_0 + hrs % 10);
+    draw_cell(CELL_C, CHR_SPACE);
+    draw_cell(CELL_X, CHR_0 + min / 10);
+    draw_cell(CELL_Y, CHR_0 + min % 10);
+    draw_cell(CELL_Z, CHR_SPACE);
+    last_big_number = -32768;
+    last_small_number = -32678;
 }
 #endif // USE_CLOCK
 
-#endif // DEVICE_TYPE == DEVICE_CGDK22
+#endif // DEVICE_TYPE == DEVICE_CGDK2

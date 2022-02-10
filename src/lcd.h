@@ -73,7 +73,7 @@ void show_batt_cgg1(void);
 extern uint8_t display_buff[6];
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 #elif DEVICE_TYPE == DEVICE_CGDK22
-extern uint8_t display_buff[18];
+extern uint8_t display_buff[12];
 void show_batt_cgdk22(void);
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 #else
