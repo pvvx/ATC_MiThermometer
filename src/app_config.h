@@ -10,8 +10,9 @@ extern "C" {
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
+#define DEVICE_CGDK22 		0x066F  // DIY, LCD display "Qingping Temp & RH Monitor Lite LE" + Module TB-04
 
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK22
 
 // Special DIY version LYWSD03MMC - Voltage Logger:
 // Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, pcb mark "B1"
@@ -239,7 +240,44 @@ extern "C" {
 #endif
 
 #endif // USE_TRIGGER_OUT
-#endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
+
+#elif DEVICE_TYPE == DEVICE_CGDK22
+
+// TLSR8253F512ET32
+// GPIO_PA7 - SWS, free
+// GPIO_PC0 - SDA, used I2C
+// GPIO_PC1 - SCL, used I2C
+// GPIO_PC4 - used KEY
+
+#define SHL_ADC_VBAT	1  // "B0P" in adc.h
+#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8253F512ET32
+
+#define I2C_SCL 	GPIO_PC0
+#define I2C_SDA 	GPIO_PC1
+#define I2C_GROUP 	I2C_GPIO_GROUP_C0C1
+
+// PC4 - key
+#define GPIO_KEY			GPIO_PC4
+#define PC4_INPUT_ENABLE	1
+
+#if USE_TRIGGER_OUT
+
+#define GPIO_TRG			GPIO_PC3
+#define PC3_INPUT_ENABLE	1
+#define PC3_DATA_OUT		0
+#define PC3_OUTPUT_ENABLE	0
+#define PC3_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLDOWN_100K
+
+#define GPIO_RDS 			GPIO_PD3	// Reed Switch, input
+#define PD3_INPUT_ENABLE	1
+#define PD3_DATA_OUT		0
+#define PD3_OUTPUT_ENABLE	0
+#define PD3_FUNC			AS_GPIO
+
+#endif // USE_TRIGGER_OUT
+
+#endif // DEVICE_TYPE == ?
 
 #define MODULE_WATCHDOG_ENABLE		0
 #define WATCHDOG_INIT_TIMEOUT		250  //ms

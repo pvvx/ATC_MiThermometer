@@ -14,9 +14,9 @@ import argparse
 import os
 import io
 
-__progname__ = 'TLSR825x TlsrPgm'
+__progname__ = 'TLSR82xx TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '06.01.21'
+__version__ = '27.04.21'
 
 DEFAULT_UART_BAUD = 230400
 
@@ -334,7 +334,7 @@ class TLSRPGM:
 			swaddrlen = self.pgm_swaddrlen;
 		if swbuf == None:
 			swbuf = self.pgm_swbuf;
-		data = self.command(struct.pack('<BBHBB', self.CMD_FUNCS, self.CMDF_SWIRE_CFG, 0, swdiv, self.pgm_swaddrlen) + self.pgm_swbuf, 14)
+		data = self.command(struct.pack('<BBHBB', self.CMD_FUNCS, self.CMDF_SWIRE_CFG, 0, swdiv, swaddrlen) + swbuf, 14)
 		if data == None:
 			print('Error[%d] Set PGM Config!' % self.err)
 			return False
@@ -465,9 +465,14 @@ class TLSRPGM:
 		hex_dump(offset, data[4:rdsize+4])
 		return True
 	# Dump Ext. Chip Ana regs
-	def DumpChipARegs(self, offset = 0x0, rdsize = 0x100):
-		if not self.AnalogRegs825x():
+	def DumpChipARegs(self, offset = 0x0, rdsize = None):
+		if not self.EnableClkALGM():
 			return False
+		if rdsize == None:
+			if self.pgm_swaddrlen == 3:
+				rdsize = 0x100
+			else:
+				rdsize = 0x80
 		data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_AREAD, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
 		if data == None or self.wcnt != rdsize:
 			print('\rError Read SWire data! (%d)' % self.err) 
@@ -497,7 +502,20 @@ class TLSRPGM:
 			return False
 		self.ext_cver = data[4]
 		self.ext_cid = data[5] | (data[6]<<8)
-		print('Chip ID: 0x%04X, rev: 0x%02X' % (self.ext_cid, self.ext_cver))
+		if self.ext_cid == 0x5562:
+			self.ext_chip = 'TLSR825x'
+		elif self.ext_cid == 0x5325:
+			self.ext_chip = 'TLSR8266'
+		elif self.ext_cid == 0x5326:
+			self.ext_chip = 'TLSR8267'
+		elif self.ext_cid == 0x5327:
+			self.ext_chip = 'TLSR8269'
+		else:
+			self.ext_chip = None
+		if self.ext_chip == None:
+			print('Chip ID: 0x%04X, rev: 0x%02X' % (self.ext_cid, self.ext_cver))
+		else:
+			print('Chip %s ID: 0x%04X, rev: 0x%02X' % (self.ext_chip, self.ext_cid, self.ext_cver))
 		return True
 	# Read Flash JEDEC ID
 	def ReadFlashJEDECID(self):
@@ -579,9 +597,14 @@ class TLSRPGM:
 		print('\r                               \r',  end = '')
 		return True
 	# Read Blocks Analog Reg to stream
-	def ReadBlockAnalogRegs(self, stream, offset = 0x000, size = 0x100):
-		if not self.AnalogRegs825x():
+	def ReadBlockAnalogRegs(self, stream, offset = 0x000, size = None):
+		if not self.EnableClkALGM():
 			return False
+		if size == None:
+			if self.pgm_swaddrlen == 3:
+				size = 0x100
+			else:
+				size = 0x80
 		offset &= 0xff
 		rdsize = self.MAX_BUF_READ_SIZE
 		cnt_err = self.ERR_RETRY_COUNT
@@ -600,7 +623,7 @@ class TLSRPGM:
 		return True
 	# Write Blocks Analog Reg from stream
 	def WriteBlockAnalogRegs(self, stream, offset = 0x000, size = 0x100):
-		if not self.AnalogRegs825x():
+		if not self.EnableClkALGM():
 			return False
 		wrsize = 0x100
 		cnt_err = self.ERR_RETRY_COUNT
@@ -730,7 +753,7 @@ class TLSRPGM:
 		print('\r                               \r',  end = '')
 		return True
 	# Enable CLK ALGM on 825x
-	def AnalogRegs825x(self):
+	def EnableClkALGM(self):
 		rdsize = 4
 		offset = 0x61
 		data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
@@ -738,17 +761,20 @@ class TLSRPGM:
 			print('Error Read SWire data! (%d)' % self.err) 
 			return False
 		x = bytearray(data[4:8])
-		if (x[0] & 0x08) != 0 or  (x[3] & 0x08) == 0:
-			x[0] &= 0xf7
-			x[3] |= 0x08
+		# TLSR825x - bit 3, TLSR826x - bit 1
+		if self.pgm_swaddrlen == 3:
+			msk_bit = 0x08
+		else:
+			msk_bit = 0x02
+		if (x[0] & msk_bit) != 0 or (x[3] & msk_bit) == 0:
+			x[0] &= ~msk_bit
+			x[3] |= msk_bit # reg 0x64
 			data = self.command(struct.pack('<BBH', self.CMD_SWIRE_WRITE, offset & 0xff, (offset>>8) & 0xffff) + x, 6)
-			#print('(TLSR825x) Activate ALGM...', end = '')
 			if data == None or self.wcnt != rdsize:
 				#print('Error!') 
 				print('Error Write SWire data! (%d)' % self.err) 
 				print('Error Activate ALGM!')
 				return False
-			#print('ok') 
 		return True
 	# Test
 	def TestDebugPC(self, count = 1, offset = 0x6bc):
@@ -859,6 +885,10 @@ def main():
 		'-w', '--wrktime',
 		help='Show Worked Time',
 		action="store_true")
+	parser.add_argument(
+		'-u', '--u2b',
+		help='Use 2 bytes swire address (TLSR826x)',
+		action="store_true")
 	subparsers = parser.add_subparsers(
 			dest='operation',
 			help='Run '+__filename__+' {command} -h for additional help')
@@ -943,10 +973,16 @@ def main():
 		sys.exit(1)
 	if not pgm.GetVersion():
 		sys.exit(1)
-	if pgm.pgm_swsps < 0.9 or pgm.pgm_swsps > 1.3 or pgm.pgm_swaddrlen != 3:
-		if not pgm.SetPgmConfig(swdiv = int(round(pgm.pgm_clk/4.8,0)), swaddrlen=3, swbuf = [b'\x5a\x00\x06\x02\x00\x05']):
-			pgm.close()
-			sys.exit(1)
+	if args.u2b:
+		if pgm.pgm_swaddrlen != 2:
+			if not pgm.SetPgmConfig(swdiv = int(round(pgm.pgm_clk/4.8,0)), swaddrlen=2, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
+				pgm.close()
+				sys.exit(1)
+	else:
+		if pgm.pgm_swaddrlen != 3:
+			if not pgm.SetPgmConfig(swdiv = int(round(pgm.pgm_clk/4.8,0)), swaddrlen=3, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
+				pgm.close()
+				sys.exit(1)
 	# set speed up?
 	if args.baud != DEFAULT_UART_BAUD:
 		if not pgm.SetUartBaud(args.baud):

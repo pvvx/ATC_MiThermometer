@@ -13,6 +13,7 @@
 #define B14_I2C_ADDR		0x3C
 #define B16_I2C_ADDR		0	// UART
 #define B19_I2C_ADDR		0x3E
+#define CGDK2_I2C_ADDR		0x3E
 
 extern uint8_t lcd_i2c_addr;
 
@@ -69,7 +70,9 @@ int task_lcd(void);
 void show_batt_cgg1(void);
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 extern uint8_t display_buff[6];
-void send_to_lcd_long(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5, uint8_t byte6);
+#elif DEVICE_TYPE == DEVICE_CGDK22
+extern uint8_t display_buff[18];
+void show_batt_cgdk22(void);
 #else
 #error "Set DEVICE_TYPE!"
 #endif

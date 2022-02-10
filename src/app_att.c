@@ -104,6 +104,13 @@ static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.1_0093"
 static const u8 my_HardStr[] = {"0001"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
+#elif DEVICE_TYPE == DEVICE_CGDK22
+static const u8 my_ModelStr[] = {"CGDK2-2"};
+static const u8 my_SerialStr[] = {"0001"};
+static const u8 my_FirmStr[] = {"github.com/pvvx"};
+static const u8 my_HardStr[] = {"DIY01"};
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
+static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 #else
 #error "DEVICE_TYPE = ?"
 #endif
