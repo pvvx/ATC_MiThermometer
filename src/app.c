@@ -199,8 +199,8 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 		my_periConnParameters.intervalMax = my_periConnParameters.intervalMin + 5;
 		my_periConnParameters.latency = 0;
 	} else {
-		my_periConnParameters.intervalMin = 16; // 10*1.25 = 12.5 ms
-		my_periConnParameters.intervalMax = 16; // 60*1.25 = 75 ms
+		my_periConnParameters.intervalMin = 16; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMax = 16; // 16*1.25 = 20 ms
 		my_periConnParameters.latency = cfg.connect_latency;
 	}
 	my_periConnParameters.timeout = connection_timeout;
@@ -246,12 +246,12 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 			if((cfg.flg.advertising_type & ADV_TYPE_MASK_REF) && cfg.flg2.mi_beacon)
 				mi_beacon_summ();
 #endif
-#if USE_TRIGGER_OUT && defined(GPIO_RDS)
-			test_trg_input();
-#endif
-			set_adv_data();
-			end_measure = 1;
 		}
+#if USE_TRIGGER_OUT && defined(GPIO_RDS)
+		test_trg_input();
+#endif
+		set_adv_data();
+		end_measure = 1;
 #if	USE_TRIGGER_OUT && defined(GPIO_RDS)
 		rds_input_off();
 #endif
@@ -540,7 +540,8 @@ _attribute_ram_code_ void main_loop(void) {
 	}
 	if (ota_is_working) {
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN); // SUSPEND_DISABLE
-		bls_pm_setManualLatency(0);
+		if((ble_connected&2)==0)
+			bls_pm_setManualLatency(0);
 	} else {
 		if (!wrk_measure) {
 			if (start_measure) {
@@ -564,7 +565,8 @@ _attribute_ram_code_ void main_loop(void) {
 				} else {
 					start_measure_sensor_deep_sleep();
 					check_battery();
-					if (bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
+					if (sensor_i2c_addr
+						&&	bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
 						bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
 					} else {
@@ -608,18 +610,17 @@ _attribute_ram_code_ void main_loop(void) {
 					tim_measure = new;
 					start_measure = 1;
 				}
-#if (DEVICE_TYPE == DEVICE_CGG1) // Can be bypassed by measurements when there is no E-Ink update (https://github.com/pvvx/ATC_MiThermometer/issues/180)
+#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
 				else
-#endif
+				if((!stage_lcd) && (new - tim_last_chow >= min_step_time_update_lcd)) {
+#else
 				if (new - tim_last_chow >= min_step_time_update_lcd) {
+#endif
 					if (!lcd_flg.b.ext_data) {
 						lcd_flg.b.new_update = lcd_flg.b.notify_on;
 						lcd();
 					}
-#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
-					if(!stage_lcd)
-#endif
-						update_lcd();
+					update_lcd();
 					tim_last_chow = new;
 				}
 				bls_pm_setAppWakeupLowPower(0, 0);

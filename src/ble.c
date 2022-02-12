@@ -50,6 +50,8 @@ void app_enter_ota_mode(void) {
 	bls_ota_clearNewFwDataArea();
 #endif
 	ota_is_working = 1;
+	ble_connected &= ~2;
+	bls_pm_setManualLatency(0);
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
 }
 
@@ -84,7 +86,7 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	if(ble_connected & 0x80) // reset device on disconnect?
 		start_reboot();
 
-	bls_pm_setManualLatency(0); // ?
+	//bls_pm_setManualLatency(0); // ?
 
 	ble_connected = 0;
 	ota_is_working = 0;
@@ -104,8 +106,8 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 	ble_connected = 1;
 	if(cfg.connect_latency) {
-		my_periConnParameters.intervalMin = 16;
-		my_periConnParameters.intervalMax = 16;
+		my_periConnParameters.intervalMin = 16; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMax = 16; // 16*1.25 = 20 ms
 	}
 	my_periConnParameters.latency = cfg.connect_latency;
 	my_periConnParameters.timeout = connection_timeout;
@@ -116,7 +118,7 @@ int app_conn_param_update_response(u8 id, u16  result) {
 	if(result == CONN_PARAM_UPDATE_ACCEPT)
 		ble_connected |= 2;
 	else if(result == CONN_PARAM_UPDATE_REJECT) {
-		// bls_l2cap_requestConnParamUpdate(160, 160, 4, 300); // (200 ms, 200 ms, 1 s, 3 s)
+		// bls_l2cap_requestConnParamUpdate(160, 200, 0, 250); // (200 ms, 250 ms, 0, 2.5 s)
 	}
 	return 0;
 }
