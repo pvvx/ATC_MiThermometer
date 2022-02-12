@@ -121,7 +121,7 @@ static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
 }
 
 
-_attribute_ram_code_ void send_to_lcd(){
+_attribute_ram_code_ void send_to_lcd(void){
 	unsigned int buff_index;
 	uint8_t * p = display_buff;
 	if(lcd_i2c_addr) {
@@ -156,7 +156,7 @@ void init_lcd(void){
 	}
 }
 
-_attribute_ram_code_ void update_lcd(){
+_attribute_ram_code_ void update_lcd(void){
 	if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 		send_to_lcd();
 		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));

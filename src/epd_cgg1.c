@@ -335,14 +335,16 @@ void show_batt_cgg1(void) {
 }
 
 _attribute_ram_code_ void update_lcd(void){
-	if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
-		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
-		if(lcd_refresh_cnt) {
-			lcd_refresh_cnt--;
-			flg_lcd_init = 0;
-			stage_lcd = 1;
-		} else {
-			init_lcd(); // pulse RST_N low for 110 microseconds
+	if(!stage_lcd) {
+		if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
+			memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
+			if(lcd_refresh_cnt) {
+				lcd_refresh_cnt--;
+				flg_lcd_init = 0;
+				stage_lcd = 1;
+			} else {
+				init_lcd(); // pulse RST_N low for 110 microseconds
+			}
 		}
 	}
 }

@@ -122,7 +122,7 @@ _attribute_ram_code_ void lcd_send_uart(void) {
 }
 
 
-_attribute_ram_code_ void send_to_lcd(){
+_attribute_ram_code_ void send_to_lcd(void){
 	unsigned int buff_index;
 	uint8_t * p = display_buff;
 	if(lcd_i2c_addr) {
