@@ -10,9 +10,9 @@ extern "C" {
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
-#define DEVICE_CGDK22 		0x066F  // DIY, LCD display "Qingping Temp & RH Monitor Lite LE" + Module TB-04
+#define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK22
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
 
 // Special DIY version LYWSD03MMC - Voltage Logger:
 // Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, pcb mark "B1"
@@ -241,7 +241,7 @@ extern "C" {
 
 #endif // USE_TRIGGER_OUT
 
-#elif DEVICE_TYPE == DEVICE_CGDK22
+#elif DEVICE_TYPE == DEVICE_CGDK2
 
 // TLSR8253F512ET32
 // GPIO_PA7 - SWS, free
