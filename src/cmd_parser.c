@@ -70,7 +70,7 @@ uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	} while(id != 0xffff || len != 0xff  || faddr < faend);
 	return 0;
 }
-#else // DEVICE_LYWSD03MMC & DEVICE_CGG1 & DEVICE_CGDK22
+#else // DEVICE_LYWSD03MMC & DEVICE_CGG1 & DEVICE_CGDK2
 /* if return != 0 -> keybuf = keys */
 uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	uint32_t faddr = FLASH_MIKEYS_ADDR;

@@ -99,16 +99,17 @@ static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; //
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_CGG1
 static const u8 my_ModelStr[] = {"CGG1"};
-static const u8 my_SerialStr[] = {"1234"};
+//static const u8 my_SerialStr[] = {"1234"};
+#define my_SerialStr mac_public
 static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.1_0093"
 static const u8 my_HardStr[] = {"0001"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
-#elif DEVICE_TYPE == DEVICE_CGDK22
-static const u8 my_ModelStr[] = {"CGDK2-2"};
-static const u8 my_SerialStr[] = {"0001"};
-static const u8 my_FirmStr[] = {"github.com/pvvx"};
-static const u8 my_HardStr[] = {"DIY01"};
+#elif DEVICE_TYPE == DEVICE_CGDK2
+static const u8 my_ModelStr[] = {"CGDK2"};
+#define my_SerialStr mac_public
+static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "2.1.0"
+static const u8 my_HardStr[] = {"2.1.0"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 #else

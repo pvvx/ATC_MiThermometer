@@ -33,7 +33,7 @@ RAM uint8_t ble_name[32] = { 11, 0x09,
 		'M', 'H', 'O', '_', '0', '0', '0', '0',	'0', '0' };
 #elif DEVICE_TYPE == DEVICE_CGG1
 		'C', 'G', 'G', '_', '0', '0', '0', '0',	'0', '0' };
-#elif DEVICE_TYPE == DEVICE_CGDK22
+#elif DEVICE_TYPE == DEVICE_CGDK2
 		'C', 'G', 'D', '_', '0', '0', '0', '0',	'0', '0' };
 #else
 		'A', 'T', 'C', '_', '0', '0', '0', '0',	'0', '0' };
@@ -205,7 +205,7 @@ void ble_get_name(void) {
 		ble_name[3] = 'G';
 		ble_name[4] = 'G';
 		ble_name[5] = '_';
-#elif DEVICE_TYPE == DEVICE_CGDK22
+#elif DEVICE_TYPE == DEVICE_CGDK2
 		ble_name[2] = 'C';
 		ble_name[3] = 'G';
 		ble_name[4] = 'D';

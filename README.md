@@ -1,4 +1,4 @@
-# Xiaomi Mijia LYWSD03MMC HW: [B1.4](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout), [B1.6](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145), [B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B2.0](https://github.com/pvvx/ATC_MiThermometer/issues/166) & Xiaomi Miaomiaoce [MHO-C401](https://pvvx.github.io/MHO_C401) & [CGG1](https://pvvx.github.io/CGG1) Mijia Bluetooth Thermometer Firmware
+# Xiaomi Mijia LYWSD03MMC HW: [B1.4](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout), [B1.6](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145), [B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B2.0](https://github.com/pvvx/ATC_MiThermometer/issues/166) & Xiaomi Miaomiaoce [MHO-C401](https://pvvx.github.io/MHO_C401) & [CGG1](https://pvvx.github.io/CGG1) Mijia Bluetooth Thermometer Firmware & [CGDK2](https://pvvx.github.io/CGDK2) Qingping Temp & RH Monitor Lite
 
 This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
 
@@ -16,7 +16,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 |[Xiaomi Mijia (LYWSD03MMC)](https://pvvx.github.io/ATC_MiThermometer) | [Xiaomi Miaomiaoce (MHO-C401)](https://pvvx.github.io/MHO_C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) |
 |:--:|:--:|:--:|
-|  <img src="https://tasmota.github.io/docs/_media/bluetooth/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="160"/> |  <img src="https://tasmota.github.io/docs/_media/bluetooth/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="160"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="160"/> |
+|  <img src="https://tasmota.github.io/docs/_media/bluetooth/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="160"/> |  <img src="https://tasmota.github.io/docs/_media/bluetooth/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="160"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="160"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/CGDK2/img/CGDK2.jpg" alt="CGDK2 Qingping Temp & RH Monitor Lite" width="160"/>
 
 **Table of content**
 
@@ -106,6 +106,7 @@ You can directly update/flash the firmware without downloading the binaries belo
 * [LYWSD03MMC Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_V35f.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
 * [MHO-C401 Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v35f.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
 * [CGG1 Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v35f.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 3.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v35f.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 **Original Manufacturer Firmware Version**
 
@@ -117,6 +118,7 @@ In case you want to go back to the original firmware, you can download them here
 * [Azarton MHO_C401 Original Firmware v1.0.0_0016](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Azarton_MHO_C401_v1.0.0_0016.bin)
 * [Qingping CGG1-M Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1_v1.0.1_0093.bin)
 * [Qingping CGPR1 Original Firmware v1.1.1_0228](https://pvvx.github.io/CGPR1/img/Original_OTA_CGPR1_v1.1.1_0228.bin)
+* [Qingping CGDK2 Original Firmware v1.1.1_0210](https://pvvx.github.io/CGPR1/img/Original_OTA_CGDK2_v1.1.1_0210.bin)
 
 ### Firmware version history
 
