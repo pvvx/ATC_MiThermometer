@@ -90,10 +90,6 @@ const cfg_t def_cfg = {
 		.hw_cfg.hwver = 6,
 #endif
 #if USE_FLASH_MEMO
-		.hw_cfg.clock = 1,
-#endif
-#if USE_FLASH_MEMO
-		.hw_cfg.memo = 1,
 #if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2)
 		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
 #else // DEVICE_TYPE == DEVICE_MHO_C401 & DEVICE_CGG1
@@ -107,7 +103,7 @@ RAM cfg_t cfg;
 static const external_data_t def_ext = {
 		.big_number = 0,
 		.small_number = 0,
-		.vtime_sec = 60 * 10, // 10 minutes
+		.vtime_sec = 60, // 1 minutes
 		.flg.smiley = 7, // 7 = "(ooo)"
 		.flg.percent_on = true,
 		.flg.battery = false,
@@ -119,7 +115,8 @@ RAM uint32_t pincode;
 #endif
 
 __attribute__((optimize("-Os")))
-static void set_hw_version(void) {
+void set_hw_version(void) {
+	cfg.hw_cfg.reserved = 0;
 	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
 		cfg.hw_cfg.shtc3 = 1; // = 1 - sensor SHTC3
 	else
@@ -156,7 +153,7 @@ static void set_hw_version(void) {
 #elif DEVICE_TYPE == DEVICE_CGDK2
 	cfg.hw_cfg.hwver = 6;
 #else
-	cfg.hw_cfg.hwver = 4;
+	cfg.hw_cfg.hwver = 15;
 #endif
 }
 
@@ -208,9 +205,6 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 		cfg.min_step_time_update_lcd = 10; // min 10*0.05 = 0.5 sec
 	min_step_time_update_lcd = cfg.min_step_time_update_lcd * (100 * CLOCK_16M_SYS_TIMER_CLK_1MS);
 
-	cfg.hw_cfg.clock = USE_CLOCK;
-	cfg.hw_cfg.memo = USE_FLASH_MEMO;
-	cfg.hw_cfg.trg = USE_TRIGGER_OUT;
 	my_RxTx_Data[0] = CMD_ID_CFG;
 	my_RxTx_Data[1] = VERSION;
 	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
@@ -325,6 +319,7 @@ uint32_t get_mi_hw_version(void) {
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
 //------------------ user_init_normal -------------------
 void user_init_normal(void) {//this will get executed one time after power up
+	bool next_start = false;
 	if (get_battery_mv() < MIN_VBAT_MV) // 2.2V
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
@@ -333,7 +328,8 @@ void user_init_normal(void) {//this will get executed one time after power up
 	uint32_t hw_ver = get_mi_hw_version();
 #endif
 	// Read config
-	if (flash_supported_eep_ver(EEP_SUP_VER, VERSION)) {
+	next_start = flash_supported_eep_ver(EEP_SUP_VER, VERSION);
+	if (next_start) {
 		if(flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg))
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 		if(flash_read_cfg(&cmf, EEP_ID_CMF, sizeof(cmf)) != sizeof(cmf))
@@ -387,6 +383,11 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2)
 	update_lcd();
 #endif
+	if(!next_start) { // first start?
+		if(!cfg.hw_cfg.shtc3) // sensor SHT4x ?
+			cfg.flg.lp_measures = 1;
+		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
+	}
 	start_measure = 1;
 }
 

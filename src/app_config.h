@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x35	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x36	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
@@ -32,6 +32,8 @@ extern "C" {
 #define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)
 #define USE_MIHOME_BEACON			1 // = 1 Compatible with MiHome beacon encryption
 #define USE_NEW_OTA					0 // = 1 keeping the old firmware, erasing the region when updating (test version only!)
+
+#define UART_PRINT_DEBUG_ENABLE		0 // =1 use u_printf() (PA7/SWS), source: SDK/components/application/print/u_printf.c
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
 
@@ -278,6 +280,16 @@ extern "C" {
 #endif // USE_TRIGGER_OUT
 
 #endif // DEVICE_TYPE == ?
+
+#if UART_PRINT_DEBUG_ENABLE
+#define PRINT_BAUD_RATE 1500000 // real 1000000
+#define DEBUG_INFO_TX_PIN	GPIO_PA7 // SWS
+#define PA7_DATA_OUT		1
+#define PA7_OUTPUT_ENABLE	1
+#define PULL_WAKEUP_SRC_PA7 PM_PIN_PULLUP_1M
+#define PA7_FUNC		AS_GPIO
+#endif // UART_PRINT_DEBUG_ENABLE
+
 
 #define MODULE_WATCHDOG_ENABLE		0
 #define WATCHDOG_INIT_TIMEOUT		250  //ms
