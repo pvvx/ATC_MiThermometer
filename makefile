@@ -65,6 +65,7 @@ LS_FLAGS := $(PROJECT_PATH)/boot.link
 #-include $(PROJECT_PATH)/make/common.mk
 #-include $(PROJECT_PATH)/make/vendor_common.mk
 #-include $(PROJECT_PATH)/make/tinyFlash.mk
+-include $(PROJECT_PATH)/uprintf.mk
 -include $(PROJECT_PATH)/drivers_8258.mk
 -include $(PROJECT_PATH)/div_mod.mk
 

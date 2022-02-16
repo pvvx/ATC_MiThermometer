@@ -70,14 +70,22 @@ typedef struct __attribute__((packed)) _cfg_t {
 	uint8_t rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm (130..191)
 	uint8_t connect_latency; // +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
 	uint8_t min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
+#if 0 // old version < 3.6
 	struct __attribute__((packed)) {
 		uint8_t hwver		: 3; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1, 3 - LYWSD03MMC B1.6, 4 - LYWSD03MMC B1.9, 5 - LYWSD03MMC B1.7
 		uint8_t clock		: 1; // uses clock (old version < 3.6)
 		uint8_t memo		: 1; // uses flash write measures
 		uint8_t trg			: 1; // uses trigger out
-		uint8_t mi_beacon	: 1; // advertising uses mi crypto beacon
+		uint8_t reserved	: 1; // reserved
 		uint8_t shtc3		: 1; // =1 - sensor SHTC3, = 0 - sensor SHT4x
 	} hw_cfg; // read only
+#else
+	struct __attribute__((packed)) {
+		uint8_t hwver		: 4; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1, 3 - LYWSD03MMC B1.6, 4 - LYWSD03MMC B1.9, 5 - LYWSD03MMC B1.7, 6 - CGDK2
+		uint8_t reserved	: 3; // reserved
+		uint8_t shtc3		: 1; // =1 - sensor SHTC3, = 0 - sensor SHT4x
+	} hw_cfg; // read only
+#endif
 	uint8_t averaging_measurements; // * measure_interval, 0 - off, 1..255 * measure_interval
 }cfg_t;
 extern cfg_t cfg;
@@ -166,6 +174,7 @@ extern uint32_t connection_timeout;
 extern uint32_t measurement_step_time;
 void ev_adv_timeout(u8 e, u8 *p, int n);
 void test_config(void);
+void set_hw_version(void);
 void reset_cache(void);
 
 void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand);

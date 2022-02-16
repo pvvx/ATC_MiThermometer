@@ -1,8 +1,8 @@
 # Xiaomi Mijia LYWSD03MMC HW: [B1.4](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout), [B1.6](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145), [B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B2.0](https://github.com/pvvx/ATC_MiThermometer/issues/166) & Xiaomi Miaomiaoce [MHO-C401](https://pvvx.github.io/MHO_C401) & [CGG1](https://pvvx.github.io/CGG1) Mijia Bluetooth Thermometer Firmware & [CGDK2](https://pvvx.github.io/CGDK2) Qingping Temp & RH Monitor Lite
 
-This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
+_This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
-Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin) can be found here: [atc1441/ATC_MiThermometer](https://github.com/atc1441/ATC_MiThermometer).
+Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin) can be found here: [atc1441/ATC_MiThermometer](https://github.com/atc1441/ATC_MiThermometer)._
 
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time. OTA and configuration main page - [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
