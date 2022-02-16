@@ -424,7 +424,6 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 				store_mi_keys(MI_KEYTBIND_SIZE, MI_KEYTBIND_ID, &req->dat[1]);
 			get_mi_keys(MI_KEY_STAGE_TBIND);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
-#if USE_CLOCK || USE_FLASH_MEMO
 		} else if (cmd == CMD_ID_UTC_TIME) { // Get/set utc time
 			if(--len > sizeof(utc_time_sec)) len = sizeof(utc_time_sec);
 			if(len)
@@ -440,7 +439,6 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			}
 			memcpy(&send_buf[1], &utc_time_tick_step, sizeof(utc_time_tick_step));
 			olen = sizeof(utc_time_tick_step) + 1;
-#endif
 #endif
 #if USE_FLASH_MEMO
 		} else if (cmd == CMD_ID_LOGGER && len > 2) { // Read memory measures
