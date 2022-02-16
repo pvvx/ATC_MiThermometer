@@ -72,9 +72,9 @@ typedef struct __attribute__((packed)) _cfg_t {
 	uint8_t min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
 	struct __attribute__((packed)) {
 		uint8_t hwver		: 3; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1, 3 - LYWSD03MMC B1.6, 4 - LYWSD03MMC B1.9, 5 - LYWSD03MMC B1.7
-		uint8_t clock		: 1; // clock
-		uint8_t memo		: 1; // flash write measures
-		uint8_t trg			: 1; // trigger out
+		uint8_t clock		: 1; // uses clock (old version < 3.6)
+		uint8_t memo		: 1; // uses flash write measures
+		uint8_t trg			: 1; // uses trigger out
 		uint8_t mi_beacon	: 1; // advertising uses mi crypto beacon
 		uint8_t shtc3		: 1; // =1 - sensor SHTC3, = 0 - sensor SHT4x
 	} hw_cfg; // read only
@@ -114,10 +114,8 @@ extern external_data_t ext;
 extern uint32_t chow_tick_clk; // count chow validity time, in clock
 extern uint32_t chow_tick_sec; // count chow validity time, in sec
 
-#if	USE_CLOCK || USE_FLASH_MEMO
 extern uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
-#endif
-#if	USE_CLOCK && USE_TIME_ADJUST
+#if	USE_TIME_ADJUST
 extern uint32_t utc_time_tick_step; // adjust time clock (in 1/16 us for 1 sec)
 #endif
 

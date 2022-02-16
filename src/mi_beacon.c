@@ -191,8 +191,11 @@ void atc_encrypt_beacon(uint32_t cnt) {
 		p->head.counter = (uint8_t)cnt;
 		data.temp = (measured_data.temp + 25) / 50 + 4000 / 50;
 		data.humi = (measured_data.humi + 25) / 50;
-		data.bat = battery_level | ((trg.flg.trigger_on)? 0x80 : 0);
-
+		data.bat = battery_level
+#if USE_TRIGGER_OUT
+		| ((trg.flg.trigger_on)? 0x80 : 0)
+#endif
+		;
 		memcpy(&cbn.MAC, mac_public, sizeof(cbn.MAC));
 		memcpy(&cbn.head, p, sizeof(cbn.head));
 		aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey,
@@ -220,7 +223,11 @@ void pvvx_encrypt_beacon(uint32_t cnt) {
 		data.temp = measured_data.temp;
 		data.humi = measured_data.humi;
 		data.bat = battery_level;
+#if	USE_TRIGGER_OUT
 		data.trg = trg.flg_byte;
+#else
+		data.trg = 0;
+#endif
 		memcpy(&cbn.MAC, mac_public, sizeof(cbn.MAC));
 		memcpy(&cbn.head, p, sizeof(cbn.head));
 		aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey,
