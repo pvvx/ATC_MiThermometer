@@ -8,11 +8,13 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 **Key features**
 
-* Supports [connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon.
+* Extended battery life (over a year)
+* Improved measurement accuracy and extended format in 0.01 units
+* Full support in HA ['Passive BLE Monitor integration'](https://github.com/custom-components/ble_monitor)
+* Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon.
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
 * **Measurement values recording** & Charting. See [Reading Measurements from Flash](#reading-measurements-from-flash)
 * **Adjustable correction offsets** and **Comfort zones**
-* Improved battery life
 * Concurrent support for Xiaomi, ATC and Custom Bluetooth Advertisement format
 * Adjustable RF TX Power & Bluetooth advertising interval
 
@@ -58,7 +60,7 @@ You can conveniently flash, update and configure the bluetooth thermometers remo
 To flash or update the firmware, use a Google Chrome, Microsoft Edge or Opera Browser.
 
 1. Go to the [Over-the-air Webupdater Page `TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) *
-2. If using Linux: Ensure you enabled "experimental web platform features". Therefore copy the according link (i.e. `chrome://flags/#enable-experimental-web-platform-features` for Chrome), open a new browser tab, paste the copied URL. Now sten the _Experimental Web Platform features_ flag to _Enabled_. Then **restart the browser**.
+2. If using Android, Windows, Linux: Ensure you enabled "experimental web platform features". Therefore copy the according link (i.e. `chrome://flags/#enable-experimental-web-platform-features` for Chrome), open a new browser tab, paste the copied URL. Now sten the _Experimental Web Platform features_ flag to _Enabled_. Then **restart the browser**.
 3. In the Telink Flasher Page: Press `Connect`: The browser should open a popup with visible Bluetooth devices. Choose the according target device (i.e. `LYWSD03MMC`) to pair. 
 4. After connection is established a _Do Acivation_ button appears. Press this button to start the decryption key process.
 5. Now you can press the _Custom Firmware ver x.x_ button to directly flash the custom firmware. Alternatively you can choose a specific firmware binary (i.e. the original firmware) via the file chooser
@@ -129,28 +131,27 @@ In case you want to go back to the original firmware, you can download them here
 |     1.2 | Bind, Set Pin-code, Support MHO-C401 |
 |     1.3 | Get/Set comfort parameters |
 |     1.4 | Get/Set device name, Get/Set MAC |
-|     1.5 | Add Standard Device Information Characteristics
-|     1.6 | Fix alternation of Advertising in mi mode
-|     1.7 | Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled
-|     1.8 | Time display (instead of a blinking smile)
-|     1.9 | Recording measurements to flash memory (cyclic buffer for 19632 measurements)
-|     2.0 | Recording measurements with averaging to flash memory
-|     2.1 | Periodic display refresh for MHO-C401 <br> 'Erase mi-keys' option to return to original firmware
-|     2.2 | Added parameter "Encrypted Mi Beacon"
-|     2.3 | Added "Delete all records"
-|     2.4 | Added parameter "Clock time step"
-|     2.5 | Remove TRG/FLG errors, minor optimization
-|     2.6 | Expanding the ranges of threshold parameters (TRG)
-|     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding version for CGG1
-|     2.8 | Added saving bindkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults
-|     2.9 | Added additional id flags to advertising packages
-|     3.0 | Added toggle support for advertising package structures for third-party software
-|     3.1 | Fix security attributes (for pincode)
-|     3.2 | Added [new encrypted beacon formats](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018), reed switch maintenance
-|     3.3 | Added autodetection for [LYWSD03MMC hardware versions B1.6 and B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125). For CGG1-M and MHO-C401 - autodetection of SHTV3 or SHT4x sensors
-|     3.4 | Correct Hardware Version Setting for [LYWSD03MMC B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145)
-|     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163)
-|     3.5f | Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M. CGG1 - correction of the battery charge display. Added CGDK2 and modified [(DIY) variant of CGDK2-2](https://pvvx.github.io/CGDK2/CGDK2-2/).
+|     1.5 | Add Standard Device Information Characteristics |
+|     1.6 | Fix alternation of Advertising in mi mode |
+|     1.7 | Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled |
+|     1.8 | Time display (instead of a blinking smile) |
+|     1.9 | Recording measurements to flash memory (cyclic buffer for 19632 measurements) |
+|     2.0 | Recording measurements with averaging to flash memory |
+|     2.1 | Periodic display refresh for MHO-C401 <br> 'Erase mi-keys' option to return to original firmware |
+|     2.2 | Added parameter "Encrypted Mi Beacon" |
+|     2.3 | Added "Delete all records" |
+|     2.4 | Added parameter "Clock time step" |
+|     2.5 | Remove TRG/FLG errors, minor optimization |
+|     2.6 | Expanding the ranges of threshold parameters (TRG) |
+|     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding version for CGG1 |
+|     2.8 | Added saving bindkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults |
+|     2.9 | Added additional id flags to advertising packages |
+|     3.0 | Added toggle support for advertising package structures for third-party software |
+|     3.1 | Fix security attributes (for pincode) |
+|     3.2 | Added [new encrypted beacon formats](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018), reed switch maintenance |
+|     3.3 | Added autodetection for [LYWSD03MMC hardware versions B1.6 and B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125). For CGG1-M and MHO-C401 - autodetection of SHTV3 or SHT4x sensors |
+|     3.4 | Correct Hardware Version Setting for [LYWSD03MMC B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145) |
+|     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163). Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M. CGG1 - correction of the battery charge display. Added CGDK2 and modified [(DIY) variant of CGDK2-2](https://pvvx.github.io/CGDK2/CGDK2-2/). |
 
 ## Applications
 
@@ -209,10 +210,10 @@ The Firmware can be configured to support one of four different Bluetooth advert
 
 You can also configure to transferring everything in turn (round-robin)
 #### atc1441 format:
-UUID 0x181A - size 16: [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware) 
+UUID 0x181A - size 16 (temperatyre in 0.1%, humidity in 1%): [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware)
 
 #### Custom format (all data little-endian):  
-UUID 0x181A - size 19: Custom format (all data little-endian):  
+UUID 0x181A - size 19: Custom extended format in 0.01 units (all data little-endian): 
 
    ```c
    uint8_t     size;   // = 19
