@@ -11,12 +11,13 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Extended battery life (over a year)
 * Improved measurement accuracy and extended format in 0.01 units
 * Full support in HA ['Passive BLE Monitor integration'](https://github.com/custom-components/ble_monitor)
-* Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon.
+* Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
 * **Measurement values recording** & Charting. See [Reading Measurements from Flash](#reading-measurements-from-flash)
 * **Adjustable correction offsets** and **Comfort zones**
 * Concurrent support for Xiaomi, ATC and Custom Bluetooth Advertisement format
 * Adjustable RF TX Power & Bluetooth advertising interval
+* DIY improvements - relay control by temperature or humidity, transfer of the state of the reed switch
 
 |[Xiaomi Mijia (LYWSD03MMC)](https://pvvx.github.io/ATC_MiThermometer) | [Xiaomi Miaomiaoce (MHO-C401)](https://pvvx.github.io/MHO_C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) | [CGDK2 Qingping Temp & RH Monitor Lite](https://pvvx.github.io/CGDK2) |
 |:--:|:--:|:--:|:--:|
