@@ -61,7 +61,9 @@ typedef struct __attribute__((packed)) _cfg_t {
 		uint8_t smiley 		: 3;	// 0..7
 		uint8_t mi_beacon  	: 1; 	// advertising uses crypto beacon
 		uint8_t adv_flags  	: 1; 	// advertising add flags
-		uint8_t reserved	: 3;
+		uint8_t bt5hgy  	: 1; 	// support BT5.0 Coded PHY
+		uint8_t chalg2  	: 1; 	// ChannelSelectionAlgorithm 2
+		uint8_t reserved	: 1;
 	} flg2;
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)

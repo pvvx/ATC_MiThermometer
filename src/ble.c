@@ -55,8 +55,8 @@ void app_enter_ota_mode(void) {
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
 }
 
-#define BLE_ADV_TIME 0 // Test Only!
-#if BLE_ADV_TIME
+#define BLE_ADV_RESP_TIME 0 // Test Only!
+#if BLE_ADV_RESP_TIME
 typedef struct __attribute__((packed)) _resp_time_t {
 	uint8_t len;
 	uint8_t type;
@@ -100,6 +100,9 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 		tx_measures = 0xff;
 	else
 		tx_measures = 0;
+#if USE_EXTENDED_ADVERTISING
+	ev_adv_timeout(0,0,0);
+#endif
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
@@ -145,15 +148,54 @@ _attribute_ram_code_ void user_set_rf_power(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
+
+#if USE_EXTENDED_ADVERTISING
+#define	APP_ADV_SETS_NUMBER						1			// Number of Supported Advertising Sets
+#define APP_MAX_LENGTH_ADV_DATA					64 // 1024	// Maximum Advertising Data Length,   (if legacy ADV, max length 31 bytes is enough)
+#define APP_MAX_LENGTH_SCAN_RESPONSE_DATA		31 // 1024			// Maximum Scan Response Data Length, (if legacy ADV, max length 31 bytes is enough)
+
+RAM	u8  app_adv_set_param[ADV_SET_PARAM_LENGTH * APP_ADV_SETS_NUMBER];
+RAM	u8	app_primary_adv_pkt[MAX_LENGTH_PRIMARY_ADV_PKT * APP_ADV_SETS_NUMBER];
+RAM	u8	app_secondary_adv_pkt[MAX_LENGTH_SECOND_ADV_PKT * APP_ADV_SETS_NUMBER];
+RAM	u8 	app_advData[APP_MAX_LENGTH_ADV_DATA	* APP_ADV_SETS_NUMBER];
+RAM	u8 	app_scanRspData[APP_MAX_LENGTH_SCAN_RESPONSE_DATA * APP_ADV_SETS_NUMBER];
+#endif
+
 /*
  * bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
  * blt_event_callback_t(): */
-_attribute_ram_code_ void ev_adv_timeout(u8 e, u8 *p, int n) {
+void ev_adv_timeout(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
+#if USE_EXTENDED_ADVERTISING
+	blc_ll_setExtAdvParam(ADV_HANDLE0,
+			ADV_EVT_PROP_LEGACY_CONNECTABLE_SCANNABLE_UNDIRECTED,
+			adv_interval, adv_interval + 10,
+			BLT_ENABLE_ADV_ALL,
+			OWN_ADDRESS_PUBLIC,
+			BLE_ADDR_PUBLIC,
+			NULL,
+			ADV_FP_NONE,
+			cfg.rf_tx_power,
+			BLE_PHY_1M,
+			0,
+			BLE_PHY_CODED,
+			ADV_SID_0,
+			0);
+	//blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data[0] + 4, (u8 *)&adv_buf);
+	blc_ll_setExtScanRspData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, ble_name[0]+1, (u8 *)&ble_name);
+	blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
+#else
 	bls_ll_setAdvParam(adv_interval, adv_interval + 10,
 			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
 			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
-	bls_ll_setAdvEnable(1);
+	//bls_ll_setAdvData((u8 *)&adv_buf, adv_buf.data[0] + 4);
+#if BLE_ADV_RESP_TIME
+	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0] + 1 + ble_name[ble_name[0]+1] + 1);
+#else // BLE_ADV_RESP_TIME
+	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
+#endif // BLE_ADV_RESP_TIME
+	bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //ADV enable
+#endif
 }
 
 #if BLE_SECURITY_ENABLE
@@ -229,7 +271,7 @@ void ble_get_name(void) {
 		ble_name[0] = (uint8_t)(len + 1);
 	}
 	ble_name[1] = 0x09;
-#if BLE_ADV_TIME
+#if BLE_ADV_RESP_TIME
 	add_resp_time();
 #endif
 }
@@ -242,11 +284,31 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	////// Controller Initialization  //////////
 	blc_ll_initBasicMCU(); //must
 	blc_ll_initStandby_module(mac_public); //must
+#if USE_EXTENDED_ADVERTISING
+	// Extended ADV module:
+	blc_ll_initExtendedAdvertising_module(app_adv_set_param, app_primary_adv_pkt, APP_ADV_SETS_NUMBER);
+	blc_ll_initExtSecondaryAdvPacketBuffer(app_secondary_adv_pkt, MAX_LENGTH_SECOND_ADV_PKT);
+	blc_ll_initExtAdvDataBuffer(app_advData, APP_MAX_LENGTH_ADV_DATA);
+	blc_ll_initExtScanRspDataBuffer(app_scanRspData, APP_MAX_LENGTH_SCAN_RESPONSE_DATA);
+	blc_ll_setMaxAdvDelay_for_AdvEvent(0);  //no ADV random delay, for debug
+#else
 	blc_ll_initAdvertising_module(mac_public); // adv module: 		 must for BLE slave,
+#endif
 	blc_ll_initConnection_module(); // connection module  must for BLE slave/master
 	blc_ll_initSlaveRole_module(); // slave module: 	 must for BLE slave,
 	blc_ll_initPowerManagement_module(); //pm module:      	 optional
-
+#if	(!USE_EXTENDED_ADVERTISING)
+	if(cfg.flg2.bt5hgy) // 2MPhy
+#endif
+	{
+		blc_ll_init2MPhyCodedPhy_feature();			// mandatory for 2M/Coded PHY
+		//bls_app_registerEventCallback (BLT_EV_FLAG_PHY_UPDATE, &callback_phy_update_complete_event);
+		blc_ll_setDefaultPhy(PHY_TRX_PREFER, PHY_PREFER_1M, PHY_PREFER_1M);
+		//blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
+		blc_ll_setDefaultConnCodingIndication(CODED_PHY_PREFER_S8);
+	}
+	if(cfg.flg2.chalg2) // ChannelSelectionAlgorithm 2
+		blc_ll_initChannelSelectionAlgorithm_2_feature();
 	////// Host Initialization  //////////
 	blc_gap_peripheral_init();
 	my_att_init(); //gatt initialization
@@ -307,17 +369,12 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_smp_setSecurityLevel(No_Security);
 
 	///////////////////// USER application initialization ///////////////////
-#if BLE_ADV_TIME
-	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0] + 1 + ble_name[ble_name[0]+1] + 1);
-#else
-	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
-#endif
 	rf_set_power_level_index(cfg.rf_tx_power);
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power);
 	bls_app_registerEventCallback(BLT_EV_FLAG_CONNECT, &ble_connect_callback);
-	bls_app_registerEventCallback(BLT_EV_FLAG_TERMINATE,
-			&ble_disconnect_callback);
-#if BLE_ADV_TIME
+	bls_app_registerEventCallback(BLT_EV_FLAG_TERMINATE, &ble_disconnect_callback);
+
+#if BLE_ADV_RESP_TIME
 	bls_app_registerEventCallback(BLT_EV_FLAG_SCAN_RSP,	&ble_scan_response_callback);
 #endif
 
@@ -332,37 +389,18 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 #endif
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
-	bls_set_advertise_prepare(app_advertise_prepare_handler);
 #if USE_MIHOME_BEACON
 	mi_beacon_init();
 #endif
-
-#if 0 // BLE_SECURITY_ENABLE && DEVICE_TYPE != DEVICE_MHO_C401
-	if(pincode && *((u32 *)(CFG_ADR_BIND)) != 0xffffffff) {
-		smp_param_save_t  bondInfo;
-		u8 bond_number = blc_smp_param_getCurrentBondingDeviceNumber();  //get bonded device number
-		if(bond_number) {  // at least 1 bonding device exist
-			bls_smp_param_loadByIndex(bond_number - 1, &bondInfo);  //get the latest bonding device (index: bond_number-1 )
-			//set direct adv
-			bls_ll_setAdvParam( adv_interval, adv_interval + 50,
-						ADV_TYPE_CONNECTABLE_DIRECTED_LOW_DUTY,
-						OWN_ADDRESS_PUBLIC,
-						bondInfo.peer_addr_type, bondInfo.peer_addr,
-						BLT_ENABLE_ADV_ALL,
-						ADV_FP_NONE);
-			//it is recommended that direct adv only last for several seconds, then switch to indirect adv
-			bls_ll_setAdvDuration(adv_interval*625*2, 1); // interval usec, duration enable
-			bls_app_registerEventCallback(BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
-			bls_ll_setAdvEnable(1);
-		}
-	} else
+#if	(!USE_EXTENDED_ADVERTISING)
+	bls_set_advertise_prepare(app_advertise_prepare_handler); // todo: not work if USE_EXTENDED_ADVERTISING
 #endif
 	ev_adv_timeout(0,0,0);
 }
 
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-void set_adv_data() {
+void set_adv_data(void) {
 	uint8_t adv_type = cfg.flg.advertising_type; // 0 - atc1441, 1 - pvvx, 2 - Mi, 3 - all
 	adv_old_count = adv_send_count;
 	if(adv_type == ADV_TYPE_ALL)
@@ -469,9 +507,18 @@ void set_adv_data() {
 			bit5..7: Reserved
 		 */
 		adv_buf.flag[2] = 0x06; // Flags
+#if USE_EXTENDED_ADVERTISING
+		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data[0] + 4, (u8 *)&adv_buf);
+#else
 		bls_ll_setAdvData((u8 *)&adv_buf, adv_buf.data[0] + 4);
-	} else
+#endif
+	} else {
+#if USE_EXTENDED_ADVERTISING
+		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data[0] + 1, (u8 *)&adv_buf.data);
+#else
 		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data[0] + 1);
+#endif
+	}
 }
 
 _attribute_ram_code_ void ble_send_measures(void) {
@@ -532,5 +579,3 @@ __attribute__((optimize("-Os"))) void send_memo_blk(void) {
 	}
 }
 #endif
-
-

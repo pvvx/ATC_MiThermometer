@@ -20,6 +20,8 @@ extern "C" {
 // Set DIY_ADC_TO_TH_LYWSD03MMC 1
 #define DIY_ADC_TO_TH_LYWSD03MMC 0
 
+#define USE_EXTENDED_ADVERTISING 0 // debug, not completed!
+
 #define BLE_SECURITY_ENABLE 1
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
 

@@ -73,18 +73,22 @@ const cfg_t def_cfg = {
 		.flg.tx_measures = false,
 		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
+		.flg.comfort_smiley = true,
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = 0,
 #elif DEVICE_TYPE == DEVICE_MHO_C401
+		.flg.comfort_smiley = true,
 		.measure_interval = 8, // * advertising_interval = 20 sec
 		.min_step_time_update_lcd = 199, //x0.05 sec,   9.95 sec
 		.hw_cfg.hwver = 1,
 #elif DEVICE_TYPE == DEVICE_CGG1
+		.flg.comfort_smiley = true,
 		.measure_interval = 8, // * advertising_interval = 20 sec
 		.min_step_time_update_lcd = 199, //x0.05 sec,   9.95 sec
 		.hw_cfg.hwver = 2,
 #elif DEVICE_TYPE == DEVICE_CGDK2
+		.flg.comfort_smiley = false,
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = 6,
@@ -530,6 +534,9 @@ _attribute_ram_code_ void main_loop(void) {
 	while(clock_time() -  utc_time_sec_tick > utc_time_tick_step) {
 		utc_time_sec_tick += utc_time_tick_step;
 		utc_time_sec++; // + 1 sec
+#if USE_EXTENDED_ADVERTISING
+		adv_send_count++; // todo: fix app_advertise_prepare_handler()
+#endif
 	}
 	if (wrk_measure
 		&& timer_measure_cb

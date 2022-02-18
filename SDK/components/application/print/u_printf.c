@@ -226,9 +226,9 @@ int u_sprintf(char *out, const char *format, ...) {
 void u_array_printf(unsigned char*data, unsigned int len) {
 	u_printf("{");
 	for(int i = 0; i < len; ++i){
-		u_printf("%X%s", data[i], i<(len)-1? ":":" ");
+		u_printf("%X%s", data[i], i<(len)-1? ":":"}");
 	}
-	u_printf("}\n");
+	u_printf("\n");
 }
 
 #endif
