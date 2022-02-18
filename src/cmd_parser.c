@@ -25,6 +25,10 @@
 #define FLASH_MIKEYS_ADDR 0x78000
 //#define FLASH_SECTOR_SIZE 0x1000 // in "flash_eep.h"
 
+#if USE_TIME_ADJUST
+RAM uint32_t utc_set_time_sec; // clock setting time for delta calculation
+#endif
+
 RAM uint8_t mi_key_stage;
 RAM uint8_t mi_key_chk_cnt;
 
@@ -435,10 +439,19 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
 		} else if (cmd == CMD_ID_UTC_TIME) { // Get/set utc time
 			if(--len > sizeof(utc_time_sec)) len = sizeof(utc_time_sec);
-			if(len)
+			if(len) {
 				memcpy(&utc_time_sec, &req->dat[1], len);
+#if USE_TIME_ADJUST
+				utc_set_time_sec = utc_time_sec;
+#endif
+			}
 			memcpy(&send_buf[1], &utc_time_sec, sizeof(utc_time_sec));
+#if USE_TIME_ADJUST
+			memcpy(&send_buf[sizeof(utc_time_sec) + 1], &utc_set_time_sec, sizeof(utc_set_time_sec));
+			olen = sizeof(utc_time_sec) + sizeof(utc_set_time_sec) + 1;
+#else
 			olen = sizeof(utc_time_sec) + 1;
+#endif
 #if USE_TIME_ADJUST
 		} else if (cmd == CMD_ID_TADJUST) { // Get/set adjust time clock delta (in 1/16 us for 1 sec)
 			if(len > 2) {
