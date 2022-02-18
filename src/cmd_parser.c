@@ -280,16 +280,23 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			ble_send_ext();
 		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) { // Get/set config
 			if(--len > sizeof(cfg)) len = sizeof(cfg);
+			u8 x = ((u8 *)&cfg.flg2)[0];
 			if(len) {
 				memcpy(&cfg, &req->dat[1], len);
 			}
 			test_config();
 			set_hw_version();
 			ev_adv_timeout(0, 0, 0);
-			if(cmd != CMD_ID_CFG_NS)	// Get/set config (not save to Flash)
+			if(cmd != CMD_ID_CFG_NS) {	// Get/set config (not save to Flash)
 				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
+				x ^= ((u8 *)&cfg.flg2)[0];
+				if(x & 0x60) // (cfg.flg2.bt5hgy || cfg.flg2.chalg2)
+					ble_connected |= 0x80; // reset device on disconnect
+			}
 			ble_send_cfg();
 		} else if (cmd == CMD_ID_CFG_DEF) { // Set default config
+			if(cfg.flg2.bt5hgy || cfg.flg2.chalg2)
+				ble_connected |= 0x80; // reset device on disconnect
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 			test_config();
 			set_hw_version();

@@ -96,7 +96,7 @@ int swire_putc(int c) {
 #if (UART_PRINT_DEBUG_ENABLE)
 
 #ifndef		BIT_INTERVAL
-#define		BIT_INTERVAL		(16000000/PRINT_BAUD_RATE)
+#define		BIT_INTERVAL		((CLOCK_16M_SYS_TIMER_CLK_1S-120)/PRINT_BAUD_RATE) // todo calk real interval?
 #endif
 
 _attribute_ram_code_
@@ -137,6 +137,14 @@ int uart_putc(char byte) //GPIO simulate uart print func
 
 	return byte;
 }
+
+int puts(const char *s) {
+	while(*s) {
+		uart_putc(*s++);
+	}
+	return 0;
+}
+
 #endif
 
 int putchar(int c){
@@ -153,5 +161,5 @@ int putchar(int c){
 return 0;
 }
 
-#endif
+#endif // ifndef WIN32
 
