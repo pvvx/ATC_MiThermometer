@@ -217,7 +217,7 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
 	if (wrk_measure) {
-#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
+#if	USE_TRIGGER_OUT && defined(GPIO_RDS) && USE_WK_RDS_COUNTER == 0
 		rds_input_on();
 #endif
 #if (defined(GPIO_ADC1) || defined(GPIO_ADC2))
@@ -245,12 +245,12 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 				mi_beacon_summ();
 #endif
 		}
-#if USE_TRIGGER_OUT && defined(GPIO_RDS)
-		test_trg_input();
+#if USE_TRIGGER_OUT && defined(GPIO_RDS) && USE_WK_RDS_COUNTER == 0
+		save_rds_input();
 #endif
 		set_adv_data();
 		end_measure = 1;
-#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
+#if	USE_TRIGGER_OUT && defined(GPIO_RDS) && USE_WK_RDS_COUNTER == 0
 		rds_input_off();
 #endif
 		wrk_measure = 0;
@@ -269,9 +269,12 @@ _attribute_ram_code_ void suspend_enter_cb(u8 e, u8 *p, int n) {
 	if (wrk_measure
 		&& timer_measure_cb
 		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT - 3*CLOCK_16M_SYS_TIMER_CLK_1MS) {
-			WakeupLowPowerCb(0);
 			bls_pm_setAppWakeupLowPower(0, 0); // clear callback
+			WakeupLowPowerCb(0);
 	}
+#if USE_WK_RDS_COUNTER
+	cpu_set_gpio_wakeup(GPIO_RDS, get_rds_input()? Level_Low : Level_High, 1);  // pad high wakeup deepsleep enable
+#endif
 }
 
 void low_vbat(void) {
@@ -349,6 +352,11 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if	USE_TRIGGER_OUT
 		if(flash_read_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG) != FEEP_SAVE_SIZE_TRG)
 			memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
+#if USE_WK_RDS_COUNTER
+#if USE_WK_RDS_COUNTER32 // save 32 bits?
+		flash_read_cfg(&rds.count_short[1], EEP_ID_RPC, sizeof(rds.count_short[1]));
+#endif
+#endif
 #endif
 	} else {
 		memcpy(&cfg, &def_cfg, sizeof(cfg));
@@ -364,6 +372,10 @@ void user_init_normal(void) {//this will get executed one time after power up
 			flash_write_cfg(&hw_ver, EEP_ID_HWV, sizeof(hw_ver));
 #endif
 	}
+#if USE_WK_RDS_COUNTER
+	rds.count_byte[0] = analog_read(DEEP_ANA_REG0);
+	rds.count_byte[1] = analog_read(DEEP_ANA_REG1);
+#endif
 	test_config();
 	memcpy(&ext, &def_ext, sizeof(ext));
 	init_ble();
@@ -527,7 +539,14 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 	}
 	show_ble_symbol(ble_connected);
 }
-
+#if USE_WK_RDS_COUNTER
+struct {
+	uint8_t		size;	// = 6
+	uint8_t		uid;	// = 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
+	uint16_t	UUID;	// =
+	uint8_t	cnt[3];
+}ext_adv;
+#endif
 //----------------------- main_loop()
 _attribute_ram_code_ void main_loop(void) {
 	blt_sdk_main_loop();
@@ -549,6 +568,39 @@ _attribute_ram_code_ void main_loop(void) {
 		if((ble_connected&2)==0)
 			bls_pm_setManualLatency(0);
 	} else {
+#if USE_WK_RDS_COUNTER
+		if(get_rds_input())
+			trg.flg.rds_input = 1;
+		else {
+			if(trg.flg.rds_input) {
+				trg.flg.rds_input = 0;
+				rds.count++;
+				analog_write(DEEP_ANA_REG0, rds.count);
+				analog_write(DEEP_ANA_REG1, rds.count >> 8);
+#if USE_WK_RDS_COUNTER32 // save 32 bits?
+				if(rds.count_short[0] == 0) {
+					flash_write_cfg(&rds.count_short[1], EEP_ID_RPC, sizeof(rds.count_short[1]));
+				}
+#endif
+				if((rds.count & 0xff) == 0) {
+					bls_ll_setAdvEnable(0);  //adv enable
+					tim_measure = clock_time();
+					bls_ll_setAdvParam(ADV_INTERVAL_50MS, ADV_INTERVAL_50MS,
+							ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
+							BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
+					ext_adv.size = sizeof(ext_adv)-1;
+					ext_adv.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+					ext_adv.UUID = 0x2AEB; // 0x2AEA - Count 16, 0X2AEB - Count 24
+					ext_adv.cnt[0] = rds.count_byte[2];
+					ext_adv.cnt[1] = rds.count_byte[1];
+					ext_adv.cnt[2] = rds.count_byte[0];
+					bls_ll_setAdvData((u8 *)&ext_adv, sizeof(ext_adv));
+					bls_ll_setAdvDuration(50*4000, 1);
+					bls_ll_setAdvEnable(1);  //adv enable
+				}
+			}
+		}
+#endif
 		if (!wrk_measure) {
 			if (start_measure) {
 				wrk_measure = 1;
@@ -646,6 +698,9 @@ _attribute_ram_code_ void main_loop(void) {
 				bls_pm_setWakeupSource(PM_WAKEUP_PAD);  // gpio pad wakeup suspend/deepsleep
 			}
 		}
+#endif
+#if USE_WK_RDS_COUNTER
+		bls_pm_setWakeupSource(PM_WAKEUP_PAD);  // gpio pad wakeup suspend/deepsleep
 #endif
 		bls_pm_setSuspendMask(
 				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN
