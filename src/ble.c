@@ -134,7 +134,10 @@ int otaWritePre(void * p) {
 
 _attribute_ram_code_
 int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
-	adv_send_count++;
+#if USE_WK_RDS_COUNTER
+	if(!blta.adv_duraton_en)
+#endif
+		adv_send_count++;
 //	set_adv_data();
 	return 1;		// = 1 ready to send ADV packet, = 0 not send ADV
 }
@@ -394,6 +397,9 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 #endif
 #if	(!USE_EXTENDED_ADVERTISING)
 	bls_set_advertise_prepare(app_advertise_prepare_handler); // todo: not work if USE_EXTENDED_ADVERTISING
+#if	USE_WK_RDS_COUNTER
+	bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
+#endif
 #endif
 	ev_adv_timeout(0,0,0);
 }

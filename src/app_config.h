@@ -12,7 +12,7 @@ extern "C" {
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
+#define DEVICE_TYPE			DEVICE_CGDK2 // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
 
 // Special DIY version LYWSD03MMC - Voltage Logger:
 // Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, pcb mark "B1"
@@ -29,6 +29,7 @@ extern "C" {
 #define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
 #define USE_TIME_ADJUST		1 // = 1 time correction enabled
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
+#define USE_WK_RDS_COUNTER	0 // = 1 wake up when the reed switch is triggered + pulse counter (Not completed! Only: CGDK2, LYWSD03MMC)
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
 #define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)

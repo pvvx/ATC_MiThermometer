@@ -29,16 +29,31 @@ typedef struct __attribute__((packed)) _trigger_t {
 		uint8_t	flg_byte;
 	};
 }trigger_t;
+
 #define FEEP_SAVE_SIZE_TRG (sizeof(trg)-1)
 extern trigger_t trg;
 extern const trigger_t def_trg;
+
+#if USE_WK_RDS_COUNTER
+typedef union _rds_count_t {
+	uint8_t count_byte[4];
+	uint16_t count_short[2];
+	uint32_t count;
+}rds_count_t;
+extern rds_count_t rds;		// Reed switch pulse counter
+#endif
 
 void set_trigger_out(void);
 void test_trg_on(void);
 
 
 #ifdef GPIO_RDS
-static inline void test_trg_input(void) {
+
+static inline uint8_t get_rds_input(void) {
+	return (BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff));
+}
+
+static inline void save_rds_input(void) {
 	trg.flg.rds_input = ((BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff))? 1 : 0);
 }
 
