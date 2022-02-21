@@ -13,6 +13,7 @@
 #include "i2c.h"
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
+#include "rds_count.h"
 #endif
 #if USE_FLASH_MEMO
 #include "logger.h"
@@ -185,23 +186,25 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 	adv_interval = cfg.advertising_interval * 100; // Tadv_interval = adv_interval * 62.5 ms
 	measurement_step_time = adv_interval * cfg.measure_interval * (625
 			* sys_tick_per_us) - 250; // measurement_step_time = adv_interval * 62.5 * measure_interval, max 250 sec
+
 	/* interval = 16;
 	 * connection_interval_ms = (interval * 125) / 100;
 	 * connection_latency_ms = (cfg.connect_latency + 1) * connection_interval_ms = (16*125/100)*(99+1) = 2000;
 	 * connection_timeout_ms = connection_latency_ms * 4 = 2000 * 4 = 8000;
 	 */
-	connection_timeout = ((cfg.connect_latency + 1) * 4 * 16 * 125) / 1000; // = 800, default = 8 sec
+	connection_timeout = ((cfg.connect_latency + 1) * (4 * CON_INERVAL_LAT * 125)) / 1000; // = 800, default = 8 sec
 	if (connection_timeout > 32 * 100)
 		connection_timeout = 32 * 100; //x10 ms, max 32 sec?
 	else if(connection_timeout < 100)
 		connection_timeout = 100;	//x10 ms,  1 sec
+
 	if(!cfg.connect_latency) {
 		my_periConnParameters.intervalMin = (cfg.advertising_interval * 625 / 30) - 1; // Tmin = 20*1.25 = 25 ms, Tmax = 3333*1.25 = 4166.25 ms
 		my_periConnParameters.intervalMax = my_periConnParameters.intervalMin + 5;
 		my_periConnParameters.latency = 0;
 	} else {
-		my_periConnParameters.intervalMin = 16; // 16*1.25 = 20 ms
-		my_periConnParameters.intervalMax = 16; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMin = CON_INERVAL_LAT; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMax = CON_INERVAL_LAT; // 16*1.25 = 20 ms
 		my_periConnParameters.latency = cfg.connect_latency;
 	}
 	my_periConnParameters.timeout = connection_timeout;
@@ -217,8 +220,11 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
 	if (wrk_measure) {
-#if	USE_TRIGGER_OUT && defined(GPIO_RDS) && USE_WK_RDS_COUNTER == 0
-		rds_input_on();
+#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
+#if USE_WK_RDS_COUNTER
+		if(rds.type == 0)
+#endif
+			rds_input_on();
 #endif
 #if (defined(GPIO_ADC1) || defined(GPIO_ADC2))
 		if(1) {
@@ -245,26 +251,31 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 				mi_beacon_summ();
 #endif
 		}
-#if USE_TRIGGER_OUT && defined(GPIO_RDS) && USE_WK_RDS_COUNTER == 0
-		save_rds_input();
+#if USE_TRIGGER_OUT && defined(GPIO_RDS)
+#if USE_WK_RDS_COUNTER
+		if(rds.type == 0)
+#endif
+		{
+			save_rds_input();
+			rds_input_off();
+		}
 #endif
 		set_adv_data();
 		end_measure = 1;
-#if	USE_TRIGGER_OUT && defined(GPIO_RDS) && USE_WK_RDS_COUNTER == 0
-		rds_input_off();
-#endif
+
 		wrk_measure = 0;
 	}	
 	timer_measure_cb = 0;
 }
 
-_attribute_ram_code_ void suspend_exit_cb(u8 e, u8 *p, int n) {
+_attribute_ram_code_ static void suspend_exit_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 	if(timer_measure_cb)
 		init_i2c();
+	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
-_attribute_ram_code_ void suspend_enter_cb(u8 e, u8 *p, int n) {
+_attribute_ram_code_ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 	if (wrk_measure
 		&& timer_measure_cb
@@ -273,7 +284,8 @@ _attribute_ram_code_ void suspend_enter_cb(u8 e, u8 *p, int n) {
 			WakeupLowPowerCb(0);
 	}
 #if USE_WK_RDS_COUNTER
-	cpu_set_gpio_wakeup(GPIO_RDS, get_rds_input()? Level_Low : Level_High, 1);  // pad high wakeup deepsleep enable
+	if(rds.type) // rds: switch or counter
+		rds_suspend();
 #endif
 }
 
@@ -353,9 +365,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 		if(flash_read_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG) != FEEP_SAVE_SIZE_TRG)
 			memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #if USE_WK_RDS_COUNTER
-#if USE_WK_RDS_COUNTER32 // save 32 bits?
-		flash_read_cfg(&rds.count_short[1], EEP_ID_RPC, sizeof(rds.count_short[1]));
-#endif
+		rds.type = trg.rds_type & 3;
 #endif
 #endif
 	} else {
@@ -373,8 +383,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 	}
 #if USE_WK_RDS_COUNTER
-	rds.count_byte[0] = analog_read(DEEP_ANA_REG0);
-	rds.count_byte[1] = analog_read(DEEP_ANA_REG1);
+	rds_init();
 #endif
 	test_config();
 	memcpy(&ext, &def_ext, sizeof(ext));
@@ -404,12 +413,12 @@ void user_init_normal(void) {//this will get executed one time after power up
 			cfg.flg.lp_measures = 1;
 		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 	}
+	test_config();
 	start_measure = 1;
 }
 
 //------------------ user_init_deepRetn -------------------
 _attribute_ram_code_ void user_init_deepRetn(void) {//after sleep this will get executed
-//	adv_mi_count++;
 	blc_ll_initBasicMCU();
 	rf_set_power_level_index(cfg.rf_tx_power);
 	blc_ll_recoverDeepRetention();
@@ -539,14 +548,6 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 	}
 	show_ble_symbol(ble_connected);
 }
-#if USE_WK_RDS_COUNTER
-struct {
-	uint8_t		size;	// = 6
-	uint8_t		uid;	// = 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
-	uint16_t	UUID;	// =
-	uint8_t	cnt[3];
-}ext_adv;
-#endif
 //----------------------- main_loop()
 _attribute_ram_code_ void main_loop(void) {
 	blt_sdk_main_loop();
@@ -569,37 +570,8 @@ _attribute_ram_code_ void main_loop(void) {
 			bls_pm_setManualLatency(0);
 	} else {
 #if USE_WK_RDS_COUNTER
-		if(get_rds_input())
-			trg.flg.rds_input = 1;
-		else {
-			if(trg.flg.rds_input) {
-				trg.flg.rds_input = 0;
-				rds.count++;
-				analog_write(DEEP_ANA_REG0, rds.count);
-				analog_write(DEEP_ANA_REG1, rds.count >> 8);
-#if USE_WK_RDS_COUNTER32 // save 32 bits?
-				if(rds.count_short[0] == 0) {
-					flash_write_cfg(&rds.count_short[1], EEP_ID_RPC, sizeof(rds.count_short[1]));
-				}
-#endif
-				if((rds.count & 0xff) == 0) {
-					bls_ll_setAdvEnable(0);  //adv enable
-					tim_measure = clock_time();
-					bls_ll_setAdvParam(ADV_INTERVAL_50MS, ADV_INTERVAL_50MS,
-							ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
-							BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
-					ext_adv.size = sizeof(ext_adv)-1;
-					ext_adv.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-					ext_adv.UUID = 0x2AEB; // 0x2AEA - Count 16, 0X2AEB - Count 24
-					ext_adv.cnt[0] = rds.count_byte[2];
-					ext_adv.cnt[1] = rds.count_byte[1];
-					ext_adv.cnt[2] = rds.count_byte[0];
-					bls_ll_setAdvData((u8 *)&ext_adv, sizeof(ext_adv));
-					bls_ll_setAdvDuration(50*4000, 1);
-					bls_ll_setAdvEnable(1);  //adv enable
-				}
-			}
-		}
+		if(rds.type) // rds: switch or counter
+			rds_task();
 #endif
 		if (!wrk_measure) {
 			if (start_measure) {
@@ -698,9 +670,6 @@ _attribute_ram_code_ void main_loop(void) {
 				bls_pm_setWakeupSource(PM_WAKEUP_PAD);  // gpio pad wakeup suspend/deepsleep
 			}
 		}
-#endif
-#if USE_WK_RDS_COUNTER
-		bls_pm_setWakeupSource(PM_WAKEUP_PAD);  // gpio pad wakeup suspend/deepsleep
 #endif
 		bls_pm_setSuspendMask(
 				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN

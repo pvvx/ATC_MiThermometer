@@ -24,6 +24,11 @@ typedef struct __attribute__((packed)) _trigger_t {
 	int16_t humi_threshold; // x0.01%, Set humi threshold
 	int16_t temp_hysteresis; // Set temp hysteresis, -327.67..327.67 °
 	int16_t humi_hysteresis; // Set humi hysteresis, -327.67..327.67 %
+#if USE_WK_RDS_COUNTER
+	// version 3.6+
+	uint16_t rds_time_report; // Reed switch count report interval (sec)
+	uint8_t rds_type;		// flags Reed switch
+#endif
 	union {
 		trigger_flg_t flg;
 		uint8_t	flg_byte;
@@ -34,36 +39,9 @@ typedef struct __attribute__((packed)) _trigger_t {
 extern trigger_t trg;
 extern const trigger_t def_trg;
 
-#if USE_WK_RDS_COUNTER
-typedef union _rds_count_t {
-	uint8_t count_byte[4];
-	uint16_t count_short[2];
-	uint32_t count;
-}rds_count_t;
-extern rds_count_t rds;		// Reed switch pulse counter
-#endif
 
 void set_trigger_out(void);
 void test_trg_on(void);
 
-
-#ifdef GPIO_RDS
-
-static inline uint8_t get_rds_input(void) {
-	return (BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff));
-}
-
-static inline void save_rds_input(void) {
-	trg.flg.rds_input = ((BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff))? 1 : 0);
-}
-
-static inline void rds_input_off(void) {
-	gpio_setup_up_down_resistor(GPIO_RDS, PM_PIN_UP_DOWN_FLOAT);
-}
-
-static inline void rds_input_on(void) {
-	gpio_setup_up_down_resistor(GPIO_RDS, PM_PIN_PULLUP_1M);
-}
-#endif
 
 #endif /* TIGGER_H_ */

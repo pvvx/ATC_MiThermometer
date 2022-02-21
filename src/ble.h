@@ -13,6 +13,7 @@ extern uint32_t adv_old_count;
 typedef struct __attribute__((packed)) _adv_buf_t {
 	uint8_t flag[3];
 	uint8_t data[ADV_BUFFER_SIZE];
+	uint8_t data_size;
 }adv_buf_t;
 extern adv_buf_t adv_buf;
 //extern uint8_t adv_buffer[ADV_BUFFER_SIZE];
@@ -110,6 +111,8 @@ enum { // mijia ble version 5, General attributes
 	XIAOMI_DATA_ID_SmartPillow			=0x101C
 } XIAOMI_DATA_ID;
 
+
+#define CON_INERVAL_LAT		16 // 16*1.25 = 20 ms
 typedef struct
 {
   /** Minimum value for the connection event (interval. 0x0006 - 0x0C80 * 1.25 ms) */
@@ -326,6 +329,7 @@ typedef enum
 }ATT_HANDLE;
 
 void set_adv_data(void);
+void start_ext_adv(uint8_t * adv_data, uint8_t adv_size);
 
 extern u8 my_RxTx_Data[16];
 

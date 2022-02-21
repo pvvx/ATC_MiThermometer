@@ -155,6 +155,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.4 | Correct Hardware Version Setting for [LYWSD03MMC B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145) |
 |     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163). Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M. CGG1 - correction of the battery charge display. Added CGDK2 and modified [(DIY) variant of CGDK2-2](https://pvvx.github.io/CGDK2/CGDK2-2/). |
 |     3.6 | Additional parameters: Support BT5.0 PHY, Channel Selection Algorithm 2 |
+|     3.6c | Correct RF-TX Power in suspend |
 
 ## Applications
 

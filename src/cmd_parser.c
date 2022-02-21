@@ -9,6 +9,7 @@
 #include "flash_eep.h"
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
+#include "rds_count.h"
 #endif
 #if USE_FLASH_MEMO
 #include "logger.h"
@@ -315,6 +316,9 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			test_trg_on();
 			if(cmd != CMD_ID_TRG_NS) // Get/set trg data (not save to Flash)
 				flash_write_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG);
+#if USE_WK_RDS_COUNTER
+			rds.type = trg.rds_type & 3;
+#endif
 			ble_send_trg();
 		} else if (cmd == CMD_ID_TRG_OUT) { // Set trg out
 			if(len > 1)

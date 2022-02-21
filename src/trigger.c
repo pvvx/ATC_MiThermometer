@@ -18,12 +18,13 @@ const trigger_t def_trg = {
 		.humi_threshold = 5000, // 50 %
 		.temp_hysteresis = -55, // enable, -0.55 °C
 		.humi_hysteresis = 0  // disable
+#if USE_WK_RDS_COUNTER
+		,
+		.rds_time_report = 3600 // 1 hours
+#endif
 };
 
 RAM trigger_t trg;
-#if USE_WK_RDS_COUNTER
-RAM	rds_count_t rds;		// Reed switch pulse counter
-#endif
 
 _attribute_ram_code_ void test_trg_on(void) {
 	if(trg.temp_hysteresis || trg.humi_hysteresis) {
