@@ -11,6 +11,7 @@
 #include "flash_eep.h"
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
+#include "rds_count.h"
 #endif
 #if USE_FLASH_MEMO
 #include "logger.h"
@@ -109,8 +110,8 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 	ble_connected = 1;
 	if(cfg.connect_latency) {
-		my_periConnParameters.intervalMin = 16; // 16*1.25 = 20 ms
-		my_periConnParameters.intervalMax = 16; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMin = CON_INERVAL_LAT; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMax = CON_INERVAL_LAT; // 16*1.25 = 20 ms
 	}
 	my_periConnParameters.latency = cfg.connect_latency;
 	my_periConnParameters.timeout = connection_timeout;
@@ -185,13 +186,14 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 			ADV_SID_0,
 			0);
 	//blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data[0] + 4, (u8 *)&adv_buf);
+	set_adv_data();
 	blc_ll_setExtScanRspData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, ble_name[0]+1, (u8 *)&ble_name);
 	blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
 #else
 	bls_ll_setAdvParam(adv_interval, adv_interval + 10,
 			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
 			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
-	//bls_ll_setAdvData((u8 *)&adv_buf, adv_buf.data[0] + 4);
+	set_adv_data();
 #if BLE_ADV_RESP_TIME
 	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0] + 1 + ble_name[ble_name[0]+1] + 1);
 #else // BLE_ADV_RESP_TIME
@@ -200,6 +202,19 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //ADV enable
 #endif
 }
+
+#define EXT_ADV_INTERVAL ADV_INTERVAL_50MS
+#define EXT_ADV_COUNT 8
+void start_ext_adv(uint8_t * adv_data, uint8_t adv_size) {
+	bls_ll_setAdvEnable(0);  //adv disable
+	bls_ll_setAdvParam(EXT_ADV_INTERVAL, EXT_ADV_INTERVAL,
+			ADV_TYPE_NONCONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
+			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
+	bls_ll_setAdvData(adv_data, adv_size);
+	bls_ll_setAdvDuration(EXT_ADV_INTERVAL*EXT_ADV_COUNT*625+16, 1);
+	bls_ll_setAdvEnable(1);  //adv enable
+}
+
 
 #if BLE_SECURITY_ENABLE
 int app_host_event_callback(u32 h, u8 *para, int n) {
@@ -280,6 +295,18 @@ void ble_get_name(void) {
 }
 
 __attribute__((optimize("-Os"))) void init_ble(void) {
+	////////////////// adv buffer initialization //////////////////////
+	adv_buf.flag[0] = 0x02; // size
+	adv_buf.flag[1] = GAP_ADTYPE_FLAGS; // type
+	/*	Flags:
+	 	bit0: LE Limited Discoverable Mode
+		bit1: LE General Discoverable Mode
+		bit2: BR/EDR Not Supported
+		bit3: Simultaneous LE and BR/EDR to Same Device Capable (Controller)
+		bit4: Simultaneous LE and BR/EDR to Same Device Capable (Host)
+		bit5..7: Reserved
+	 */
+	adv_buf.flag[2] = 0x06; // Flags
 	////////////////// BLE stack initialization //////////////////////
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 	/// if bls_ll_setAdvParam( OWN_ADDRESS_RANDOM ) ->  blc_ll_setRandomAddr(mac_random_static);
@@ -384,8 +411,9 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	///////////////////// Power Management initialization///////////////////
 	blc_ll_initPowerManagement_module();
 	bls_pm_setSuspendMask(SUSPEND_DISABLE);
-	blc_pm_setDeepsleepRetentionThreshold(50, 30);
-	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
+//	blc_pm_setDeepsleepRetentionThreshold(50, 30);
+	blc_pm_setDeepsleepRetentionThreshold(40, 18);
+	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(200); // 240
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
 #if USE_NEW_OTA == 0
 	bls_ota_clearNewFwDataArea();
@@ -501,28 +529,18 @@ void set_adv_data(void) {
 			p->counter = (uint8_t)measured_data.count;
 		}
 	}
+	adv_buf.data_size = adv_buf.data[0] + 1;
 	if(cfg.flg2.adv_flags) {
-		adv_buf.flag[0] = 0x02; // size
-		adv_buf.flag[1] = GAP_ADTYPE_FLAGS; // type
-		/*	Flags:
-		 	bit0: LE Limited Discoverable Mode
-			bit1: LE General Discoverable Mode
-			bit2: BR/EDR Not Supported
-			bit3: Simultaneous LE and BR/EDR to Same Device Capable (Controller)
-			bit4: Simultaneous LE and BR/EDR to Same Device Capable (Host)
-			bit5..7: Reserved
-		 */
-		adv_buf.flag[2] = 0x06; // Flags
 #if USE_EXTENDED_ADVERTISING
-		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data[0] + 4, (u8 *)&adv_buf);
+		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size + sizeof(adv_buf.flag), (u8 *)&adv_buf);
 #else
-		bls_ll_setAdvData((u8 *)&adv_buf, adv_buf.data[0] + 4);
+		bls_ll_setAdvData((u8 *)&adv_buf, adv_buf.data_size + sizeof(adv_buf.flag));
 #endif
 	} else {
 #if USE_EXTENDED_ADVERTISING
-		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data[0] + 1, (u8 *)&adv_buf.data);
+		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size, (u8 *)&adv_buf.data);
 #else
-		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data[0] + 1);
+		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
 #endif
 	}
 }
@@ -532,7 +550,15 @@ _attribute_ram_code_ void ble_send_measures(void) {
 	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
 #if	USE_TRIGGER_OUT
 	send_buf[sizeof(measured_data)+1] = trg.flg_byte;
+#if USE_WK_RDS_COUNTER
+	send_buf[sizeof(measured_data)+2] = rds.count_byte[0];
+	send_buf[sizeof(measured_data)+3] = rds.count_byte[1];
+	send_buf[sizeof(measured_data)+4] = rds.count_byte[2];
+	send_buf[sizeof(measured_data)+5] = rds.count_byte[3];
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 6);
+#else
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 2);
+#endif
 #else
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);
 #endif

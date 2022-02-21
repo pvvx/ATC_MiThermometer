@@ -12,7 +12,7 @@ extern "C" {
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 
-#define DEVICE_TYPE			DEVICE_CGDK2 // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
 
 // Special DIY version LYWSD03MMC - Voltage Logger:
 // Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, pcb mark "B1"
@@ -231,6 +231,8 @@ extern "C" {
 //#define PD7_INPUT_ENABLE	1
 //#define PD7_FUNC			AS_UART
 
+#endif // USE_TRIGGER_OUT
+
 #if DIY_ADC_TO_TH_LYWSD03MMC // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
 #define GPIO_ADC1 			GPIO_PB7	// ADC input, pcb mark "B1"
 #define PB7_OUTPUT_ENABLE	0
@@ -243,8 +245,6 @@ extern "C" {
 #define PC4_DATA_STRENGTH	0
 #define PC4_FUNC			AS_GPIO
 #endif
-
-#endif // USE_TRIGGER_OUT
 
 #elif DEVICE_TYPE == DEVICE_CGDK2
 
@@ -281,6 +281,49 @@ extern "C" {
 #define PD3_FUNC			AS_GPIO
 
 #endif // USE_TRIGGER_OUT
+
+#elif DEVICE_TYPE == 1 //DEVICE_CGDK2
+
+#define SHL_ADC_VBAT	1  // "B0P" in adc.h
+#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
+
+#define I2C_SCL 	GPIO_PC2
+#define I2C_SDA 	GPIO_PC3
+#define I2C_GROUP 	I2C_GPIO_GROUP_C2C3
+
+#if USE_TRIGGER_OUT
+
+#define GPIO_TRG			GPIO_PA5	// Trigger, output, pcb mark "reset"
+#define PA5_INPUT_ENABLE	1
+#define PA5_DATA_OUT		0
+#define PA5_OUTPUT_ENABLE	0
+#define PA5_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA5	PM_PIN_PULLDOWN_100K
+
+#define GPIO_RDS 			GPIO_PD3	// Reed Switch, input
+#define PD3_INPUT_ENABLE	1
+#define PD3_DATA_OUT		0
+#define PD3_OUTPUT_ENABLE	0
+#define PD3_FUNC			AS_GPIO
+
+#define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX (B1.6)
+//#define PD7_INPUT_ENABLE	1
+//#define PD7_FUNC			AS_UART
+
+#endif // USE_TRIGGER_OUT
+
+#if DIY_ADC_TO_TH_LYWSD03MMC // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
+#define GPIO_ADC1 			GPIO_PB7	// ADC input, pcb mark "B1"
+#define PB7_OUTPUT_ENABLE	0
+#define PB7_FUNC			AS_ADC
+#endif
+
+#if DIY_ADC_TO_TH_LYWSD03MMC // Special version: Humidity 0..36 = ADC pin PC4 input 0..3.6В, pcb mark "P9"
+#define GPIO_ADC2 			GPIO_PC4	// ADC input, pcb mark "P9"
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_DATA_STRENGTH	0
+#define PC4_FUNC			AS_GPIO
+#endif
 
 #endif // DEVICE_TYPE == ?
 
