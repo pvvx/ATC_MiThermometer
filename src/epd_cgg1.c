@@ -85,15 +85,15 @@ const uint8_t digits[16][DEF_EPD_SUMBOL_SIGMENTS + 1] = {
  * 0xC0 = " ="
  * 0xE0 = "°E" */
 _attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
-	if(symbol & 0x20)
+	if (symbol & 0x20)
 		display_buff[1] |= BIT(3) | BIT(2);
 	else
 		display_buff[1] &= ~(BIT(3) | BIT(2));
-	if(symbol & 0x40)
+	if (symbol & 0x40)
 		display_buff[1] |= BIT(4); //"-"
 	else
 		display_buff[1] &= ~BIT(4); //"-"
-	if(symbol & 0x80)
+	if (symbol & 0x80)
 		display_buff[1] |= BIT(5); // "_"
 	else
 		display_buff[1] &= ~BIT(5); // "_"
@@ -102,7 +102,7 @@ _attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
 /* CGG1 no symbol 'smiley' !
  * =5 -> "---" happy, != 5 -> "    " sad */
 _attribute_ram_code_ void show_smiley(uint8_t state){
-	if(state & 1)
+	if (state & 1)
 		display_buff[7] |= BIT(2);
 	else
 		display_buff[7] &= ~BIT(2);
@@ -112,17 +112,17 @@ _attribute_ram_code_ void show_battery_symbol(bool state){
 	display_buff[5] &= ~(BIT(5) | BIT(6));
 	display_buff[6] &= ~(BIT(1) | BIT(7));
 	display_buff[7] &= ~(BIT(4) | BIT(5));
-	if(state) {
+	if (state) {
 		display_buff[7] |= BIT(4);
-		if(battery_level >= 16) {
+		if (battery_level >= 16) {
 			display_buff[5] |= BIT(6);
-			if(battery_level >= 33) {
+			if (battery_level >= 33) {
 				display_buff[5] |= BIT(5);
-				if(battery_level >= 49) {
+				if (battery_level >= 49) {
 					display_buff[6] |= BIT(7);
-					if(battery_level >= 67) {
+					if (battery_level >= 67) {
 						display_buff[6] |= BIT(1);
-						if(battery_level >= 83) {
+						if (battery_level >= 83) {
 							display_buff[7] |= BIT(5);
 						}
 					}
@@ -133,7 +133,7 @@ _attribute_ram_code_ void show_battery_symbol(bool state){
 }
 
 _attribute_ram_code_ void show_ble_symbol(bool state){
-	if(state)
+	if (state)
 		display_buff[9] |= BIT(1); // "*"
 	else
 		display_buff[9] &= ~BIT(1);
@@ -212,7 +212,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
 	display_buff[13] &= ~BIT(0);
 	display_buff[14] &= ~(BIT(4) | BIT(5) | BIT(6) | BIT(7));
 	display_buff[15] &= ~(BIT(1) | BIT(2) | BIT(3) | BIT(4) | BIT(5));
-	if(number > 19995) {
+	if (number > 19995) {
 		// "Hi"
 		display_buff[13] |= BIT(0);
 		display_buff[14] |= BIT(4) | BIT(5) | BIT(6) | BIT(7);
@@ -221,7 +221,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
 		display_buff[7] |= BIT(0) | BIT(1);
 		display_buff[6] |= BIT(5) | BIT(6);
 		display_buff[5] |= BIT(0);
-	} else if(number < -995) {
+	} else if (number < -995) {
 		// "Lo"
 		display_buff[13] |= BIT(0);
 		display_buff[14] |= BIT(4) | BIT(5) | BIT(6) | BIT(7);
@@ -232,24 +232,24 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
 		display_buff[4] |= BIT(1) | BIT(5) | BIT(6) | BIT(7);
 	} else {
 		/* number: -995..19995 */
-		if(number > 1995 || number < -95) {
+		if (number > 1995 || number < -95) {
 			// no point, show: -99..1999
-			if(number < 0){
+			if (number < 0){
 				number = -number;
 				display_buff[9] |= BIT(3); // "-"
 			}
 			number = (number / 10) + ((number % 10) > 5); // round(div 10)
 		} else { // show: -9.9..199.9
 			display_buff[3] |= BIT(6); // point
-			if(number < 0){
+			if (number < 0){
 				number = -number;
 				display_buff[9] |= BIT(3); // "-"
 			}
 		}
 		/* number: -99..1999 */
-		if(number > 999) display_buff[15] |= BIT(1) | BIT(2) | BIT(3) | BIT(4) | BIT(5); // "1" 1000..1999
-		if(number > 99) epd_set_digit(display_buff, number / 100 % 10, top_left);
-		if(number > 9) epd_set_digit(display_buff, number / 10 % 10, top_middle);
+		if (number > 999) display_buff[15] |= BIT(1) | BIT(2) | BIT(3) | BIT(4) | BIT(5); // "1" 1000..1999
+		if (number > 99) epd_set_digit(display_buff, number / 100 % 10, top_left);
+		if (number > 9) epd_set_digit(display_buff, number / 10 % 10, top_middle);
 		else epd_set_digit(display_buff, 0, top_middle);
 		epd_set_digit(display_buff, number % 10, top_right);
 	}
@@ -269,9 +269,9 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10
 	display_buff[14] &= ~(BIT(0) | BIT(1) | BIT(2) | BIT(3));
 	display_buff[15] &= ~(BIT(0) | BIT(6) | BIT(7));
 	display_buff[16] &= ~(BIT(4) | BIT(5) | BIT(6) | BIT(7));
-	if(percent)
+	if (percent)
 		display_buff[5] |= BIT(3); // "%"
-	if(number > 9995) {
+	if (number > 9995) {
 		// "Hi"
 		display_buff[9] |= BIT(5);
 		display_buff[10] |= BIT(4) | BIT(6);
@@ -279,7 +279,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10
 		display_buff[14] |= BIT(0) | BIT(1) | BIT(2) | BIT(3);
 		display_buff[15] |= BIT(0) |BIT(6) | BIT(7);
 		display_buff[16] |= BIT(4) | BIT(6) | BIT(7);
-	} else if(number < -995) {
+	} else if (number < -995) {
 		//"Lo"
 		display_buff[7] |= BIT(3);
 		display_buff[8] |= BIT(1) | BIT(4);
@@ -290,23 +290,23 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10
 		display_buff[16] |= BIT(4) | BIT(5) | BIT(6) | BIT(7);
 	} else {
 		/* number: -99..999 */
-		if(number > 995 || number < -95) {
+		if (number > 995 || number < -95) {
 			// no point, show: -99..999
-			if(number < 0){
+			if (number < 0){
 				number = -number;
 				display_buff[15] |= BIT(7); // "-"
 			}
 			number = (number / 10) + ((number % 10) > 5); // round(div 10)
 		} else { // show: -9.9..99.9
 			display_buff[0] |= BIT(2); // point
-			if(number < 0){
+			if (number < 0){
 				number = -number;
 				display_buff[15] |= BIT(7); // "-"
 			}
 		}
 		/* number: -99..999 */
-		if(number > 99) epd_set_digit(display_buff, number / 100 % 10, bottom_left);
-		if(number > 9) epd_set_digit(display_buff, number / 10 % 10, bottom_middle);
+		if (number > 99) epd_set_digit(display_buff, number / 100 % 10, bottom_left);
+		if (number > 9) epd_set_digit(display_buff, number / 10 % 10, bottom_middle);
 		else epd_set_digit(display_buff, 0, bottom_middle);
 		epd_set_digit(display_buff, number % 10, bottom_right);
 	}
@@ -326,19 +326,19 @@ void init_lcd(void) {
 
 void show_batt_cgg1(void) {
 	uint16_t battery_level = 0;
-	if(measured_data.battery_mv > MIN_VBAT_MV) {
+	if (measured_data.battery_mv > MIN_VBAT_MV) {
 		battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
-		if(battery_level > 995)
+		if (battery_level > 995)
 			battery_level = 995;
 	}
 	show_small_number_x10(battery_level, false);
 }
 
 _attribute_ram_code_ void update_lcd(void){
-	if(!stage_lcd) {
-		if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
+	if (!stage_lcd) {
+		if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 			memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
-			if(lcd_refresh_cnt) {
+			if (lcd_refresh_cnt) {
 				lcd_refresh_cnt--;
 				flg_lcd_init = 0;
 				stage_lcd = 1;

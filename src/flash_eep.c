@@ -113,9 +113,9 @@ inline unsigned int _flash_memcmp(unsigned int addr, unsigned int len, unsigned 
 // error flash write: patch (переход границы в 256 байт)
 _attribute_ram_code_ void flash_write_all_size(unsigned int addr, unsigned int len, unsigned char *buf) {
 	uint32_t xlen;
-	while(len) {
+	while (len) {
 		xlen = addr & 0xff;
-		if(xlen + len > 0x100) {
+		if (xlen + len > 0x100) {
 			xlen = 0x100 - xlen;
 			flash_write_page(addr, xlen, buf);
 			len -= xlen;
@@ -140,16 +140,16 @@ LOCAL unsigned int get_addr_bscfg()
 	unsigned int faddr = FMEMORY_SCFG_BASE_ADDR;
 	unsigned int reta = FMEMORY_SCFG_BASE_ADDR;
 	do {
-		x2 = _flash_read_dword(faddr); // if(flash_read(faddr, &x2, 4)) return -(FMEM_FLASH_ERR);
-		if(x2 < x1) { // поиск текущего сегмента
+		x2 = _flash_read_dword(faddr); // if (flash_read(faddr, &x2, 4)) return -(FMEM_FLASH_ERR);
+		if (x2 < x1) { // поиск текущего сегмента
 			x1 = x2;
 			reta = faddr; // новый адрес сегмента для записи
 		};
 		faddr += FMEMORY_SCFG_BANK_SIZE;
-	} while(faddr < (FMEMORY_SCFG_BASE_ADDR + FMEMORY_SCFG_BANKS * FMEMORY_SCFG_BANK_SIZE));
+	} while (faddr < (FMEMORY_SCFG_BASE_ADDR + FMEMORY_SCFG_BANKS * FMEMORY_SCFG_BANK_SIZE));
 
-	if((x1 == 0xFFFFFFFF)&&(reta == FMEMORY_SCFG_BASE_ADDR)) { // первый старт?
-		_flash_write_dword(reta, 0x7FFFFFFF); // if(flash_write(reta, &x1, 4)) return -(FMEM_FLASH_ERR);
+	if ((x1 == 0xFFFFFFFF)&&(reta == FMEMORY_SCFG_BASE_ADDR)) { // первый старт?
+		_flash_write_dword(reta, 0x7FFFFFFF); // if (flash_write(reta, &x1, 4)) return -(FMEM_FLASH_ERR);
 	}
 #if CONFIG_DEBUG_LOG > 3
 	DBG_FEEP_INFO("base seg: %p [%p]\n", reta, _flash_read_dword(reta));
@@ -168,17 +168,17 @@ LOCAL unsigned int get_addr_bscfg()
 FEEP_CODE_ATTR
 LOCAL unsigned int get_addr_fobj(unsigned int base, fobj_head *obj, bool flg)
 {
-//	if(base == 0) return 0;
+//	if (base == 0) return 0;
 	fobj_head fobj;
 	unsigned int faddr = base + 4;
 	unsigned int fend = base + FMEMORY_SCFG_BANK_SIZE - align(fobj_head_size);
 	unsigned int reta = 0;
 	do {
-		fobj.x = _flash_read_dword(faddr); // if(flash_read(faddr, &fobj, fobj_head_size)) return -(FMEM_FLASH_ERR);
-		if(fobj.x == fobj_x_free) break;
-		if(fobj.n.size <= MAX_FOBJ_SIZE) {
-			if(fobj.n.id == obj->n.id) {
-				if(flg) {
+		fobj.x = _flash_read_dword(faddr); // if (flash_read(faddr, &fobj, fobj_head_size)) return -(FMEM_FLASH_ERR);
+		if (fobj.x == fobj_x_free) break;
+		if (fobj.n.size <= MAX_FOBJ_SIZE) {
+			if (fobj.n.id == obj->n.id) {
+				if (flg) {
 					return faddr;
 				}
 				obj->n.size = fobj.n.size;
@@ -188,7 +188,7 @@ LOCAL unsigned int get_addr_fobj(unsigned int base, fobj_head *obj, bool flg)
 		}
 		else faddr += align(MAX_FOBJ_SIZE + fobj_head_size);
 	}
-	while(faddr < fend);
+	while (faddr < fend);
 	return reta;
 }
 //-----------------------------------------------------------------------------
@@ -205,19 +205,19 @@ LOCAL unsigned int get_addr_fobj_save(unsigned int base, fobj_head obj)
 	unsigned int faddr = base + 4;
 	unsigned int fend = base + FMEMORY_SCFG_BANK_SIZE - align(obj.n.size + fobj_head_size);
 	do {
-		fobj.x = _flash_read_dword(faddr); // if(flash_read(faddr, &fobj, fobj_head_size)) return -(FMEM_FLASH_ERR);
-		if(fobj.x == fobj_x_free) {
-			if(faddr < fend) {
+		fobj.x = _flash_read_dword(faddr); // if (flash_read(faddr, &fobj, fobj_head_size)) return -(FMEM_FLASH_ERR);
+		if (fobj.x == fobj_x_free) {
+			if (faddr < fend) {
 				return faddr;
 			}
 			return 0; // не влезет, на pack
 		}
-		if(fobj.n.size <= MAX_FOBJ_SIZE) {
+		if (fobj.n.size <= MAX_FOBJ_SIZE) {
 			faddr += align(fobj.n.size + fobj_head_size);
 		}
 		else faddr += align(MAX_FOBJ_SIZE + fobj_head_size);
 	}
-	while(faddr < fend);
+	while (faddr < fend);
 	return 0; // не влезет, на pack
 }
 //=============================================================================
@@ -229,36 +229,36 @@ LOCAL unsigned int pack_cfg_fmem(fobj_head obj)
 {
 	fobj_head fobj;
 	unsigned int foldseg = get_addr_bscfg(); // поиск текушего сегмента
-//	if(foldseg < FMEM_ERROR_MAX) return fnewseg; // error
+//	if (foldseg < FMEM_ERROR_MAX) return fnewseg; // error
 	unsigned int fnewseg = foldseg + FMEMORY_SCFG_BANK_SIZE;
-	if(fnewseg >= (FMEMORY_SCFG_BASE_ADDR + FMEMORY_SCFG_BANKS * FMEMORY_SCFG_BANK_SIZE))
+	if (fnewseg >= (FMEMORY_SCFG_BASE_ADDR + FMEMORY_SCFG_BANKS * FMEMORY_SCFG_BANK_SIZE))
 		fnewseg = FMEMORY_SCFG_BASE_ADDR;
 	unsigned int faddr = foldseg;
 	unsigned int rdaddr, wraddr;
 	unsigned short len;
 	unsigned int * pbuf = (unsigned int *) malloc(align(MAX_FOBJ_SIZE + fobj_head_size) >> 2);
-	if(pbuf == NULL) {
+	if (pbuf == NULL) {
 		DBG_FEEP_ERR("pack malloc error!\n");
 		return -(FMEM_MEM_ERR);
 	}
 #if CONFIG_DEBUG_LOG > 3
 	DBG_FEEP_INFO("repack base to new seg: %p\n", fnewseg);
 #endif
-	if(_flash_read_dword(fnewseg) != 0xFFFFFFFF)
-		_flash_erase_sector(fnewseg); // if(flash_erase_sector(fnewseg)) return -(FMEM_FLASH_ERR);
+	if (_flash_read_dword(fnewseg) != 0xFFFFFFFF)
+		_flash_erase_sector(fnewseg); // if (flash_erase_sector(fnewseg)) return -(FMEM_FLASH_ERR);
 	_flash_write_dword(fnewseg, 0x7FFFFFFF); // сегмент занят
 	faddr += 4;
 	wraddr = fnewseg + 4;
 	do {
-		fobj.x = _flash_read_dword(faddr); //if(flash_read(faddr, &fobj, fobj_head_size)) return -(FMEM_FLASH_ERR); // последовательное чтение id из старого сегмента
-		if(fobj.x == fobj_x_free) break;
-		if(fobj.n.size > MAX_FOBJ_SIZE) len = align(MAX_FOBJ_SIZE + fobj_head_size);
+		fobj.x = _flash_read_dword(faddr); //if (flash_read(faddr, &fobj, fobj_head_size)) return -(FMEM_FLASH_ERR); // последовательное чтение id из старого сегмента
+		if (fobj.x == fobj_x_free) break;
+		if (fobj.n.size > MAX_FOBJ_SIZE) len = align(MAX_FOBJ_SIZE + fobj_head_size);
 		else len = align(fobj.n.size + fobj_head_size);
-		if(fobj.n.id != obj.n.id &&  fobj.n.size <= MAX_FOBJ_SIZE) { // объект валидный
-			if(get_addr_fobj(fnewseg, &fobj, true) == 0) { // найдем, сохранили ли мы его уже? нет
+		if (fobj.n.id != obj.n.id &&  fobj.n.size <= MAX_FOBJ_SIZE) { // объект валидный
+			if (get_addr_fobj(fnewseg, &fobj, true) == 0) { // найдем, сохранили ли мы его уже? нет
 				rdaddr = get_addr_fobj(foldseg, &fobj, false); // найдем последнее сохранение объекта в старом сенгменте, size изменен
-				if(rdaddr < FMEM_ERROR_MAX) return rdaddr; // ???
-				if(wraddr + len >= fnewseg + FMEMORY_SCFG_BANK_SIZE) {
+				if (rdaddr < FMEM_ERROR_MAX) return rdaddr; // ???
+				if (wraddr + len >= fnewseg + FMEMORY_SCFG_BANK_SIZE) {
 					DBG_FEEP_ERR("pack segment overflow!\n");
 					return -(FMEM_OVR_ERR);
 				};
@@ -268,10 +268,10 @@ LOCAL unsigned int pack_cfg_fmem(fobj_head obj)
 			};
 		};
 		faddr += len;
-	} while(faddr  < (foldseg + FMEMORY_SCFG_BANK_SIZE - align(fobj_head_size+1)));
+	} while (faddr  < (foldseg + FMEMORY_SCFG_BANK_SIZE - align(fobj_head_size+1)));
 	free(pbuf);
 	// обратный счетчик стираний/записей секторов как id
-	_flash_write_dword(fnewseg, (_flash_read_dword(foldseg) - 1)); // if(flash_write(fnewseg, &foldseg + SPI_FLASH_BASE, 4)) return -(FMEM_FLASH_ERR);
+	_flash_write_dword(fnewseg, (_flash_read_dword(foldseg) - 1)); // if (flash_write(fnewseg, &foldseg + SPI_FLASH_BASE, 4)) return -(FMEM_FLASH_ERR);
 	_flash_erase_sector(foldseg);
 #if CONFIG_DEBUG_LOG > 3
 	DBG_FEEP_INFO("free: %d\n", FMEMORY_SCFG_BANK_SIZE - (faddr & (FMEMORY_SCFG_BANK_SIZE-1)));
@@ -288,10 +288,10 @@ LOCAL signed short _flash_write_cfg(void *ptr, unsigned short id, unsigned short
 //	bool retb = false;
 	unsigned int faddr = get_addr_bscfg();
 
-	if(faddr >= FMEM_ERROR_MAX)  {
+	if (faddr >= FMEM_ERROR_MAX)  {
 		unsigned int xfaddr = get_addr_fobj(faddr, &fobj, false);
-		if(xfaddr > FMEM_ERROR_MAX && size == fobj.n.size) {
-			if(size == 0
+		if (xfaddr > FMEM_ERROR_MAX && size == fobj.n.size) {
+			if (size == 0
 					|| _flash_memcmp(xfaddr + fobj_head_size, size, ptr) == 0) {
 #if CONFIG_DEBUG_LOG > 3
 					DBG_FEEP_INFO("write obj is identical, id: %04x [%d]\n", id, size);
@@ -317,23 +317,23 @@ LOCAL signed short _flash_write_cfg(void *ptr, unsigned short id, unsigned short
 	fobj.n.size = size;
 //	flash_write_protect(&flashobj, 0); // Flash Unprotect
 	faddr = get_addr_fobj_save(faddr, fobj);
-	if(faddr == 0) {
+	if (faddr == 0) {
 		faddr = pack_cfg_fmem(fobj);
-		if(faddr == 0) {
+		if (faddr == 0) {
 			DBG_FEEP_ERR("banks overflow!\n");
 			return FMEM_NOT_FOUND;
 		}
 	}
-	else if(faddr < FMEM_ERROR_MAX) return - faddr - 1; // error
+	else if (faddr < FMEM_ERROR_MAX) return - faddr - 1; // error
 
 #if CONFIG_DEBUG_LOG > 3
 	DBG_FEEP_INFO("write obj to faddr %p\n", faddr);
 #endif
-	_flash_write_dword(faddr, fobj.x); // if(flash_write(faddr, &fobj.x, 4)) return FMEM_FLASH_ERR;
+	_flash_write_dword(faddr, fobj.x); // if (flash_write(faddr, &fobj.x, 4)) return FMEM_FLASH_ERR;
 	faddr+=4;
 #if 1
 	u32 len = (size + 3) & (~3);
-	if(len) _flash_write(faddr, len, ptr);
+	if (len) _flash_write(faddr, len, ptr);
 #else
 	union {
 		unsigned char uc[4];
@@ -341,12 +341,12 @@ LOCAL signed short _flash_write_cfg(void *ptr, unsigned short id, unsigned short
 	}tmp;
 	u32 len = (size + 3) >> 2;
 	unsigned char * ps = ptr;
-  	while(len--) {
+  	while (len--) {
 		tmp.uc[0] = *ps++;
 		tmp.uc[1] = *ps++;
 		tmp.uc[2] = *ps++;
 		tmp.uc[3] = *ps++;
-		_flash_write_dword(faddr, tmp.ud); // if(flash_write(faddr, &tmp.ud, 4)) return FMEM_FLASH_ERR;
+		_flash_write_dword(faddr, tmp.ud); // if (flash_write(faddr, &tmp.ud, 4)) return FMEM_FLASH_ERR;
 		faddr += 4;
 	}
 #endif
@@ -361,9 +361,9 @@ FEEP_CODE_ATTR
 bool flash_write_cfg(void *ptr, unsigned short id, unsigned short size)
 {
 	bool retb = false;
-	if(size > MAX_FOBJ_SIZE) return retb;
+	if (size > MAX_FOBJ_SIZE) return retb;
 	_flash_mutex_lock();
-	if(_flash_write_cfg(ptr, id, size) >= 0) {
+	if (_flash_write_cfg(ptr, id, size) >= 0) {
 #if CONFIG_DEBUG_LOG > 3
 		DBG_FEEP_INFO("saved ok\n");
 #endif
@@ -395,10 +395,10 @@ signed short flash_read_cfg(void *ptr, unsigned short id, unsigned short maxsize
 		fobj.n.size = 0;
 		DBG_FEEP_INFO("read obj id: %04x[%d]\n", id, maxsize);
 		unsigned int faddr = get_addr_bscfg();
-		if(faddr >= FMEM_ERROR_MAX) {
+		if (faddr >= FMEM_ERROR_MAX) {
 			faddr = get_addr_fobj(faddr, &fobj, false);
-			if(faddr >= FMEM_ERROR_MAX) {
-				if(maxsize != 0 && ptr != NULL)
+			if (faddr >= FMEM_ERROR_MAX) {
+				if (maxsize != 0 && ptr != NULL)
 					_flash_read(faddr + fobj_head_size, mMIN(fobj.n.size, maxsize), ptr);
 
 #if CONFIG_DEBUG_LOG > 3
@@ -424,14 +424,14 @@ bool flash_supported_eep_ver(unsigned int min_ver, unsigned int new_ver) {
 	unsigned int tmp;
 	unsigned int faddr = FMEMORY_SCFG_BASE_ADDR;
 	_flash_mutex_lock();
-	if(flash_read_cfg(&tmp, EEP_ID_VER, sizeof(tmp)) == sizeof(tmp) && tmp >= min_ver)
+	if (flash_read_cfg(&tmp, EEP_ID_VER, sizeof(tmp)) == sizeof(tmp) && tmp >= min_ver)
 		return true;
 	do{
 		tmp = _flash_read_dword(faddr);
 		_flash_erase_sector(faddr);
 		_flash_write_dword(faddr, --tmp);
 		faddr += FLASH_SECTOR_SIZE;
-	} while(faddr < FLASH_SIZE);
+	} while (faddr < FLASH_SIZE);
 	_flash_clear_cache();
 	tmp = new_ver;
 	flash_write_cfg(&tmp, EEP_ID_VER, sizeof(tmp));

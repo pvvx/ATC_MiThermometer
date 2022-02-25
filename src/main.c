@@ -93,7 +93,7 @@ _attribute_ram_code_ void _gpio_init(int anaRes_init_en) {
 	reg_gpio_pe_ds = (PE0_DATA_STRENGTH<<0)	| (PE1_DATA_STRENGTH<<1)	| (PE2_DATA_STRENGTH<<2)	| (PE3_DATA_STRENGTH<<3);
 	reg_gpio_pe_gpio = (PE0_FUNC==AS_GPIO ? BIT(0):0)	| (PE1_FUNC==AS_GPIO ? BIT(1):0)| (PE2_FUNC==AS_GPIO ? BIT(2):0)| (PE3_FUNC==AS_GPIO ? BIT(3):0);
 
-	if(anaRes_init_en)	{
+	if (anaRes_init_en)	{
 		analog_write (0x0e,  PULL_WAKEUP_SRC_PA0 |
 							(PULL_WAKEUP_SRC_PA1<<2) |
 							(PULL_WAKEUP_SRC_PA2<<4) |
@@ -144,7 +144,7 @@ _attribute_ram_code_ void irq_handler(void) {
 }
 
 _attribute_ram_code_ int main (void) {    //must run in ramcode
-	blc_pm_select_internal_32k_crystal();
+	blc_pm_select_internal_32k_crystal(); // or blc_pm_select_external_32k_crystal();
 	cpu_wakeup_init();
 	int deepRetWakeUp = pm_is_MCU_deepRetentionWakeup();  //MCU deep retention wakeUp
 	_gpio_init(!deepRetWakeUp);  //analog resistance will keep available in deepSleep mode, so no need initialize again
@@ -167,7 +167,7 @@ _attribute_ram_code_ int main (void) {    //must run in ramcode
 	lpc_power_down();
 	blc_app_loadCustomizedParameters();
 
-	if(deepRetWakeUp)
+	if (deepRetWakeUp)
 		user_init_deepRetn();
 	else
 		user_init_normal();
@@ -177,7 +177,7 @@ _attribute_ram_code_ int main (void) {    //must run in ramcode
 		, FLD_TMR_WD_EN, (MODULE_WATCHDOG_ENABLE?1:0));
 #endif
     irq_enable();
-	while(1) {
+	while (1) {
 #if (MODULE_WATCHDOG_ENABLE)
 		wd_clear(); //clear watch dog
 #endif

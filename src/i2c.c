@@ -27,10 +27,10 @@ void send_i2c(uint8_t device_id, uint8_t *buffer, int dataLen){
 */
 
 int scan_i2c_addr(int address) {
-	if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
+	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 		init_i2c();
 	reg_i2c_id = (uint8_t) address;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_STOP;
-	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	return ((reg_i2c_status & FLD_I2C_NAK)? 0 : address);
 }

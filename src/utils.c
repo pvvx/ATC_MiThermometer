@@ -41,8 +41,8 @@ int memcmp(const void * m1, const void *m2, unsigned int len) {
 	unsigned char *st1 = (unsigned char *) m1;
 	unsigned char *st2 = (unsigned char *) m2;
 
-	while(len--){
-		if(*st1 != *st2){
+	while (len--){
+		if (*st1 != *st2){
 			return (*st1 - *st2);
 		}
 		st1++;

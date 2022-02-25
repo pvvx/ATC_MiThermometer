@@ -23,6 +23,7 @@
 void bls_set_advertise_prepare(void *p); // add ll_adv.h
 
 RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
+
 uint8_t send_buf[SEND_BUFFER_SIZE];
 
 RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
@@ -39,10 +40,9 @@ RAM uint8_t ble_name[32] = { 11, 0x09,
 #else
 		'A', 'T', 'C', '_', '0', '0', '0', '0',	'0', '0' };
 #endif
-RAM uint8_t mac_public[6];
-RAM uint8_t mac_random_static[6];
-RAM uint32_t adv_send_count;
-RAM uint32_t adv_old_count;
+
+RAM uint8_t mac_public[6], mac_random_static[6];
+//RAM uint32_t adv_send_count; // count adv
 RAM adv_buf_t adv_buf;
 uint8_t ota_is_working = 0;
 
@@ -56,60 +56,27 @@ void app_enter_ota_mode(void) {
 	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
 }
 
-#define BLE_ADV_RESP_TIME 0 // Test Only!
-#if BLE_ADV_RESP_TIME
-typedef struct __attribute__((packed)) _resp_time_t {
-	uint8_t len;
-	uint8_t type;
-	uint16_t uuid;
-	uint32_t utime;
-}resp_time_t, * presp_time_t;
-
-void add_resp_time() {
-	uint8_t len = ble_name[0];
-	presp_time_t p;
-	if (len < (sizeof(ble_name)-1-sizeof(resp_time_t))) {
-		p = (presp_time_t) &ble_name[len+1];
-		p->len = sizeof(resp_time_t) - 1;
-		p->type = 0x16;
-		p->uuid = 0x1f11;
-		p->utime = utc_time_sec;
-	} else
-		ble_name[len+1] = 0;
-}
-void ble_scan_response_callback(uint8_t e, uint8_t *p, int n) {
-	add_resp_time();
-	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0] + 1 + ble_name[ble_name[0]+1] + 1);
-}
-#endif
-
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
-	if(ble_connected & 0x80) // reset device on disconnect?
+	if (ble_connected & 0x80) // reset device on disconnect?
 		start_reboot();
-
-	//bls_pm_setManualLatency(0); // ?
 
 	ble_connected = 0;
 	ota_is_working = 0;
 	mi_key_stage = 0;
-	//lcd_flg.b.notify_on = 0;
 	lcd_flg.uc = 0;
 #if USE_FLASH_MEMO
 	rd_memo.cnt = 0;
 #endif
-	if(cfg.flg.tx_measures)
+	if (cfg.flg.tx_measures)
 		tx_measures = 0xff;
 	else
 		tx_measures = 0;
-#if USE_EXTENDED_ADVERTISING
-	ev_adv_timeout(0,0,0);
-#endif
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 	ble_connected = 1;
-	if(cfg.connect_latency) {
+	if (cfg.connect_latency) {
 		my_periConnParameters.intervalMin = CON_INERVAL_LAT; // 16*1.25 = 20 ms
 		my_periConnParameters.intervalMax = CON_INERVAL_LAT; // 16*1.25 = 20 ms
 	}
@@ -119,9 +86,9 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 }
 
 int app_conn_param_update_response(u8 id, u16  result) {
-	if(result == CONN_PARAM_UPDATE_ACCEPT)
+	if (result == CONN_PARAM_UPDATE_ACCEPT)
 		ble_connected |= 2;
-	else if(result == CONN_PARAM_UPDATE_REJECT) {
+	else if (result == CONN_PARAM_UPDATE_REJECT) {
 		// bls_l2cap_requestConnParamUpdate(160, 200, 0, 250); // (200 ms, 250 ms, 0, 2.5 s)
 	}
 	return 0;
@@ -136,10 +103,17 @@ int otaWritePre(void * p) {
 _attribute_ram_code_
 int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 #if USE_WK_RDS_COUNTER
-	if(!blta.adv_duraton_en)
+	if (!blta.adv_duraton_en)
 #endif
-		adv_send_count++;
-//	set_adv_data();
+	{
+		adv_buf.send_count++;
+		set_adv_data();
+	}
+#if USE_WK_RDS_COUNTER
+	else {
+		// set_rds_adv_data();
+	}
+#endif
 	return 1;		// = 1 ready to send ADV packet, = 0 not send ADV
 }
 
@@ -153,68 +127,18 @@ _attribute_ram_code_ void user_set_rf_power(u8 e, u8 *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
-#if USE_EXTENDED_ADVERTISING
-#define	APP_ADV_SETS_NUMBER						1			// Number of Supported Advertising Sets
-#define APP_MAX_LENGTH_ADV_DATA					64 // 1024	// Maximum Advertising Data Length,   (if legacy ADV, max length 31 bytes is enough)
-#define APP_MAX_LENGTH_SCAN_RESPONSE_DATA		31 // 1024			// Maximum Scan Response Data Length, (if legacy ADV, max length 31 bytes is enough)
-
-RAM	u8  app_adv_set_param[ADV_SET_PARAM_LENGTH * APP_ADV_SETS_NUMBER];
-RAM	u8	app_primary_adv_pkt[MAX_LENGTH_PRIMARY_ADV_PKT * APP_ADV_SETS_NUMBER];
-RAM	u8	app_secondary_adv_pkt[MAX_LENGTH_SECOND_ADV_PKT * APP_ADV_SETS_NUMBER];
-RAM	u8 	app_advData[APP_MAX_LENGTH_ADV_DATA	* APP_ADV_SETS_NUMBER];
-RAM	u8 	app_scanRspData[APP_MAX_LENGTH_SCAN_RESPONSE_DATA * APP_ADV_SETS_NUMBER];
-#endif
-
 /*
  * bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
  * blt_event_callback_t(): */
 void ev_adv_timeout(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
-#if USE_EXTENDED_ADVERTISING
-	blc_ll_setExtAdvParam(ADV_HANDLE0,
-			ADV_EVT_PROP_LEGACY_CONNECTABLE_SCANNABLE_UNDIRECTED,
-			adv_interval, adv_interval + 10,
-			BLT_ENABLE_ADV_ALL,
-			OWN_ADDRESS_PUBLIC,
-			BLE_ADDR_PUBLIC,
-			NULL,
-			ADV_FP_NONE,
-			cfg.rf_tx_power,
-			BLE_PHY_1M,
-			0,
-			BLE_PHY_CODED,
-			ADV_SID_0,
-			0);
-	//blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data[0] + 4, (u8 *)&adv_buf);
-	set_adv_data();
-	blc_ll_setExtScanRspData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, ble_name[0]+1, (u8 *)&ble_name);
-	blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
-#else
 	bls_ll_setAdvParam(adv_interval, adv_interval + 10,
 			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
 			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
-	set_adv_data();
-#if BLE_ADV_RESP_TIME
-	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0] + 1 + ble_name[ble_name[0]+1] + 1);
-#else // BLE_ADV_RESP_TIME
+	//	set_adv_data();
 	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
-#endif // BLE_ADV_RESP_TIME
 	bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //ADV enable
-#endif
 }
-
-#define EXT_ADV_INTERVAL ADV_INTERVAL_50MS
-#define EXT_ADV_COUNT 8
-void start_ext_adv(uint8_t * adv_data, uint8_t adv_size) {
-	bls_ll_setAdvEnable(0);  //adv disable
-	bls_ll_setAdvParam(EXT_ADV_INTERVAL, EXT_ADV_INTERVAL,
-			ADV_TYPE_NONCONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
-			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
-	bls_ll_setAdvData(adv_data, adv_size);
-	bls_ll_setAdvDuration(EXT_ADV_INTERVAL*EXT_ADV_COUNT*625+16, 1);
-	bls_ll_setAdvEnable(1);  //adv enable
-}
-
 
 #if BLE_SECURITY_ENABLE
 int app_host_event_callback(u32 h, u8 *para, int n) {
@@ -228,7 +152,7 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 #if 0
 	} else if (event == GAP_EVT_SMP_PARING_SUCCESS) {
 		gap_smp_paringSuccessEvt_t* p = (gap_smp_paringSuccessEvt_t*)para;
-		if(p->bonding && p->bonding_result)  // paring success ?
+		if (p->bonding && p->bonding_result)  // paring success ?
 			ble_connected |= 4;
 	} else if (event == GAP_EVT_SMP_PARING_FAIL) {
 		//gap_smp_paringFailEvt_t * p = (gap_smp_paringFailEvt_t *)para;
@@ -237,12 +161,12 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 	} else if (event == GAP_EVT_SMP_PARING_BEAGIN) {
 		//gap_smp_paringBeginEvt_t * p = (gap_smp_paringBeginEvt_t*)para;
 		// ...
-	} else if(event == GAP_EVT_SMP_TK_REQUEST_OOB) {
+	} else if (event == GAP_EVT_SMP_TK_REQUEST_OOB) {
 		//blc_smp_setTK_by_OOB();
-	} else if(event == GAP_EVT_SMP_TK_NUMERIC_COMPARE) {
+	} else if (event == GAP_EVT_SMP_TK_NUMERIC_COMPARE) {
 		//uint32_t * pin = (uint32_t*)para;
 		//blc_smp_setNumericComparisonResult(*pin == pincode);
-	} else if(event == GAP_EVT_MASK_SMP_CONN_ENCRYPTION_DONE) {
+	} else if (event == GAP_EVT_MASK_SMP_CONN_ENCRYPTION_DONE) {
 #endif
 	}
 	return 0;
@@ -253,7 +177,7 @@ extern attribute_t my_Attributes[ATT_END_H];
 const char* hex_ascii = { "0123456789ABCDEF" };
 void ble_get_name(void) {
 	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, 31-2));
-	if(len < 1) {
+	if (len < 1) {
 		//Set the BLE Name to the last three MACs the first ones are always the same
 #if DEVICE_TYPE == DEVICE_MHO_C401
 		ble_name[2] = 'M';
@@ -288,10 +212,7 @@ void ble_get_name(void) {
 		my_Attributes[GenericAccess_DeviceName_DP_H].attrLen = len;
 		ble_name[0] = (uint8_t)(len + 1);
 	}
-	ble_name[1] = 0x09;
-#if BLE_ADV_RESP_TIME
-	add_resp_time();
-#endif
+	ble_name[1] = GAP_ADTYPE_LOCAL_NAME_COMPLETE;
 }
 
 __attribute__((optimize("-Os"))) void init_ble(void) {
@@ -314,30 +235,18 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	////// Controller Initialization  //////////
 	blc_ll_initBasicMCU(); //must
 	blc_ll_initStandby_module(mac_public); //must
-#if USE_EXTENDED_ADVERTISING
-	// Extended ADV module:
-	blc_ll_initExtendedAdvertising_module(app_adv_set_param, app_primary_adv_pkt, APP_ADV_SETS_NUMBER);
-	blc_ll_initExtSecondaryAdvPacketBuffer(app_secondary_adv_pkt, MAX_LENGTH_SECOND_ADV_PKT);
-	blc_ll_initExtAdvDataBuffer(app_advData, APP_MAX_LENGTH_ADV_DATA);
-	blc_ll_initExtScanRspDataBuffer(app_scanRspData, APP_MAX_LENGTH_SCAN_RESPONSE_DATA);
-	blc_ll_setMaxAdvDelay_for_AdvEvent(0);  //no ADV random delay, for debug
-#else
 	blc_ll_initAdvertising_module(mac_public); // adv module: 		 must for BLE slave,
-#endif
 	blc_ll_initConnection_module(); // connection module  must for BLE slave/master
 	blc_ll_initSlaveRole_module(); // slave module: 	 must for BLE slave,
 	blc_ll_initPowerManagement_module(); //pm module:      	 optional
-#if	(!USE_EXTENDED_ADVERTISING)
-	if(cfg.flg2.bt5hgy) // 2MPhy
-#endif
-	{
+	if (cfg.flg2.bt5hgy) { // 2MPhy
 		blc_ll_init2MPhyCodedPhy_feature();			// mandatory for 2M/Coded PHY
 		//bls_app_registerEventCallback (BLT_EV_FLAG_PHY_UPDATE, &callback_phy_update_complete_event);
 		blc_ll_setDefaultPhy(PHY_TRX_PREFER, PHY_PREFER_1M, PHY_PREFER_1M);
 		//blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
 		blc_ll_setDefaultConnCodingIndication(CODED_PHY_PREFER_S8);
 	}
-	if(cfg.flg2.chalg2) // ChannelSelectionAlgorithm 2
+	if (cfg.flg2.chalg2) // ChannelSelectionAlgorithm 2
 		blc_ll_initChannelSelectionAlgorithm_2_feature();
 	////// Host Initialization  //////////
 	blc_gap_peripheral_init();
@@ -348,7 +257,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	//   is about to exceed the sector threshold, this sector must be erased, and all useful information
 	//   should re_stored) , so it must be done after battery check
 #if BLE_SECURITY_ENABLE
-	if(pincode) {
+	if (pincode) {
 		//bls_smp_configParingSecurityInfoStorageAddr(0x074000);
 		//bls_smp_eraseAllParingInformation();
 		//blc_smp_param_setBondingDeviceMaxNumber(SMP_BONDING_DEVICE_MAX_NUM); //if not set, default is : SMP_BONDING_DEVICE_MAX_NUM
@@ -404,10 +313,6 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	bls_app_registerEventCallback(BLT_EV_FLAG_CONNECT, &ble_connect_callback);
 	bls_app_registerEventCallback(BLT_EV_FLAG_TERMINATE, &ble_disconnect_callback);
 
-#if BLE_ADV_RESP_TIME
-	bls_app_registerEventCallback(BLT_EV_FLAG_SCAN_RSP,	&ble_scan_response_callback);
-#endif
-
 	///////////////////// Power Management initialization///////////////////
 	blc_ll_initPowerManagement_module();
 	bls_pm_setSuspendMask(SUSPEND_DISABLE);
@@ -423,144 +328,150 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 #if USE_MIHOME_BEACON
 	mi_beacon_init();
 #endif
-#if	(!USE_EXTENDED_ADVERTISING)
-	bls_set_advertise_prepare(app_advertise_prepare_handler); // todo: not work if USE_EXTENDED_ADVERTISING
+	bls_set_advertise_prepare(app_advertise_prepare_handler); // todo: not work if EXTENDED_ADVERTISING
 #if	USE_WK_RDS_COUNTER
 	bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
-#endif
 #endif
 	ev_adv_timeout(0,0,0);
 }
 
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-void set_adv_data(void) {
-	uint8_t adv_type = cfg.flg.advertising_type; // 0 - atc1441, 1 - pvvx, 2 - Mi, 3 - all
-	adv_old_count = adv_send_count;
-	if(adv_type == ADV_TYPE_ALL)
-		adv_type = adv_old_count & 3;
-	/* adv_type: 0 - atc1441, 1 - Custom,  2,3 - Mi  */
-	if(adv_type == ADV_TYPE_PVVX) {
-		if(cfg.flg2.mi_beacon)
-			pvvx_encrypt_beacon(measured_data.count);
-		else {
-			padv_custom_t p = (padv_custom_t)&adv_buf.data;
-			memcpy(p->MAC, mac_public, 6);
+void set_pvvx_adv_data(uint32_t cnt) {
+	if (cfg.flg2.mi_beacon)
+		pvvx_encrypt_beacon(cnt);
+	else {
+		padv_custom_t p = (padv_custom_t)&adv_buf.data;
+		memcpy(p->MAC, mac_public, 6);
 #if USE_TRIGGER_OUT
-			p->size = sizeof(adv_custom_t) - 1;
+		p->size = sizeof(adv_custom_t) - 1;
 #else
-			p->size = sizeof(adv_custom_t) - 2;
+		p->size = sizeof(adv_custom_t) - 2;
 #endif
-			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
-			p->temperature = measured_data.temp; // x0.01 C
-			p->humidity = measured_data.humi; // x0.01 %
-			p->battery_mv = measured_data.battery_mv; // x mV
-			p->battery_level = battery_level; // x1 %
-			p->counter = (uint8_t)measured_data.count;
+		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+		p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
+		p->temperature = measured_data.temp; // x0.01 C
+		p->humidity = measured_data.humi; // x0.01 %
+		p->battery_mv = measured_data.battery_mv; // x mV
+		p->battery_level = measured_data.battery_level; // x1 %
+		p->counter = (uint8_t)cnt;
 #if USE_TRIGGER_OUT
-			p->flags = trg.flg_byte;
+		p->flags = trg.flg_byte;
 #endif
-		}
-	} else if(adv_type & ADV_TYPE_MASK_REF) { // adv_type == 2 or 3
+	}
+}
+
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void set_mi_adv_data(uint32_t cnt) {
 #if USE_MIHOME_BEACON
-		if(cfg.flg2.mi_beacon) {
-			if(cfg.flg.advertising_type == ADV_TYPE_ALL)
-				mi_encrypt_beacon(measured_data.count);
+		if (cfg.flg2.mi_beacon) {
+			if (cfg.flg.advertising_type == ADV_TYPE_ALL)
+				mi_encrypt_beacon(cnt);
 			else
-				mi_encrypt_beacon(measured_data.count >> 2);
+				mi_encrypt_beacon(cnt >> 2);
 		}
 		else
 #endif
 		{
-			padv_mi_t p = (padv_mi_t)&adv_buf.data;
+			padv_mi_mac_beacon_t p = (padv_mi_mac_beacon_t)&adv_buf.data;
 			memcpy(p->MAC, mac_public, 6);
-			p->size = sizeof(adv_mi_t) - 1;
-			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = ADV_XIAOMI_UUID16; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+			p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+			p->head.UUID = ADV_XIAOMI_UUID16; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 #if 0
-			p->ctrl.word = 0;
-			p->ctrl.bit.version = 3; // XIAOMI_DEV_VERSION
-			p->ctrl.bit.MACInclude = 1;
-			p->ctrl.bit.ObjectInclude = 1;
+			p->head.ctrl.word = 0;
+			p->head.ctrl.bit.version = 3; // XIAOMI_DEV_VERSION
+			p->head.ctrl.bit.MACInclude = 1;
+			p->head.ctrl.bit.ObjectInclude = 1;
 #else
-			p->ctrl.word = 0x3050; // 0x3050 version = 3, MACInclude, ObjectInclude
+			p->head.fctrl.word = 0x3050; // 0x3050 version = 3, MACInclude, ObjectInclude
 #endif
-			p->dev_id = DEVICE_TYPE;
-			p->nx10 = (XIAOMI_DATA_ID_TempAndHumidity >> 8) & 0xff; // (hi byte XIAOMI_DATA_ID)
-			p->counter = (uint8_t)measured_data.count;
-			if (adv_old_count & 1) {
-				p->data_id = XIAOMI_DATA_ID_TempAndHumidity & 0xff; // (lo byte XIAOMI_DATA_ID)
-				p->t0d.len = 0x04;
-				p->t0d.temperature = last_temp; // x0.1 C
-				p->t0d.humidity = (measured_data.humi + 5) / 10; // x0.1 %
+			p->head.counter = (uint8_t)cnt;
+			p->head.dev_id = DEVICE_TYPE;
+			if (adv_buf.send_count & 1) {
+				p->data.id = XIAOMI_DATA_ID_TempAndHumidity;
+				p->data.size = 4;
+				p->data.t0d.temperature = measured_data.temp_x01; // x0.1 C
+				p->data.t0d.humidity = measured_data.humi_x01; // x0.1 %
 			} else {
-				p->data_id = XIAOMI_DATA_ID_Power & 0xff; // (lo byte XIAOMI_DATA_ID)
-				p->t0a.len1 = 1;
-				p->t0a.battery_level = battery_level; // Battery percentage, Range: 0-100
+				p->data.id = XIAOMI_DATA_ID_Power;
+				p->data.size = 1;
+				p->data.t0a.battery_level = measured_data.battery_level; // Battery percentage, Range: 0-100
 			}
+			p->head.size = p->data.size + sizeof(p->head) - sizeof(p->head.size) + sizeof(p->MAC) + sizeof(p->data.id) + sizeof(p->data.size);
 #if USE_MIHOME_BEACON
 		}
 #endif
-	} else { // adv_type == 0 == ADV_TYPE_ATC
-		if(cfg.flg2.mi_beacon)
-			atc_encrypt_beacon(measured_data.count);
-		else {
-			padv_atc1441_t p = (padv_atc1441_t)&adv_buf.data;
-			p->size = sizeof(adv_atc1441_t) - 1;
-			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
+}
+
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void set_atc_adv_data(uint32_t cnt) {
+	if (cfg.flg2.mi_beacon)
+		atc_encrypt_beacon(cnt);
+	else {
+		padv_atc1441_t p = (padv_atc1441_t)&adv_buf.data;
+		p->size = sizeof(adv_atc1441_t) - 1;
+		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+		p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
 #if 1
-			SwapMacAddress(p->MAC, mac_public);
+		SwapMacAddress(p->MAC, mac_public);
 #else
-			p->MAC[0] = mac_public[5];
-			p->MAC[1] = mac_public[4];
-			p->MAC[2] = mac_public[3];
-			p->MAC[3] = mac_public[2];
-			p->MAC[4] = mac_public[1];
-			p->MAC[5] = mac_public[0];
+		p->MAC[0] = mac_public[5];
+		p->MAC[1] = mac_public[4];
+		p->MAC[2] = mac_public[3];
+		p->MAC[3] = mac_public[2];
+		p->MAC[4] = mac_public[1];
+		p->MAC[5] = mac_public[0];
 #endif
-			p->temperature[0] = (uint8_t)(last_temp >> 8);
-			p->temperature[1] = (uint8_t)last_temp; // x0.1 C
-			p->humidity = (uint8_t)last_humi; // x1 %
-			p->battery_level = battery_level; // x1 %
-			p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
-			p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
-			p->counter = (uint8_t)measured_data.count;
-		}
+		p->temperature[0] = (uint8_t)(measured_data.temp_x01 >> 8);
+		p->temperature[1] = (uint8_t)measured_data.temp_x01; // x0.1 C
+		p->humidity = measured_data.humi_x1; // x1 %
+		p->battery_level = measured_data.battery_level; // x1 %
+		p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
+		p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
+		p->counter = (uint8_t)cnt;
+	}
+}
+
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void set_adv_data(void) {
+	uint8_t adv_type = cfg.flg.advertising_type; // 0 - atc1441, 1 - pvvx, 2 - Mi, 3 - all
+	if (adv_type == ADV_TYPE_ALL)
+		adv_type = adv_buf.send_count & 3;
+	/* adv_type: 0 - atc1441, 1 - Custom,  2,3 - Mi  */
+	if (adv_type == ADV_TYPE_PVVX) {
+		set_pvvx_adv_data(measured_data.count);
+	} else if (adv_type & ADV_TYPE_MASK_REF) { // adv_type == 2 or 3
+		set_mi_adv_data(measured_data.count);
+	} else { // adv_type == 0 == ADV_TYPE_ATC
+		set_atc_adv_data(measured_data.count);
 	}
 	adv_buf.data_size = adv_buf.data[0] + 1;
-	if(cfg.flg2.adv_flags) {
-#if USE_EXTENDED_ADVERTISING
-		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size + sizeof(adv_buf.flag), (u8 *)&adv_buf);
-#else
-		bls_ll_setAdvData((u8 *)&adv_buf, adv_buf.data_size + sizeof(adv_buf.flag));
-#endif
+	if (cfg.flg2.adv_flags) {
+		bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
 	} else {
-#if USE_EXTENDED_ADVERTISING
-		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size, (u8 *)&adv_buf.data);
-#else
 		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
-#endif
 	}
 }
 
 _attribute_ram_code_ void ble_send_measures(void) {
 	send_buf[0] = CMD_ID_MEASURE;
-	memcpy(&send_buf[1], &measured_data, sizeof(measured_data));
+	memcpy(&send_buf[1], &measured_data, MEASURED_MSG_SIZE);
 #if	USE_TRIGGER_OUT
-	send_buf[sizeof(measured_data)+1] = trg.flg_byte;
+	send_buf[MEASURED_MSG_SIZE+1] = trg.flg_byte;
 #if USE_WK_RDS_COUNTER
-	send_buf[sizeof(measured_data)+2] = rds.count_byte[0];
-	send_buf[sizeof(measured_data)+3] = rds.count_byte[1];
-	send_buf[sizeof(measured_data)+4] = rds.count_byte[2];
-	send_buf[sizeof(measured_data)+5] = rds.count_byte[3];
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 6);
+	send_buf[MEASURED_MSG_SIZE+2] = rds.count_byte[0];
+	send_buf[MEASURED_MSG_SIZE+3] = rds.count_byte[1];
+	send_buf[MEASURED_MSG_SIZE+4] = rds.count_byte[2];
+	send_buf[MEASURED_MSG_SIZE+5] = rds.count_byte[3];
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, MEASURED_MSG_SIZE + 6);
 #else
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 2);
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, MEASURED_MSG_SIZE + 2);
 #endif
 #else
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(measured_data) + 1);
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, MEASURED_MSG_SIZE + 1);
 #endif
 }
 
@@ -598,7 +509,7 @@ void ble_send_trg_flg(void) {
 #if USE_FLASH_MEMO
 __attribute__((optimize("-Os"))) void send_memo_blk(void) {
 	send_buf[0] = CMD_ID_LOGGER;
-	if(++rd_memo.cur > rd_memo.cnt || (!get_memo(rd_memo.cur, (pmemo_blk_t)&send_buf[3]))) {
+	if (++rd_memo.cur > rd_memo.cnt || (!get_memo(rd_memo.cur, (pmemo_blk_t)&send_buf[3]))) {
 		send_buf[1] = 0;
 		send_buf[2] = 0;
 		bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 3);

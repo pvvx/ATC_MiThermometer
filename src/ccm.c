@@ -46,7 +46,7 @@
  * (Always using b as the source helps the compiler optimise a bit better.)
  */
 #define UPDATE_CBC_MAC          \
-    for( i = 0; i < 16; i++ )  	\
+    for (i = 0; i < 16; i++)  	\
         y[i] ^= b[i];           \
     tn_aes_128((u8*)key, y, y);
 
@@ -57,7 +57,7 @@
  */
 #define CTR_CRYPT(dst, src, len)	\
     tn_aes_128((u8*) key, ctr, b);	\
-    for( i = 0; i < len; i++ )		\
+    for (i = 0; i < len; i++)		\
         dst[i] = src[i] ^ b[i];
 
 /*
@@ -84,15 +84,15 @@ static int ccm_auth_crypt( int mode, const unsigned char *key,
      * Additional requirement: a < 2^16 - 2^8 to simplify the code.
      * 'length' checked later (when writing it to the first block)
      */
-    if( tag_len < 4 || tag_len > 16 || tag_len % 2 != 0 )
-        return(-1);
+    if (tag_len < 4 || tag_len > 16 || tag_len % 2 != 0)
+		return (-1);
 
-    /* Also implies q is within bounds */
-    if( iv_len < 7 || iv_len > 13 )
-        return(-1);
+	/* Also implies q is within bounds */
+	if (iv_len < 7 || iv_len > 13)
+		return (-1);
 
-    if( add_len > 0xFF00 )
-        return(-1);
+	if (add_len > 0xFF00)
+		return (-1);
 #endif
     q = 16 - 1 - (unsigned char) iv_len;
     /*
@@ -108,43 +108,41 @@ static int ccm_auth_crypt( int mode, const unsigned char *key,
      * 2 .. 0   q - 1
      */
     b[0] = 0;
-    b[0] |= ( add_len > 0 ) << 6;
-    b[0] |= ( ( tag_len - 2 ) / 2 ) << 3;
-    b[0] |= q - 1;
-    memcpy( b + 1, iv, iv_len );
-    for( i = 0, len_left = length; i < q; i++, len_left >>= 8 )
-        b[15-i] = (unsigned char)( len_left & 0xFF );
-    if( len_left > 0 )
-        return(-1);
-    /* Start CBC-MAC with first block */
-    memset( y, 0, 16 );
-    UPDATE_CBC_MAC;
+	b[0] |= (add_len > 0) << 6;
+	b[0] |= ((tag_len - 2) / 2) << 3;
+	b[0] |= q - 1;
+	memcpy(b + 1, iv, iv_len);
+	for (i = 0, len_left = length; i < q; i++, len_left >>= 8)
+		b[15 - i] = (unsigned char) (len_left & 0xFF);
+	if (len_left > 0)
+		return (-1);
+	/* Start CBC-MAC with first block */
+	memset(y, 0, 16);
+	UPDATE_CBC_MAC;
     /*
      * If there is additional data, update CBC-MAC with
      * add_len, add, 0 (padding to a block boundary)
      */
-    if( add_len > 0 )
-    {
-        size_t use_len;
-        len_left = add_len;
-        src = add;
-        memset( b, 0, 16 );
-        b[0] = (unsigned char)( ( add_len >> 8 ) & 0xFF );
-        b[1] = (unsigned char)( ( add_len      ) & 0xFF );
-        use_len = len_left < 16 - 2 ? len_left : 16 - 2;
-        memcpy( b + 2, src, use_len );
-        len_left -= use_len;
-        src += use_len;
-        UPDATE_CBC_MAC;
-        while( len_left > 0 )
-        {
-            use_len = len_left > 16 ? 16 : len_left;
-            memset( b, 0, 16 );
-            memcpy( b, src, use_len );
-            UPDATE_CBC_MAC;
-            len_left -= use_len;
-            src += use_len;
-        }
+    if (add_len > 0) {
+		size_t use_len;
+		len_left = add_len;
+		src = add;
+		memset(b, 0, 16);
+		b[0] = (unsigned char) ((add_len >> 8) & 0xFF);
+		b[1] = (unsigned char) ((add_len) & 0xFF);
+		use_len = len_left < 16 - 2 ? len_left : 16 - 2;
+		memcpy(b + 2, src, use_len);
+		len_left -= use_len;
+		src += use_len;
+		UPDATE_CBC_MAC;
+		while (len_left > 0) {
+			use_len = len_left > 16 ? 16 : len_left;
+			memset(b, 0, 16);
+			memcpy(b, src, use_len);
+			UPDATE_CBC_MAC;
+			len_left -= use_len;
+			src += use_len;
+		}
     }
     /*
      * Prepare counter block for encryption:
@@ -169,41 +167,38 @@ static int ccm_auth_crypt( int mode, const unsigned char *key,
     len_left = length;
     src = input;
     dst = output;
-    while( len_left > 0 )
-    {
-        size_t use_len = len_left > 16 ? 16 : len_left;
-        if( mode == CCM_ENCRYPT )
-        {
-            memset( b, 0, 16 );
-            memcpy( b, src, use_len );
-            UPDATE_CBC_MAC;
-        }
-        CTR_CRYPT( dst, src, use_len );
-        if( mode == CCM_DECRYPT )
-        {
-            memset( b, 0, 16 );
-            memcpy( b, dst, use_len );
-            UPDATE_CBC_MAC;
-        }
-        dst += use_len;
-        src += use_len;
-        len_left -= use_len;
+    while (len_left > 0) {
+		size_t use_len = len_left > 16 ? 16 : len_left;
+		if (mode == CCM_ENCRYPT) {
+			memset(b, 0, 16);
+			memcpy(b, src, use_len);
+			UPDATE_CBC_MAC;
+		}
+		CTR_CRYPT( dst, src, use_len );
+		if (mode == CCM_DECRYPT) {
+			memset(b, 0, 16);
+			memcpy(b, dst, use_len);
+			UPDATE_CBC_MAC;
+		}
+		dst += use_len;
+		src += use_len;
+		len_left -= use_len;
         /*
          * Increment counter.
          * No need to check for overflow thanks to the length check above.
          */
-        for( i = 0; i < q; i++ )
-            if( ++ctr[15-i] != 0 )
-                break;
+        for (i = 0; i < q; i++)
+			if (++ctr[15 - i] != 0)
+				break;
     }
     /*
      * Authentication: reset counter and crypt/mask internal tag
      */
-    for( i = 0; i < q; i++ )
-        ctr[15-i] = 0;
-    CTR_CRYPT( y, y, 16 );
-    memcpy( tag, y, tag_len );
-    return( 0 );
+    for (i = 0; i < q; i++)
+		ctr[15 - i] = 0;
+	CTR_CRYPT( y, y, 16 );
+	memcpy(tag, y, tag_len);
+	return (0);
 }
 
 /*

@@ -139,18 +139,25 @@ typedef struct _measured_data_t {
 	int16_t		temp; // x 0.01 C
 	int16_t		humi; // x 0.01 %
 	uint16_t 	count;
+
+	int16_t 	temp_x01; 		// x 0.1 C
+	int16_t		humi_x01; 		// x 0.1 %
+	uint8_t 	humi_x1; 		// x 1 %
+	uint8_t 	battery_level;	// 0..100%
 } measured_data_t;
+#define  MEASURED_MSG_SIZE  8
+
 extern measured_data_t measured_data;
 
-extern uint8_t battery_level; // 0..100%
-extern int16_t last_temp; // x0.1 C
-extern uint16_t last_humi; // x1 %
+//extern uint8_t battery_level; // 0..100%
+//extern int16_t last_temp; // x0.1 C
+//extern uint16_t last_humi; // x1 %
 
-extern volatile uint8_t tx_measures;
+extern volatile uint8_t tx_measures; // connect notify send measure flag
 extern volatile uint8_t start_measure; // start measure all
 extern volatile uint8_t wrk_measure;
 extern volatile uint8_t end_measure;
-extern uint32_t tim_measure;
+extern uint32_t tim_measure; // timer measurements >= 10 sec
 
 typedef union _lcd_flg_t {
 	struct  {
