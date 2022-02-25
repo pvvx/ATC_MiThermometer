@@ -126,6 +126,7 @@ In case you want to go back to the original firmware, you can download them here
 * [Qingping CGG1-M Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1_v1.0.1_0093.bin)
 * [Qingping CGPR1 Original Firmware v1.1.1_0228](https://pvvx.github.io/CGPR1/img/Original_OTA_CGPR1_v1.1.1_0228.bin)
 * [Qingping CGDK2 Original Firmware v1.1.1_0210](https://pvvx.github.io/CGPR1/img/Original_OTA_CGDK2_v1.1.1_0210.bin)
+* [Qingping CGDK2 Original Firmware v1.1.1_0217](https://pvvx.github.io/CGPR1/img/Original_OTA_CGDK2_v1.1.1_0217.bin)
 
 ### Firmware version history
 
@@ -157,6 +158,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163). Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M. CGG1 - correction of the battery charge display. Added CGDK2 and modified [(DIY) variant of CGDK2-2](https://pvvx.github.io/CGDK2/CGDK2-2/). |
 |     3.6 | Additional parameters: Support BT5.0 PHY, Channel Selection Algorithm 2 |
 |     3.6c | Correct RF-TX Power in suspend |
+|     3.7 | Test version! : [Reed switch counter, Switch: opened/closed](https://github.com/pvvx/ATC_MiThermometer/issues/191) |
 
 ## Applications
 

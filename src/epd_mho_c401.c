@@ -84,15 +84,15 @@ const uint8_t digits[16][11] = {
  * 0xC0 = " ="
  * 0xE0 = "°E" */
 _attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
-	if(symbol & 0x20)
+	if (symbol & 0x20)
 		display_buff[16] |= BIT(5); // "Г", "%", "( )", "."
 	else
 		display_buff[16] &= ~BIT(5); // "Г", "%", "( )", "."
-	if(symbol & 0x40)
+	if (symbol & 0x40)
 		display_buff[16] |= BIT(6); //"-"
 	else
 		display_buff[16] &= ~BIT(6); //"-"
-	if(symbol & 0x80)
+	if (symbol & 0x80)
 		display_buff[14] |= BIT(2); // "_"
 	else
 		display_buff[14] &= ~BIT(2); // "_"
@@ -145,14 +145,14 @@ _attribute_ram_code_ void show_smiley(uint8_t state){
 }
 
 _attribute_ram_code_ void show_battery_symbol(bool state){
-	if(state)
+	if (state)
 		display_buff[16] |= BIT(4);
 	else
 		display_buff[16] &= ~BIT(4);
 }
 
 _attribute_ram_code_ void show_ble_symbol(bool state){
-	if(state)
+	if (state)
 		display_buff[5] |= BIT(0); // "*"
 	else
 		display_buff[5] &= ~BIT(0);
@@ -226,13 +226,13 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
 	display_buff[14] &= BIT(2); //"_"
 	display_buff[15] = 0;
 	display_buff[16] &= BIT(4) | BIT(5) | BIT(6);
-	if(number > 19995) {
+	if (number > 19995) {
 		// "Hi"
    		display_buff[12] = BIT(4);
    		display_buff[13] = BIT(0) | BIT(3);
    		display_buff[14] = BIT(0) | BIT(1) | BIT(6) | BIT(7);
    		display_buff[15] = BIT(4) | BIT(5) | BIT(6) | BIT(7);
-	} else if(number < -995) {
+	} else if (number < -995) {
 		// "Lo"
    		display_buff[12] = BIT(4) | BIT(5);
    		display_buff[13] = BIT(0) | BIT(3) | BIT(4) | BIT(5);
@@ -240,24 +240,24 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
    		display_buff[15] = BIT(5) | BIT(6) | BIT(7);
 	} else {
 		/* number: -995..19995 */
-		if(number > 1995 || number < -95) {
+		if (number > 1995 || number < -95) {
 			display_buff[16] &= ~BIT(5); // no point, show: -99..1999
-			if(number < 0){
+			if (number < 0){
 				number = -number;
 				display_buff[14] = BIT(0); // "-"
 			}
 			number = (number / 10) + ((number % 10) > 5); // round(div 10)
 		} else { // show: -9.9..199.9
 			display_buff[16] |= BIT(5); // point
-			if(number < 0){
+			if (number < 0){
 				number = -number;
 				display_buff[14] = BIT(0); // "-"
 			}
 		}
 		/* number: -99..1999 */
-		if(number > 999) display_buff[12] |= BIT(3); // "1" 1000..1999
-		if(number > 99) epd_set_digit(display_buff, number / 100 % 10, top_left);
-		if(number > 9) epd_set_digit(display_buff, number / 10 % 10, top_middle);
+		if (number > 999) display_buff[12] |= BIT(3); // "1" 1000..1999
+		if (number > 99) epd_set_digit(display_buff, number / 100 % 10, top_left);
+		if (number > 9) epd_set_digit(display_buff, number / 10 % 10, top_middle);
 		else epd_set_digit(display_buff, 0, top_middle);
 		epd_set_digit(display_buff, number % 10, top_right);
 	}
@@ -273,16 +273,16 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int
 	display_buff[8] = 0;
 	display_buff[9] = 0;
 	display_buff[10] = 0;
-	if(percent)
+	if (percent)
 		display_buff[16] |= BIT(5); // "%" TODO 'C', '.', '(  )' ?
-	if(number > 99) {
+	if (number > 99) {
 		// "Hi"
 		display_buff[1] |= BIT(1) | BIT(4);
 		display_buff[2] |= BIT(0) | BIT(3);
 		display_buff[8] |= BIT(2) | BIT(5);
 		display_buff[9] |= BIT(4) | BIT(7);
 		display_buff[10] |= BIT(0) | BIT(3) | BIT(6);
-	} else if(number < -9) {
+	} else if (number < -9) {
 		//"Lo"
 		display_buff[0] |= BIT(2) | BIT(3);
 		display_buff[1] |= BIT(4) | BIT(7);
@@ -291,11 +291,11 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int
 		display_buff[9] |= BIT(4);
 		display_buff[10] |= BIT(0) | BIT(3) | BIT(6);
 	} else {
-		if(number < 0) {
+		if (number < 0) {
 			number = -number;
 			display_buff[8] |= BIT(2); // "-"
 		}
-		if(number > 9) epd_set_digit(display_buff, number / 10 % 10, bottom_left);
+		if (number > 9) epd_set_digit(display_buff, number / 10 % 10, bottom_left);
 		epd_set_digit(display_buff, number % 10, bottom_right);
 	}
 }
@@ -312,10 +312,10 @@ void init_lcd(void) {
 }
 
 _attribute_ram_code_ void update_lcd(void){
-	if(!stage_lcd) {
-		if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
+	if (!stage_lcd) {
+		if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 			memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
-			if(lcd_refresh_cnt) {
+			if (lcd_refresh_cnt) {
 				lcd_refresh_cnt--;
 				flg_lcd_init = 0;
 				stage_lcd = 1;

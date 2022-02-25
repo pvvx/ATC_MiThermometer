@@ -49,28 +49,28 @@ static _attribute_ram_code_ uint8_t reverse(uint8_t revByte) {
 }
 
 static void lcd_send_i2c_byte(uint8_t cmd) {
-	if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
+	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
 	reg_i2c_id = lcd_i2c_addr;
 	reg_i2c_adr = cmd;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_STOP;
-	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
 
 static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
-	if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
+	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
 	uint8_t * p = dataBuf;
 	reg_i2c_id = lcd_i2c_addr;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID;
-	while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-	while(dataLen--) {
+	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
+	while (dataLen--) {
 		reg_i2c_do = *p++;
 		reg_i2c_ctrl = FLD_I2C_CMD_DO;
-		while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	}
     reg_i2c_ctrl = FLD_I2C_CMD_STOP;
-    while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+    while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
 
 // UART 38400 BAUD
@@ -115,8 +115,8 @@ _attribute_ram_code_ void lcd_send_uart(void) {
 	reg_dma_tx_rdy0 |= FLD_DMA_CHN_UART_TX; // start tx
 	// wait send (3.35 ms), sleep?
 	pm_wait_us(3330); // 13 bytes * 10 bits / 38400 baud = 0.0033854 sec = 3.4 ms power ~3 mA
-	//while(reg_dma_tx_rdy0 & FLD_DMA_CHN_UART_TX); ?
-	while(!(reg_uart_status1 & FLD_UART_TX_DONE));
+	//while (reg_dma_tx_rdy0 & FLD_DMA_CHN_UART_TX); ?
+	while (!(reg_uart_status1 & FLD_UART_TX_DONE));
 	// set low/off power UART
 	reg_uart_clk_div = 0;
 }
@@ -125,21 +125,21 @@ _attribute_ram_code_ void lcd_send_uart(void) {
 _attribute_ram_code_ void send_to_lcd(void){
 	unsigned int buff_index;
 	uint8_t * p = display_buff;
-	if(lcd_i2c_addr) {
-		if((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
+	if (lcd_i2c_addr) {
+		if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
 		reg_i2c_id = lcd_i2c_addr;
 
-		if(lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
+		if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 			// B1.4, B1.7, B2.0
 			reg_i2c_adr_dat = 0x4080;
 			reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
-			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 			reg_i2c_adr = 0xC0;
 			for(buff_index = 0; buff_index < sizeof(display_buff); buff_index++) {
 				reg_i2c_do = *p++;
 				reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
-				while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+				while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 			}
 			reg_i2c_ctrl = FLD_I2C_CMD_STOP;
 		} else { // (lcd_i2c_addr == (B19_I2C_ADDR << 1))
@@ -148,22 +148,22 @@ _attribute_ram_code_ void send_to_lcd(void){
 			reg_i2c_do = reverse(*p++);
 			reg_i2c_di = reverse(*p++);
 			reg_i2c_ctrl = FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO | FLD_I2C_CMD_DI | FLD_I2C_CMD_START;
-			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 			reg_i2c_adr_dat = 0;
 			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
-			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 			reg_i2c_adr = reverse(*p++);
 			reg_i2c_do = reverse(*p++);
 			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
-			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 			reg_i2c_adr_dat = 0;
 			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
-			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 			reg_i2c_adr = reverse(*p++);
 			reg_i2c_do = reverse(*p);
 			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO | FLD_I2C_CMD_STOP;
 		}
-		while(reg_i2c_status & FLD_I2C_CMD_BUSY);
+		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	} else {
 		// B1.6
 		utxb.data[5] = *p++;
@@ -180,7 +180,7 @@ _attribute_ram_code_ void send_to_lcd(void){
 
 void init_lcd(void){
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B14_I2C_ADDR << 1);
-	if(lcd_i2c_addr) { // B1.4, B1.7, B2.0
+	if (lcd_i2c_addr) { // B1.4, B1.7, B2.0
 		gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 		pm_wait_ms(50);
 		lcd_send_i2c_buf((uint8_t *) lcd_init_cmd_b14, sizeof(lcd_init_cmd_b14));
@@ -188,7 +188,7 @@ void init_lcd(void){
 		return;
 	}
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B19_I2C_ADDR << 1);
-	if(lcd_i2c_addr) { // B1.9
+	if (lcd_i2c_addr) { // B1.9
 		lcd_send_i2c_byte(0xEA);
 		sleep_us(240);
 		lcd_send_i2c_byte(0xA4);
@@ -210,7 +210,7 @@ void init_lcd(void){
 }
 
 _attribute_ram_code_ void update_lcd(){
-	if(memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
+	if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 		send_to_lcd();
 		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
 	}
@@ -241,14 +241,14 @@ _attribute_ram_code_ void show_smiley(uint8_t state){
 }
 
 _attribute_ram_code_ void show_ble_symbol(bool state){
-	if(state)
+	if (state)
 		display_buff[2] |= LCD_SYM_BLE;
 	else 
 		display_buff[2] &= ~LCD_SYM_BLE;
 }
 
 _attribute_ram_code_ void show_battery_symbol(bool state){
-	if(state)
+	if (state)
 		display_buff[1] |= LCD_SYM_BAT;
 	else 
 		display_buff[1] &= ~LCD_SYM_BAT;
@@ -257,35 +257,35 @@ _attribute_ram_code_ void show_battery_symbol(bool state){
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
 _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 //	display_buff[4] = point?0x08:0x00;
-	if(number > 19995) {
+	if (number > 19995) {
    		display_buff[3] = 0;
    		display_buff[4] = LCD_SYM_i; // "i"
    		display_buff[5] = LCD_SYM_H; // "H"
-	} else if(number < -995) {
+	} else if (number < -995) {
    		display_buff[3] = 0;
    		display_buff[4] = LCD_SYM_o; // "o"
    		display_buff[5] = LCD_SYM_L; // "L"
 	} else {
 		display_buff[5] = 0;
 		/* number: -995..19995 */
-		if(number > 1995 || number < -95) {
+		if (number > 1995 || number < -95) {
 			display_buff[4] = 0; // no point, show: -99..1999
-			if(number < 0){
+			if (number < 0){
 				number = -number;
 				display_buff[5] = 2; // "-"
 			}
 			number = (number / 10) + ((number % 10) > 5); // round(div 10)
 		} else { // show: -9.9..199.9
 			display_buff[4] = 0x08; // point,
-			if(number < 0){
+			if (number < 0){
 				number = -number;
 				display_buff[5] = 2; // "-"
 			}
 		}
 		/* number: -99..1999 */
-		if(number > 999) display_buff[5] |= 0x08; // "1" 1000..1999
-		if(number > 99) display_buff[5] |= display_numbers[number / 100 % 10];
-		if(number > 9) display_buff[4] |= display_numbers[number / 10 % 10];
+		if (number > 999) display_buff[5] |= 0x08; // "1" 1000..1999
+		if (number > 99) display_buff[5] |= display_numbers[number / 100 % 10];
+		if (number > 9) display_buff[4] |= display_numbers[number / 10 % 10];
 		else display_buff[4] |= 0xF5; // "0"
 	    display_buff[3] = display_numbers[number %10];
 	}
@@ -295,18 +295,18 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
 _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
 	display_buff[1] = display_buff[1] & 0x08; // and battery
 	display_buff[0] = percent?0x08:0x00;
-	if(number > 99) {
+	if (number > 99) {
 		display_buff[0] |= LCD_SYM_i; // "i"
 		display_buff[1] |= LCD_SYM_H; // "H"
-	} else if(number < -9) {
+	} else if (number < -9) {
 		display_buff[0] |= LCD_SYM_o; // "o"
 		display_buff[1] |= LCD_SYM_L; // "L"
 	} else {
-		if(number < 0) {
+		if (number < 0) {
 			number = -number;
 			display_buff[1] = 2; // "-"
 		}
-		if(number > 9) display_buff[1] |= display_numbers[number / 10 % 10];
+		if (number > 9) display_buff[1] |= display_numbers[number / 10 % 10];
 		display_buff[0] |= display_numbers[number %10];
 	}
 }

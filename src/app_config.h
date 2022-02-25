@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x36	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x37	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
@@ -14,13 +14,11 @@ extern "C" {
 
 #define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
 
-// Special DIY version LYWSD03MMC - Voltage Logger:
-// Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, pcb mark "B1"
-// Humidity 0..36.00 = ADC pin PC4 input 0..3.6V, pcb mark "P9"
-// Set DIY_ADC_TO_TH_LYWSD03MMC 1
-#define DIY_ADC_TO_TH_LYWSD03MMC 0
-
-#define USE_EXTENDED_ADVERTISING 0 // debug, not completed!
+// Special DIY version - Voltage Logger:
+// Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, LYWSD03MMC pcb mark "B1"
+// Humidity 0..36.00 = ADC pin PC4 input 0..3.6V, LYWSD03MMC pcb mark "P9"
+// Set DIY_ADC_TO_TH 1
+#define DIY_ADC_TO_TH 	0
 
 #define BLE_SECURITY_ENABLE 1
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
@@ -29,7 +27,7 @@ extern "C" {
 #define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
 #define USE_TIME_ADJUST		1 // = 1 time correction enabled
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
-#define USE_WK_RDS_COUNTER	0 // = 1 wake up when the reed switch is triggered + pulse counter (Not completed! Only: CGDK2, LYWSD03MMC)
+#define USE_WK_RDS_COUNTER	1 // = 1 wake up when the reed switch is triggered + pulse counter (Not completed! Only: CGDK2, LYWSD03MMC)
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
 #define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)
@@ -43,7 +41,7 @@ extern "C" {
 // TLSR8251F512ET24
 // GPIO_PA5 - used EPD_SHD
 // GPIO_PA6 - used EPD_RST
-// GPIO_PA7 - SWS, free
+// GPIO_PA7 - SWS, free, (debug TX)
 // GPIO_PB6 - used KEY, pcb mark "P5"
 // GPIO_PB7 - used EPD_SDA
 // GPIO_PC2 - SDA, used I2C
@@ -97,12 +95,31 @@ extern "C" {
 
 #if USE_TRIGGER_OUT
 
+#if 0 // Test
+
 #define GPIO_TRG			GPIO_PB6	// pcb mark "P5"
 #define PB6_INPUT_ENABLE	1
 #define PB6_DATA_OUT		0
 #define PB6_OUTPUT_ENABLE	0
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6	PM_PIN_PULLDOWN_100K
+
+#else
+
+#define GPIO_TRG			GPIO_PA0	// none
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLDOWN_100K
+
+#define GPIO_RDS 			GPIO_PB6	// Reed Switch, input, pcb mark "P5"
+#define PB6_INPUT_ENABLE	1
+#define PB6_DATA_OUT		0
+#define PB6_OUTPUT_ENABLE	0
+#define PB6_FUNC			AS_GPIO
+
+#endif
 
 #endif // USE_TRIGGER_OUT
 
@@ -111,19 +128,19 @@ extern "C" {
 // TLSR8253F512ET32
 // GPIO_PA0 - used EPD_RST
 // GPIO_PA1 - used EPD_SHD
-// GPIO_PA7 - SWS, free
+// GPIO_PA7 - SWS, free, (debug TX)
 // GPIO_PB1 - free
 // GPIO_PB4 - free
-// GPIO_PB5 - free
-// GPIO_PB6 - free
+// GPIO_PB5 - free (ADC1)
+// GPIO_PB6 - free (ADC2)
 // GPIO_PB7 - used EPD_SDA
 // GPIO_PC0 - SDA, used I2C
 // GPIO_PC1 - SCL, used I2C
 // GPIO_PC2 - TX, free
-// GPIO_PC3 - RX, free
+// GPIO_PC3 - RX, free, (Trigger, Output)
 // GPIO_PC4 - used KEY
 // GPIO_PD2 - used EPD_CSB
-// GPIO_PD3 - free
+// GPIO_PD3 - free (Reed Switch, input)
 // GPIO_PD4 - used EPD_BUSY
 // GPIO_PD7 - used EPD_SCL
 
@@ -183,27 +200,50 @@ extern "C" {
 #define PC3_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLDOWN_100K
 
+#if 0 // = 0 test PC4 - key
 #define GPIO_RDS 			GPIO_PD3	// Reed Switch, input
 #define PD3_INPUT_ENABLE	1
 #define PD3_DATA_OUT		0
 #define PD3_OUTPUT_ENABLE	0
 #define PD3_FUNC			AS_GPIO
+#else
+#define GPIO_RDS 			GPIO_PC4	// Reed Switch, Input
+//#define PC4_INPUT_ENABLE	1
+#define PC4_DATA_OUT		0
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_FUNC			AS_GPIO
+#endif
 
 #endif // USE_TRIGGER_OUT
+
+#if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB5 input 0..3.6В
+#define CHL_ADC1 			6	// B5P
+#define GPIO_ADC1 			GPIO_PB5	// ADC1 input
+#define PB5_OUTPUT_ENABLE	0
+#define PB5_FUNC			AS_ADC
+#endif
+
+#if DIY_ADC_TO_TH // Special version: Humidity 0..36 = ADC pin PB6 input 0..3.6В
+#define CHL_ADC2 			7	// B6P
+#define GPIO_ADC2 			GPIO_PB6	// ADC2 input
+#define PB6_OUTPUT_ENABLE	0
+#define PB6_DATA_STRENGTH	0
+#define PB6_FUNC			AS_GPIO
+#endif
 
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 
 // TLSR8251F512ET24
 // GPIO_PA5 - DM, free, pcb mark "reset" (TRG)
 // GPIO_PA6 - DP, free, pcb mark "P8" (RDS)
-// GPIO_PA7 - SWS, free, pcb mark "P14"
+// GPIO_PA7 - SWS, free, pcb mark "P14", (debug TX)
 // GPIO_PB6 - used LCD, set "1"
-// GPIO_PB7 - free, pcb mark "B1" (ADC)
+// GPIO_PB7 - free, pcb mark "B1" (ADC1)
 // GPIO_PC2 - SDA, used I2C, pcb mark "P12"
 // GPIO_PC3 - SCL, used I2C, pcb mark "P15"
-// GPIO_PC4 - free, pcb mark "P9" (PWM)
+// GPIO_PC4 - free, pcb mark "P9" (ADC2)
 // GPIO_PD2 - CS/PWM, free
-// GPIO_PD7 - free [B1.4], pcb mark "P7" (UART TX LCD [B1.6])
+// GPIO_PD7 - free [B1.4], UART TX LCD [B1.6], pcb mark "P7"
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
@@ -233,13 +273,15 @@ extern "C" {
 
 #endif // USE_TRIGGER_OUT
 
-#if DIY_ADC_TO_TH_LYWSD03MMC // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
+#if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
+#define CHL_ADC1 			8	// B7P
 #define GPIO_ADC1 			GPIO_PB7	// ADC input, pcb mark "B1"
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_ADC
 #endif
 
-#if DIY_ADC_TO_TH_LYWSD03MMC // Special version: Humidity 0..36 = ADC pin PC4 input 0..3.6В, pcb mark "P9"
+#if DIY_ADC_TO_TH // Special version: Humidity 0..36 = ADC pin PC4 input 0..3.6В, pcb mark "P9"
+#define CHL_ADC2 			9	// C4P
 #define GPIO_ADC2 			GPIO_PC4	// ADC input, pcb mark "P9"
 #define PC4_OUTPUT_ENABLE	0
 #define PC4_DATA_STRENGTH	0
@@ -249,10 +291,23 @@ extern "C" {
 #elif DEVICE_TYPE == DEVICE_CGDK2
 
 // TLSR8253F512ET32
-// GPIO_PA7 - SWS, free
+// GPIO_PA0 - free, UART_RX, pcb mark "TP3", (Reed Switch, input)
+// GPIO_PA1 - free
+// GPIO_PA7 - SWS, free, (debug TX), pcb mark "TP17"
+// GPIO_PB1 - free, UART_TX, pcb mark "TP1", (TRG)
+// GPIO_PB4 - free
+// GPIO_PB5 - free
+// GPIO_PB6 - free, (ADC2)
+// GPIO_PB7 - free, (ADC1)
 // GPIO_PC0 - SDA, used I2C
 // GPIO_PC1 - SCL, used I2C
+// GPIO_PC2 - free
+// GPIO_PC3 - free
 // GPIO_PC4 - used KEY
+// GPIO_PD2 - free
+// GPIO_PD3 - free
+// GPIO_PD4 - free
+// GPIO_PD7 - free
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8253F512ET32
@@ -267,62 +322,45 @@ extern "C" {
 
 #if USE_TRIGGER_OUT
 
-#define GPIO_TRG			GPIO_PC3
-#define PC3_INPUT_ENABLE	1
-#define PC3_DATA_OUT		0
-#define PC3_OUTPUT_ENABLE	0
-#define PC3_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLDOWN_100K
+#define GPIO_TRG			GPIO_PB1
+#define PB1_INPUT_ENABLE	1
+#define PB1_DATA_OUT		0
+#define PB1_OUTPUT_ENABLE	0
+#define PB1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PD3	// Reed Switch, input
-#define PD3_INPUT_ENABLE	1
-#define PD3_DATA_OUT		0
-#define PD3_OUTPUT_ENABLE	0
-#define PD3_FUNC			AS_GPIO
+#if 0 // = 0 test PC4 - key
 
-#endif // USE_TRIGGER_OUT
+#define GPIO_RDS 			GPIO_PA0	// Reed Switch, Input
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
 
-#elif DEVICE_TYPE == 1 //DEVICE_CGDK2
+#else
 
-#define SHL_ADC_VBAT	1  // "B0P" in adc.h
-#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
-
-#define I2C_SCL 	GPIO_PC2
-#define I2C_SDA 	GPIO_PC3
-#define I2C_GROUP 	I2C_GPIO_GROUP_C2C3
-
-#if USE_TRIGGER_OUT
-
-#define GPIO_TRG			GPIO_PA5	// Trigger, output, pcb mark "reset"
-#define PA5_INPUT_ENABLE	1
-#define PA5_DATA_OUT		0
-#define PA5_OUTPUT_ENABLE	0
-#define PA5_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PA5	PM_PIN_PULLDOWN_100K
-
-#define GPIO_RDS 			GPIO_PD3	// Reed Switch, input
-#define PD3_INPUT_ENABLE	1
-#define PD3_DATA_OUT		0
-#define PD3_OUTPUT_ENABLE	0
-#define PD3_FUNC			AS_GPIO
-
-#define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX (B1.6)
-//#define PD7_INPUT_ENABLE	1
-//#define PD7_FUNC			AS_UART
+#define GPIO_RDS 			GPIO_PC4	// Reed Switch, Input
+//#define PC4_INPUT_ENABLE	1
+#define PC4_DATA_OUT		0
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_FUNC			AS_GPIO
+#endif
 
 #endif // USE_TRIGGER_OUT
 
-#if DIY_ADC_TO_TH_LYWSD03MMC // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
-#define GPIO_ADC1 			GPIO_PB7	// ADC input, pcb mark "B1"
+#if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В
+#define CHL_ADC1 			8	// B7P
+#define GPIO_ADC1 			GPIO_PB7	// ADC1 input
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_ADC
 #endif
 
-#if DIY_ADC_TO_TH_LYWSD03MMC // Special version: Humidity 0..36 = ADC pin PC4 input 0..3.6В, pcb mark "P9"
-#define GPIO_ADC2 			GPIO_PC4	// ADC input, pcb mark "P9"
-#define PC4_OUTPUT_ENABLE	0
-#define PC4_DATA_STRENGTH	0
-#define PC4_FUNC			AS_GPIO
+#if DIY_ADC_TO_TH // Special version: Humidity 0..36 = ADC pin PB6 input 0..3.6В
+#define CHL_ADC2 			7	// B6P
+#define GPIO_ADC2 			GPIO_PB6	// ADC2 input
+#define PB6_OUTPUT_ENABLE	0
+#define PB6_DATA_STRENGTH	0
+#define PB6_FUNC			AS_GPIO
 #endif
 
 #endif // DEVICE_TYPE == ?
@@ -366,7 +404,8 @@ enum{
   0x40000 User Data Area (Logger, saving measurements) (FLASH_ADDR_START_MEMO)
   0x74000 Pair & Security info (CFG_ADR_BIND)
   0x76000 MAC address (CFG_ADR_MAC)
-  0x78000 User Data Area (EEP, saving configuration) (FMEMORY_SCFG_BASE_ADDR)
+  0x77000 Customize freq_offset adjust cap value (CUST_CAP_INFO_ADDR)
+  0x78000 User Data Area (EEP, saving configuration) (FMEMORY_SCFG_BASE_ADDR), conflict in master mode (CFG_ADR_PEER)
   0x80000 End Flash (FLASH_SIZE)
  */
 /* flash sector address with binding information */

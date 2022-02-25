@@ -120,23 +120,22 @@ static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 
 RAM gap_periConnectParams_t my_periConnParameters = {8, 40, 0, 1000};
 
-static u16 serviceChangeVal[2] = {0};
-
-static u8 serviceChangeCCC[2] = {0,0};
+static u16 serviceChangeVal = 0;
+static u16 serviceChangeCCC = 0;
 
 //////////////////////// Battery /////////////////////////////////////////////////
 static const u16 my_batServiceUUID        = SERVICE_UUID_BATTERY;
 static const u16 my_batCharUUID       	  = CHARACTERISTIC_UUID_BATTERY_LEVEL;
-RAM u8 batteryValueInCCC[2];
+RAM u16 batteryValueInCCC;
 
 //////////////////////// Temp /////////////////////////////////////////////////
 static const u16 my_tempServiceUUID       = 0x181A;
 static const u16 my_tempCharUUID       	  = 0x2A1F; //
 static const u16 my_temp2CharUUID      	  = 0x2A6E; // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.temperature.xml
 static const u16 my_humiCharUUID       	  = 0x2A6F; // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.humidity.xml
-RAM u8 tempValueInCCC[2];
-RAM u8 temp2ValueInCCC[2];
-RAM u8 humiValueInCCC[2];
+RAM u16 tempValueInCCC;
+RAM u16 temp2ValueInCCC;
+RAM u16 humiValueInCCC;
 
 /////////////////////////////////////////////////////////
 static const  u8 my_OtaUUID[16]					    = TELINK_SPP_DATA_OTA;
@@ -148,7 +147,7 @@ static const u8  my_OtaName[] = {'O', 'T', 'A'};
 static const  u16 my_RxTxUUID				= 0x1f1f;
 static const  u16 my_RxTx_ServiceUUID		= 0x1f10;
 RAM u8 my_RxTx_Data[16];
-RAM u8 RxTxValueInCCC[2];
+RAM u16 RxTxValueInCCC;
 
 //0x95FE
 static const u16 mi_primary_service_uuid = 0xfe95;
@@ -311,72 +310,72 @@ RAM u8 mi_stdio_tx_ccc[2];
 RAM attribute_t my_Attributes[] = {
 	{ATT_END_H - 1, 0,0,0,0,0},	// total num of attribute
 	// 0001 - 0007  gap
-	{7,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_gapServiceUUID), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_devNameCharVal),(u8*)(&my_characterUUID), (u8*)(my_devNameCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,3, (u8*)(&my_devNameUUID), (u8*)&ble_name[2], 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_appearanceCharVal),(u8*)(&my_characterUUID), (u8*)(my_appearanceCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof (my_appearance), (u8*)(&my_appearanceUIID), 	(u8*)(&my_appearance), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_periConnParamCharVal),(u8*)(&my_characterUUID), (u8*)(my_periConnParamCharVal), 0},
+	{7,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_gapServiceUUID), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_devNameCharVal),(u8*)(&my_characterUUID),(u8*)(my_devNameCharVal), 0},
+		{0,ATT_PERMISSIONS_READ,2,3,(u8*)(&my_devNameUUID),(u8*)&ble_name[2], 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_appearanceCharVal),(u8*)(&my_characterUUID),(u8*)(my_appearanceCharVal), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_appearance),(u8*)(&my_appearanceUIID),(u8*)(&my_appearance), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_periConnParamCharVal),(u8*)(&my_characterUUID),(u8*)(my_periConnParamCharVal), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_periConnParameters),(u8*)(&my_periConnParamUUID),(u8*)(&my_periConnParameters), 0},
 	// 0008 - 000b gatt
 	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_gattServiceUUID), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_serviceChangeCharVal),(u8*)(&my_characterUUID), 		(u8*)(my_serviceChangeCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof (serviceChangeVal), (u8*)(&serviceChangeUUID), 	(u8*)(&serviceChangeVal), 0},
-		{0,ATT_PERMISSIONS_RDWR,2,sizeof (serviceChangeCCC),(u8*)(&clientCharacterCfgUUID), (u8*)(serviceChangeCCC), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_serviceChangeCharVal),(u8*)(&my_characterUUID),(u8*)(my_serviceChangeCharVal), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(serviceChangeVal),(u8*)(&serviceChangeUUID),(u8*)(&serviceChangeVal), 0},
+		{0,ATT_PERMISSIONS_RDWR,2,sizeof(serviceChangeCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&serviceChangeCCC), 0},
 #if USE_DEVICE_INFO_CHR_UUID
 	// Device Information Service
-	{13,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_devServiceUUID), 0},
+	{13,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_devServiceUUID), 0},
 
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_ModCharVal),(u8*)(&my_characterUUID), (u8*)(my_ModCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof (my_ModelStr),(u8*)(&my_UUID_MODEL_NUMBER), (u8*)(my_ModelStr), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_ModCharVal),(u8*)(&my_characterUUID),(u8*)(my_ModCharVal), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_ModelStr),(u8*)(&my_UUID_MODEL_NUMBER),(u8*)(my_ModelStr), 0},
 
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_SerialCharVal),(u8*)(&my_characterUUID), (u8*)(my_SerialCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof (my_SerialStr),(u8*)(&my_UUID_SERIAL_NUMBER), (u8*)(my_SerialStr), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_SerialCharVal),(u8*)(&my_characterUUID),(u8*)(my_SerialCharVal), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_SerialStr),(u8*)(&my_UUID_SERIAL_NUMBER),(u8*)(my_SerialStr), 0},
 
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_FirmCharVal),(u8*)(&my_characterUUID), (u8*)(my_FirmCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof (my_FirmStr),(u8*)(&my_UUID_FIRMWARE_REV), (u8*)(my_FirmStr), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_FirmCharVal),(u8*)(&my_characterUUID),(u8*)(my_FirmCharVal), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_FirmStr),(u8*)(&my_UUID_FIRMWARE_REV),(u8*)(my_FirmStr), 0},
 
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_HardCharVal),(u8*)(&my_characterUUID), (u8*)(my_HardCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof (my_HardStr),(u8*)(&my_UUID_HARDWARE_REV), (u8*)(my_HardStr), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_HardCharVal),(u8*)(&my_characterUUID),(u8*)(my_HardCharVal), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_HardStr),(u8*)(&my_UUID_HARDWARE_REV),(u8*)(my_HardStr), 0},
 
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_SoftCharVal),(u8*)(&my_characterUUID), (u8*)(my_SoftCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof (my_SoftStr),(u8*)(&my_UUID_SOFTWARE_REV), (u8*)(my_SoftStr), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_SoftCharVal),(u8*)(&my_characterUUID),(u8*)(my_SoftCharVal), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_SoftStr),(u8*)(&my_UUID_SOFTWARE_REV),(u8*)(my_SoftStr), 0},
 
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_ManCharVal),(u8*)(&my_characterUUID), (u8*)(my_ManCharVal), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof (my_ManStr),(u8*)(&my_UUID_MANUFACTURER_NAME), (u8*)(my_ManStr), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_ManCharVal),(u8*)(&my_characterUUID),(u8*)(my_ManCharVal), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_ManStr),(u8*)(&my_UUID_MANUFACTURER_NAME),(u8*)(my_ManStr), 0},
 #endif
 	////////////////////////////////////// Battery Service /////////////////////////////////////////////////////
 	//
-	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_batServiceUUID), 0},
+	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_batServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_batCharVal),(u8*)(&my_characterUUID), (u8*)(my_batCharVal), 0},				//prop
-		{0,ATT_PERMISSIONS_READ,2,sizeof(battery_level),(u8*)(&my_batCharUUID), 	(u8*)(&battery_level), 0},	//value
-		{0,ATT_PERMISSIONS_RDWR,2,sizeof(batteryValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(batteryValueInCCC), 0},	//value
+		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.battery_level),(u8*)(&my_batCharUUID),(u8*)(&measured_data.battery_level), 0},	//value
+		{0,ATT_PERMISSIONS_RDWR,2,sizeof(batteryValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&batteryValueInCCC), 0},	//value
 	////////////////////////////////////// Temp Service /////////////////////////////////////////////////////
 	//
-	{10,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), (u8*)(&my_tempServiceUUID), 0},
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempCharVal),(u8*)(&my_characterUUID), (u8*)(my_tempCharVal), 0},				//prop
-		{0,ATT_PERMISSIONS_READ,2,sizeof(last_temp),(u8*)(&my_tempCharUUID), 	(u8*)(&last_temp), 0},	//value
-		{0,ATT_PERMISSIONS_RDWR,2,sizeof(tempValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(tempValueInCCC), 0},	//value
+	{10,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_tempServiceUUID), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempCharVal),(u8*)(&my_characterUUID),(u8*)(my_tempCharVal), 0},				//prop
+		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.temp_x01),(u8*)(&my_tempCharUUID),(u8*)(&measured_data.temp_x01), 0},	//value
+		{0,ATT_PERMISSIONS_RDWR,2,sizeof(tempValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&tempValueInCCC), 0},	//value
 
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_temp2CharVal),(u8*)(&my_characterUUID), (u8*)(my_temp2CharVal), 0},				//prop
-		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.temp),(u8*)(&my_temp2CharUUID), 	(u8*)(&measured_data.temp), 0},	//value
-		{0,ATT_PERMISSIONS_RDWR,2,sizeof(temp2ValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(temp2ValueInCCC), 0},	//value
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_temp2CharVal),(u8*)(&my_characterUUID),(u8*)(my_temp2CharVal), 0},				//prop
+		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.temp),(u8*)(&my_temp2CharUUID),(u8*)(&measured_data.temp), 0},	//value
+		{0,ATT_PERMISSIONS_RDWR,2,sizeof(temp2ValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&temp2ValueInCCC), 0},	//value
 
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_humiCharVal),(u8*)(&my_characterUUID), (u8*)(my_humiCharVal), 0},				//prop
-		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.humi),(u8*)(&my_humiCharUUID), 	(u8*)(&measured_data.humi), 0},	//value
-		{0,ATT_PERMISSIONS_RDWR,2,sizeof(humiValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(humiValueInCCC), 0},	//value
+		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.humi),(u8*)(&my_humiCharUUID),(u8*)(&measured_data.humi), 0},	//value
+		{0,ATT_PERMISSIONS_RDWR,2,sizeof(humiValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&humiValueInCCC), 0},	//value
 	////////////////////////////////////// OTA /////////////////////////////////////////////////////
 	//
-	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID), (u8*)(&my_OtaServiceUUID), 0},
-		{0,ATT_PERMISSIONS_READ, 2, sizeof(my_OtaCharVal),(u8*)(&my_characterUUID), (u8*)(my_OtaCharVal), 0},				//prop
-		{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID), (&my_OtaData), &otaWritePre, &otaRead},			//value
-		{0,ATT_PERMISSIONS_READ, 2,sizeof (my_OtaName),(u8*)(&userdesc_UUID), (u8*)(my_OtaName), 0},
+	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID),(u8*)(&my_OtaServiceUUID), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_OtaCharVal),(u8*)(&my_characterUUID),(u8*)(my_OtaCharVal), 0},				//prop
+		{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),(&my_OtaData), &otaWritePre, &otaRead},			//value
+		{0,ATT_PERMISSIONS_READ,2,sizeof (my_OtaName),(u8*)(&userdesc_UUID),(u8*)(my_OtaName), 0},
 	////////////////////////////////////// RxTx ////////////////////////////////////////////////////
 	// RxTx Communication
 	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_RxTx_ServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ, 2,sizeof(my_RxTxCharVal),(u8*)(&my_characterUUID),	(u8*)(my_RxTxCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_RDWR, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID), (u8*)&my_RxTx_Data, &RxTxWrite, 0},
-		{0,ATT_PERMISSIONS_RDWR, 2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(RxTxValueInCCC), 0},	//value
+		{0,ATT_PERMISSIONS_RDWR, 2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(&RxTxValueInCCC), 0},	//value
 #if USE_MIHOME_SERVICE
 	///////////////////////////////////MI_SERVICE//////////////////////////////////////////////////
 	{20,ATT_PERMISSIONS_AUTHOR_READ, 2,2,(u8*)(&my_primaryServiceUUID),	(u8*)(&mi_primary_service_uuid), 0}, // 0xFE95 service uuid
@@ -411,19 +410,19 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_stdio_rx_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_stdio_rx_ccc), 0}, //value
 
 		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_stdio_tx_prop), 0},				//prop
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 16,sizeof(mi_stdio_tx_buf),(u8*)(&mi_stdio_tx_uuid), (u8*)(mi_stdio_tx_buf), 0, 0}, //value 0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x02,0x01,0x00,0x00
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2,sizeof (mi_stdio_tx_str),(u8*)(&userdesc_UUID), (u8*)(mi_stdio_tx_str), 0}, // STDIO_TX
+		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 16, sizeof(mi_stdio_tx_buf),(u8*)(&mi_stdio_tx_uuid), (u8*)(mi_stdio_tx_buf), 0, 0}, //value 0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x02,0x01,0x00,0x00
+		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof (mi_stdio_tx_str),(u8*)(&userdesc_UUID), (u8*)(mi_stdio_tx_str), 0}, // STDIO_TX
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_stdio_tx_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_stdio_tx_ccc), 0}, //value
 #else // USE_MIHOME_SERVICE
 	//Mi 0x95FE
-	{2,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), (u8*)(&mi_primary_service_uuid), 0},
-		{0,ATT_PERMISSIONS_READ, 2,sizeof (my_MiName),(u8*)(&userdesc_UUID), (u8*)(my_MiName), 0},
+	{2,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&mi_primary_service_uuid), 0},
+		{0,ATT_PERMISSIONS_READ, 2,sizeof (my_MiName),(u8*)(&userdesc_UUID),(u8*)(my_MiName), 0},
 #endif // USE_MIHOME_SERVICE
 };
 
 void my_att_init(void) {
 #if BLE_SECURITY_ENABLE
-	if(pincode) {
+	if (pincode) {
 		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;
 		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;
 	} else {

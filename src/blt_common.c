@@ -70,7 +70,7 @@ void blc_initMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand) {
 	u32 * p = (u32 *) &mac_read;
 	flash_read_page(flash_addr, sizeof(mac_read), mac_read);
 
-	if(p[0] == 0xffffffff && p[1] == 0xffffffff) {
+	if (p[0] == 0xffffffff && p[1] == 0xffffffff) {
 		// no public address on flash
 #if DEVICE_TYPE == DEVICE_CGG1
 		mac_read[0] = 0x58; // company id: 0x582D34

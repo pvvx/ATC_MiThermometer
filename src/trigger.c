@@ -19,15 +19,14 @@ const trigger_t def_trg = {
 		.temp_hysteresis = -55, // enable, -0.55 °C
 		.humi_hysteresis = 0  // disable
 #if USE_WK_RDS_COUNTER
-		,
-		.rds_time_report = 3600 // 1 hours
+		,.rds_time_report = 3600 // 1 hours
 #endif
 };
 
 RAM trigger_t trg;
 
 _attribute_ram_code_ void test_trg_on(void) {
-	if(trg.temp_hysteresis || trg.humi_hysteresis) {
+	if (trg.temp_hysteresis || trg.humi_hysteresis) {
 		trg.flg.trigger_on = true;
 		trg.flg.trg_output = (trg.flg.humi_out_on || trg.flg.temp_out_on);
 	} else {
@@ -37,50 +36,50 @@ _attribute_ram_code_ void test_trg_on(void) {
 }
 
 _attribute_ram_code_ __attribute__((optimize("-Os"))) void set_trigger_out(void) {
-	if(trg.temp_hysteresis) {
-		if(trg.flg.temp_out_on) { // temp_out on
-			if(trg.temp_hysteresis < 0) {
-				if(measured_data.temp > trg.temp_threshold - trg.temp_hysteresis) {
+	if (trg.temp_hysteresis) {
+		if (trg.flg.temp_out_on) { // temp_out on
+			if (trg.temp_hysteresis < 0) {
+				if (measured_data.temp > trg.temp_threshold - trg.temp_hysteresis) {
 					trg.flg.temp_out_on = false;
 				}
 			} else {
-				if(measured_data.temp < trg.temp_threshold - trg.temp_hysteresis) {
+				if (measured_data.temp < trg.temp_threshold - trg.temp_hysteresis) {
 					trg.flg.temp_out_on = false;
 				}
 			}
 		} else { // temp_out off
-			if(trg.temp_hysteresis < 0) {
-				if(measured_data.temp < trg.temp_threshold + trg.temp_hysteresis) {
+			if (trg.temp_hysteresis < 0) {
+				if (measured_data.temp < trg.temp_threshold + trg.temp_hysteresis) {
 					trg.flg.temp_out_on = true;
 				}
 			} else {
-				if(measured_data.temp > trg.temp_threshold + trg.temp_hysteresis) {
+				if (measured_data.temp > trg.temp_threshold + trg.temp_hysteresis) {
 					trg.flg.temp_out_on = true;
 				}
 			}
 		}
 	} else trg.flg.temp_out_on = false;
-	if(trg.humi_hysteresis) {
-		if(trg.flg.humi_out_on) { // humi_out on
-			if(trg.humi_hysteresis < 0) {
-				if(measured_data.humi > trg.humi_threshold - trg.humi_hysteresis) {
+	if (trg.humi_hysteresis) {
+		if (trg.flg.humi_out_on) { // humi_out on
+			if (trg.humi_hysteresis < 0) {
+				if (measured_data.humi > trg.humi_threshold - trg.humi_hysteresis) {
 					// humi > threshold
 					trg.flg.humi_out_on = false;
 				}
 			} else { // hysteresis > 0
-				if(measured_data.humi < trg.humi_threshold - trg.humi_hysteresis) {
+				if (measured_data.humi < trg.humi_threshold - trg.humi_hysteresis) {
 					// humi < threshold
 					trg.flg.humi_out_on = false;
 				}
 			}
 		} else { // humi_out off
-			if(trg.humi_hysteresis < 0) {
-				if(measured_data.humi < trg.humi_threshold + trg.humi_hysteresis) {
+			if (trg.humi_hysteresis < 0) {
+				if (measured_data.humi < trg.humi_threshold + trg.humi_hysteresis) {
 					// humi < threshold
 					trg.flg.humi_out_on = true;
 				}
 			} else { // hysteresis > 0
-				if(measured_data.humi > trg.humi_threshold + trg.humi_hysteresis) {
+				if (measured_data.humi > trg.humi_threshold + trg.humi_hysteresis) {
 					// humi > threshold
 					trg.flg.humi_out_on = true;
 				}
