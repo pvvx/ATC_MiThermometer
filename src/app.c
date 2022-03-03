@@ -568,6 +568,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 	}
 	show_ble_symbol(ble_connected);
 }
+
 //----------------------- main_loop()
 _attribute_ram_code_ void main_loop(void) {
 	blt_sdk_main_loop();

@@ -28,6 +28,7 @@ extern "C" {
 #define USE_TIME_ADJUST		1 // = 1 time correction enabled
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
 #define USE_WK_RDS_COUNTER	1 // = 1 wake up when the reed switch is triggered + pulse counter (Not completed! Only: CGDK2, LYWSD03MMC)
+#define USE_HA_BLE_FORMAT	0 // Test Only! if USE_WK_RDS_COUNTER = 1, https://github.com/custom-components/ble_monitor/issues/548
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
 #define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)

@@ -32,6 +32,31 @@ void rds_init(void) {
 	rds.report_tick = utc_time_sec;
 }
 
+#if USE_HA_BLE_FORMAT
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void set_pvvx_adv_event(uint32_t cnt) {
+		padv_ha_ble_ns2_t p = (padv_ha_ble_ns2_t)&adv_buf.data;
+		p->size = sizeof(adv_ha_ble_ns2_t) - sizeof(p->size);
+		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+		p->UUID = ADV_HA_BLE_NS_UUID16;
+		p->p_st = HaBleType_uint + sizeof(p->p_id) + sizeof(p->pid);
+		p->p_id = HaBleID_PacketId;
+		p->pid = (uint8_t)cnt;
+		p->f_st = HaBleType_uint + sizeof(p->f_id) + sizeof(p->flags);
+		p->f_id = HaBleID_boolean;
+		p->flags = trg.flg_byte;
+		p->c_st = HaBleType_uint + sizeof(p->c_id) + sizeof(p->counter);
+		p->c_id = HaBleID_count;
+		p->counter[0] = rds.count_byte[0];
+		p->counter[1] = rds.count_byte[1];
+		p->counter[2] = rds.count_byte[2];
+		adv_buf.data_size = sizeof(adv_ha_ble_ns2_t);
+		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
+}
+#endif
+
+
 __attribute__((optimize("-Os")))
 _attribute_ram_code_ void set_rds_adv_data(void) {
 	pext_adv_cnt_t v = (pext_adv_cnt_t)&adv_buf.data;
@@ -40,7 +65,12 @@ _attribute_ram_code_ void set_rds_adv_data(void) {
 		rds.adv_counter &= 0x1f;
 		rds.adv_counter |= ((uint8_t)measured_data.count ^ 0xffffffe0) & 0xffffffe0;
 		if ((cfg.flg.advertising_type == ADV_TYPE_PVVX) || (cfg.flg.advertising_type == ADV_TYPE_ALL)) { // 0 - atc1441, 1 - pvvx, 2 - Mi, 3 - all
+#if USE_HA_BLE_FORMAT
+			set_pvvx_adv_event(rds.adv_counter);
+			return;
+#else
 			set_pvvx_adv_data(rds.adv_counter);
+#endif
 			adv_buf.data_size = adv_buf.data[0] + 1;
 			v = (pext_adv_cnt_t)&adv_buf.data[adv_buf.data_size];
 		} else if (cfg.flg.advertising_type == ADV_TYPE_MI)  {
