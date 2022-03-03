@@ -69,7 +69,9 @@ typedef enum {
 	HaBleID_voltage,      //0x0C, uint16, 0.001 V
 	HaBleID_pm2x5,        //0x0D, uint16, kg/m3
 	HaBleID_pm10,         //0x0E, uint16, kg/m3
-	HaBleID_boolean       //0x0F, uint8
+	HaBleID_boolean,      //0x0F, uint8
+	HaBleID_opened,
+	HaBleID_switch
 } HaBleIDs_e;
 
 // Type bit 5-7
@@ -82,7 +84,7 @@ typedef enum {
 } HaBleTypes_e;
 
 typedef struct __attribute__((packed)) _adv_na_ble_ns1_t {
-	uint8_t		size;   // = 24?
+	uint8_t		size;   // = 21?
 	uint8_t		uid;	// = 0x16, 16-bit UUID
 	uint16_t	UUID;	// = 0x181C, GATT Service HA_BLE
 	uint8_t		p_st;
@@ -109,12 +111,15 @@ typedef struct __attribute__((packed)) _adv_na_ble_ns2_t {
 	uint8_t		p_st;
 	uint8_t		p_id;	// = HaBleID_PacketId
 	uint8_t		pid;	// PacketId (!= measurement count)
-	uint8_t		f_st;
-	uint8_t		f_id;	// = HaBleID_boolean ?
-	uint8_t		flags;
+	uint8_t		s_st;
+	uint8_t		s_id;	// = HaBleID_switch ?
+	uint8_t		swtch;
+	uint8_t		o_st;
+	uint8_t		o_id;	// = HaBleID_opened ?
+	uint8_t		opened;
 	uint8_t		c_st;
 	uint8_t		c_id;	// = HaBleID_count
-	uint8_t		counter[3]; // count
+	uint32_t	counter; // count
 } adv_ha_ble_ns2_t, * padv_ha_ble_ns2_t;
 
 #define ADV_CUSTOM_UUID16 0x181A // 16-bit UUID Service 0x181A Environmental Sensing
