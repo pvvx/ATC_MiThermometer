@@ -103,6 +103,14 @@ _attribute_ram_code_ void set_rds_adv_data(void) {
 			v = (pext_adv_cnt_t)&adv_buf.data[sizeof(ext_adv_dig_t)];
 		}
 	}
+#if USE_HA_BLE_FORMAT
+	else {
+		rds.adv_counter &= 0x1f;
+		rds.adv_counter |= ((uint8_t)measured_data.count ^ 0xffffffe0) & 0xffffffe0;
+		set_ha_ble_adv_event(rds.adv_counter);
+		return;
+	}
+#endif
 	v->size = 6;
 	v->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 	v->UUID = ADV_UUID16_Count24bits;
