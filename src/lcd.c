@@ -21,7 +21,7 @@ RAM uint8_t lcd_i2c_addr;
 
 const uint8_t lcd_init_cmd_b14[] =	{0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
 								//	{0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6};
-const uint8_t lcd_init_clr_b14[] =	{0x80,0x40,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0x00,0xC0,0x00};
+const uint8_t lcd_init_clr_b14[] =	{0x80,0x40,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0};
 const uint8_t lcd_init_clr_b19[] =	{0x00,0x00,0x00,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x00,0x00,0x00,0x00,0x00,0x00};
 
 RAM uint8_t display_buff[6];
@@ -165,7 +165,7 @@ _attribute_ram_code_ void send_to_lcd(void){
 		}
 		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	} else {
-		// B1.6
+		// B1.6 (UART LCD)
 		utxb.data[5] = *p++;
 		utxb.data[4] = *p++;
 		utxb.data[3] = *p++;
@@ -189,16 +189,16 @@ void init_lcd(void){
 	}
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B19_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // B1.9
-		lcd_send_i2c_byte(0xEA);
+		lcd_send_i2c_byte(0xEA); // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
 		sleep_us(240);
-		lcd_send_i2c_byte(0xA4);
-		lcd_send_i2c_byte(0x9C);
-		lcd_send_i2c_byte(0xAC);
-		lcd_send_i2c_byte(0xBC);
-		lcd_send_i2c_byte(0xF0);
-		lcd_send_i2c_byte(0xFC);
+		lcd_send_i2c_byte(0xA4); // Display control (DISCTL): Normal mode, FRAME flip, Power save mode 1
+		lcd_send_i2c_byte(0x9C); // ? Address set (ADSET): 0x1C ?
+		lcd_send_i2c_byte(0xAC); // Display control (DISCTL): Power save mode 1, FRAME flip, Power save mode 1
+		lcd_send_i2c_byte(0xBC); // Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
+		lcd_send_i2c_byte(0xF0); // Blink control (BLKCTL): Off
+		lcd_send_i2c_byte(0xFC); // All pixel control (APCTL): Normal
 		lcd_send_i2c_buf((uint8_t *) lcd_init_clr_b19, sizeof(lcd_init_clr_b19));
-		lcd_send_i2c_byte(0xC8);
+		lcd_send_i2c_byte(0xC8); // Mode Set (MODE SET): Display ON, 1/3 Bias
 		return;
 	}
 	// B1.6 (UART), lcd_i2c_addr = 0

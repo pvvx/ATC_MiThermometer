@@ -335,12 +335,34 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	ev_adv_timeout(0,0,0);
 }
 
+
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void set_pvvx_adv_data(uint32_t cnt) {
 	if (cfg.flg2.mi_beacon)
 		pvvx_encrypt_beacon(cnt);
 	else {
+#if USE_HA_BLE_FORMAT
+		padv_ha_ble_ns1_t p = (padv_ha_ble_ns1_t)&adv_buf.data;
+		p->size = sizeof(adv_ha_ble_ns1_t) - sizeof(p->size);
+		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+		p->UUID = ADV_HA_BLE_NS_UUID16;
+		p->p_st = HaBleType_uint + sizeof(p->p_id) + sizeof(p->pid);
+		p->p_id = HaBleID_PacketId;
+		p->pid = (uint8_t)cnt;
+		p->t_st = HaBleType_sint + sizeof(p->t_id) + sizeof(p->temperature);
+		p->t_id = HaBleID_temperature;
+		p->temperature = measured_data.temp; // x0.01 C
+		p->h_st = HaBleType_uint + sizeof(p->h_id) + sizeof(p->humidity);
+		p->h_id = HaBleID_humidity;
+		p->humidity = measured_data.humi; // x0.01 %
+		p->b_st = HaBleType_uint + sizeof(p->b_id) + sizeof(p->battery_level);
+		p->b_id = HaBleID_battery;
+		p->battery_level = measured_data.battery_level;
+		p->v_st = HaBleType_uint + sizeof(p->p_id) + sizeof(p->battery_mv);
+		p->v_id = HaBleID_voltage;
+		p->battery_mv = measured_data.battery_mv; // x mV
+#else
 		padv_custom_t p = (padv_custom_t)&adv_buf.data;
 		memcpy(p->MAC, mac_public, 6);
 #if USE_TRIGGER_OUT
@@ -357,6 +379,7 @@ void set_pvvx_adv_data(uint32_t cnt) {
 		p->counter = (uint8_t)cnt;
 #if USE_TRIGGER_OUT
 		p->flags = trg.flg_byte;
+#endif
 #endif
 	}
 }
