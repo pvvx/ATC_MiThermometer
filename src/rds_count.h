@@ -32,6 +32,9 @@ static inline void rds_input_on(void) {
 #if USE_WK_RDS_COUNTER
 #include "mi_beacon.h"
 
+#define EXT_ADV_INTERVAL ADV_INTERVAL_50MS
+#define EXT_ADV_COUNT 5
+
 #define ADV_UUID16_DigitalStateBits	0x2A56 // 16-bit UUID Digital bits, Out bits control (LEDs control)
 #define ADV_UUID16_AnalogOutValues	0x2A58 // 16-bit UUID Analog values (DACs control)
 #define ADV_UUID16_Aggregate		0x2A5A // 16-bit UUID Aggregate, The Aggregate Input is an aggregate of the Digital Input Characteristic value (if available) and ALL Analog Inputs available.

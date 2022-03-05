@@ -190,10 +190,10 @@ typedef struct __attribute__((packed)) _adv_atc_enc_t {
 
 
 void mi_beacon_summ(void); // averaging measurements
-void mi_encrypt_beacon(uint32_t cnt);
+void mi_encrypt_beacon(void);
 void mi_beacon_init(void);
 
-void atc_encrypt_beacon(uint32_t cnt);
-void pvvx_encrypt_beacon(uint32_t cnt);
+void atc_encrypt_beacon(void);
+void pvvx_encrypt_beacon(void);
 
 #endif /* MI_BEACON_H_ */

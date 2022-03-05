@@ -42,7 +42,6 @@ RAM uint8_t ble_name[32] = { 11, 0x09,
 #endif
 
 RAM uint8_t mac_public[6], mac_random_static[6];
-//RAM uint32_t adv_send_count; // count adv
 RAM adv_buf_t adv_buf;
 uint8_t ota_is_working = 0;
 
@@ -74,6 +73,7 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
+	(void) e; (void) p; (void) n;
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 	ble_connected = 1;
 	if (cfg.connect_latency) {
@@ -102,15 +102,29 @@ int otaWritePre(void * p) {
 
 _attribute_ram_code_
 int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
+	(void) p;
 #if USE_WK_RDS_COUNTER
 	if (!blta.adv_duraton_en)
 #endif
 	{
-		adv_buf.send_count++;
-		set_adv_data();
+		if (adv_buf.old_measured_count != measured_data.count) { // new measured_data ?
+			adv_buf.old_measured_count = measured_data.count; // save
+			adv_buf.call_count = 1; // count 1..cfg.measure_interval
+			adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
+			adv_buf.update_count = 0;
+			set_adv_data();
+		} else {
+#if USE_WK_RDS_COUNTER
+			if (!adv_buf.data_size) // flag
+				adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
+#endif
+			if (++adv_buf.call_count > adv_buf.update_count) // refresh adv_buf.data ?
+				set_adv_data();
+		}
 	}
 #if USE_WK_RDS_COUNTER
 	else {
+		blta.adv_interval = EXT_ADV_INTERVAL*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
 		// set_rds_adv_data();
 	}
 #endif
@@ -335,21 +349,18 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	ev_adv_timeout(0,0,0);
 }
 
-
+#if USE_HA_BLE_FORMAT
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-void set_pvvx_adv_data(uint32_t cnt) {
-	if (cfg.flg2.mi_beacon)
-		pvvx_encrypt_beacon(cnt);
-	else {
-#if USE_HA_BLE_FORMAT
+void set_ha_ble_adv_data(void) {
+	if (adv_buf.call_count < cfg.measure_interval) {
 		padv_ha_ble_ns1_t p = (padv_ha_ble_ns1_t)&adv_buf.data;
 		p->size = sizeof(adv_ha_ble_ns1_t) - sizeof(p->size);
 		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 		p->UUID = ADV_HA_BLE_NS_UUID16;
 		p->p_st = HaBleType_uint + sizeof(p->p_id) + sizeof(p->pid);
 		p->p_id = HaBleID_PacketId;
-		p->pid = (uint8_t)cnt;
+		p->pid = (uint8_t)adv_buf.send_count;
 		p->t_st = HaBleType_sint + sizeof(p->t_id) + sizeof(p->temperature);
 		p->t_id = HaBleID_temperature;
 		p->temperature = measured_data.temp; // x0.01 C
@@ -359,117 +370,138 @@ void set_pvvx_adv_data(uint32_t cnt) {
 		p->b_st = HaBleType_uint + sizeof(p->b_id) + sizeof(p->battery_level);
 		p->b_id = HaBleID_battery;
 		p->battery_level = measured_data.battery_level;
+	} else {
+		adv_buf.call_count = 1;
+		adv_buf.send_count++;
+		padv_ha_ble_ns2_t p = (padv_ha_ble_ns2_t)&adv_buf.data;
+		p->size = sizeof(adv_ha_ble_ns2_t) - sizeof(p->size);
+		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+		p->UUID = ADV_HA_BLE_NS_UUID16;
+		p->p_st = HaBleType_uint + sizeof(p->p_id) + sizeof(p->pid);
+		p->p_id = HaBleID_PacketId;
+		p->pid = (uint8_t)adv_buf.send_count;
+		p->s_st = HaBleType_uint + sizeof(p->s_id) + sizeof(p->swtch);
+		p->s_id = HaBleID_switch;
+		p->swtch = trg.flg.trg_output;
 		p->v_st = HaBleType_uint + sizeof(p->p_id) + sizeof(p->battery_mv);
 		p->v_id = HaBleID_voltage;
 		p->battery_mv = measured_data.battery_mv; // x mV
-#else
-		padv_custom_t p = (padv_custom_t)&adv_buf.data;
-		memcpy(p->MAC, mac_public, 6);
-#if USE_TRIGGER_OUT
-		p->size = sizeof(adv_custom_t) - 1;
-#else
-		p->size = sizeof(adv_custom_t) - 2;
-#endif
-		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-		p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
-		p->temperature = measured_data.temp; // x0.01 C
-		p->humidity = measured_data.humi; // x0.01 %
-		p->battery_mv = measured_data.battery_mv; // x mV
-		p->battery_level = measured_data.battery_level; // x1 %
-		p->counter = (uint8_t)cnt;
-#if USE_TRIGGER_OUT
-		p->flags = trg.flg_byte;
-#endif
-#endif
 	}
+}
+#endif // USE_HA_BLE_FORMAT
+
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void set_pvvx_adv_data(void) {
+	padv_custom_t p = (padv_custom_t)&adv_buf.data;
+	memcpy(p->MAC, mac_public, 6);
+#if USE_TRIGGER_OUT
+	p->size = sizeof(adv_custom_t) - 1;
+#else
+	p->size = sizeof(adv_custom_t) - 2;
+#endif
+	p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+	p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
+	p->temperature = measured_data.temp; // x0.01 C
+	p->humidity = measured_data.humi; // x0.01 %
+	p->battery_mv = measured_data.battery_mv; // x mV
+	p->battery_level = measured_data.battery_level; // x1 %
+	p->counter = (uint8_t)adv_buf.send_count;
+#if USE_TRIGGER_OUT
+	p->flags = trg.flg_byte;
+#endif
 }
 
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-void set_mi_adv_data(uint32_t cnt) {
-#if USE_MIHOME_BEACON
-		if (cfg.flg2.mi_beacon) {
-			if (cfg.flg.advertising_type == ADV_TYPE_ALL)
-				mi_encrypt_beacon(cnt);
-			else
-				mi_encrypt_beacon(cnt >> 2);
-		}
-		else
-#endif
-		{
-			padv_mi_mac_beacon_t p = (padv_mi_mac_beacon_t)&adv_buf.data;
-			memcpy(p->MAC, mac_public, 6);
-			p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->head.UUID = ADV_XIAOMI_UUID16; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+void set_mi_adv_data(void) {
+	padv_mi_mac_beacon_t p = (padv_mi_mac_beacon_t)&adv_buf.data;
+	memcpy(p->MAC, mac_public, 6);
+	p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+	p->head.UUID = ADV_XIAOMI_UUID16; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 #if 0
-			p->head.ctrl.word = 0;
-			p->head.ctrl.bit.version = 3; // XIAOMI_DEV_VERSION
-			p->head.ctrl.bit.MACInclude = 1;
-			p->head.ctrl.bit.ObjectInclude = 1;
+	p->head.ctrl.word = 0;
+	p->head.ctrl.bit.version = 3; // XIAOMI_DEV_VERSION
+	p->head.ctrl.bit.MACInclude = 1;
+	p->head.ctrl.bit.ObjectInclude = 1;
 #else
-			p->head.fctrl.word = 0x3050; // 0x3050 version = 3, MACInclude, ObjectInclude
+	p->head.fctrl.word = 0x3050; // 0x3050 version = 3, MACInclude, ObjectInclude
 #endif
-			p->head.counter = (uint8_t)cnt;
-			p->head.dev_id = DEVICE_TYPE;
-			if (adv_buf.send_count & 1) {
-				p->data.id = XIAOMI_DATA_ID_TempAndHumidity;
-				p->data.size = 4;
-				p->data.t0d.temperature = measured_data.temp_x01; // x0.1 C
-				p->data.t0d.humidity = measured_data.humi_x01; // x0.1 %
-			} else {
-				p->data.id = XIAOMI_DATA_ID_Power;
-				p->data.size = 1;
-				p->data.t0a.battery_level = measured_data.battery_level; // Battery percentage, Range: 0-100
-			}
-			p->head.size = p->data.size + sizeof(p->head) - sizeof(p->head.size) + sizeof(p->MAC) + sizeof(p->data.id) + sizeof(p->data.size);
-#if USE_MIHOME_BEACON
-		}
-#endif
+	p->head.dev_id = DEVICE_TYPE;
+	if (adv_buf.call_count < cfg.measure_interval) {
+		p->data.id = XIAOMI_DATA_ID_TempAndHumidity;
+		p->data.size = 4;
+		p->data.t0d.temperature = measured_data.temp_x01; // x0.1 C
+		p->data.t0d.humidity = measured_data.humi_x01; // x0.1 %
+	} else {
+		adv_buf.call_count = 1;
+		adv_buf.send_count++;
+		p->data.id = XIAOMI_DATA_ID_Power;
+		p->data.size = 1;
+		p->data.t0a.battery_level = measured_data.battery_level; // Battery percentage, Range: 0-100
+	}
+	p->head.counter = (uint8_t)adv_buf.send_count;
+	p->head.size = p->data.size + sizeof(p->head) - sizeof(p->head.size) + sizeof(p->MAC) + sizeof(p->data.id) + sizeof(p->data.size);
 }
 
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-void set_atc_adv_data(uint32_t cnt) {
-	if (cfg.flg2.mi_beacon)
-		atc_encrypt_beacon(cnt);
-	else {
-		padv_atc1441_t p = (padv_atc1441_t)&adv_buf.data;
-		p->size = sizeof(adv_atc1441_t) - 1;
-		p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-		p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
+void set_atc_adv_data(void) {
+	padv_atc1441_t p = (padv_atc1441_t)&adv_buf.data;
+	p->size = sizeof(adv_atc1441_t) - 1;
+	p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+	p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
 #if 1
-		SwapMacAddress(p->MAC, mac_public);
+	SwapMacAddress(p->MAC, mac_public);
 #else
-		p->MAC[0] = mac_public[5];
-		p->MAC[1] = mac_public[4];
-		p->MAC[2] = mac_public[3];
-		p->MAC[3] = mac_public[2];
-		p->MAC[4] = mac_public[1];
-		p->MAC[5] = mac_public[0];
+	p->MAC[0] = mac_public[5];
+	p->MAC[1] = mac_public[4];
+	p->MAC[2] = mac_public[3];
+	p->MAC[3] = mac_public[2];
+	p->MAC[4] = mac_public[1];
+	p->MAC[5] = mac_public[0];
 #endif
-		p->temperature[0] = (uint8_t)(measured_data.temp_x01 >> 8);
-		p->temperature[1] = (uint8_t)measured_data.temp_x01; // x0.1 C
-		p->humidity = measured_data.humi_x1; // x1 %
-		p->battery_level = measured_data.battery_level; // x1 %
-		p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
-		p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
-		p->counter = (uint8_t)cnt;
-	}
+	p->temperature[0] = (uint8_t)(measured_data.temp_x01 >> 8);
+	p->temperature[1] = (uint8_t)measured_data.temp_x01; // x0.1 C
+	p->humidity = measured_data.humi_x1; // x1 %
+	p->battery_level = measured_data.battery_level; // x1 %
+	p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
+	p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
+	p->counter = (uint8_t)adv_buf.send_count;
 }
 
+/* adv_type: 0 - atc1441, 1 - Custom,  2 - Mi, 3 - HA_BLE  */
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void set_adv_data(void) {
-	uint8_t adv_type = cfg.flg.advertising_type; // 0 - atc1441, 1 - pvvx, 2 - Mi, 3 - all
-	if (adv_type == ADV_TYPE_ALL)
-		adv_type = adv_buf.send_count & 3;
-	/* adv_type: 0 - atc1441, 1 - Custom,  2,3 - Mi  */
-	if (adv_type == ADV_TYPE_PVVX) {
-		set_pvvx_adv_data(measured_data.count);
-	} else if (adv_type & ADV_TYPE_MASK_REF) { // adv_type == 2 or 3
-		set_mi_adv_data(measured_data.count);
-	} else { // adv_type == 0 == ADV_TYPE_ATC
-		set_atc_adv_data(measured_data.count);
+	uint8_t adv_type = cfg.flg.advertising_type;
+#if USE_MIHOME_BEACON
+	if (cfg.flg2.adv_crypto) {
+		if (adv_type == ADV_TYPE_PVVX) {
+			pvvx_encrypt_beacon();
+		} else if (adv_type == ADV_TYPE_MI) { // adv_type == 2
+			mi_encrypt_beacon();
+#if USE_HA_BLE_FORMAT
+		} else if (adv_type == ADV_TYPE_HA_BLE) { // adv_type == 3
+			pvvx_encrypt_beacon();
+#endif
+		} else { // adv_type == 0 == ADV_TYPE_ATC
+			atc_encrypt_beacon();
+		}
+	} else
+#endif
+	{
+		if (adv_type == ADV_TYPE_PVVX) {
+			set_pvvx_adv_data();
+		} else if (adv_type == ADV_TYPE_MI) { // adv_type == 2
+			set_mi_adv_data();
+#if USE_HA_BLE_FORMAT
+		} else if (adv_type == ADV_TYPE_HA_BLE) { // adv_type == 3
+			set_ha_ble_adv_data();
+#endif
+		} else { // adv_type == 0 == ADV_TYPE_ATC
+			set_atc_adv_data();
+		}
 	}
 	adv_buf.data_size = adv_buf.data[0] + 1;
 	if (cfg.flg2.adv_flags) {

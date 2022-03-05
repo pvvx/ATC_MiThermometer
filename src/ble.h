@@ -14,8 +14,11 @@ extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, b
 //extern uint32_t adv_send_count;
 
 #define ADV_BUFFER_SIZE		(31-3)
-typedef struct __attribute__((packed)) _adv_buf_t {
-	uint32_t send_count;
+typedef struct _adv_buf_t {
+	uint32_t send_count; // count & id advertise, = beacon_nonce.cnt32
+	uint32_t old_measured_count; // old measured_data.count
+	uint8_t update_count;	// refresh adv_buf.data in next set_adv_data()
+	uint8_t call_count; 	// count 1..cfg.measure_interval
 	uint8_t data_size;
 	uint8_t flag[3];
 	uint8_t data[ADV_BUFFER_SIZE];
@@ -70,8 +73,8 @@ typedef enum {
 	HaBleID_pm2x5,        //0x0D, uint16, kg/m3
 	HaBleID_pm10,         //0x0E, uint16, kg/m3
 	HaBleID_boolean,      //0x0F, uint8
-	HaBleID_opened,
-	HaBleID_switch
+	HaBleID_switch,		  //0x10
+	HaBleID_opened		  //0x11
 } HaBleIDs_e;
 
 // Type bit 5-7
@@ -84,7 +87,7 @@ typedef enum {
 } HaBleTypes_e;
 
 typedef struct __attribute__((packed)) _adv_na_ble_ns1_t {
-	uint8_t		size;   // = 21?
+	uint8_t		size;   // = 17
 	uint8_t		uid;	// = 0x16, 16-bit UUID
 	uint16_t	UUID;	// = 0x181C, GATT Service HA_BLE
 	uint8_t		p_st;
@@ -99,28 +102,50 @@ typedef struct __attribute__((packed)) _adv_na_ble_ns1_t {
 	uint8_t		b_st;
 	uint8_t		b_id;	// = HaBleID_battery
 	uint8_t		battery_level; // 0..100 %
-	uint8_t		v_st;
-	uint8_t		v_id;	// = HaBleID_voltage
-	uint16_t	battery_mv; // mV
 } adv_ha_ble_ns1_t, * padv_ha_ble_ns1_t;
 
 typedef struct __attribute__((packed)) _adv_na_ble_ns2_t {
-	uint8_t		size;	// = 15?
+	uint8_t		size;   // = 13
+	uint8_t		uid;	// = 0x16, 16-bit UUID
+	uint16_t	UUID;	// = 0x181C, GATT Service HA_BLE
+	uint8_t		p_st;
+	uint8_t		p_id;	// = HaBleID_PacketId
+	uint8_t		pid;	// PacketId (measurement count)
+	uint8_t		s_st;
+	uint8_t		s_id;	// = HaBleID_switch ?
+	uint8_t		swtch;
+	uint8_t		v_st;
+	uint8_t		v_id;	// = HaBleID_voltage
+	uint16_t	battery_mv; // mV
+} adv_ha_ble_ns2_t, * padv_ha_ble_ns2_t;
+
+
+typedef struct __attribute__((packed)) _adv_na_ble_ns_ev1_t {
+	uint8_t		size;	// = 15
 	uint8_t		uid;	// = 0x16, 16-bit UUID
 	uint16_t	UUID;	// = 0x181C, GATT Service 0x181C
 	uint8_t		p_st;
 	uint8_t		p_id;	// = HaBleID_PacketId
 	uint8_t		pid;	// PacketId (!= measurement count)
-	uint8_t		s_st;
-	uint8_t		s_id;	// = HaBleID_switch ?
-	uint8_t		swtch;
 	uint8_t		o_st;
 	uint8_t		o_id;	// = HaBleID_opened ?
 	uint8_t		opened;
 	uint8_t		c_st;
 	uint8_t		c_id;	// = HaBleID_count
 	uint32_t	counter; // count
-} adv_ha_ble_ns2_t, * padv_ha_ble_ns2_t;
+} adv_ha_ble_ns_ev1_t, * padv_ha_ble_ns_ev1_t;
+
+typedef struct __attribute__((packed)) _adv_na_ble_ns_ev2_t {
+	uint8_t		size;	// = 12
+	uint8_t		uid;	// = 0x16, 16-bit UUID
+	uint16_t	UUID;	// = 0x181C, GATT Service 0x181C
+	uint8_t		p_st;
+	uint8_t		p_id;	// = HaBleID_PacketId
+	uint8_t		pid;	// PacketId (!= measurement count)
+	uint8_t		c_st;
+	uint8_t		c_id;	// = HaBleID_count
+	uint32_t	counter; // count
+} adv_ha_ble_ns_ev2_t, * padv_ha_ble_ns_ev2_t;
 
 #define ADV_CUSTOM_UUID16 0x181A // 16-bit UUID Service 0x181A Environmental Sensing
 
@@ -298,9 +323,9 @@ void send_memo_blk(void);
 int otaWritePre(void * p);
 int RxTxWrite(void * p);
 void ev_adv_timeout(u8 e, u8 *p, int n);
-void set_pvvx_adv_data(uint32_t cnt);
-void set_atc_adv_data(uint32_t cnt);
-void set_mi_adv_data(uint32_t cnt);
+void set_pvvx_adv_data(void);
+void set_atc_adv_data(void);
+void set_mi_adv_data(void);
 
 inline void ble_send_temp(void) {
 	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, (u8 *) &measured_data.temp_x01, 2);

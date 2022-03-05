@@ -174,8 +174,8 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 		else if (cfg.rf_tx_power > RF_POWER_P10p46dBm)
 			cfg.rf_tx_power = RF_POWER_P10p46dBm;
 	}
-	if (cfg.measure_interval == 0)
-		cfg.measure_interval = 1; // T = cfg.measure_interval * advertising_interval_ms (ms),  Tmin = 1 * 1*62.5 = 62.5 ms / 1 * 160 * 62.5 = 10000 ms
+	if (cfg.measure_interval < 2)
+		cfg.measure_interval = 2; // T = cfg.measure_interval * advertising_interval_ms (ms),  Tmin = 1 * 1*62.5 = 62.5 ms / 1 * 160 * 62.5 = 10000 ms
 	else if (cfg.measure_interval > 25) // max = (0x100000000-1.5*10000000*16)/(10000000*16) = 25.3435456
 		cfg.measure_interval = 25; // T = cfg.measure_interval * advertising_interval_ms (ms),  Tmax = 25 * 160*62.5 = 250000 ms = 250 sec
 	if (cfg.flg.tx_measures)
@@ -250,7 +250,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 				write_memo();
 #endif
 #if	USE_MIHOME_BEACON
-			if ((cfg.flg.advertising_type & ADV_TYPE_MASK_REF) && cfg.flg2.mi_beacon)
+			if ((cfg.flg.advertising_type == ADV_TYPE_MI) && cfg.flg2.adv_crypto)
 				mi_beacon_summ();
 #endif
 		}

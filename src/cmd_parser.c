@@ -20,27 +20,6 @@
 #include "cmd_parser.h"
 
 
-void spi_transfer(unsigned char *Data_in, unsigned char *Data_out, int DataLen) // , GPIO_PinTypeDef CSPin)
-{
-	spi_master_init((unsigned char)(CLOCK_SYS_CLOCK_HZ/(2*500000)-1),SPI_MODE0);
-	spi_master_gpio_set(SPI_GPIO_GROUP_B6B7D2D7);
-//    gpio_write(CSPin,0); //CS level is low
-    reg_spi_ctrl &= ~FLD_SPI_DATA_OUT_DIS; ////0x09- bit2 enables spi data output
-    // reg_spi_ctrl |= FLD_SPI_RD; //enable read,0x09-bit3 : 0 for read ,1 for write
-    reg_spi_ctrl &= ~FLD_SPI_RD; //enable write,0x09-bit3 : 0 for read ,1 for write
-
-    /***transfer data***/
-    for (int i = 0; i < DataLen; i++) {
-        reg_spi_data = Data_out[i];
-        while(reg_spi_ctrl& FLD_SPI_BUSY );//wait transfer finished
-        Data_in[i] = reg_spi_data;
-
-    }
-
-//    gpio_write(CSPin,1);//CS level is high
-}
-
-
 
 #define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (uint32_t)faddr, len, (uint8_t *)pbuf)
 
@@ -520,9 +499,6 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			_flash_read((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), 18, &send_buf[4]);
 			memcpy(send_buf, req->dat, 4);
 			olen = 18+4;
-		} else if (cmd == 0xD3) { // test spi
-			spi_transfer(&send_buf[1], &req->dat[1], 16);
-			olen = 17;
 		}
 		if (olen)
 			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, olen);

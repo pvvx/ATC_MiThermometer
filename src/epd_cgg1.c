@@ -114,15 +114,15 @@ _attribute_ram_code_ void show_battery_symbol(bool state){
 	display_buff[7] &= ~(BIT(4) | BIT(5));
 	if (state) {
 		display_buff[7] |= BIT(4);
-		if (battery_level >= 16) {
+		if (measured_data.battery_level >= 16) {
 			display_buff[5] |= BIT(6);
-			if (battery_level >= 33) {
+			if (measured_data.battery_level >= 33) {
 				display_buff[5] |= BIT(5);
-				if (battery_level >= 49) {
+				if (measured_data.battery_level >= 49) {
 					display_buff[6] |= BIT(7);
-					if (battery_level >= 67) {
+					if (measured_data.battery_level >= 67) {
 						display_buff[6] |= BIT(1);
-						if (battery_level >= 83) {
+						if (measured_data.battery_level >= 83) {
 							display_buff[7] |= BIT(5);
 						}
 					}
