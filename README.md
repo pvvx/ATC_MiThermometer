@@ -11,15 +11,15 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 * Extended battery life (over a year)
 * Improved measurement accuracy and extended format in 0.01 units
-* Full support in HA ['Passive BLE Monitor integration'](https://github.com/custom-components/ble_monitor) and 'HA BLE' format
+* Full support Home Assistant ['Passive BLE Monitor integration'](https://github.com/custom-components/ble_monitor) and ['HA BLE DIY'](https://github.com/custom-components/ble_monitor/issues/548) beacon format
 * Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon
-* Support BT5.0+ PHY, CSA1/CSA2
+* Support Bluetooth5.0+ PHY (1 and 2 Mbps), CSA1/CSA2 (Channel Selection Algorithm)
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
 * **Measurement values recording** & Charting. See [Reading Measurements from Flash](#reading-measurements-from-flash)
 * **Adjustable correction offsets** and **Comfort zones**
-* Concurrent support for Xiaomi, ATC and Custom Bluetooth Advertisement format
+* Support for 4 beacon formats: Xiaomi, ATC, Custom, HA-BLE and encrypted options.
 * Adjustable RF TX Power & Bluetooth advertising interval
-* DIY improvements - relay control by temperature or humidity, transfer of the state of the reed switch
+* DIY improvements - relay control by temperature or humidity, transmission of the reed switch status - open / closed or pulse counter
 
 |[Xiaomi Mijia (LYWSD03MMC)](https://pvvx.github.io/ATC_MiThermometer) | [Xiaomi Miaomiaoce (MHO-C401)](https://pvvx.github.io/MHO_C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) | [CGDK2 Qingping Temp & RH Monitor Lite](https://pvvx.github.io/CGDK2) |
 |:--:|:--:|:--:|:--:|
