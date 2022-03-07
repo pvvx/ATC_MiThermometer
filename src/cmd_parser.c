@@ -358,12 +358,12 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			}
 			get_mi_keys(MI_KEY_STAGE_MAC);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
-#if USE_MIHOME_BEACON
+#if USE_SECURITY_BEACON
 		} else if (cmd == CMD_ID_BKEY) { // Get/set beacon bindkey
 			if (len == sizeof(bindkey) + 1) {
 				memcpy(bindkey, &req->dat[1], sizeof(bindkey));
 				flash_write_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey));
-				mi_beacon_init();
+				bindkey_init();
 			}
 			if (flash_read_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey)) == sizeof(bindkey)) {
 				memcpy(&send_buf[1], bindkey, sizeof(bindkey));
@@ -379,9 +379,9 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
 			ble_connected |= 0x80; // reset device on disconnect
 		} else if (cmd == CMD_ID_MI_CLR) { // Delete all mi keys
-#if USE_MIHOME_BEACON
+#if USE_SECURITY_BEACON
 			if (erase_mikeys())
-					mi_beacon_init();
+				bindkey_init();
 #else
 			erase_mikeys();
 #endif

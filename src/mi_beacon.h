@@ -8,8 +8,6 @@
 #ifndef MI_BEACON_H_
 #define MI_BEACON_H_
 
-extern uint8_t bindkey[16];
-
 #define ADV_XIAOMI_UUID16 0xFE95 // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 #define XIAOMI_DEV_VERSION	5
 
@@ -86,6 +84,11 @@ enum { // mijia ble version 5, General attributes
 	XIAOMI_DATA_ID_SmartPillow			=0x101C
 } XIAOMI_DATA_ID;
 
+enum { // mijia ble version 5, Vendor-defined attributes
+	XIAOMI_VATR_ID_Count			=0x20e1
+} XIAOMI_VATR_ID;
+
+
 /* Encrypted mi beacon structs */
 // UUID for Members 0xFE95 Xiaomi Inc. https://btprodspecificationrefs.blob.core.windows.net/assigned-values/16-bit%20UUID%20Numbers%20Document.pdf
 // All data little-endian, + https://github.com/pvvx/ATC_MiThermometer/tree/master/InfoMijiaBLE
@@ -151,49 +154,58 @@ typedef struct __attribute__((packed)) _adv_mi_no_mac_beacon_t {
 	};
 } adv_mi_no_mac_beacon_t, * padv_mi_no_mac_beacon_t;
 
-/* Encrypted custom beacon structs */
-// https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-842846036
+typedef struct __attribute__((packed)) _adv_mi_ev1_t {
+	adv_mi_head_t head;
+	struct {
+		uint16_t	 id;	// = XIAOMI_DATA_ID_DoorSensor
+		uint8_t		 size;
+		uint8_t		 value;
+	} data;
+} adv_mi_ev1_t, * padv_mi_ev1_t;
 
-typedef struct __attribute__((packed)) _adv_cust_head_t {
-	uint8_t		size;		//@0 = 11
-	uint8_t		uid;		//@1 = 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
-	uint16_t	UUID;		//@2..3 = GATT Service 0x181A Environmental Sensing (little-endian) (or 0x181C 'User Data'?)
-	uint8_t		counter;	//@4 0..0xff Measurement count, Serial number, used for de-duplication, different event or attribute reporting requires different Frame Counter
-} adv_cust_head_t, * padv_cust_head_t;
-
-typedef struct __attribute__((packed)) _adv_cust_data_t {
-	int16_t		temp;		//@0
-	uint16_t	humi;		//@2
-	uint8_t		bat;		//@4
-	uint8_t		trg;		//@5
-} adv_cust_data_t, * padv_cust_data_t;
-
-typedef struct __attribute__((packed)) _adv_cust_enc_t {
-	adv_cust_head_t head;
-	adv_cust_data_t data;	//@5
-	uint8_t		mic[4];		//@8..11
-} adv_cust_enc_t, * padv_cust_enc_t;
-
-/* Encrypted atc beacon structs */
-
-typedef struct __attribute__((packed)) _adv_atc_data_t {
-	uint8_t		temp;		//@0
-	uint8_t		humi;		//@1
-	uint8_t		bat;		//@2
-} adv_atc_data_t, * padv_atc_data_t;
-
-typedef struct __attribute__((packed)) _adv_atc_enc_t {
-	adv_cust_head_t head;
-	adv_atc_data_t data;   //@5
-	uint8_t		mic[4];		//@8..11
-} adv_atc_enc_t, * padv_atc_enc_t;
+typedef struct __attribute__((packed)) _adv_mi_ev2_t {
+	adv_mi_head_t head;
+	struct {
+		uint16_t	 id;	// = XIAOMI_VATR_ID_Count
+		uint8_t		 size;
+		uint32_t	 value;
+	} data;
+} adv_mi_ev2_t, * padv_mi_ev2_t;
 
 
 void mi_beacon_summ(void); // averaging measurements
-void mi_encrypt_beacon(void);
-void mi_beacon_init(void);
+void mi_data_beacon(void);
+void mi_event_beacon(uint8_t n); // n = RDS_TYPES
 
-void atc_encrypt_beacon(void);
-void pvvx_encrypt_beacon(void);
+#if USE_SECURITY_BEACON
+
+typedef struct __attribute__((packed)) _adv_mi_cr_ev1_t {
+	adv_mi_head_t head;
+	struct {
+		uint16_t	 id;	// = XIAOMI_DATA_ID_DoorSensor
+		uint8_t		 size;
+		uint8_t		 value;
+	} data;
+	uint8_t	cnt[3];
+	uint8_t	mic[4];
+} adv_mi_cr_ev1_t, * padv_mi_cr_ev1_t;
+
+typedef struct __attribute__((packed)) _adv_mi_cr_ev2_t {
+	adv_mi_head_t head;
+	struct {
+		uint16_t	 id;	// = XIAOMI_VATR_ID_Count
+		uint8_t		 size;
+		uint32_t	 value;
+	} data;
+	uint8_t	cnt[3];
+	uint8_t	mic[4];
+} adv_mi_cr_ev2_t, * padv_mi_cr_ev2_t;
+
+
+
+void mi_beacon_init(void);
+void mi_encrypt_data_beacon(void);
+void mi_encrypt_event_beacon(uint8_t n); // n = RDS_TYPES
+#endif
 
 #endif /* MI_BEACON_H_ */

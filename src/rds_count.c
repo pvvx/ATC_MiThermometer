@@ -14,7 +14,13 @@
 #include "sensor.h"
 #include "trigger.h"
 #include "ble.h"
+#include "custom_beacon.h"
+#if USE_MIHOME_BEACON
 #include "mi_beacon.h"
+#endif
+#if USE_HA_BLE_BEACON
+#include "ha_ble_beacon.h"
+#endif
 #include "rds_count.h"
 
 RAM	rds_count_t rds;		// Reed switch pulse counter
@@ -33,88 +39,61 @@ void rds_init(void) {
 }
 
 
-__attribute__((optimize("-Os")))
-_attribute_ram_code_ void set_rds_adv_data(void) {
+_attribute_ram_code_ __attribute__((optimize("-Os")))
+void set_rds_adv_data(void) {
 	adv_buf.send_count++;
-	if (rds.type == RDS_SWITCH) {
-		if (cfg.flg.advertising_type == ADV_TYPE_PVVX) {
-			set_pvvx_adv_data();
-			adv_buf.data_size = adv_buf.data[0] + 1;
-#if USE_HA_BLE_FORMAT
-		} else if (cfg.flg.advertising_type == ADV_TYPE_HA_BLE) {
-			padv_ha_ble_ns_ev1_t p = (padv_ha_ble_ns_ev1_t)&adv_buf.data;
-			p->size = sizeof(adv_ha_ble_ns_ev1_t) - sizeof(p->size);
-			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = ADV_HA_BLE_NS_UUID16;
-			p->p_st = HaBleType_uint + sizeof(p->p_id) + sizeof(p->pid);
-			p->p_id = HaBleID_PacketId;
-			p->pid = (uint8_t)adv_buf.send_count;
-			p->o_st = HaBleType_uint + sizeof(p->o_id) + sizeof(p->opened);
-			p->o_id = HaBleID_opened;
-			p->opened = trg.flg.rds_input;
-			p->c_st = HaBleType_uint + sizeof(p->c_id) + sizeof(p->counter);
-			p->c_id = HaBleID_count;
-			p->counter = rds.count;
-			adv_buf.data_size = sizeof(adv_ha_ble_ns_ev1_t);
-#endif
-		} else if (cfg.flg.advertising_type == ADV_TYPE_MI)  {
-			pext_adv_mi_t p = (pext_adv_mi_t)&adv_buf.data;
-			p->head.size = sizeof(ext_adv_mi_t) - sizeof(p->head.size);
-			p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->head.UUID = ADV_XIAOMI_UUID16; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
-			p->head.fctrl.word = 0x5040; // 0x5040 version = 5, no MACInclude, ObjectInclude
-			p->head.dev_id = DEVICE_TYPE;
-			p->head.counter = (uint8_t)adv_buf.send_count;
-#if	0
-			p->data.id = XIAOMI_DATA_ID_Switch;
-			p->data.size = 1;
-			p->data.value = 1;
+	int advertising_type = cfg.flg.advertising_type;
+#if	USE_SECURITY_BEACON
+	if (cfg.flg2.adv_crypto) {
+		if (advertising_type == ADV_TYPE_PVVX) {
+#if USE_HA_BLE_BEACON
+			ha_ble_encrypt_event_beacon(rds.type);
 #else
-			p->data.id = XIAOMI_DATA_ID_DoorSensor;
-			p->data.size = 1;
-			p->data.value = ! trg.flg.rds_input;
+			pvvx_encrypt_event_beacon(rds.type);
 #endif
-			adv_buf.data_size = sizeof(ext_adv_mi_t);
+#if USE_HA_BLE_BEACON
+		} else if (advertising_type == ADV_TYPE_HA_BLE) {
+			ha_ble_encrypt_event_beacon(rds.type);
+#endif
+#if USE_MIHOME_BEACON
+		} else if (advertising_type == ADV_TYPE_MI)  {
+			mi_encrypt_event_beacon(rds.type);
+#endif
 		} else {
-			pext_adv_dig_t p = (pext_adv_dig_t)&adv_buf.data;
-			p->size = sizeof(ext_adv_dig_t) - sizeof(p->size);
-			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = ADV_UUID16_DigitalStateBits; // = 0x2A56, 16-bit UUID Digital bits, Out bits control (LEDs control)
-			p->bits = trg.flg_byte;
-			adv_buf.data_size = sizeof(ext_adv_dig_t);
-		}
-	}
-	else {
-#if USE_HA_BLE_FORMAT
-		if (cfg.flg.advertising_type == ADV_TYPE_HA_BLE){
-			padv_ha_ble_ns_ev2_t p = (padv_ha_ble_ns_ev2_t)&adv_buf.data;
-			p->size = sizeof(adv_ha_ble_ns_ev2_t) - sizeof(p->size);
-			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = ADV_HA_BLE_NS_UUID16;
-			p->p_st = HaBleType_uint + sizeof(p->p_id) + sizeof(p->pid);
-			p->p_id = HaBleID_PacketId;
-			p->pid = (uint8_t)adv_buf.send_count;
-			p->c_st = HaBleType_uint + sizeof(p->c_id) + sizeof(p->counter);
-			p->c_id = HaBleID_count;
-			p->counter = rds.count;
-			adv_buf.data_size = sizeof(adv_ha_ble_ns_ev2_t);
-		} else
+#if USE_HA_BLE_BEACON
+			ha_ble_encrypt_event_beacon(rds.type);
+#else
+			atc_encrypt_event_beacon();
 #endif
-		{
-			pext_adv_cnt_t p = (pext_adv_cnt_t)&adv_buf.data;
-			p->size = 6;
-			p->uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-			p->UUID = ADV_UUID16_Count24bits;
-			p->cnt[0] = rds.count_byte[2];
-			p->cnt[1] = rds.count_byte[1];
-			p->cnt[2] = rds.count_byte[0];
-			adv_buf.data_size = 7;
+		}
+	} else
+#endif //	USE_SECURITY_BEACON
+	{
+		if (advertising_type == ADV_TYPE_PVVX) {
+#if USE_HA_BLE_BEACON
+			ha_ble_event_beacon(rds.type);
+#else
+			pvvx_event_beacon(rds.type);
+#endif
+#if USE_HA_BLE_BEACON
+		} else if (advertising_type == ADV_TYPE_HA_BLE) {
+			ha_ble_event_beacon(rds.type);
+#endif
+#if USE_MIHOME_BEACON
+		} else if (advertising_type == ADV_TYPE_MI)  {
+			mi_event_beacon(rds.type);
+#endif
+		} else {
+#if USE_HA_BLE_BEACON
+			ha_ble_event_beacon(rds.type);
+#else
+			atc_event_beacon();
+#endif
 		}
 	}
 	adv_buf.update_count = 0; // refresh adv_buf.data in next set_adv_data()
 	bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
 }
-
 
 _attribute_ram_code_ static void start_ext_adv(void) {
 	bls_ll_setAdvEnable(BLC_ADV_DISABLE);  // adv disable
@@ -145,8 +124,9 @@ _attribute_ram_code_ void rds_suspend(void) {
 }
 
 /* if (rds.type) // rds.type: switch or counter */
-__attribute__((optimize("-Os")))
-_attribute_ram_code_ void rds_task(void) {
+
+_attribute_ram_code_ __attribute__((optimize("-Os")))
+void rds_task(void) {
 	rds_input_on();
 	if (get_rds_input()) {
 		if (!trg.flg.rds_input) {

@@ -30,11 +30,10 @@
 //#include "ccm.h"
 #include <stdint.h>
 #include "tl_common.h"
-#if USE_MIHOME_BEACON
+#if USE_SECURITY_BEACON
+#include "ccm.h"
 #include "stack/ble/crypt/aes/aes_att.h"
 
-#define CCM_ENCRYPT 0
-#define CCM_DECRYPT 1
 
 /*
  * Macros for common operations.
@@ -63,7 +62,7 @@
 /*
  * Authenticated encryption or decryption
  */
-static int ccm_auth_crypt( int mode, const unsigned char *key,
+int ccm_auth_crypt( int mode, const unsigned char *key,
                            const unsigned char *iv, size_t iv_len,
                            const unsigned char *add, size_t add_len,
                            const unsigned char *input, size_t length,
@@ -203,7 +202,7 @@ static int ccm_auth_crypt( int mode, const unsigned char *key,
 
 /*
  * Authenticated encryption
- */
+ *
 int aes_ccm_encrypt_and_tag( const unsigned char *key, 
                          const unsigned char *iv, size_t iv_len,
                          const unsigned char *add, size_t add_len,
@@ -214,6 +213,7 @@ int aes_ccm_encrypt_and_tag( const unsigned char *key,
     return( ccm_auth_crypt( CCM_ENCRYPT, key, iv, iv_len,
                             add, add_len, input, length, output, tag, tag_len ) );
 }
+*/
 
 /* Implementation that should never be optimized out by the compiler */
 inline void mbedtls_zeroize( void *v, size_t n ) {
