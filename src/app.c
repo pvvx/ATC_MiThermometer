@@ -21,6 +21,9 @@
 #if USE_MIHOME_BEACON
 #include "mi_beacon.h"
 #endif
+#if USE_HA_BLE_BEACON
+#include "ha_ble_beacon.h"
+#endif
 
 void app_enter_ota_mode(void);
 
@@ -30,9 +33,6 @@ RAM uint8_t show_stage; // count/stage update lcd code buffer
 RAM lcd_flg_t lcd_flg;
 
 RAM measured_data_t measured_data;
-//RAM int16_t last_temp; // x0.1 C
-//RAM uint16_t last_humi; // x1 %
-//RAM uint8_t battery_level; // 0..100%
 
 RAM volatile uint8_t tx_measures;
 
@@ -53,6 +53,10 @@ RAM uint32_t utc_time_sec_tick;
 RAM uint32_t utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S; // adjust time clock (in 1/16 us for 1 sec)
 #else
 #define utc_time_tick_step CLOCK_16M_SYS_TIMER_CLK_1S
+#endif
+
+#if USE_SECURITY_BEACON
+RAM uint8_t bindkey[16];
 #endif
 
 RAM scomfort_t cmf;
@@ -127,6 +131,10 @@ void set_hw_version(void) {
 	else
 		cfg.hw_cfg.shtc3 = 0; // = 0 - sensor SHT4x or ?
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
+#if	USE_DEVICE_INFO_CHR_UUID
+#else
+	uint8_t my_HardStr[4];
+#endif
 	if (flash_read_cfg(&my_HardStr, EEP_ID_HWV, sizeof(my_HardStr)) != sizeof(my_HardStr)
 	|| my_HardStr[0] != 'B'
 	|| my_HardStr[2] != '.' ) {
@@ -249,7 +257,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 			if (cfg.averaging_measurements)
 				write_memo();
 #endif
-#if	USE_MIHOME_BEACON
+#if	USE_MIHOME_BEACON && USE_SECURITY_BEACON
 			if ((cfg.flg.advertising_type == ADV_TYPE_MI) && cfg.flg2.adv_crypto)
 				mi_beacon_summ();
 #endif
@@ -339,6 +347,37 @@ uint32_t get_mi_hw_version(void) {
 	return hw;
 }
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
+
+#if USE_SECURITY_BEACON
+void bindkey_init(void) {
+#if	USE_MIHOME_BEACON
+	uint32_t faddr = find_mi_keys(MI_KEYTBIND_ID, 1);
+	if (faddr) {
+		memcpy(&bindkey, &keybuf.data[12], sizeof(bindkey));
+		faddr = find_mi_keys(MI_KEYSEQNUM_ID, 1);
+		if (faddr)
+			memcpy(&adv_buf.send_count, &keybuf.data, sizeof(adv_buf.send_count)); // BLE_GAP_AD_TYPE_FLAGS
+	} else {
+		if (flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey))
+				!= sizeof(bindkey)) {
+			generateRandomNum(sizeof(bindkey), (unsigned char *) &bindkey);
+			flash_write_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey));
+		}
+	}
+	mi_beacon_init();
+#else
+	if (flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey))
+			!= sizeof(bindkey)) {
+		generateRandomNum(sizeof(bindkey), (unsigned char *) &bindkey);
+		flash_write_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey));
+	}
+#endif // USE_MIHOME_BEACON
+#if USE_HA_BLE_BEACON
+	ha_ble_beacon_init();
+#endif
+}
+#endif // USE_SECURITY_BEACON
+
 //------------------ user_init_normal -------------------
 void user_init_normal(void) {//this will get executed one time after power up
 	bool next_start = false;
@@ -385,7 +424,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 		if (hw_ver)
-		flash_write_cfg(&hw_ver, EEP_ID_HWV, sizeof(hw_ver));
+			flash_write_cfg(&hw_ver, EEP_ID_HWV, sizeof(hw_ver));
 #endif
 	}
 #if USE_WK_RDS_COUNTER
@@ -407,6 +446,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	sensor_go_sleep();
 #else
 	start_measure_sensor_low_power();
+#endif
+#if USE_SECURITY_BEACON
+	bindkey_init();
 #endif
 	check_battery();
 	WakeupLowPowerCb(0);

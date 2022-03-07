@@ -27,6 +27,18 @@
 extern "C" {
 #endif
 
+#define CCM_ENCRYPT 0
+#define CCM_DECRYPT 1
+/*
+ * Authenticated encryption or decryption
+ */
+int ccm_auth_crypt( int mode, const unsigned char *key,
+                           const unsigned char *iv, size_t iv_len,
+                           const unsigned char *add, size_t add_len,
+                           const unsigned char *input, size_t length,
+                           unsigned char *output,
+                           unsigned char *tag, size_t tag_len );
+
 /**
  * \brief           CCM buffer encryption
  *
@@ -52,13 +64,16 @@ extern "C" {
  *
  * \return          0 if successful
  */
-int aes_ccm_encrypt_and_tag( const unsigned char *key, 
+inline int aes_ccm_encrypt_and_tag( const unsigned char *key,
                          const unsigned char *iv, size_t iv_len,
                          const unsigned char *add, size_t add_len,
                          const unsigned char *input, size_t length,
                          unsigned char *output,
-                         unsigned char *tag, size_t tag_len );
-
+                         unsigned char *tag, size_t tag_len )
+{
+    return( ccm_auth_crypt( CCM_ENCRYPT, key, iv, iv_len,
+                            add, add_len, input, length, output, tag, tag_len ) );
+}
 /**
  * \brief           CCM buffer authenticated decryption
  *

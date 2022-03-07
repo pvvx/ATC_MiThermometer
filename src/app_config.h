@@ -12,7 +12,21 @@ extern "C" {
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
+#define DEVICE_TYPE			DEVICE_MHO_C401 // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
+
+#define BLE_SECURITY_ENABLE 1 // = 1 support pin-code
+
+#define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
+#define USE_TIME_ADJUST		1 // = 1 time correction enabled
+#define USE_FLASH_MEMO		1 // = 1 flash logger enable
+#define USE_TRIGGER_OUT 	1 // = 1 use trigger out (GPIO_PA5)
+#define USE_WK_RDS_COUNTER	USE_TRIGGER_OUT // = 1 wake up when the reed switch is triggered + pulse counter
+
+#define USE_SECURITY_BEACON 1 // = 1 support encryption beacon (bindkey)
+#define USE_HA_BLE_BEACON	1 // = 1 https://github.com/custom-components/ble_monitor/issues/548
+#define USE_MIHOME_BEACON	1 // = 1 Compatible with MiHome beacon
+
+#define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
 
 /* Special DIY version - Voltage Logger:
  * Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, LYWSD03MMC pcb mark "B1"
@@ -20,21 +34,8 @@ extern "C" {
  * Set DIY_ADC_TO_TH 1 */
 #define DIY_ADC_TO_TH 	0
 
-#define BLE_SECURITY_ENABLE 1
-#define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
-
-#define USE_TRIGGER_OUT 	1 // use trigger out (GPIO_PA5)
-#define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
-#define USE_TIME_ADJUST		1 // = 1 time correction enabled
-#define USE_FLASH_MEMO		1 // = 1 flash logger enable
-#define USE_WK_RDS_COUNTER	1 // = 1 wake up when the reed switch is triggered + pulse counter (Not completed! Only: CGDK2, LYWSD03MMC)
-#define USE_HA_BLE_FORMAT	1 // if USE_WK_RDS_COUNTER = 1, https://github.com/custom-components/ble_monitor/issues/548
-
-#define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
 #define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)
-#define USE_MIHOME_BEACON			1 // = 1 Compatible with MiHome beacon encryption
 #define USE_NEW_OTA					0 // = 1 keeping the old firmware, erasing the region when updating (test version only!)
-
 #define UART_PRINT_DEBUG_ENABLE		0 // =1 use u_printf() (PA7/SWS), source: SDK/components/application/print/u_printf.c
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
@@ -411,6 +412,8 @@ enum{
  */
 /* flash sector address with binding information */
 #define		CFG_ADR_BIND	0x74000 //no master, slave device (blt_config.h)
+
+#define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
 
 #include "vendor/common/default_config.h"
 

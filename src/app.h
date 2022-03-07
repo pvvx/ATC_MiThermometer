@@ -173,6 +173,11 @@ typedef struct _comfort_t {
 	uint16_t h[2];
 }scomfort_t, * pcomfort_t;
 
+#if USE_SECURITY_BEACON
+extern uint8_t bindkey[16];
+void bindkey_init(void);
+#endif
+
 extern scomfort_t cmf;
 #if BLE_SECURITY_ENABLE
 extern uint32_t pincode;

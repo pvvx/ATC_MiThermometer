@@ -11,7 +11,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 * Extended battery life (over a year)
 * Improved measurement accuracy and extended format in 0.01 units
-* Full support in HA ['Passive BLE Monitor integration'](https://github.com/custom-components/ble_monitor) and 'HA BLE' format (DIY sensors)
+* Full support in HA ['Passive BLE Monitor integration'](https://github.com/custom-components/ble_monitor) and 'HA BLE' format
 * Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon
 * Support BT5.0+ PHY, CSA1/CSA2
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
@@ -110,10 +110,10 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v37a.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
-* [MHO-C401 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v37a.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [CGG1 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v37a.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGDK2 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v37a.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
+* [LYWSD03MMC Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v37b.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
+* [MHO-C401 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v37b.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [CGG1 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v37b.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v37b.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 **Original Manufacturer Firmware Version**
 
@@ -157,7 +157,8 @@ In case you want to go back to the original firmware, you can download them here
 |     3.4 | Correct Hardware Version Setting for [LYWSD03MMC B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145) |
 |     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163). Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M. CGG1 - correction of the battery charge display. Added CGDK2 and modified [(DIY) variant of CGDK2-2](https://pvvx.github.io/CGDK2/CGDK2-2/). |
 |     3.6 | Additional parameters: Support BT5.0 PHY, Channel Selection Algorithm 2, Correct RF-TX Power in suspend |
-|     3.7 | Added [format 'HA BLE' (DIY sensors)](https://github.com/custom-components/ble_monitor/issues/548), reed switch operation mode: Switch and Count |
+|     3.7 | Added [format 'HA BLE'](https://github.com/custom-components/ble_monitor/issues/548), reed switch operation mode: Switch and Count |
+|    3.7b | Full support for "HA BLE" encryption |
 
 ## Applications
 

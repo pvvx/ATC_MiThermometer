@@ -16,7 +16,7 @@ extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, b
 #define ADV_BUFFER_SIZE		(31-3)
 typedef struct _adv_buf_t {
 	uint32_t send_count; // count & id advertise, = beacon_nonce.cnt32
-	uint32_t old_measured_count; // old measured_data.count
+	uint16_t old_measured_count; // old measured_data.count
 	uint8_t update_count;	// refresh adv_buf.data in next set_adv_data()
 	uint8_t call_count; 	// count 1..cfg.measure_interval
 	uint8_t data_size;
@@ -53,130 +53,6 @@ typedef struct
   u16 timeout;
 } gap_periConnectParams_t;
 extern gap_periConnectParams_t my_periConnParameters;
-
-#define ADV_HA_BLE_NS_UUID16 0x181C // 16-bit UUID Service 0x181C Test HA_BLE, no security
-// https://github.com/custom-components/ble_monitor/issues/548
-typedef enum {
-	HaBleID_PacketId = 0,	//0x00, uint8
-	HaBleID_battery,      //0x01, uint8, %
-	HaBleID_temperature,  //0x02, sint16, 0.01 °C
-	HaBleID_humidity,     //0x03, uint16, 0.01 %
-	HaBleID_pressure,     //0x04, uint24, 0.01 hPa
-	HaBleID_illuminance,  //0x05, uint24, 0.01 lux
-	HaBleID_weight,       //0x06, uint16, 0.01 kg
-	HaBleID_weight_s,     //0x07, string, kg
-	HaBleID_dewpoint,     //0x08, sint16, 0.01 °C
-	HaBleID_count,        //0x09,	uint8/16/24/32
-	HaBleID_energy,       //0x0A, uint24, 0.001 kWh
-	HaBleID_power,        //0x0B, uint24, 0.01 W
-	HaBleID_voltage,      //0x0C, uint16, 0.001 V
-	HaBleID_pm2x5,        //0x0D, uint16, kg/m3
-	HaBleID_pm10,         //0x0E, uint16, kg/m3
-	HaBleID_boolean,      //0x0F, uint8
-	HaBleID_switch,		  //0x10
-	HaBleID_opened		  //0x11
-} HaBleIDs_e;
-
-// Type bit 5-7
-typedef enum {
-	HaBleType_uint = 0,	
-	HaBleType_sint = (1<<5),
-	HaBleType_float = (2<<5),
-	HaBleType_string  = (3<<5),
-	HaBleType_MAC  = (4<<5)
-} HaBleTypes_e;
-
-typedef struct __attribute__((packed)) _adv_na_ble_ns1_t {
-	uint8_t		size;   // = 17
-	uint8_t		uid;	// = 0x16, 16-bit UUID
-	uint16_t	UUID;	// = 0x181C, GATT Service HA_BLE
-	uint8_t		p_st;
-	uint8_t		p_id;	// = HaBleID_PacketId
-	uint8_t		pid;	// PacketId (measurement count)
-	uint8_t		t_st;
-	uint8_t		t_id;	// = HaBleID_temperature
-	int16_t		temperature; // x 0.01 degree
-	uint8_t		h_st;
-	uint8_t		h_id;	// = HaBleID_humidity
-	uint16_t	humidity; // x 0.01 %
-	uint8_t		b_st;
-	uint8_t		b_id;	// = HaBleID_battery
-	uint8_t		battery_level; // 0..100 %
-} adv_ha_ble_ns1_t, * padv_ha_ble_ns1_t;
-
-typedef struct __attribute__((packed)) _adv_na_ble_ns2_t {
-	uint8_t		size;   // = 13
-	uint8_t		uid;	// = 0x16, 16-bit UUID
-	uint16_t	UUID;	// = 0x181C, GATT Service HA_BLE
-	uint8_t		p_st;
-	uint8_t		p_id;	// = HaBleID_PacketId
-	uint8_t		pid;	// PacketId (measurement count)
-	uint8_t		s_st;
-	uint8_t		s_id;	// = HaBleID_switch ?
-	uint8_t		swtch;
-	uint8_t		v_st;
-	uint8_t		v_id;	// = HaBleID_voltage
-	uint16_t	battery_mv; // mV
-} adv_ha_ble_ns2_t, * padv_ha_ble_ns2_t;
-
-
-typedef struct __attribute__((packed)) _adv_na_ble_ns_ev1_t {
-	uint8_t		size;	// = 15
-	uint8_t		uid;	// = 0x16, 16-bit UUID
-	uint16_t	UUID;	// = 0x181C, GATT Service 0x181C
-	uint8_t		p_st;
-	uint8_t		p_id;	// = HaBleID_PacketId
-	uint8_t		pid;	// PacketId (!= measurement count)
-	uint8_t		o_st;
-	uint8_t		o_id;	// = HaBleID_opened ?
-	uint8_t		opened;
-	uint8_t		c_st;
-	uint8_t		c_id;	// = HaBleID_count
-	uint32_t	counter; // count
-} adv_ha_ble_ns_ev1_t, * padv_ha_ble_ns_ev1_t;
-
-typedef struct __attribute__((packed)) _adv_na_ble_ns_ev2_t {
-	uint8_t		size;	// = 12
-	uint8_t		uid;	// = 0x16, 16-bit UUID
-	uint16_t	UUID;	// = 0x181C, GATT Service 0x181C
-	uint8_t		p_st;
-	uint8_t		p_id;	// = HaBleID_PacketId
-	uint8_t		pid;	// PacketId (!= measurement count)
-	uint8_t		c_st;
-	uint8_t		c_id;	// = HaBleID_count
-	uint32_t	counter; // count
-} adv_ha_ble_ns_ev2_t, * padv_ha_ble_ns_ev2_t;
-
-#define ADV_CUSTOM_UUID16 0x181A // 16-bit UUID Service 0x181A Environmental Sensing
-
-// GATT Service 0x181A Environmental Sensing
-// All data little-endian
-typedef struct __attribute__((packed)) _adv_custom_t {
-	uint8_t		size;	// = 18
-	uint8_t		uid;	// = 0x16, 16-bit UUID
-	uint16_t	UUID;	// = 0x181A, GATT Service 0x181A Environmental Sensing
-	uint8_t		MAC[6]; // [0] - lo, .. [6] - hi digits
-	int16_t		temperature; // x 0.01 degree
-	uint16_t	humidity; // x 0.01 %
-	uint16_t	battery_mv; // mV
-	uint8_t		battery_level; // 0..100 %
-	uint8_t		counter; // measurement count
-	uint8_t		flags; 
-} adv_custom_t, * padv_custom_t;
-
-// GATT Service 0x181A Environmental Sensing
-// mixture of little-endian and big-endian!
-typedef struct __attribute__((packed)) _adv_atc1441_t {
-	uint8_t		size;	// = 16
-	uint8_t		uid;	// = 0x16, 16-bit UUID
-	uint16_t	UUID;	// = 0x181A, GATT Service 0x181A Environmental Sensing (little-endian)
-	uint8_t		MAC[6]; // [0] - hi, .. [6] - lo digits (big-endian!)
-	uint8_t		temperature[2]; // x 0.1 degree (big-endian!)
-	uint8_t		humidity; // x 1 %
-	uint8_t		battery_level; // 0..100 %
-	uint8_t		battery_mv[2]; // mV (big-endian!)
-	uint8_t		counter; // measurement count
-} adv_atc1441_t, * padv_atc1441_t;
 
 ///////////////////////////////////// ATT  HANDLER define ///////////////////////////////////////
 typedef enum

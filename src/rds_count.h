@@ -35,35 +35,6 @@ static inline void rds_input_on(void) {
 #define EXT_ADV_INTERVAL ADV_INTERVAL_50MS
 #define EXT_ADV_COUNT 5
 
-#define ADV_UUID16_DigitalStateBits	0x2A56 // 16-bit UUID Digital bits, Out bits control (LEDs control)
-#define ADV_UUID16_AnalogOutValues	0x2A58 // 16-bit UUID Analog values (DACs control)
-#define ADV_UUID16_Aggregate		0x2A5A // 16-bit UUID Aggregate, The Aggregate Input is an aggregate of the Digital Input Characteristic value (if available) and ALL Analog Inputs available.
-#define ADV_UUID16_Count24bits		0x2AEB // 16-bit UUID Count 24 bits
-#define ADV_UUID16_Count16bits 		0x2AEA // 16-bit UUID Count 16 bits
-
-typedef struct __attribute__((packed)) _ext_adv_cnt_t {
-	uint8_t		size;	// = 6
-	uint8_t		uid;	// = 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
-	uint16_t	UUID;	// = 0x2AEB - Count 24
-	uint8_t	cnt[3];
-} ext_adv_cnt_t, * pext_adv_cnt_t;
-
-typedef struct __attribute__((packed)) _ext_adv_digt_t {
-	uint8_t		size;	// = 4
-	uint8_t		uid;	// = 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
-	uint16_t	UUID;	// = 0x2A56 - Digital State Bits
-	uint8_t		bits;
-} ext_adv_dig_t, * pext_adv_dig_t;
-
-typedef struct __attribute__((packed)) _ext_adv_mi_t {
-	adv_mi_head_t head;
-	struct {
-		uint16_t	 id;	// = 0x1004, 0x1006, 0x100a ... (XIAOMI_DATA_ID)
-		uint8_t		 size;
-		uint8_t		 value;
-	} data;
-} ext_adv_mi_t, * pext_adv_mi_t;
-
 enum {
 	RDS_NONE = 0,
 	RDS_SWITCH,
