@@ -71,11 +71,13 @@ void lcd(void);
 const cfg_t def_cfg = {
 		.flg.temp_F_or_C = false,
 		.flg.comfort_smiley = true,
-		.flg2.smiley = 0, // 0 = "     " off
 		.flg.blinking_time_smile = false,
 		.flg.show_batt_enabled = false,
 		.flg.advertising_type = ADV_TYPE_DEFAULT,
 		.flg.tx_measures = false,
+		.flg2.smiley = 0, // 0 = "     " off
+		.flg2.bt5hgy = 1, // support BT5.0 Coded PHY
+		.flg2.chalg2 = 1, // ChannelSelectionAlgorithm 2
 		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 		.flg.comfort_smiley = true,
@@ -381,6 +383,8 @@ void bindkey_init(void) {
 //------------------ user_init_normal -------------------
 void user_init_normal(void) {//this will get executed one time after power up
 	bool next_start = false;
+	adc_power_on_sar_adc(0); // - 0.4 mA
+	lpc_power_down();
 	if (get_battery_mv() < MIN_VBAT_MV) // 2.2V
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
