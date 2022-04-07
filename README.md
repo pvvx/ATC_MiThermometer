@@ -110,10 +110,10 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v37b.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
-* [MHO-C401 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v37b.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [CGG1 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v37b.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGDK2 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v37b.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
+* [LYWSD03MMC Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v37c.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
+* [MHO-C401 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v37c.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [CGG1 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v37c.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v37c.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 **Original Manufacturer Firmware Version**
 

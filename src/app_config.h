@@ -12,7 +12,7 @@ extern "C" {
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 
-#define DEVICE_TYPE			DEVICE_MHO_C401 // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
 
 #define BLE_SECURITY_ENABLE 1 // = 1 support pin-code
 
@@ -54,6 +54,10 @@ extern "C" {
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
 
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
@@ -148,6 +152,10 @@ extern "C" {
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8253F512ET32
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
 
 #define I2C_SCL 	GPIO_PC0
 #define I2C_SDA 	GPIO_PC1
@@ -249,6 +257,10 @@ extern "C" {
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
 
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
@@ -313,6 +325,10 @@ extern "C" {
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8253F512ET32
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
 
 #define I2C_SCL 	GPIO_PC0
 #define I2C_SDA 	GPIO_PC1
@@ -380,7 +396,7 @@ extern "C" {
 #define MODULE_WATCHDOG_ENABLE		0
 #define WATCHDOG_INIT_TIMEOUT		250  //ms
 
-/* DEVICE_LYWSD03MMC Average consumption (Show battery on, Comfort on, advertising 2 sec, measure 10 sec):
+/* DEVICE_LYWSD03MMC Average consumption (Show battery on, Comfort on, advertising 2.0 sec, measure 10 sec):
  * 16 MHz - 17.43 uA
  * 24 MHz - 17.28 uA
  * 32 MHz - 17.36 uA
