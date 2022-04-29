@@ -88,6 +88,10 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int read_sensor_cb(void) {
 	int i;
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 		init_i2c();
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+	else
+		reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*750000));
+#endif
 	if (sensor_i2c_addr == 0) {
 		init_sensor();
 		return 0;
