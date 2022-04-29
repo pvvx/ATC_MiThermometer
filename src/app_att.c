@@ -323,7 +323,7 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ,2,sizeof(serviceChangeVal),(u8*)(&serviceChangeUUID),(u8*)(&serviceChangeVal), 0},
 		{0,ATT_PERMISSIONS_RDWR,2,sizeof(serviceChangeCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&serviceChangeCCC), 0},
 #if USE_DEVICE_INFO_CHR_UUID
-	// Device Information Service
+	// 000c - 0018 Device Information Service
 	{13,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_devServiceUUID), 0},
 
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_ModCharVal),(u8*)(&my_characterUUID),(u8*)(my_ModCharVal), 0},
@@ -345,13 +345,13 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_ManStr),(u8*)(&my_UUID_MANUFACTURER_NAME),(u8*)(my_ManStr), 0},
 #endif
 	////////////////////////////////////// Battery Service /////////////////////////////////////////////////////
-	//
+	// 0019 - 001C
 	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_batServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_batCharVal),(u8*)(&my_characterUUID), (u8*)(my_batCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.battery_level),(u8*)(&my_batCharUUID),(u8*)(&measured_data.battery_level), 0},	//value
 		{0,ATT_PERMISSIONS_RDWR,2,sizeof(batteryValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&batteryValueInCCC), 0},	//value
 	////////////////////////////////////// Temp Service /////////////////////////////////////////////////////
-	//
+	// 001D - 0026
 	{10,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_tempServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempCharVal),(u8*)(&my_characterUUID),(u8*)(my_tempCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.temp_x01),(u8*)(&my_tempCharUUID),(u8*)(&measured_data.temp_x01), 0},	//value
@@ -365,13 +365,13 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.humi),(u8*)(&my_humiCharUUID),(u8*)(&measured_data.humi), 0},	//value
 		{0,ATT_PERMISSIONS_RDWR,2,sizeof(humiValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&humiValueInCCC), 0},	//value
 	////////////////////////////////////// OTA /////////////////////////////////////////////////////
-	//
+	// 0027 - 002A
 	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID),(u8*)(&my_OtaServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_OtaCharVal),(u8*)(&my_characterUUID),(u8*)(my_OtaCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),(&my_OtaData), &otaWritePre, &otaRead},			//value
 		{0,ATT_PERMISSIONS_READ,2,sizeof (my_OtaName),(u8*)(&userdesc_UUID),(u8*)(my_OtaName), 0},
 	////////////////////////////////////// RxTx ////////////////////////////////////////////////////
-	// RxTx Communication
+	// 002B - 002E RxTx Communication
 	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_RxTx_ServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ, 2,sizeof(my_RxTxCharVal),(u8*)(&my_characterUUID),	(u8*)(my_RxTxCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_RDWR, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID), (u8*)&my_RxTx_Data, &RxTxWrite, 0},
