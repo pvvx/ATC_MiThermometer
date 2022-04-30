@@ -110,7 +110,9 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 **Custom Firmware Versions:**
 
-* [LYWSD03MMC Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v37c.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
+The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
+
+* [LYWSD03MMC Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v37d.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
 * [MHO-C401 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v37c.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
 * [CGG1 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v37c.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
 * [CGDK2 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v37c.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
