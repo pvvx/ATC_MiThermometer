@@ -216,7 +216,6 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 ### Bluetooth Advertising Formats
 The Firmware can be configured to support one of four different Bluetooth advertisements data formats. Supports bindkey beacon encryption.
 
-You can also configure to transferring everything in turn (round-robin)
 #### atc1441 format:
 UUID 0x181A - size 16 (temperatyre in 0.1%, humidity in 1%): [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware)
 
@@ -240,10 +239,16 @@ UUID 0x181A - size 19: Custom extended format in 0.01 units (all data little-end
                        // bit3: Temperature trigger event
                        // bit4: Humidity trigger event
    ```
+
+#### 'HA BLE' format  
+
+[The HA BLE format](https://custom-components.github.io/ble_monitor/ha_ble#the-ha-ble-format)
+
 ### Encrypted beacon formats (uses bindkey):
 
 * [Mijia standard format](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md)
 * [Energy efficient format (low security level)](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018)
+* ['HA BLE' encrypted](https://custom-components.github.io/ble_monitor/ha_ble#ha-ble-data-format-encrypted)
 
 #### Xiaomi Battery Charge
 3. UUID 0xFE95 - 0x0A: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - battery charge level 0..100%, battery voltage in mV
