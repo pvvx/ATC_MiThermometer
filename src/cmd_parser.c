@@ -217,7 +217,11 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 	default: // Start get all mi keys // MI_KEY_STAGE_MAC
 #if 1
 #if (DEVICE_TYPE == DEVICE_CGG1)
+#if (DEVICE_CGG1_ver == 2022)
+		_flash_read(FLASH_MIMAC_ADDR + 1, 6, &keybuf.data[8]); // MAC[6] + mac_random[2]
+#else
 		_flash_read(FLASH_MIMAC_ADDR, 8, &keybuf.data[8]); // MAC[6] + mac_random[2]
+#endif
 		SwapMacAddress(keybuf.data, &keybuf.data[8]);
 		keybuf.data[6] = keybuf.data[8+6];
 		keybuf.data[7] = keybuf.data[8+7];
@@ -231,7 +235,11 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 #endif
 #else
 #if (DEVICE_TYPE == DEVICE_CGG1)
+#if (DEVICE_CGG1_ver == 2022)
+		memcpy(&keybuf.data[8],(uint8_t *)(FLASH_MIMAC_ADDR + 1), 8); // MAC[6] + mac_random[2]
+#else
 		memcpy(&keybuf.data[8],(uint8_t *)(FLASH_MIMAC_ADDR), 8); // MAC[6] + mac_random[2]
+#endif
 		SwapMacAddress(keybuf.data, &keybuf.data[8]);
 #elif (DEVICE_TYPE == DEVICE_CGDK2)
 		memcpy(&keybuf.data[8],(uint8_t *)(FLASH_MIMAC_ADDR+1), 8); // MAC[6] + mac_random[2]
