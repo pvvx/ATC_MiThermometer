@@ -41,6 +41,17 @@ void SwapMacAddress(u8 *mac_out, u8 *mac_in) {
 
 __attribute__((optimize("-Os")))
 void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand) {
+#if ((DEVICE_TYPE == DEVICE_CGG1) && (DEVICE_CGG1_ver == 2022))
+	u8 mac_flash[16];
+	flash_erase_sector(flash_addr);
+	mac_flash[0] = 0x5A;
+	SwapMacAddress(&mac_flash[1], mac_pub);
+	SwapMacAddress(&mac_flash[7], mac_rand);
+	mac_flash[13] = 0xFF;
+	mac_flash[14] = 0xFF;
+	mac_flash[15] = 0x01;
+	flash_write_page(flash_addr, sizeof(mac_flash), mac_flash);
+#else
 #if DEVICE_TYPE == DEVICE_CGDK2
 	u8 mac_flash[13];
 	flash_erase_sector(flash_addr);
@@ -58,10 +69,31 @@ void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand) {
 	mac_flash[7] = mac_rand[4];
 #endif	// DEVICE_TYPE == DEVICE_CGDK2
 	flash_write_page(flash_addr, sizeof(mac_flash), mac_flash);
+#endif
 }
 
 __attribute__((optimize("-Os")))
 void blc_initMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand) {
+#if ((DEVICE_TYPE == DEVICE_CGG1) && (DEVICE_CGG1_ver == 2022))
+	u8 mac_read[16];
+	flash_read_page(flash_addr, sizeof(mac_read), mac_read);
+	if (mac_read[0] != 0x5A) {
+		mac_read[0] = 0x5A;
+		mac_read[1] = 0x58; // company id: 0x582D34
+		mac_read[2] = 0x2D;
+		mac_read[3] = 0x34;
+		generateRandomNum(3, &mac_read[4]);
+		memcpy(&mac_read[7], &mac_read[1], 6);
+		mac_read[13] = 0xFF;
+		mac_read[14] = 0xFF;
+		mac_read[15] = 0x01;
+		flash_write_page(flash_addr, sizeof(mac_read), mac_read);
+	}
+	// copy public address
+	SwapMacAddress(mac_pub, &mac_read[1]);
+	// copy random address
+	memcpy(mac_rand, mac_pub, 6);
+#else
 #if DEVICE_TYPE == DEVICE_CGDK2
 	u8 mac_read[14];
 #else
@@ -123,5 +155,6 @@ void blc_initMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand) {
 	mac_rand[4] = mac_read[7];
 	mac_rand[5] = 0xC0; 			//for random static
 #endif
+#endif // ((DEVICE_TYPE == DEVICE_CGG1) && (DEVICE_CGG1_ver == 2022))
 }
 

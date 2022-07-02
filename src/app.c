@@ -84,27 +84,42 @@ const cfg_t def_cfg = {
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = 0,
+#if USE_FLASH_MEMO
+		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
+#endif
 #elif DEVICE_TYPE == DEVICE_MHO_C401
 		.flg.comfort_smiley = true,
 		.measure_interval = 8, // * advertising_interval = 20 sec
 		.min_step_time_update_lcd = 199, //x0.05 sec,   9.95 sec
 		.hw_cfg.hwver = 1,
+#if USE_FLASH_MEMO
+		.averaging_measurements = 30, // * measure_interval = 20 * 30 = 600 sec = 10 minutes
+#endif
 #elif DEVICE_TYPE == DEVICE_CGG1
+#if DEVICE_CGG1_ver == 2022
+		.flg.comfort_smiley = true,
+		.measure_interval = 4, // * advertising_interval = 10 sec
+		.min_step_time_update_lcd = 49, //x0.05 sec,   9.95 sec
+		.hw_cfg.hwver = 7,
+#if USE_FLASH_MEMO
+		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
+#endif
+#else
 		.flg.comfort_smiley = true,
 		.measure_interval = 8, // * advertising_interval = 20 sec
 		.min_step_time_update_lcd = 199, //x0.05 sec,   9.95 sec
 		.hw_cfg.hwver = 2,
+#if USE_FLASH_MEMO
+		.averaging_measurements = 30, // * measure_interval = 20 * 30 = 600 sec = 10 minutes
+#endif
+#endif
 #elif DEVICE_TYPE == DEVICE_CGDK2
 		.flg.comfort_smiley = false,
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = 6,
-#endif
 #if USE_FLASH_MEMO
-#if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2)
 		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
-#else // DEVICE_TYPE == DEVICE_MHO_C401 & DEVICE_CGG1
-		.averaging_measurements = 30, // * measure_interval = 20 * 30 = 600 sec = 10 minutes
 #endif
 #endif
 		.rf_tx_power = RF_POWER_P0p04dBm, // RF_POWER_P3p01dBm,
@@ -164,7 +179,11 @@ void set_hw_version(void) {
 #elif DEVICE_TYPE == DEVICE_MHO_C401
 	cfg.hw_cfg.hwver = 1;
 #elif DEVICE_TYPE == DEVICE_CGG1
+#if DEVICE_CGG1_ver == 2022
+	cfg.hw_cfg.hwver = 7;
+#else
 	cfg.hw_cfg.hwver = 2;
+#endif
 #elif DEVICE_TYPE == DEVICE_CGDK2
 	cfg.hw_cfg.hwver = 6;
 #else
@@ -305,6 +324,9 @@ _attribute_ram_code_ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 void low_vbat(void) {
 	if (cfg.hw_cfg.shtc3 && wrk_measure)
 		soft_reset_sensor();
+#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
+	while(task_lcd()) pm_wait_ms(10);
+#endif
 	show_temp_symbol(0);
 	show_big_number_x10(measured_data.battery_mv * 10);
 #if (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
@@ -315,7 +337,7 @@ void low_vbat(void) {
 	show_battery_symbol(1);
 	update_lcd();
 #if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
-	while (task_lcd()) pm_wait_ms(10);
+	while(task_lcd()) pm_wait_ms(10);
 #endif
 	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 			clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
@@ -721,16 +743,23 @@ _attribute_ram_code_ void main_loop(void) {
 					update_lcd();
 					tim_last_chow = new;
 				}
-				bls_pm_setAppWakeupLowPower(0, 0);
+				bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 			}
 		}
 #if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
 		if (wrk_measure == 0 && stage_lcd) {
-			if (gpio_read(EPD_BUSY) && (!task_lcd())) {
+			if (task_lcd()) {
+				if(!gpio_read(EPD_BUSY)) {
+//					if ((bls_pm_getSystemWakeupTick() - clock_time()) > 25 * CLOCK_16M_SYS_TIMER_CLK_1MS) {
+						cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable
+						bls_pm_setWakeupSource(PM_WAKEUP_PAD);  // gpio pad wakeup suspend/deepsleep
+//					}
+				} else {
+					bls_pm_setSuspendMask(SUSPEND_DISABLE);
+					return;
+				}
+			} else {
 				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
-			} else if ((bls_pm_getSystemWakeupTick() - clock_time()) > 25 * CLOCK_16M_SYS_TIMER_CLK_1MS) {
-				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable
-				bls_pm_setWakeupSource(PM_WAKEUP_PAD);  // gpio pad wakeup suspend/deepsleep
 			}
 		}
 #endif

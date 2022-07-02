@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
-#if DEVICE_TYPE == DEVICE_CGG1
+#if ((DEVICE_TYPE == DEVICE_CGG1) && (DEVICE_CGG1_ver != 2022))
 /* Based on source: https://github.com/znanev/ATC_MiThermometer */
 #include "app.h"
 #include "epd.h"
