@@ -13,7 +13,7 @@ extern "C" {
 #define DEVICE_CGG1_ver		2022  	// =2022 - CGG1-M version 2022, = 0 - CGG1-M version 2020,2021
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 
-#define DEVICE_TYPE			DEVICE_CGG1 // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
 
 #define BLE_SECURITY_ENABLE 1 // = 1 support pin-code
 
