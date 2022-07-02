@@ -10,9 +10,10 @@ extern "C" {
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
+#define DEVICE_CGG1_ver		2022  	// =2022 - CGG1-M version 2022, = 0 - CGG1-M version 2020,2021
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
+#define DEVICE_TYPE			DEVICE_CGG1 // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 or DEVICE_CGDK2
 
 #define BLE_SECURITY_ENABLE 1 // = 1 support pin-code
 
@@ -161,6 +162,9 @@ extern "C" {
 #define I2C_SDA 	GPIO_PC1
 #define I2C_GROUP 	I2C_GPIO_GROUP_C0C1
 
+#define EPD_SHD				GPIO_PA1 // should be high
+#define PULL_WAKEUP_SRC_PA1 PM_PIN_PULLUP_10K
+
 #define EPD_BUSY			GPIO_PD4
 #define PULL_WAKEUP_SRC_PD4 PM_PIN_PULLUP_1M
 #define PD4_INPUT_ENABLE	1
@@ -172,9 +176,6 @@ extern "C" {
 #define PA0_DATA_OUT		1
 #define PA0_OUTPUT_ENABLE	1
 #define PA0_FUNC			AS_GPIO
-
-#define EPD_SHD				GPIO_PA1 // should be high
-#define PULL_WAKEUP_SRC_PA1 PM_PIN_PULLUP_10K
 
 #define EPD_CSB				GPIO_PD2
 #define PULL_WAKEUP_SRC_PD2 PM_PIN_PULLUP_1M
@@ -393,8 +394,8 @@ extern "C" {
 #endif // UART_PRINT_DEBUG_ENABLE
 
 
-#define MODULE_WATCHDOG_ENABLE		0
-#define WATCHDOG_INIT_TIMEOUT		250  //ms
+#define MODULE_WATCHDOG_ENABLE		1
+#define WATCHDOG_INIT_TIMEOUT		1500  //ms
 
 /* DEVICE_LYWSD03MMC Average consumption (Show battery on, Comfort on, advertising 2.0 sec, measure 10 sec):
  * 16 MHz - 17.43 uA

@@ -102,7 +102,11 @@ static const u8 my_ModelStr[] = {"CGG1"};
 //static const u8 my_SerialStr[] = {"1234"};
 #define my_SerialStr mac_public
 static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.1_0093"
+#if DEVICE_CGG1_ver == 2022
+static const u8 my_HardStr[] = {"2022"};
+#else
 static const u8 my_HardStr[] = {"0001"};
+#endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 #elif DEVICE_TYPE == DEVICE_CGDK2

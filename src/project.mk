@@ -7,6 +7,7 @@ $(OUT_PATH)/src/app.o \
 $(OUT_PATH)/src/lcd.o \
 $(OUT_PATH)/src/lcd_cgdk2.o \
 $(OUT_PATH)/src/epd_cgg1.o \
+$(OUT_PATH)/src/epd_cgg1_2022.o \
 $(OUT_PATH)/src/epd_mho_c401.o \
 $(OUT_PATH)/src/sensors.o \
 $(OUT_PATH)/src/trigger.o \

@@ -66,7 +66,11 @@ extern uint8_t stage_lcd;
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
 #elif DEVICE_TYPE == DEVICE_CGG1
+#if DEVICE_CGG1_ver == 2022
+extern uint8_t display_buff[16];
+#else
 extern uint8_t display_buff[18];
+#endif
 extern uint8_t stage_lcd;
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
