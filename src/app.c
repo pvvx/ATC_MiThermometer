@@ -99,7 +99,7 @@ const cfg_t def_cfg = {
 #if DEVICE_CGG1_ver == 2022
 		.flg.comfort_smiley = true,
 		.measure_interval = 4, // * advertising_interval = 10 sec
-		.min_step_time_update_lcd = 49, //x0.05 sec,   9.95 sec
+		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = 7,
 #if USE_FLASH_MEMO
 		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
