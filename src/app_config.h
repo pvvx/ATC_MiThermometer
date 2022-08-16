@@ -394,8 +394,8 @@ extern "C" {
 #endif // UART_PRINT_DEBUG_ENABLE
 
 
-#define MODULE_WATCHDOG_ENABLE		1
-#define WATCHDOG_INIT_TIMEOUT		1500  //ms
+#define MODULE_WATCHDOG_ENABLE		1 //
+#define WATCHDOG_INIT_TIMEOUT		15000  //ms (min 5000 ms if pincode)
 
 /* DEVICE_LYWSD03MMC Average consumption (Show battery on, Comfort on, advertising 2.0 sec, measure 10 sec):
  * 16 MHz - 17.43 uA
