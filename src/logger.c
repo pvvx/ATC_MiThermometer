@@ -120,7 +120,7 @@ void clear_memo(void) {
 	memo.cnt_cur_sec = 0;
 	while (faddr < FLASH_ADDR_END_MEMO) {
 		_flash_read(faddr, sizeof(tmp), &tmp);
-		if (tmp != MEMO_SEC_ID)
+		if (tmp == MEMO_SEC_ID)
 			_flash_erase_sector(faddr);
 		faddr += FLASH_SECTOR_SIZE;
 	}

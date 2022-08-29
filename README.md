@@ -112,11 +112,11 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 
-* [LYWSD03MMC Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v37d.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
-* [MHO-C401 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v37c.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [CGG1-M 2020-2021 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v37c.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGG1-M 2022 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v37d.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGDK2 Custom Firmware Version 3.7](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v37c.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
+* [LYWSD03MMC Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v38.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
+* [MHO-C401 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v38.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [CGG1-M 2020-2021 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v38.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGG1-M 2022 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v38.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v38.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 **Original Manufacturer Firmware Version**
 
@@ -162,6 +162,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163). Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M. CGG1 - correction of the battery charge display. Added CGDK2 and modified [(DIY) variant of CGDK2-2](https://pvvx.github.io/CGDK2/CGDK2-2/). |
 |     3.6 | Additional parameters: Support BT5.0 PHY, Channel Selection Algorithm 2, Correct RF-TX Power in suspend |
 |     3.7 | Added [format 'HA BLE'](https://github.com/custom-components/ble_monitor/issues/548), reed switch operation mode: Switch and Count. Full support for "HA BLE" encryption. Speed correction I2C for LCD controller LYWSD03MMC HW:1.9. Support for CGG1-M hardware version 2022. |
+|     3.8 | Fix [clear_memo](https://github.com/pvvx/ATC_MiThermometer/issues/240) |
 
 ## Applications
 

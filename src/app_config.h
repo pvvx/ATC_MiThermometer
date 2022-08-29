@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x37	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x38	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
@@ -394,7 +394,7 @@ extern "C" {
 #endif // UART_PRINT_DEBUG_ENABLE
 
 
-#define MODULE_WATCHDOG_ENABLE		1 //
+#define MODULE_WATCHDOG_ENABLE		0 //
 #define WATCHDOG_INIT_TIMEOUT		15000  //ms (min 5000 ms if pincode)
 
 /* DEVICE_LYWSD03MMC Average consumption (Show battery on, Comfort on, advertising 2.0 sec, measure 10 sec):
