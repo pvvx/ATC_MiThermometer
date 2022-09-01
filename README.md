@@ -11,13 +11,13 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 * Extended battery life (over a year)
 * Improved measurement accuracy and extended format in 0.01 units
-* Full support Home Assistant ['Passive BLE Monitor integration'](https://github.com/custom-components/ble_monitor) and ['HA BLE DIY'](https://github.com/custom-components/ble_monitor/issues/548) beacon format
+* Full support Home Assistant ['BTHome integration'](https://bthome.io/)
 * Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon
 * Support Bluetooth5.0+ PHY (LE 1M/2M/LongRange:500K/125K), CSA1/CSA2 (Channel Selection Algorithm)
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
 * **Measurement values recording** & Charting. See [Reading Measurements from Flash](#reading-measurements-from-flash)
 * **Adjustable correction offsets** and **Comfort zones**
-* Support for 4 beacon formats: Xiaomi, ATC, Custom, HA-BLE and encrypted options.
+* Support for 4 beacon formats: Xiaomi, ATC, Custom, BTHome and encrypted options.
 * Adjustable RF TX Power & Bluetooth advertising interval
 * DIY improvements - relay control by temperature or humidity, transmission of the reed switch status - open / closed or pulse counter
 
@@ -162,7 +162,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163). Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M. CGG1 - correction of the battery charge display. Added CGDK2 and modified [(DIY) variant of CGDK2-2](https://pvvx.github.io/CGDK2/CGDK2-2/). |
 |     3.6 | Additional parameters: Support BT5.0 PHY, Channel Selection Algorithm 2, Correct RF-TX Power in suspend |
 |     3.7 | Added [format 'HA BLE'](https://github.com/custom-components/ble_monitor/issues/548), reed switch operation mode: Switch and Count. Full support for "HA BLE" encryption. Speed correction I2C for LCD controller LYWSD03MMC HW:1.9. Support for CGG1-M hardware version 2022. |
-|     3.8 | Fix [clear_memo](https://github.com/pvvx/ATC_MiThermometer/issues/240) |
+|     3.8 | Fix [clear_memo](https://github.com/pvvx/ATC_MiThermometer/issues/240), renaming 'HA BLE' format to ['BTHome'](https://bthome.io/) |
 
 ## Applications
 
@@ -243,15 +243,15 @@ UUID 0x181A - size 19: Custom extended format in 0.01 units (all data little-end
                        // bit4: Humidity trigger event
    ```
 
-#### 'HA BLE' format  
+#### 'BTHome' format  
 
-[The HA BLE format](https://custom-components.github.io/ble_monitor/ha_ble#the-ha-ble-format)
+[The 'BTHome' format](https://bthome.io/)
 
 ### Encrypted beacon formats (uses bindkey):
 
 * [Mijia standard format](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md)
 * [Energy efficient format (low security level)](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018)
-* ['HA BLE' encrypted](https://custom-components.github.io/ble_monitor/ha_ble#ha-ble-data-format-encrypted)
+* ['BTHome' encrypted](https://bthome.io/)
 
 #### Xiaomi Battery Charge
 3. UUID 0xFE95 - 0x0A: [Xiaomi](https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/README.md) - battery charge level 0..100%, battery voltage in mV
