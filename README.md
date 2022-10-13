@@ -82,7 +82,7 @@ After you have flashed the firmware, the device has changed it's bluetooth name 
 
 | Option | Description |
 | ------ | ----------- |
-| _Temperature and Humidity offset_ | Enter a value to correct the offset of the Temperature or Humidity displayed: For example `-1.4` will decrease the Temperature by 1.4�
+| _Temperature and Humidity offset_ | Enter a value to correct the offset of the Temperature or Humidity displayed: For example `-1.4` will decrease the Temperature by 1.4째
 | _Smiley or Comfort_ | Choose a static smiley or check the "Comfort" Radio box to change the smiley depending on current Temperature and Humidity. |
 | _Comfort Parameters_ | Defines the Lower (Lo) and Upper (Hi) Range for Temperature and Humidity interpreted as comfort zone. In the default configuration a smiley will appear.
 | _Advertising Type_ | Type of supported [Bluetooth Advertising Formats](#bluetooth-advertising-formats).
@@ -220,7 +220,7 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 The Firmware can be configured to support one of four different Bluetooth advertisements data formats. Supports bindkey beacon encryption.
 
 #### atc1441 format:
-UUID 0x181A - size 16 (temperatyre in 0.1%, humidity in 1%): [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware)
+UUID 0x181A - size 16 (temperature in 0.1%, humidity in 1%): [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware)
 
 #### Custom format (all data little-endian):  
 UUID 0x181A - size 19: Custom extended format in 0.01 units (all data little-endian): 
@@ -319,8 +319,8 @@ For CGG1 - GPIO_PD3, MHO_C401 - no free pins.
 
 
 #### Chipset LYWSD03MMC HW:B1.4
-> * TLSR8251F512ET24 (TLSR8258 in 24-pin TQFN). SoC: TC32 32-bit MCU 48Mhz, 64 KiB SRAM, 512 KiB Flash (GD25LE40C), Bluetooth 5.0: Mesh, 6LoWPAN, Zigbee, RF4CE, HomeKit, Long Range, Operating temperature: -40캜 to +85캜, Power supply: 1.8V to 3.6V.
-> * SHTV3 sensor. Measurement range: Temperature -40캜 to +125캜, Humidity 0 to 100 %RH. Power supply: 1.8V to 3.6V
+> * TLSR8251F512ET24 (TLSR8258 in 24-pin TQFN). SoC: TC32 32-bit MCU 48Mhz, 64 KiB SRAM, 512 KiB Flash (GD25LE40C), Bluetooth 5.0: Mesh, 6LoWPAN, Zigbee, RF4CE, HomeKit, Long Range, Operating temperature: -40째C to +85째C, Power supply: 1.8V to 3.6V.
+> * SHTV3 sensor. Measurement range: Temperature -40째C to +125째C, Humidity 0 to 100 %RH. Power supply: 1.8V to 3.6V
 > * IST3055NA0 LCD controller 
 
 [LYWSD03MMC B1.4 BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
