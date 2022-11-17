@@ -217,7 +217,10 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 * Bluetooth Connection: 15..30 uA 3.3V (depends on the amount of temperature or humidity changes over time to display)
 
 ### Bluetooth Advertising Formats
-The Firmware can be configured to support one of four different Bluetooth advertisements data formats. Supports bindkey beacon encryption.
+The Firmware can be configured to support one of four different Bluetooth advertisements data formats:  
+Xiaomi, ATC, Custom, BTHome and encrypted options.  
+Only the BTHome and Xiaomi support the native [HA Xiaomi Integration](https://www.home-assistant.io/integrations/xiaomi_ble/), for the others use the Custom Component [Passive BLE](https://github.com/custom-components/ble_monitor).  
+Supports bindkey beacon encryption.
 
 #### atc1441 format:
 UUID 0x181A - size 16 (temperature in 0.1%, humidity in 1%): [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware)
