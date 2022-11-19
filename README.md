@@ -228,7 +228,7 @@ UUID 0x181A - size 16 (temperature in 0.1%, humidity in 1%): [atc1441 format](ht
 UUID 0x181A - size 19: Custom extended format in 0.01 units (all data little-endian): 
 
    ```c
-   uint8_t     size;   // = 19
+   uint8_t     size;   // = 18
    uint8_t     uid;    // = 0x16, 16-bit UUID
    uint16_t    UUID;   // = 0x181A, GATT Service 0x181A Environmental Sensing
    uint8_t     MAC[6]; // [0] - lo, .. [6] - hi digits
