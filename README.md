@@ -71,6 +71,8 @@ To flash or update the firmware, use a Google Chrome, Microsoft Edge or Opera Br
 
  * Use [TelinkOTA](https://pvvx.github.io/ATC_MiThermometer/TelinkOTA.html) to flash old or alternative versions ([ATC1441](https://atc1441.github.io/TelinkFlasher.html)). This is a program for OTA projects with Telink SDK, no third-party (mijia) protections.
 
+ * Addition for CGG1-M: Press and hold the button on the back of CGG1-M for 2 seconds until the Bluetooth icon starts blinking on the e-ink display, and then click the 'Connect' and 'Do Activation' buttons on the TeLink Flasher.
+
 ### Configuration
 After you have flashed the firmware, the device has changed it's bluetooth name to something like `ATC_F02AED`. Using the [`TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) you have various configuration options.
 
