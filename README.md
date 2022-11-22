@@ -25,6 +25,9 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 |:--:|:--:|:--:|:--:|
 |  <img src="https://tasmota.github.io/docs/_media/bluetooth/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="160"/> |  <img src="https://tasmota.github.io/docs/_media/bluetooth/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="160"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="160"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/CGDK2/img/CGDK2.jpg" alt="CGDK2 Qingping Temp & RH Monitor Lite" width="160"/> |
 
+Warning:
+If you have many BLE devices, the adapter must be able to receive BLE advertisements every 3 ms. UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format. Requires BT adapter with USB2.0 HS.
+
 **Table of content**
 
 <!-- TOC depthFrom:2 depthTo:3 -->
