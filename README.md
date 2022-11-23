@@ -28,7 +28,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 Warning:
 If you have many BLE devices, the adapter must be able to receive BLE advertisements every 3 ms. UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format. Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the reception.
 
-For reliable connection and refirmware on LYWSD03MMC, the battery level must be more than 40%. This is a design feature - a cheaper version of the hardware.
+For reliable connection and refirmware on LYWSD03MMC, the battery level must be more than 40%. This is a design feature - a [cheaper version of the hardware from Xiaomi](https://user-images.githubusercontent.com/12629515/105704705-423fc600-5f20-11eb-88ca-a2db712d0222.png).
 
 **Table of content**
 
@@ -378,6 +378,8 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 
 * [MHO-C401 Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251f512et24-e-inc-display-termometr-mho-c401-bluetooth-termometr.5446/)
 
+* [Solar powered Bluetooth Thermometer with Supercap](https://hackaday.io/project/177910-solar-powered-bluetooth-thermometer-with-supercap)
+
 ### CJMCU-2557 BQ25570
 
 ![CJMCU-2557](https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/ATC_MiThermometer/img/CJMCU-2557.jpg)
@@ -417,3 +419,4 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 ---
 
 ![foto](https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/SensorsTH.jpg)
+
