@@ -28,6 +28,8 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 Warning:
 If you have many BLE devices, the adapter must be able to receive BLE advertisements every 3 ms. UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format. Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the reception.
 
+For reliable connection and refirmware on LYWSD03MMC, the battery level must be more than 40%. This is a design feature - a cheaper version of the hardware.
+
 **Table of content**
 
 <!-- TOC depthFrom:2 depthTo:3 -->
