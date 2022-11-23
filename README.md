@@ -26,7 +26,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 |  <img src="https://tasmota.github.io/docs/_media/bluetooth/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="160"/> |  <img src="https://tasmota.github.io/docs/_media/bluetooth/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="160"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="160"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/CGDK2/img/CGDK2.jpg" alt="CGDK2 Qingping Temp & RH Monitor Lite" width="160"/> |
 
 Warning:
-If you have many BLE devices, the adapter must be able to receive BLE advertisements every 3 ms. UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format. Requires BT adapter with USB2.0 HS.
+If you have many BLE devices, the adapter must be able to receive BLE advertisements every 3 ms. UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format. Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the reception.
 
 **Table of content**
 
@@ -67,14 +67,15 @@ To flash or update the firmware, use a Google Chrome, Microsoft Edge or Opera Br
 
 1. Go to the [Over-the-air Webupdater Page `TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) *
 2. If using Android, Windows, Linux: Ensure you enabled "experimental web platform features". Therefore copy the according link (i.e. `chrome://flags/#enable-experimental-web-platform-features` for Chrome), open a new browser tab, paste the copied URL. Now sten the _Experimental Web Platform features_ flag to _Enabled_. Then **restart the browser**.
-3. In the Telink Flasher Page: Press `Connect`: The browser should open a popup with visible Bluetooth devices. Choose the according target device (i.e. `LYWSD03MMC`) to pair. 
-4. After connection is established a _Do Acivation_ button appears. Press this button to start the decryption key process.
-5. Now you can press the _Custom Firmware ver x.x_ button to directly flash the custom firmware. Alternatively you can choose a specific firmware binary (i.e. the original firmware) via the file chooser
-6. Press _Start Flashing_.
+3. For all sensors with a button, before activation, it is necessary to reset the past bindings by holding the button for a long time.
+4. In the Telink Flasher Page: Press `Connect`: The browser should open a popup with visible Bluetooth devices. Choose the according target device (i.e. `LYWSD03MMC`) to pair. 
+5. After connection is established a _Do Acivation_ button appears. Press this button to start the decryption key process.
+6. Now you can press the _Custom Firmware ver x.x_ button to directly flash the custom firmware. Alternatively you can choose a specific firmware binary (i.e. the original firmware) via the file chooser
+7. Press _Start Flashing_.
 
  * Use [TelinkOTA](https://pvvx.github.io/ATC_MiThermometer/TelinkOTA.html) to flash old or alternative versions ([ATC1441](https://atc1441.github.io/TelinkFlasher.html)). This is a program for OTA projects with Telink SDK, no third-party (mijia) protections.
 
- * Addition for CGG1-M: Press and hold the button on the back of CGG1-M for 2 seconds until the Bluetooth icon starts blinking on the e-ink display, and then click the 'Connect' and 'Do Activation' buttons on the TeLink Flasher.
+ * Addition for CGG1-M: Press and hold the button on the back of CGG1-M for 2 seconds until the Bluetooth icon starts blinking on the e-ink display, and then click the 'Connect' and 'Do Activation' buttons on the TeLinkMiFlasher.
 
 ### Configuration
 After you have flashed the firmware, the device has changed it's bluetooth name to something like `ATC_F02AED`. Using the [`TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) you have various configuration options.
