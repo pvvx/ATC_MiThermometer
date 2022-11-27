@@ -182,7 +182,8 @@ _attribute_ram_code_ void send_to_lcd(void){
 void init_lcd(void){
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B14_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // B1.4, B1.7, B2.0
-		gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
+// 		GPIO_PB6 set in app_config.h!
+//		gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 		pm_wait_ms(50);
 		lcd_send_i2c_buf((uint8_t *) lcd_init_cmd_b14, sizeof(lcd_init_cmd_b14));
 		lcd_send_i2c_buf((uint8_t *) lcd_init_clr_b14, sizeof(lcd_init_clr_b14));

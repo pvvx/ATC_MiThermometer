@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#define MAX_VBAT_MV		3100 // 3100 mV - > battery = 100%
+#define MAX_VBAT_MV		2950 // 3100 mV - > battery = 100% no load, 2950 at load (during measurement)
 #define MIN_VBAT_MV		2200 // 2200 mV - > battery = 0%
 
 uint16_t get_adc_mv(uint32_t p_ain);

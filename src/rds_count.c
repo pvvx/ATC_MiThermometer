@@ -116,7 +116,7 @@ _attribute_ram_code_ void rds_suspend(void) {
 		/* TODO: if connection mode, gpio wakeup throws errors in sdk libs!
 		   Work options: bls_pm_setSuspendMask(SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN);
 		   No DEEPSLEEP_RETENTION_CONN */
-		cpu_set_gpio_wakeup(GPIO_RDS, get_rds_input()? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
+		cpu_set_gpio_wakeup(GPIO_RDS, BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
 		bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 	} else {
 		cpu_set_gpio_wakeup(GPIO_RDS, Level_Low, 0);  // pad wakeup suspend/deepsleep disable
@@ -127,7 +127,7 @@ _attribute_ram_code_ void rds_suspend(void) {
 
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void rds_task(void) {
-	rds_input_on();
+//	rds_input_on(); // in "app_config.h" and WakeupLowPowerCb()
 	if (get_rds_input()) {
 		if (!trg.flg.rds_input) {
 			trg.flg.rds_input = 1;
