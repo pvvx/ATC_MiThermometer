@@ -31,7 +31,8 @@ static const u16 my_appearanceUIID = GATT_UUID_APPEARANCE;
 
 static const u16 my_periConnParamUUID = GATT_UUID_PERI_CONN_PARAM;
 
-static const u16 my_appearance = GAP_APPEARE_UNKNOWN;
+// https://github.com/sputnikdev/bluetooth-gatt-parser/blob/master/src/main/resources/gatt/characteristic/org.bluetooth.characteristic.gap.appearance.xml
+static const u16 my_appearance = 768; // value="Generic Thermometer"
 
 static const u16 my_gattServiceUUID = SERVICE_UUID_GENERIC_ATTRIBUTE;
 

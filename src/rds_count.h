@@ -14,11 +14,12 @@
 #ifdef GPIO_RDS
 
 static inline uint8_t get_rds_input(void) {
-	return (BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff));
-}
-
-static inline void set_rds_input(void) {
-	trg.flg.rds_input = ((BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff))? 1 : 0);
+	uint8_t r = BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff)? 1 : 0;
+#if USE_WK_RDS_COUNTER
+	if(trg.rds.rs_invert)
+		r ^= 1;
+#endif
+	return r;
 }
 
 static inline void rds_input_off(void) {

@@ -19,6 +19,13 @@ typedef struct __attribute__((packed)) _trigger_flg_t {
 	uint8_t 	humi_out_on :	1; // Humidity trigger event
 }trigger_flg_t;
 
+typedef struct __attribute__((packed)) _rds_type_t {
+	uint8_t type   : 2;		// RDS_TYPES, Reed switch types: 0 - none, 1 - switch, 2 - counter
+	uint8_t reserved_for_types : 2;
+	// version 3.9+
+	uint8_t rs_invert : 1;		// GPIO events (Reed switch): 0 - rising, 1 - falling
+}rds_type_t;
+
 typedef struct __attribute__((packed)) _trigger_t {
 	int16_t temp_threshold; // x0.01°, Set temp threshold
 	int16_t humi_threshold; // x0.01%, Set humi threshold
@@ -27,7 +34,7 @@ typedef struct __attribute__((packed)) _trigger_t {
 #if USE_WK_RDS_COUNTER
 	// version 3.6+
 	uint16_t rds_time_report; // Reed switch count report interval (sec)
-	uint8_t rds_type;		// flags Reed switch
+	rds_type_t rds;	  // flags Reed switch
 #endif
 	union {
 		trigger_flg_t flg;

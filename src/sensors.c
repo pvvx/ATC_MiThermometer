@@ -67,9 +67,9 @@ void soft_reset_sensor(void) {
 
 void init_sensor() {
 	if ((sensor_i2c_addr = (uint8_t) scan_i2c_addr(SHTC3_I2C_ADDR << 1)) != 0) {
-		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
+		//send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
+		//sleep_us(SHTC3_WAKEUP_us);	// 240 us
 		cfg.hw_cfg.shtc3 = 1; // = 1 - sensor SHTC3
-		sleep_us(SHTC3_WAKEUP_us);	// 240 us
 		soft_reset_sensor();
 		return;
 	}

@@ -85,7 +85,7 @@ const cfg_t def_cfg = {
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = 0,
 #if USE_FLASH_MEMO
-		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
+		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 #elif DEVICE_TYPE == DEVICE_MHO_C401
 		.flg.comfort_smiley = true,
@@ -93,7 +93,7 @@ const cfg_t def_cfg = {
 		.min_step_time_update_lcd = 199, //x0.05 sec,   9.95 sec
 		.hw_cfg.hwver = 1,
 #if USE_FLASH_MEMO
-		.averaging_measurements = 30, // * measure_interval = 20 * 30 = 600 sec = 10 minutes
+		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
 #elif DEVICE_TYPE == DEVICE_CGG1
 #if DEVICE_CGG1_ver == 2022
@@ -102,7 +102,7 @@ const cfg_t def_cfg = {
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = 7,
 #if USE_FLASH_MEMO
-		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
+		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 #else
 		.flg.comfort_smiley = true,
@@ -110,7 +110,7 @@ const cfg_t def_cfg = {
 		.min_step_time_update_lcd = 199, //x0.05 sec,   9.95 sec
 		.hw_cfg.hwver = 2,
 #if USE_FLASH_MEMO
-		.averaging_measurements = 30, // * measure_interval = 20 * 30 = 600 sec = 10 minutes
+		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
 #endif
 #elif DEVICE_TYPE == DEVICE_CGDK2
@@ -119,7 +119,7 @@ const cfg_t def_cfg = {
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = 6,
 #if USE_FLASH_MEMO
-		.averaging_measurements = 60, // * measure_interval = 10 * 60 = 600 sec = 10 minutes
+		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 #endif
 		.rf_tx_power = RF_POWER_P0p04dBm, // RF_POWER_P3p01dBm,
@@ -247,6 +247,30 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 }
 
+void low_vbat(void) {
+#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
+	while(task_lcd()) pm_wait_ms(10);
+#endif
+	show_temp_symbol(0);
+#if (DEVICE_TYPE != DEVICE_CGDK2)
+	show_smiley(0);
+#endif
+	show_big_number_x10(measured_data.battery_mv * 10);
+#if (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
+	show_small_number_x10(-1023, 1); // "Lo"
+#else
+	show_small_number(-123, 1); // "Lo"
+#endif
+	show_battery_symbol(1);
+	update_lcd();
+#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
+	while(task_lcd()) pm_wait_ms(10);
+#endif
+	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
+			clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
+	while(1);
+}
+
 _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	(void) par;
 	if (wrk_measure) {
@@ -288,7 +312,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 		if (rds.type == 0)
 #endif
 		{
-			set_rds_input();
+			trg.flg.rds_input = get_rds_input();
 			rds_input_off();
 		}
 #endif
@@ -298,6 +322,9 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 		wrk_measure = 0;
 	}	
 	timer_measure_cb = 0;
+
+	if (measured_data.battery_mv < 2000)
+		low_vbat();
 }
 
 _attribute_ram_code_ static void suspend_exit_cb(u8 e, u8 *p, int n) {
@@ -321,33 +348,12 @@ _attribute_ram_code_ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 #endif
 }
 
-void low_vbat(void) {
-	if (cfg.hw_cfg.shtc3 && wrk_measure)
-		soft_reset_sensor();
-#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
-	while(task_lcd()) pm_wait_ms(10);
-#endif
-	show_temp_symbol(0);
-	show_big_number_x10(measured_data.battery_mv * 10);
-#if (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
-	show_small_number_x10(-1023, 1); // "Lo"
-#else
-	show_small_number(-123, 1); // "Lo"
-#endif
-	show_battery_symbol(1);
-	update_lcd();
-#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_CGG1)
-	while(task_lcd()) pm_wait_ms(10);
-#endif
-	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
-			clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
-}
-
 //--- check battery
 _attribute_ram_code_ void check_battery(void) {
 	measured_data.battery_mv = get_battery_mv();
 	if (measured_data.battery_mv < 2000) {
-		low_vbat();
+		if (!(cfg.hw_cfg.shtc3 && timer_measure_cb))
+			low_vbat();
 	}
 	measured_data.battery_level = get_battery_level(measured_data.battery_mv);
 }
@@ -407,9 +413,11 @@ void user_init_normal(void) {//this will get executed one time after power up
 	bool next_start = false;
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	lpc_power_down();
-	if (get_battery_mv() < MIN_VBAT_MV) // 2.2V
+	if (get_battery_mv() < MIN_VBAT_MV) { // 2.2V
+		init_sensor(); // SHTC3 go SLEEP
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
+	}
 	random_generator_init(); //must
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 	uint32_t hw_ver = get_mi_hw_version();
@@ -436,7 +444,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 				!= FEEP_SAVE_SIZE_TRG)
 			memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #if USE_WK_RDS_COUNTER
-		rds.type = trg.rds_type & 3;
+		rds.type = trg.rds.type;
 #endif
 #endif
 	} else {
@@ -542,7 +550,9 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 				show_ble_symbol(ble_connected);
 				return;
 #else
+#if	(DEVICE_TYPE != DEVICE_CGDK2)
 				show_smiley(0); // stage blinking and blinking on
+#endif
 #endif
 			}
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
@@ -599,7 +609,9 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void lcd(void) {
 				show_ble_symbol(ble_connected);
 				return;
 #else
+#if	(DEVICE_TYPE != DEVICE_CGDK2)
 				show_smiley(0); // stage blinking and blinking on
+#endif
 #endif
 			} else {
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
@@ -644,12 +656,14 @@ _attribute_ram_code_ void main_loop(void) {
 		utc_time_sec_tick += utc_time_tick_step;
 		utc_time_sec++; // + 1 sec
 	}
+#if 0 // double in suspend_enter_cb()!
 	if (wrk_measure
 		&& timer_measure_cb
 		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT) {
 			bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 			WakeupLowPowerCb(0);
 	}
+#endif
 	if (ota_is_working) {
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN); // SUSPEND_DISABLE
 		if ((ble_connected&2)==0)

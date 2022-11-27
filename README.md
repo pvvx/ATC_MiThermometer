@@ -120,11 +120,11 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 
-* [LYWSD03MMC Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v38.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
-* [MHO-C401 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v38.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [CGG1-M 2020-2021 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v38.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGG1-M 2022 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v38.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGDK2 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v38.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
+* [LYWSD03MMC Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v39.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
+* [MHO-C401 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v39.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [CGG1-M 2020-2021 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v39.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGG1-M 2022 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v39.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 3.8](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v39.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 **Original Manufacturer Firmware Version**
 
@@ -171,6 +171,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.6 | Additional parameters: Support BT5.0 PHY, Channel Selection Algorithm 2, Correct RF-TX Power in suspend |
 |     3.7 | Added [format 'HA BLE'](https://github.com/custom-components/ble_monitor/issues/548), reed switch operation mode: Switch and Count. Full support for "HA BLE" encryption. Speed correction I2C for LCD controller LYWSD03MMC HW:1.9. Support for CGG1-M hardware version 2022. |
 |     3.8 | Fix [clear_memo](https://github.com/pvvx/ATC_MiThermometer/issues/240), renaming 'HA BLE' format to ['BTHome'](https://bthome.io/) |
+|     3.9 | Changed the calculation of battery readings in %, optimization of consumption for the solar battery when the voltage drops below 2V (deep-sleep), added option to invert event for reed switch, small optimizations. |
 
 ## Applications
 
@@ -306,8 +307,9 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 ### Reed Switch on GPIO PA6 (label on the "P8" pin)
 
 It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P8" and GND.
-The state of the reed switch is transferred to the advertising package.
-For CGG1 - GPIO_PD3, MHO_C401 - no free pins.
+The state of the reed switch is transferred to the advertising packet and events are sent in the "switch" and "counter" modes.
+For CGG1 - GPIO_PC4 (button on the case), MHO_C401 - GPIO_PB6 (button on the case), CGDK2 - GPIO_PVC4 (button on the case).
+The button on the body can turn the light on and off when creating a scenario in an external program...
 
 ### Interface for receiving and displaying data on the LCD.
 >* LCD shows: 

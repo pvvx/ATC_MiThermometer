@@ -245,7 +245,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 		bit4: Simultaneous LE and BR/EDR to Same Device Capable (Host)
 		bit5..7: Reserved
 	 */
-	adv_buf.flag[2] = 0x06; // Flags
+	adv_buf.flag[2] = 0x04 | GAP_ADTYPE_LE_GENERAL_DISCOVERABLE_MODE_BIT; // Flags
 	////////////////// BLE stack initialization //////////////////////
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 	/// if bls_ll_setAdvParam( OWN_ADDRESS_RANDOM ) ->  blc_ll_setRandomAddr(mac_random_static);
@@ -276,6 +276,8 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	//   should re_stored) , so it must be done after battery check
 #if BLE_SECURITY_ENABLE
 	if (pincode) {
+		//adv_buf.flag[2] = 0x04 | GAP_ADTYPE_LE_LIMITED_DISCOVERABLE_MODE_BIT; // Flags
+
 		//bls_smp_configParingSecurityInfoStorageAddr(0x074000);
 		//bls_smp_eraseAllParingInformation();
 		//blc_smp_param_setBondingDeviceMaxNumber(SMP_BONDING_DEVICE_MAX_NUM); //if not set, default is : SMP_BONDING_DEVICE_MAX_NUM
