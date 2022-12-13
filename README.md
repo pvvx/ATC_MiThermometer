@@ -139,6 +139,7 @@ In case you want to go back to the original firmware, you can download them here
 * [Qingping CGPR1 Original Firmware v1.1.1_0228](https://pvvx.github.io/CGPR1/img/Original_OTA_CGPR1_v1.1.1_0228.bin)
 * [Qingping CGDK2 Original Firmware v1.1.1_0210](https://pvvx.github.io/CGPR1/img/Original_OTA_CGDK2_v1.1.1_0210.bin)
 * [Qingping CGDK2 Original Firmware v1.1.1_0217](https://pvvx.github.io/CGPR1/img/Original_OTA_CGDK2_v1.1.1_0217.bin)
+* [Qingping CGDK2 Original Firmware v1.1.1_0223](https://pvvx.github.io/CGPR1/img/Original_OTA_CGDK2_v1.1.1_0223.bin)
 
 ### Firmware version history
 
