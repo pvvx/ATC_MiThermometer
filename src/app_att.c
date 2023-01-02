@@ -5,11 +5,11 @@
 
 static const u16 clientCharacterCfgUUID = GATT_UUID_CLIENT_CHAR_CFG; // 2902
 
-static const u16 extReportRefUUID = GATT_UUID_EXT_REPORT_REF;
+//static const u16 extReportRefUUID = GATT_UUID_EXT_REPORT_REF; // 2907 External Report Reference 
 
-static const u16 reportRefUUID = GATT_UUID_REPORT_REF;
+//static const u16 reportRefUUID = GATT_UUID_REPORT_REF; // 2908 Report Reference
 
-static const u16 characterPresentFormatUUID = GATT_UUID_CHAR_PRESENT_FORMAT;
+//static const u16 characterPresentFormatUUID = GATT_UUID_CHAR_PRESENT_FORMAT; // 2904 Characteristic Present Format 
 
 static const u16 userdesc_UUID	= GATT_UUID_CHAR_USER_DESC; // 2901
 
