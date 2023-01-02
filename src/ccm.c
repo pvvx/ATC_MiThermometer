@@ -32,8 +32,8 @@
 #include "tl_common.h"
 #if USE_SECURITY_BEACON
 #include "ccm.h"
+#include "drivers/8258/aes.h"
 #include "stack/ble/crypt/aes/aes_att.h"
-
 
 /*
  * Macros for common operations.
@@ -47,7 +47,7 @@
 #define UPDATE_CBC_MAC          \
     for (i = 0; i < 16; i++)  	\
         y[i] ^= b[i];           \
-    tn_aes_128((u8*)key, y, y);
+    aes_encrypt((u8*)key, y, y);
 
 /*
  * Encrypt or decrypt a partial block with CTR
@@ -55,7 +55,7 @@
  * This avoids allocating one more 16 bytes buffer while allowing src == dst.
  */
 #define CTR_CRYPT(dst, src, len)	\
-    tn_aes_128((u8*) key, ctr, b);	\
+    aes_encrypt((u8*) key, ctr, b);	\
     for (i = 0; i < len; i++)		\
         dst[i] = src[i] ^ b[i];
 
