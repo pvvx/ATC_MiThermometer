@@ -34,6 +34,18 @@ enum {
 	XIAOMI_DEV_ID_MJYD02YL       = 0x07F6
 }XIAOMI_DEV_ID;
 
+#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+#define	XIAOMI_DID  XIAOMI_DEV_ID_LYWSD03MMC  	// 0x055B	 LCD display LYWSD03MMC
+#elif DEVICE_TYPE == DEVICE_MHO_C401   	
+#define	XIAOMI_DID  XIAOMI_DEV_ID_MHO_C401 		// 0x0387  E-Ink display MHO-C401
+#elif DEVICE_TYPE == DEVICE_CGG1
+#define	XIAOMI_DID  XIAOMI_DEV_ID_CGG1_ENCRYPTED	// 0x0B48  E-Ink display CGG1-M "Qingping Temp & RH Monitor"
+#elif DEVICE_TYPE == DEVICE_CGDK2
+#define	XIAOMI_DID XIAOMI_DEV_ID_CGDK2 			// 0x066F LCD display "Qingping Temp & RH Monitor Lite"
+#else
+#define	XIAOMI_DID  XIAOMI_DEV_ID_LYWSD03MMC
+#endif
+
 enum { // mijia ble version 5, General events
 	XIAOMI_DATA_EV_Base					=0x0000,
 	XIAOMI_DATA_EV_Connect				=0x0001,

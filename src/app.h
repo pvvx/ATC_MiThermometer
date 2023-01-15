@@ -26,6 +26,8 @@ enum {
 } ADV_TYPE_ENUM;
 #define ADV_TYPE_DEFAULT	ADV_TYPE_PVVX
 
+#define MASK_FLG2_REBOOT	0xe0
+#define MASK_FLG2_EXT_ADV	0xc0
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
 		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - HA_BLE
@@ -64,9 +66,9 @@ typedef struct __attribute__((packed)) _cfg_t {
 		uint8_t smiley 		: 3;	// 0..7
 		uint8_t adv_crypto	: 1; 	// advertising uses crypto beacon
 		uint8_t adv_flags  	: 1; 	// advertising add flags
-		uint8_t bt5hgy  	: 1; 	// support BT5.0 Coded PHY
-		uint8_t chalg2  	: 1; 	// ChannelSelectionAlgorithm 2
-		uint8_t reserved	: 1;
+		uint8_t bt5phy  	: 1; 	// support BT5.0 Coded PHY (сбрасывается после отключения питания)
+		uint8_t ext_adv		: 1;    // support extension advertise (сбрасывается после отключения питания)
+		uint8_t longrange  	: 1;  	// advertising in LongRange mode (сбрасывается после отключения питания)
 	} flg2;
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)

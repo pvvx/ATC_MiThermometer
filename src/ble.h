@@ -12,8 +12,12 @@ extern uint8_t ota_is_working;
 extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset device on disconnect
 
 //extern uint32_t adv_send_count;
-
+#if (BLE_EXT_ADV)
+#define ADV_BUFFER_SIZE		(62-3)
+extern u8	ext_adv_init; // flag ext_adv init
+#else
 #define ADV_BUFFER_SIZE		(31-3)
+#endif
 typedef struct _adv_buf_t {
 	uint32_t send_count; // count & id advertise, = beacon_nonce.cnt32
 	uint16_t old_measured_count; // old measured_data.count
@@ -197,6 +201,9 @@ void ble_send_trg_flg(void);
 void send_memo_blk(void);
 #endif
 int otaWritePre(void * p);
+#ifdef CHG_CONN_PARAM
+int chgConnParameters(void * p);
+#endif
 int RxTxWrite(void * p);
 void ev_adv_timeout(u8 e, u8 *p, int n);
 void set_pvvx_adv_data(void);

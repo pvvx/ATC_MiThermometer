@@ -10,7 +10,7 @@ extern "C" {
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
-#define DEVICE_CGG1_ver		2022  	// =2022 - CGG1-M version 2022 or = 0 - CGG1-M version 2020,2021
+#define DEVICE_CGG1_ver		2022  	// =2022 - CGG1-M version 2022, or = 0 - CGG1-M version 2020,2021
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 
 #ifndef DEVICE_TYPE
@@ -18,12 +18,18 @@ extern "C" {
 #endif
 
 #define BLE_SECURITY_ENABLE 1 // = 1 support pin-code
+#define BLE_EXT_ADV 		0 // = 1 support extension advertise (Test Only!)
 
 #define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
 #define USE_TIME_ADJUST		1 // = 1 time correction enabled
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
 #define USE_TRIGGER_OUT 	1 // = 1 use trigger out (GPIO_PA5)
+#if BLE_EXT_ADV
+#define USE_WK_RDS_COUNTER  0 // пока не поддерживается в ext_adv
+#else
 #define USE_WK_RDS_COUNTER	USE_TRIGGER_OUT // = 1 wake up when the reed switch is triggered + pulse counter
+#endif
+
 
 #define USE_SECURITY_BEACON 1 // = 1 support encryption beacon (bindkey)
 #define USE_HA_BLE_BEACON	1 // = 1 https://github.com/custom-components/ble_monitor/issues/548
@@ -390,7 +396,7 @@ extern "C" {
 #endif // DEVICE_TYPE == ?
 
 #if UART_PRINT_DEBUG_ENABLE
-#define PRINT_BAUD_RATE 1500000 // real 1000000
+#define PRINT_BAUD_RATE 1500000 // real ~1000000
 #define DEBUG_INFO_TX_PIN	GPIO_PA7 // SWS
 #define PA7_DATA_OUT		1
 #define PA7_OUTPUT_ENABLE	1
@@ -436,6 +442,8 @@ enum{
 #define		CFG_ADR_BIND	0x74000 //no master, slave device (blt_config.h)
 
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
+
+//#define CHG_CONN_PARAM	// test
 
 #include "vendor/common/default_config.h"
 

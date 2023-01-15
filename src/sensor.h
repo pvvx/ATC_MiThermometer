@@ -11,11 +11,10 @@ extern volatile uint32_t timer_measure_cb; // time start measure
 
 extern uint8_t sensor_i2c_addr;
 
-void init_sensor();
+void init_sensor(void);
 void start_measure_sensor_deep_sleep(void);
 void start_measure_sensor_low_power(void);
 int read_sensor_cb(void);
-void soft_reset_sensor(void);
 void sensor_go_sleep(void);
 
 

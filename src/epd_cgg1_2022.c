@@ -423,4 +423,4 @@ _attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
 	return stage_lcd;
 }
 
-#endif // DEVICE_TYPE == DEVICE_MHO_C401
+#endif // ((DEVICE_TYPE == DEVICE_CGG1) && (DEVICE_CGG1_ver == 2022))

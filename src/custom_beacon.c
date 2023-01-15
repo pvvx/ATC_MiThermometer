@@ -154,7 +154,7 @@ typedef struct __attribute__((packed)) _adv_event_t {
 	ext_adv_cnt_t cnt;
 } adv_event_t, * padv_event_t;
 
-
+#if USE_WK_RDS_COUNTER
 void atc_event_beacon(void){
 	padv_event_t p = (padv_event_t)&adv_buf.data;
 	p->dig.size = sizeof(p->dig) - sizeof(p->dig.size);
@@ -190,6 +190,6 @@ void pvvx_encrypt_event_beacon(uint8_t n){
 void atc_encrypt_event_beacon(void){
 	atc_event_beacon();
 }
-
+#endif // USE_WK_RDS_COUNTER
 #endif // USE_SECURITY_BEACON
 #endif // USE_TRIGGER_OUT
