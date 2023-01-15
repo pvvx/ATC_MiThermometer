@@ -493,9 +493,12 @@ void set_adv_data(void) {
 
 #if (BLE_EXT_ADV)
 	if (ext_adv_init) { // support extension advertise
-		memcpy(&adv_buf.data[adv_buf.data_size], ble_name, ble_name[0] + 1);
 		u8 *p;
-		u8 size = adv_buf.data_size + ble_name[0] + 1;
+		u8 size = adv_buf.data_size;
+		if (cfg.flg2.longrange) {
+			memcpy(&adv_buf.data[adv_buf.data_size], ble_name, ble_name[0] + 1);
+			size += ble_name[0] + 1;
+		}
 		if (cfg.flg2.adv_flags) {
 			p = adv_buf.flag;
 			size += sizeof(adv_buf.flag);
