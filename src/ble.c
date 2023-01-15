@@ -90,10 +90,7 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	else
 		tx_measures = 0;
 #if	(BLE_EXT_ADV)
-	if (ext_adv_init) { // support extension advertise
-		//blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
-		//ev_adv_timeout(0,0,0);
-	}
+	// TODO: restart ext_adv?
 #endif
 }
 
@@ -194,6 +191,38 @@ _attribute_ram_code_ void user_set_rf_power(u8 e, u8 *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
+#if (BLE_EXT_ADV)
+/* cfg.rf_tx_power -> ext.advertising TX power */
+int ext_adv_tx_level(void) {
+	int txl = TX_POWER_0dBm;
+	if ((cfg.rf_tx_power & 0x80) == 0) {
+		if (cfg.rf_tx_power < RF_POWER_P3p94dBm)
+			txl = TX_POWER_3dBm;
+		else if(cfg.rf_tx_power < RF_POWER_P5p13dBm)
+			txl = TX_POWER_4dBm;
+		else if(cfg.rf_tx_power < RF_POWER_P6p14dBm)
+			txl = TX_POWER_5dBm;
+		else if(cfg.rf_tx_power < RF_POWER_P7p02dBm)
+			txl = TX_POWER_6dBm;
+		else if(cfg.rf_tx_power < RF_POWER_P8p13dBm)
+			txl = TX_POWER_7dBm;
+		else if(cfg.rf_tx_power < RF_POWER_P9p24dBm)
+			txl = TX_POWER_8dBm;
+		else if(cfg.rf_tx_power < RF_POWER_P10p01dBm)
+			txl = TX_POWER_9dBm;
+		else
+			txl = TX_POWER_10dBm;
+	} else if (cfg.rf_tx_power < RF_POWER_P1p17dBm)
+		txl = TX_POWER_0dBm;
+	else if(cfg.rf_tx_power < RF_POWER_P2p39dBm)
+		txl = TX_POWER_1dBm;
+	else if(cfg.rf_tx_power < RF_POWER_P3p01dBm)
+		txl = TX_POWER_2dBm;
+	else
+		txl = TX_POWER_3dBm;
+	return txl;
+}
+#endif // BLE_EXT_ADV
 /*
  * bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
  * blt_event_callback_t(): */
@@ -212,7 +241,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 				BLE_ADDR_PUBLIC, // peer address type
 				NULL, // * peer address
 				ADV_FP_NONE, // advertising filter policy
-				TX_POWER_0dBm, // TODO: advertising TX power cfg.rf_tx_power
+				ext_adv_tx_level(), // cfg.rf_tx_power -> advertising TX power
 				(cfg.flg2.longrange)? BLE_PHY_CODED : BLE_PHY_1M, // primary advertising channel PHY type
 				0, // secondary advertising minimum skip number
 				(cfg.flg2.longrange)? BLE_PHY_CODED : BLE_PHY_1M, // secondary advertising channel PHY type
