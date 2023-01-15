@@ -94,7 +94,7 @@ void ha_ble_encrypt_data_beacon(void) {
 	}
 }
 
-#if	USE_TRIGGER_OUT
+#if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void ha_ble_encrypt_event_beacon(uint8_t n) {
 	uint8_t buf[20];
@@ -153,7 +153,7 @@ void ha_ble_data_beacon(void) {
 	}
 }
 
-#if	USE_TRIGGER_OUT
+#if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void ha_ble_event_beacon(uint8_t n) {
 	padv_ha_ble_ns_ev1_t p = (padv_ha_ble_ns_ev1_t)&adv_buf.data;

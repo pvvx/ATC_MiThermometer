@@ -28,6 +28,21 @@ void bls_set_advertise_prepare(void *p); // add ll_adv.h
 
 RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
 
+#if (BLE_EXT_ADV) // support extension advertise
+
+#define	APP_ADV_SETS_NUMBER						1			// Number of Supported Advertising Sets
+#define APP_MAX_LENGTH_ADV_DATA					64			// Maximum Advertising Data Length,   (if legacy ADV, max length 31 bytes is enough)
+#define APP_MAX_LENGTH_SCAN_RESPONSE_DATA		31			// Maximum Scan Response Data Length, (if legacy ADV, max length 31 bytes is enough)
+
+RAM	u8	app_adv_set_param[ADV_SET_PARAM_LENGTH * APP_ADV_SETS_NUMBER]; // struct ll_ext_adv_t
+RAM	u8	app_primary_adv_pkt[MAX_LENGTH_PRIMARY_ADV_PKT * APP_ADV_SETS_NUMBER];
+RAM	u8	app_secondary_adv_pkt[MAX_LENGTH_SECOND_ADV_PKT * APP_ADV_SETS_NUMBER];
+RAM	u8	app_advData[APP_MAX_LENGTH_ADV_DATA	* APP_ADV_SETS_NUMBER];
+RAM	u8	app_scanRspData[APP_MAX_LENGTH_SCAN_RESPONSE_DATA * APP_ADV_SETS_NUMBER];
+RAM u8	ext_adv_init; // flag ext_adv init
+#endif
+
+
 uint8_t send_buf[SEND_BUFFER_SIZE];
 
 RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
@@ -74,26 +89,50 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 		tx_measures = 0xff;
 	else
 		tx_measures = 0;
+#if	(BLE_EXT_ADV)
+	if (ext_adv_init) { // support extension advertise
+		//blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
+		//ev_adv_timeout(0,0,0);
+	}
+#endif
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	(void) e; (void) p; (void) n;
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 	ble_connected = 1;
+	my_periConnParameters.latency = cfg.connect_latency;
 	if (cfg.connect_latency) {
 		my_periConnParameters.intervalMin = CON_INERVAL_LAT; // 16*1.25 = 20 ms
 		my_periConnParameters.intervalMax = CON_INERVAL_LAT; // 16*1.25 = 20 ms
 	}
-	my_periConnParameters.latency = cfg.connect_latency;
 	my_periConnParameters.timeout = connection_timeout;
 	bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, my_periConnParameters.latency, my_periConnParameters.timeout);
 }
+
+#ifdef CHG_CONN_PARAM
+int chgConnParameters(void * p) {
+	rf_packet_att_data_t *req = (rf_packet_att_data_t*) p;
+	gap_periConnectParams_t * q = (gap_periConnectParams_t *)&req->dat;
+	if (req->l2cap - 3 == sizeof(my_periConnParameters)
+			&& q->intervalMin >= 7
+			&& q->intervalMax >= q->intervalMin
+			&& q->timeout > ((q->intervalMax >> 2) + 1)) {
+		if (q->intervalMax != q->intervalMin)
+			q->latency = 0;
+		memcpy(&my_periConnParameters, q, sizeof(my_periConnParameters));
+		bls_l2cap_requestConnParamUpdate(q->intervalMin, q->intervalMax, q->latency, q->timeout);
+		//bls_pm_setManualLatency(q->latency);
+	}
+	return 0;
+}
+#endif
 
 int app_conn_param_update_response(u8 id, u16  result) {
 	if (result == CONN_PARAM_UPDATE_ACCEPT)
 		ble_connected |= 2;
 	else if (result == CONN_PARAM_UPDATE_REJECT) {
-		// bls_l2cap_requestConnParamUpdate(160, 200, 0, 250); // (200 ms, 250 ms, 0, 2.5 s)
+		// bls_l2cap_requestConnParamUpdate(160, 200, 0, 2500); // (200 ms, 250 ms, 0, 2.5 s)
 	}
 	return 0;
 }
@@ -135,6 +174,16 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	return 1;		// = 1 ready to send ADV packet, = 0 not send ADV
 }
 
+#if (BLE_EXT_ADV)
+extern  void * ll_module_adv_cb;
+_attribute_ram_code_ int _blt_ext_adv_proc (void) {
+//	ll_ext_adv_t *p = (ll_ext_adv_t *)app_adv_set_param;
+	blta.adv_duraton_en = 0;
+	app_advertise_prepare_handler(0);
+	return blt_ext_adv_proc();
+}
+#endif
+
 _attribute_ram_code_ int RxTxWrite(void * p) {
 	cmd_parser(p);
 	return 0;
@@ -150,12 +199,42 @@ _attribute_ram_code_ void user_set_rf_power(u8 e, u8 *p, int n) {
  * blt_event_callback_t(): */
 void ev_adv_timeout(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
-	bls_ll_setAdvParam(adv_interval, adv_interval + 10,
+#if (BLE_EXT_ADV)
+	if (ext_adv_init) { // extension advertise
+		if(ble_connected)
+			return;
+		//adv_set: Extended, Connectable_scannable
+		blc_ll_setExtAdvParam(ADV_HANDLE0,
+				(cfg.flg2.longrange)? ADV_EVT_PROP_EXTENDED_CONNECTABLE_UNDIRECTED : ADV_EVT_PROP_LEGACY_CONNECTABLE_SCANNABLE_UNDIRECTED,
+				adv_interval, adv_interval + 10,
+				BLT_ENABLE_ADV_ALL, // primary advertising channel map
+				OWN_ADDRESS_PUBLIC, // own address type
+				BLE_ADDR_PUBLIC, // peer address type
+				NULL, // * peer address
+				ADV_FP_NONE, // advertising filter policy
+				TX_POWER_0dBm, // TODO: advertising TX power cfg.rf_tx_power
+				(cfg.flg2.longrange)? BLE_PHY_CODED : BLE_PHY_1M, // primary advertising channel PHY type
+				0, // secondary advertising minimum skip number
+				(cfg.flg2.longrange)? BLE_PHY_CODED : BLE_PHY_1M, // secondary advertising channel PHY type
+				ADV_SID_0,
+				1); // scan response notify enable ?
+
+		blc_ll_setExtScanRspData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED,
+				ble_name[0]+1, (uint8_t *) ble_name);
+		// debug!!!  Fix CodedPHY channel?
+		// blc_ll_setAuxAdvChnIdxByCustomers(20); // auxiliary data channel, must be range of 0~36
+
+		bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
+		blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
+	} else
+#endif
+	{
+		bls_ll_setAdvParam(adv_interval, adv_interval + 10,
 			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
 			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
-	//	set_adv_data();
-	bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
-	bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //ADV enable
+		bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
+		bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //ADV enable
+	}
 }
 
 #if BLE_SECURITY_ENABLE
@@ -257,15 +336,36 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_ll_initConnection_module(); // connection module  must for BLE slave/master
 	blc_ll_initSlaveRole_module(); // slave module: 	 must for BLE slave,
 	blc_ll_initPowerManagement_module(); //pm module:      	 optional
-	if (cfg.flg2.bt5hgy) { // 2MPhy
-		blc_ll_init2MPhyCodedPhy_feature();			// mandatory for 2M/Coded PHY
-		//bls_app_registerEventCallback (BLT_EV_FLAG_PHY_UPDATE, &callback_phy_update_complete_event);
-		blc_ll_setDefaultPhy(PHY_TRX_PREFER, PHY_PREFER_1M, PHY_PREFER_1M);
-		//blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
+	if (cfg.flg2.bt5phy) { // 1M, 2M, LongRange PHY
+		blc_ll_init2MPhyCodedPhy_feature();	//if use 2M or Coded PHY
+		// set Default Connection Coding
 		blc_ll_setDefaultConnCodingIndication(CODED_PHY_PREFER_S8);
-	}
-	if (cfg.flg2.chalg2) // ChannelSelectionAlgorithm 2
+		//blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
+		// set Default Connection Coding
+#if	(BLE_EXT_ADV)
+		if(cfg.flg2.ext_adv && cfg.flg2.longrange)
+			blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
+		else
+#endif
+			blc_ll_setDefaultPhy(PHY_TRX_PREFER, PHY_PREFER_1M, PHY_PREFER_1M);
 		blc_ll_initChannelSelectionAlgorithm_2_feature();
+		//bls_app_registerEventCallback (BLT_EV_FLAG_PHY_UPDATE, &callback_phy_update_complete_event);
+	}
+#if	(BLE_EXT_ADV)
+	if (cfg.flg2.ext_adv) { // support extension advertise
+		// init buffers ext adv
+		// and ll_module_adv_cb = blt_ext_adv_proc; pFunc_ll_SetAdv_Enable = ll_setExtAdv_Enable;
+		blc_ll_initExtendedAdvertising_module(app_adv_set_param, app_primary_adv_pkt, APP_ADV_SETS_NUMBER);
+		blc_ll_initExtSecondaryAdvPacketBuffer(app_secondary_adv_pkt, MAX_LENGTH_SECOND_ADV_PKT);
+		blc_ll_initExtAdvDataBuffer(app_advData, APP_MAX_LENGTH_ADV_DATA);
+		blc_ll_initExtScanRspDataBuffer(app_scanRspData, APP_MAX_LENGTH_SCAN_RESPONSE_DATA);
+		// if Coded PHY is used, this API set default S2/S8 mode for Extended ADV
+		blc_ll_setDefaultExtAdvCodingIndication(ADV_HANDLE0, CODED_PHY_PREFER_S8);
+		ll_module_adv_cb = _blt_ext_adv_proc;
+		ext_adv_init = 1;
+	} else
+		ext_adv_init = 0;
+#endif
 	////// Host Initialization  //////////
 	blc_gap_peripheral_init();
 	my_att_init(); //gatt initialization
@@ -390,6 +490,22 @@ void set_adv_data(void) {
 		}
 	}
 	adv_buf.data_size = adv_buf.data[0] + 1;
+
+#if (BLE_EXT_ADV)
+	if (ext_adv_init) { // support extension advertise
+		memcpy(&adv_buf.data[adv_buf.data_size], ble_name, ble_name[0] + 1);
+		u8 *p;
+		u8 size = adv_buf.data_size + ble_name[0] + 1;
+		if (cfg.flg2.adv_flags) {
+			p = adv_buf.flag;
+			size += sizeof(adv_buf.flag);
+		} else {
+			p = adv_buf.data;
+		}
+		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, size, p);
+		return;
+	}
+#endif
 	if (cfg.flg2.adv_flags) {
 		bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
 	} else {

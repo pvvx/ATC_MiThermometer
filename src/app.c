@@ -76,8 +76,7 @@ const cfg_t def_cfg = {
 		.flg.advertising_type = ADV_TYPE_DEFAULT,
 		.flg.tx_measures = false,
 		.flg2.smiley = 0, // 0 = "     " off
-		.flg2.bt5hgy = 1, // support BT5.0 Coded PHY
-		.flg2.chalg2 = 1, // ChannelSelectionAlgorithm 2
+		.flg2.bt5phy = 1, // support BT5.0
 		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 		.flg.comfort_smiley = true,
@@ -192,6 +191,11 @@ void set_hw_version(void) {
 }
 
 __attribute__((optimize("-Os"))) void test_config(void) {
+	if (cfg.flg2.longrange) {
+		cfg.flg2.bt5phy = 1;
+		cfg.flg2.ext_adv = 1;
+	} else 	if (cfg.flg2.ext_adv)
+		cfg.flg2.bt5phy = 1;
 	if (cfg.rf_tx_power & BIT(7)) {
 		if (cfg.rf_tx_power < RF_POWER_N25p18dBm)
 			cfg.rf_tx_power = RF_POWER_N25p18dBm;
@@ -316,7 +320,6 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 			rds_input_off();
 		}
 #endif
-		//set_adv_data();
 		end_measure = 1;
 
 		wrk_measure = 0;
@@ -351,10 +354,6 @@ _attribute_ram_code_ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 //--- check battery
 _attribute_ram_code_ void check_battery(void) {
 	measured_data.battery_mv = get_battery_mv();
-	if (measured_data.battery_mv < 2000) {
-		if (!(cfg.hw_cfg.shtc3 && timer_measure_cb))
-			low_vbat();
-	}
 	measured_data.battery_level = get_battery_level(measured_data.battery_mv);
 }
 
@@ -414,7 +413,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	lpc_power_down();
 	if (get_battery_mv() < MIN_VBAT_MV) { // 2.2V
-		init_sensor(); // SHTC3 go SLEEP
+		sensor_go_sleep(); // SHTC3 go SLEEP
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 	}
@@ -464,6 +463,12 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if USE_WK_RDS_COUNTER
 	rds_init();
 #endif
+	if(analog_read(DEEP_ANA_REG0) != 0x55) {
+		cfg.flg2.ext_adv = 0;
+		cfg.flg2.longrange = 0;
+		analog_write(DEEP_ANA_REG0, 0x55);
+	}
+
 	test_config();
 	memcpy(&ext, &def_ext, sizeof(ext));
 	init_ble();

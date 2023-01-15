@@ -5,36 +5,36 @@
 
 static const u16 clientCharacterCfgUUID = GATT_UUID_CLIENT_CHAR_CFG; // 2902
 
-//static const u16 extReportRefUUID = GATT_UUID_EXT_REPORT_REF; // 2907 External Report Reference 
+//static const u16 extReportRefUUID = GATT_UUID_EXT_REPORT_REF; // 2907
 
-//static const u16 reportRefUUID = GATT_UUID_REPORT_REF; // 2908 Report Reference
+//static const u16 reportRefUUID = GATT_UUID_REPORT_REF; // 2908
 
-//static const u16 characterPresentFormatUUID = GATT_UUID_CHAR_PRESENT_FORMAT; // 2904 Characteristic Present Format 
+static const u16 characterPresentFormatUUID = GATT_UUID_CHAR_PRESENT_FORMAT; // 2904
 
 static const u16 userdesc_UUID	= GATT_UUID_CHAR_USER_DESC; // 2901
 
-static const u16 serviceChangeUUID = GATT_UUID_SERVICE_CHANGE; // 2a05
+static const u16 serviceChangeUUID = GATT_UUID_SERVICE_CHANGE; // 2a05 https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.gatt.service_changed.xml
 
 static const u16 my_primaryServiceUUID = GATT_UUID_PRIMARY_SERVICE; // 2800
 
 static const u16 my_characterUUID = GATT_UUID_CHARACTER; // 2803
 
-static const u16 my_devServiceUUID = SERVICE_UUID_DEVICE_INFORMATION;
+static const u16 my_devServiceUUID = SERVICE_UUID_DEVICE_INFORMATION; // 180A
 
-static const u16 my_PnPUUID = CHARACTERISTIC_UUID_PNP_ID;
+//static const u16 my_PnPUUID = CHARACTERISTIC_UUID_PNP_ID; // 2A50
 
-static const u16 my_devNameUUID = GATT_UUID_DEVICE_NAME;
+static const u16 my_devNameUUID = GATT_UUID_DEVICE_NAME; // 2A00
 
-static const u16 my_gapServiceUUID = SERVICE_UUID_GENERIC_ACCESS;
+static const u16 my_gapServiceUUID = SERVICE_UUID_GENERIC_ACCESS; // 1800
 
-static const u16 my_appearanceUIID = GATT_UUID_APPEARANCE;
+static const u16 my_appearanceUIID = GATT_UUID_APPEARANCE; // 2A01
 
-static const u16 my_periConnParamUUID = GATT_UUID_PERI_CONN_PARAM;
+static const u16 my_periConnParamUUID = GATT_UUID_PERI_CONN_PARAM; // 2A04
 
 // https://github.com/sputnikdev/bluetooth-gatt-parser/blob/master/src/main/resources/gatt/characteristic/org.bluetooth.characteristic.gap.appearance.xml
 static const u16 my_appearance = 768; // value="Generic Thermometer"
 
-static const u16 my_gattServiceUUID = SERVICE_UUID_GENERIC_ATTRIBUTE;
+static const u16 my_gattServiceUUID = SERVICE_UUID_GENERIC_ATTRIBUTE; // 1801
 
 #if USE_DEVICE_INFO_CHR_UUID
 
@@ -93,7 +93,7 @@ static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; //
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 static const u8 my_ModelStr[] = {"LYWSD03MMC"};
-static const u8 my_SerialStr[] = {"F1.0-CFMK-LB-ZCXTJ--"};
+static const u8 my_SerialStr[] = {"F1.0-CFMK-LB-ZCXTJ--"}; // B1.5 "F2.0-CFMK-LB-JHBD---", B1.9 "F1.0-CFMK-LB-FLD----" 
 static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.0_0109"
 RAM u8 my_HardStr[4];// = {"B1.4"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
@@ -123,9 +123,9 @@ static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 //------------------
 #endif // USE_DEVICE_INFO_CHR_UUID
 
-RAM gap_periConnectParams_t my_periConnParameters = {8, 40, 0, 1000};
+RAM gap_periConnectParams_t my_periConnParameters = {CON_INERVAL_LAT, CON_INERVAL_LAT, 0, 8000};
 
-static u16 serviceChangeVal = 0;
+static u32 serviceChangeVal = 0; // uint16 1..65535 "Start of Affected Attribute Handle Range", uint16 1..65535 "End of Affected Attribute Handle Range"
 static u16 serviceChangeCCC = 0;
 
 //////////////////////// Battery /////////////////////////////////////////////////
@@ -172,7 +172,11 @@ static const u8 my_appearanceCharVal[5] = {
 	U16_LO(GATT_UUID_APPEARANCE), U16_HI(GATT_UUID_APPEARANCE)
 };
 static const u8 my_periConnParamCharVal[5] = {
+#ifdef CHG_CONN_PARAM
+	CHAR_PROP_READ | CHAR_PROP_WRITE,
+#else
 	CHAR_PROP_READ,
+#endif
 	U16_LO(CONN_PARAM_DP_H), U16_HI(CONN_PARAM_DP_H),
 	U16_LO(GATT_UUID_PERI_CONN_PARAM), U16_HI(GATT_UUID_PERI_CONN_PARAM)
 };
@@ -321,7 +325,11 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_appearanceCharVal),(u8*)(&my_characterUUID),(u8*)(my_appearanceCharVal), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_appearance),(u8*)(&my_appearanceUIID),(u8*)(&my_appearance), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_periConnParamCharVal),(u8*)(&my_characterUUID),(u8*)(my_periConnParamCharVal), 0},
+#ifdef CHG_CONN_PARAM
+		{0,ATT_PERMISSIONS_RDWR,2,sizeof(my_periConnParameters),(u8*)(&my_periConnParamUUID),(u8*)(&my_periConnParameters), 0, chgConnParameters},
+#else
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_periConnParameters),(u8*)(&my_periConnParamUUID),(u8*)(&my_periConnParameters), 0},
+#endif
 	// 0008 - 000b gatt
 	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_gattServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_serviceChangeCharVal),(u8*)(&my_characterUUID),(u8*)(my_serviceChangeCharVal), 0},
@@ -374,7 +382,7 @@ RAM attribute_t my_Attributes[] = {
 	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID),(u8*)(&my_OtaServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_OtaCharVal),(u8*)(&my_characterUUID),(u8*)(my_OtaCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),(&my_OtaData), &otaWritePre, &otaRead},			//value
-		{0,ATT_PERMISSIONS_READ,2,sizeof (my_OtaName),(u8*)(&userdesc_UUID),(u8*)(my_OtaName), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_OtaName),(u8*)(&userdesc_UUID),(u8*)(my_OtaName), 0},
 	////////////////////////////////////// RxTx ////////////////////////////////////////////////////
 	// 002B - 002E RxTx Communication
 	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_RxTx_ServiceUUID), 0},
@@ -390,33 +398,33 @@ RAM attribute_t my_Attributes[] = {
 
 		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_auth_prop), 0},				//prop
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_auth_buf),(u8*)(&mi_auth_uuid), (u8*)(mi_auth_buf), 0, 0},			//value
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof (mi_auth_str),(u8*)(&userdesc_UUID), (u8*)(mi_auth_str), 0},		// Authentication
+		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_auth_str),(u8*)(&userdesc_UUID), (u8*)(mi_auth_str), 0},		// Authentication
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_auth_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(&mi_auth_ccc), 0}, //value
 
 		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_ota_ctrl_prop), 0},				//prop
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_ota_ctrl_buf),(u8*)(&mi_ota_ctrl_uuid), (u8*)(mi_ota_ctrl_buf), 0, 0},	//value
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof (mi_ota_ctrl_str),(u8*)(&userdesc_UUID), (u8*)(mi_ota_ctrl_str), 0},	// ota_ctrl
+		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_ota_ctrl_str),(u8*)(&userdesc_UUID), (u8*)(mi_ota_ctrl_str), 0},	// ota_ctrl
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_ota_ctrl_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_ota_ctrl_ccc), 0}, //value
 
 		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_ota_data_prop), 0},				//prop
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_ota_data_buf),(u8*)(&mi_ota_data_uuid), (mi_ota_data_buf), 0, 0},			//value
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof (mi_ota_data_str),(u8*)(&userdesc_UUID), (u8*)(mi_ota_data_str), 0},	// ota_data
+		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_ota_data_str),(u8*)(&userdesc_UUID), (u8*)(mi_ota_data_str), 0},	// ota_data
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_ota_data_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_ota_data_ccc), 0}, //value
 
 		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_standard_prop), 0},				//prop
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_standard_buf),(u8*)(&mi_standard_uuid), (u8*)(mi_standard_buf), 0, 0},			//value
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof (mi_standard_str),(u8*)(&userdesc_UUID), (u8*)(mi_standard_str), 0},	// standard
+		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_standard_str),(u8*)(&userdesc_UUID), (u8*)(mi_standard_str), 0},	// standard
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_standard_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_standard_ccc), 0}, //value
 	/////////////////////////////////// Mi STDIO Service ///////////////////////////////////
 	{9,ATT_PERMISSIONS_AUTHOR_READ, 2,16,(u8*)(&my_primaryServiceUUID), (u8*)(&mi_primary_stdio_uuid), 0}, // 0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x00,0x01,0x00,0x00
 		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_stdio_rx_prop), 0},				//prop
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 16,sizeof(mi_stdio_rx_buf),(u8*)(&mi_stdio_rx_uuid), (u8*)(mi_stdio_rx_buf), 0, 0}, //value 0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x01,0x01,0x00,0x00
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof (mi_stdio_rx_str),(u8*)(&userdesc_UUID), (u8*)(mi_stdio_rx_str), 0}, // STDIO_RX
+		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_stdio_rx_str),(u8*)(&userdesc_UUID), (u8*)(mi_stdio_rx_str), 0}, // STDIO_RX
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_stdio_rx_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_stdio_rx_ccc), 0}, //value
 
 		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_stdio_tx_prop), 0},				//prop
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 16, sizeof(mi_stdio_tx_buf),(u8*)(&mi_stdio_tx_uuid), (u8*)(mi_stdio_tx_buf), 0, 0}, //value 0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x02,0x01,0x00,0x00
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof (mi_stdio_tx_str),(u8*)(&userdesc_UUID), (u8*)(mi_stdio_tx_str), 0}, // STDIO_TX
+		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_stdio_tx_str),(u8*)(&userdesc_UUID), (u8*)(mi_stdio_tx_str), 0}, // STDIO_TX
 		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_stdio_tx_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_stdio_tx_ccc), 0}, //value
 #else // USE_MIHOME_SERVICE
 	//Mi 0x95FE

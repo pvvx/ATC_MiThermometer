@@ -55,7 +55,7 @@ RAM mib_summ_data_t mib_summ_data;
 /* Initializing data for mi beacon */
 void mi_beacon_init(void) {
 	memcpy(beacon_nonce.mac, mac_public, 6);
-	beacon_nonce.pid = DEVICE_TYPE;
+	beacon_nonce.pid = XIAOMI_DID;
 }
 
 /* Averaging measurements */
@@ -145,14 +145,14 @@ void mi_encrypt_data_beacon(void) {
 	*pmic++ = beacon_nonce.ext_cnt[1];
 	*pmic++ = beacon_nonce.ext_cnt[2];
     uint8_t aad = 0x11;
-	aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey,
-						   (uint8_t*)&beacon_nonce, sizeof(beacon_nonce),
-						   &aad, sizeof(aad),
-						   (uint8_t *)&data, data.size + sizeof(p->data.id) + sizeof(p->data.size), // + size data head
-						   (uint8_t *)&p->data,
-						   pmic, 4);
+	aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey, // указатель на ключ, аналог от MiHome
+						   (uint8_t*)&beacon_nonce, sizeof(beacon_nonce), // MAC и всякие ID устройства, 32-х битный счетчик
+						   &aad, sizeof(aad),  // add = 0x11
+						   (uint8_t *)&data, data.size + sizeof(p->data.id) + sizeof(p->data.size), // + size data head,  указатель на шифруемые данные
+						   (uint8_t *)&p->data, // указатель куда писать результат
+						   pmic, 4); // указатель куда писать типа подпись-"контрольную сумму" шифра
 }
-
+#if USE_WK_RDS_COUNTER
 void mi_encrypt_event_beacon(uint8_t n) {
 	padv_mi_cr_ev1_t p = (padv_mi_cr_ev1_t)&adv_buf.data;
 	uint8_t * pmic;
@@ -169,7 +169,7 @@ void mi_encrypt_event_beacon(uint8_t n) {
 #else
 	p->head.fctrl.word = 0x5848; // 0x5848 version = 5, encrypted, no MACInclude, ObjectInclude, AuthMode 2
 #endif
-	p->head.dev_id = DEVICE_TYPE;
+	p->head.dev_id = XIAOMI_DID;
 	p->head.counter = (uint8_t)adv_buf.send_count;
 	if (n == RDS_SWITCH) {
 		p->head.size = sizeof(adv_mi_cr_ev1_t) - sizeof(p->head.size);
@@ -199,6 +199,7 @@ void mi_encrypt_event_beacon(uint8_t n) {
 						   (uint8_t *)&p->data,
 						   pmic, 4);
 }
+#endif // USE_WK_RDS_COUNTER
 #endif // USE_SECURITY_BEACON
 
 /* Create mi beacon packet */
@@ -219,7 +220,7 @@ void mi_data_beacon(void) {
 #else
 	p->head.fctrl.word = 0x5850; // 0x5850 version = 5, not encrypted, MACInclude, ObjectInclude, AuthMode 2
 #endif
-	p->head.dev_id = DEVICE_TYPE;
+	p->head.dev_id = XIAOMI_DID;
 	if (adv_buf.call_count < cfg.measure_interval) {
 		p->data.id = XIAOMI_DATA_ID_TempAndHumidity;
 		p->data.size = 4;
@@ -236,7 +237,7 @@ void mi_data_beacon(void) {
 	p->head.size = p->data.size + sizeof(p->head) - sizeof(p->head.size) + sizeof(p->MAC) + sizeof(p->data.id) + sizeof(p->data.size);
 }
 
-#if	USE_TRIGGER_OUT
+#if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
 /* Create mi event beacon packet */
 __attribute__((optimize("-Os")))
 void mi_event_beacon(uint8_t n){
@@ -254,7 +255,7 @@ void mi_event_beacon(uint8_t n){
 #else
 	p->head.fctrl.word = 0x5840; // 0x5840 version = 5, not encrypted, no MACInclude, ObjectInclude, AuthMode 2
 #endif
-	p->head.dev_id = DEVICE_TYPE;
+	p->head.dev_id = XIAOMI_DID;
 	p->head.counter = (uint8_t)adv_buf.send_count;
 	if (n == RDS_SWITCH) {
 		p->head.size = sizeof(adv_mi_ev1_t) - sizeof(p->head.size);
