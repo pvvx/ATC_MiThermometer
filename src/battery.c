@@ -51,7 +51,7 @@ _attribute_ram_code_ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDe
 	while (!clock_time_exceed(t0, 25)); //wait at least 2 sample cycle(f = 96K, T = 10.4us)
 	adc_config_misc_channel_buf((uint16_t *) adc_dat_buf, sizeof(adc_dat_buf));
 	dfifo_enable_dfifo2();
-	pm_wait_us(20);
+	sleep_us(20);
 	for (i = 0; i < ADC_BUF_COUNT; i++) {
 		while (!adc_dat_buf[i]);
 		if (adc_dat_buf[i] & BIT(13)) {
@@ -74,7 +74,7 @@ _attribute_ram_code_ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDe
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4]
 			+ adc_sample[5]) / 4;
-	return (adc_average * adc_vref_cfg.adc_vref) >> 10; // adc_vref default: 1175 (mV)
+	return ((adc_average * 1175) >> 10); // adc_vref default: 1175 (mV)
 }
 
 // 2200..3100 mv - 0..100%

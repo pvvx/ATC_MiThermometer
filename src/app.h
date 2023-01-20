@@ -88,7 +88,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	} hw_cfg; // read only
 #else
 	struct __attribute__((packed)) {
-		uint8_t hwver		: 4; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1-M, 3 - LYWSD03MMC B1.6, 4 - LYWSD03MMC B1.9, 5 - LYWSD03MMC B1.7, 6 - CGDK2, 7 - CGG1-M-2022
+		uint8_t hwver		: 4; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1-M, 3 - LYWSD03MMC B1.9, 4 - LYWSD03MMC B1.6, 5 - LYWSD03MMC B1.7, 6 - CGDK2, 7 - CGG1-M-2022
 		uint8_t reserved	: 3; // reserved
 		uint8_t shtc3		: 1; // =1 - sensor SHTC3, = 0 - sensor SHT4x
 	} hw_cfg; // read only
