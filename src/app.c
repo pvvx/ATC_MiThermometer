@@ -325,6 +325,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 		wrk_measure = 0;
 	}	
 	timer_measure_cb = 0;
+	bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 
 	if (measured_data.battery_mv < 2000)
 		low_vbat();
@@ -337,19 +338,13 @@ _attribute_ram_code_ static void suspend_exit_cb(u8 e, u8 *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
+#if USE_WK_RDS_COUNTER
 _attribute_ram_code_ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
-	if (wrk_measure
-		&& timer_measure_cb
-		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT - 3*CLOCK_16M_SYS_TIMER_CLK_1MS) {
-			bls_pm_setAppWakeupLowPower(0, 0); // clear callback
-			WakeupLowPowerCb(0);
-	}
-#if USE_WK_RDS_COUNTER
 	if (rds.type) // rds: switch or counter
 		rds_suspend();
-#endif
 }
+#endif
 
 //--- check battery
 _attribute_ram_code_ void check_battery(void) {
@@ -473,7 +468,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	memcpy(&ext, &def_ext, sizeof(ext));
 	init_ble();
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
+#if USE_WK_RDS_COUNTER
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
+#endif
 	init_sensor();
 #if USE_FLASH_MEMO
 	memo_init();
@@ -661,14 +658,6 @@ _attribute_ram_code_ void main_loop(void) {
 		utc_time_sec_tick += utc_time_tick_step;
 		utc_time_sec++; // + 1 sec
 	}
-#if 0 // double in suspend_enter_cb()!
-	if (wrk_measure
-		&& timer_measure_cb
-		&& clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT) {
-			bls_pm_setAppWakeupLowPower(0, 0); // clear callback
-			WakeupLowPowerCb(0);
-	}
-#endif
 	if (ota_is_working) {
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN); // SUSPEND_DISABLE
 		if ((ble_connected&2)==0)
@@ -679,7 +668,12 @@ _attribute_ram_code_ void main_loop(void) {
 			rds_task();
 #endif
 		if (!wrk_measure) {
-			if (start_measure) {
+			if (start_measure
+//				&& sensor_i2c_addr
+				&&	bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
+
+				bls_pm_setSuspendMask(SUSPEND_DISABLE);
+
 				wrk_measure = 1;
 				start_measure = 0;
 #if defined(GPIO_ADC1) || defined(GPIO_ADC2)
@@ -700,13 +694,8 @@ _attribute_ram_code_ void main_loop(void) {
 				} else {
 					start_measure_sensor_deep_sleep();
 					check_battery();
-					if (sensor_i2c_addr
-						&&	bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
-						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
-						bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
-					} else {
-						bls_pm_setAppWakeupLowPower(0, 0); // clear callback
-					}
+					bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
+					bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
 				}
 #endif
 			} else {

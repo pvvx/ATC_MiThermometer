@@ -128,6 +128,10 @@ _attribute_ram_code_ void send_to_lcd(void){
 	if (lcd_i2c_addr) {
 		if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
+		else {
+			gpio_setup_up_down_resistor(I2C_SCL, PM_PIN_PULLUP_10K);
+			gpio_setup_up_down_resistor(I2C_SDA, PM_PIN_PULLUP_10K);
+		}
 		reg_i2c_id = lcd_i2c_addr;
 
 		if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
@@ -144,7 +148,6 @@ _attribute_ram_code_ void send_to_lcd(void){
 			reg_i2c_ctrl = FLD_I2C_CMD_STOP;
 		} else { // (lcd_i2c_addr == (B19_I2C_ADDR << 1))
 			// B1.9
-			reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*600000)); // https://github.com/pvvx/ATC_MiThermometer/issues/206
 			reg_i2c_adr = 0x04;
 			reg_i2c_do = reverse(*p++);
 			reg_i2c_di = reverse(*p++);
@@ -191,7 +194,6 @@ void init_lcd(void){
 	}
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B19_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // B1.9
-		reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*600000)); // https://github.com/pvvx/ATC_MiThermometer/issues/206
 		lcd_send_i2c_byte(0xEA); // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
 		sleep_us(240);
 		lcd_send_i2c_byte(0xA4); // Display control (DISCTL): Normal mode, FRAME flip, Power save mode 1
