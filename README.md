@@ -30,6 +30,8 @@ If you have many BLE devices, the adapter must be able to receive BLE advertisem
 
 For reliable connection and refirmware on LYWSD03MMC, the battery level must be more than 40%. This is a design feature - a [cheaper version of the hardware from Xiaomi](https://user-images.githubusercontent.com/12629515/105704705-423fc600-5f20-11eb-88ca-a2db712d0222.png).
 
+On devices with missing power capacities, do not set 'Connect latency' to more than 1000 ms!
+
 **Table of content**
 
 <!-- TOC depthFrom:2 depthTo:3 -->
@@ -175,6 +177,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.8 | Fix [clear_memo](https://github.com/pvvx/ATC_MiThermometer/issues/240), renaming 'HA BLE' format to ['BTHome'](https://bthome.io/) |
 |     3.9 | Changed the calculation of battery readings in %, optimization of consumption for the solar battery when the voltage drops below 2V (deep-sleep), added option to invert event for reed switch, small optimizations. |
 |     4.0 | Improved stability in connected mode. I2C bus CLK and PullUp correction.|
+|     4.1 | Changed "connection latency" for stability in connected.|
 
 ## Applications
 

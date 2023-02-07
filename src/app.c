@@ -122,7 +122,7 @@ const cfg_t def_cfg = {
 #endif
 #endif
 		.rf_tx_power = RF_POWER_P0p04dBm, // RF_POWER_P3p01dBm,
-		.connect_latency = 124 // (124+1)*1.25*16 = 2500 ms
+		.connect_latency = (10000/(CON_INERVAL_LAT * 125)-1) // (49+1)*1.25*16 = 1000 ms
 		};
 RAM cfg_t cfg;
 static const external_data_t def_ext = {
@@ -221,6 +221,8 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 	measurement_step_time = adv_interval * cfg.measure_interval * (625
 			* sys_tick_per_us) - 250; // measurement_step_time = adv_interval * 62.5 * measure_interval, max 250 sec
 
+	if(cfg.connect_latency > (10000/(CON_INERVAL_LAT * 125)-1) && measured_data.battery_mv < 2800)
+		cfg.connect_latency = 10000/(CON_INERVAL_LAT * 125)-1;
 	/* interval = 16;
 	 * connection_interval_ms = (interval * 125) / 100;
 	 * connection_latency_ms = (cfg.connect_latency + 1) * connection_interval_ms = (16*125/100)*(99+1) = 2000;
@@ -327,7 +329,7 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 	timer_measure_cb = 0;
 	bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 
-	if (measured_data.battery_mv < 2000)
+	if (measured_data.battery_mv < 2000) // It is not recommended to write Flash below 2V
 		low_vbat();
 }
 

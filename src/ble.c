@@ -98,6 +98,8 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	(void) e; (void) p; (void) n;
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 	ble_connected = 1;
+	if(cfg.connect_latency > (10000/(CON_INERVAL_LAT * 125)-1) && measured_data.battery_mv < 2800)
+		cfg.connect_latency = 10000/(CON_INERVAL_LAT * 125)-1;
 	my_periConnParameters.latency = cfg.connect_latency;
 	if (cfg.connect_latency) {
 		my_periConnParameters.intervalMin = CON_INERVAL_LAT; // 16*1.25 = 20 ms
@@ -105,6 +107,7 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	}
 	my_periConnParameters.timeout = connection_timeout;
 	bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, my_periConnParameters.latency, my_periConnParameters.timeout);
+//	bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(2600);
 }
 
 #ifdef CHG_CONN_PARAM
@@ -117,9 +120,11 @@ int chgConnParameters(void * p) {
 			&& q->timeout > ((q->intervalMax >> 2) + 1)) {
 		if (q->intervalMax != q->intervalMin)
 			q->latency = 0;
-		memcpy(&my_periConnParameters, q, sizeof(my_periConnParameters));
-		bls_l2cap_requestConnParamUpdate(q->intervalMin, q->intervalMax, q->latency, q->timeout);
-		//bls_pm_setManualLatency(q->latency);
+		if(memcmp(&my_periConnParameters, q, sizeof(my_periConnParameters))!= 0) {
+			memcpy(&my_periConnParameters, q, sizeof(my_periConnParameters));
+			bls_l2cap_requestConnParamUpdate(q->intervalMin, q->intervalMax, q->latency, q->timeout);
+			//bls_pm_setManualLatency(q->latency);
+		}
 	}
 	return 0;
 }
@@ -129,7 +134,7 @@ int app_conn_param_update_response(u8 id, u16  result) {
 	if (result == CONN_PARAM_UPDATE_ACCEPT)
 		ble_connected |= 2;
 	else if (result == CONN_PARAM_UPDATE_REJECT) {
-		// bls_l2cap_requestConnParamUpdate(160, 200, 0, 2500); // (200 ms, 250 ms, 0, 2.5 s)
+		bls_l2cap_requestConnParamUpdate(160, 200, 0, 2500); // (200 ms, 250 ms, 0, 2.5 s)
 	}
 	return 0;
 }
@@ -467,7 +472,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	bls_pm_setSuspendMask(SUSPEND_DISABLE);
 //	blc_pm_setDeepsleepRetentionThreshold(50, 30);
 	blc_pm_setDeepsleepRetentionThreshold(40, 18);
-	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(200); // 240
+	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
 #if USE_NEW_OTA == 0
 	bls_ota_clearNewFwDataArea();
