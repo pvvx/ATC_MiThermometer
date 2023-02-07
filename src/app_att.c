@@ -123,7 +123,12 @@ static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 //------------------
 #endif // USE_DEVICE_INFO_CHR_UUID
 
-RAM gap_periConnectParams_t my_periConnParameters = {CON_INERVAL_LAT, CON_INERVAL_LAT, 0, 8000};
+#ifdef CHG_CONN_PARAM
+RAM gap_periConnectParams_t my_periConnParameters = {CON_INERVAL_LAT, CON_INERVAL_LAT, 0, CON_INERVAL_LAT*250};
+#else
+static const gap_periConnectParams_t def_periConnParameters = {CON_INERVAL_LAT, CON_INERVAL_LAT*2, 0, CON_INERVAL_LAT*125};
+RAM gap_periConnectParams_t my_periConnParameters = {CON_INERVAL_LAT, CON_INERVAL_LAT+3, 0, CON_INERVAL_LAT*125};
+#endif
 
 static u32 serviceChangeVal = 0; // uint16 1..65535 "Start of Affected Attribute Handle Range", uint16 1..65535 "End of Affected Attribute Handle Range"
 static u16 serviceChangeCCC = 0;
@@ -328,7 +333,7 @@ RAM attribute_t my_Attributes[] = {
 #ifdef CHG_CONN_PARAM
 		{0,ATT_PERMISSIONS_RDWR,2,sizeof(my_periConnParameters),(u8*)(&my_periConnParamUUID),(u8*)(&my_periConnParameters), 0, chgConnParameters},
 #else
-		{0,ATT_PERMISSIONS_READ,2,sizeof(my_periConnParameters),(u8*)(&my_periConnParamUUID),(u8*)(&my_periConnParameters), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(def_periConnParameters),(u8*)(&my_periConnParamUUID),(u8*)(&def_periConnParameters), 0},
 #endif
 	// 0008 - 000b gatt
 	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_gattServiceUUID), 0},
