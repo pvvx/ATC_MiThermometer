@@ -98,8 +98,8 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	(void) e; (void) p; (void) n;
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 	ble_connected = 1;
-	if(cfg.connect_latency > (10000/(CON_INERVAL_LAT * 125)-1) && measured_data.battery_mv < 2800)
-		cfg.connect_latency = 10000/(CON_INERVAL_LAT * 125)-1;
+	if(cfg.connect_latency > ((int)(1000*100)/(int)(CON_INERVAL_LAT * 125)-1) && measured_data.battery_mv < 2800)
+		cfg.connect_latency = (int)(1000*100)/(int)(CON_INERVAL_LAT * 125)-1;
 	my_periConnParameters.latency = cfg.connect_latency;
 	if (cfg.connect_latency) {
 		my_periConnParameters.intervalMin = CON_INERVAL_LAT; // 16*1.25 = 20 ms

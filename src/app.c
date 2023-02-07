@@ -221,8 +221,8 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 	measurement_step_time = adv_interval * cfg.measure_interval * (625
 			* sys_tick_per_us) - 250; // measurement_step_time = adv_interval * 62.5 * measure_interval, max 250 sec
 
-	if(cfg.connect_latency > (10000/(CON_INERVAL_LAT * 125)-1) && measured_data.battery_mv < 2800)
-		cfg.connect_latency = 10000/(CON_INERVAL_LAT * 125)-1;
+	if(cfg.connect_latency > ((int)(1000*100)/(int)(CON_INERVAL_LAT * 125)-1) && measured_data.battery_mv < 2800)
+		cfg.connect_latency = (int)(1000*100)/(int)(CON_INERVAL_LAT * 125)-1;
 	/* interval = 16;
 	 * connection_interval_ms = (interval * 125) / 100;
 	 * connection_latency_ms = (cfg.connect_latency + 1) * connection_interval_ms = (16*125/100)*(99+1) = 2000;
