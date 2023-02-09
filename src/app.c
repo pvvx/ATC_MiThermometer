@@ -660,6 +660,9 @@ _attribute_ram_code_ void main_loop(void) {
 		utc_time_sec_tick += utc_time_tick_step;
 		utc_time_sec++; // + 1 sec
 	}
+	// instability workaround bls_pm_setAppWakeupLowPower()
+	if(timer_measure_cb && clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT)
+		WakeupLowPowerCb(0);
 	if (ota_is_working) {
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN); // SUSPEND_DISABLE
 		if ((ble_connected&2)==0)
@@ -670,9 +673,10 @@ _attribute_ram_code_ void main_loop(void) {
 			rds_task();
 #endif
 		if (!wrk_measure) {
+			uint32_t new = clock_time();
 			if (start_measure
 //				&& sensor_i2c_addr
-				&&	bls_pm_getSystemWakeupTick() - clock_time() > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
+				&&	bls_pm_getSystemWakeupTick() - new > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 
 				bls_pm_setSuspendMask(SUSPEND_DISABLE);
 
@@ -696,12 +700,16 @@ _attribute_ram_code_ void main_loop(void) {
 				} else {
 					start_measure_sensor_deep_sleep();
 					check_battery();
-					bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
-					bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
+					// Sleep transition instability workaround bls_pm_setAppWakeupLowPower()
+					if(clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT - 3)
+						WakeupLowPowerCb(0);
+					else {
+						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
+						bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
+					}
 				}
 #endif
 			} else {
-				uint32_t new = clock_time();
 				if ((blc_ll_getCurrentState() & BLS_LINK_STATE_CONN) && blc_ll_getTxFifoNumber() < 9) {
 					if (end_measure) {
 						end_measure = 0;
