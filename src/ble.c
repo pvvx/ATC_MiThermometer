@@ -91,6 +91,7 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 		tx_measures = 0;
 #if	(BLE_EXT_ADV)
 	// TODO: restart ext_adv?
+	blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
 #endif
 }
 
