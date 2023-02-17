@@ -36,7 +36,7 @@ For reliable connection and refirmware on LYWSD03MMC, the battery level must be 
 Home Assistant in "Bloetooth" integration does not support Bloetooth 5.0 and is not implied. 
 (Как переключить адаптер USB-BT5.0+ на работу в LE Long Range в Home Assistant под Linux будет описано позже.)
 
-Ели случайно включили опцию 'Long Range' на термометре, а ваши устройства не поддерживают BT5.0, вытащите и вставьте батарейку - термометр перейдет режим поддержки BT4.2.
+Если случайно включили опцию 'Long Range' на термометре, а ваши устройства не поддерживают BT5.0, вытащите и вставьте батарейку - термометр перейдет в режим поддержки BT4.2.
 Если имеется смартфон с BT5.0+ и программа nRFConnect, тогда сбросить все установки в default возможно путем соединения с термометром и прередачи команды 0x56, как показано на скриншоте:
 
 ![img nRFConnect_set_default.png](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/nRFConnect_set_default.png)
