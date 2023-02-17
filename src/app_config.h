@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x41	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x42	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
@@ -18,18 +18,13 @@ extern "C" {
 #endif
 
 #define BLE_SECURITY_ENABLE 1 // = 1 support pin-code
-#define BLE_EXT_ADV 		0 // = 1 support extension advertise (Test Only!)
+#define BLE_EXT_ADV 		1 // = 1 support extension advertise (Test Only!)
 
 #define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
 #define USE_TIME_ADJUST		1 // = 1 time correction enabled
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
 #define USE_TRIGGER_OUT 	1 // = 1 use trigger out (GPIO_PA5)
-#if BLE_EXT_ADV
-#define USE_WK_RDS_COUNTER  0 // пока не поддерживается в ext_adv
-#else
 #define USE_WK_RDS_COUNTER	USE_TRIGGER_OUT // = 1 wake up when the reed switch is triggered + pulse counter
-#endif
-
 
 #define USE_SECURITY_BEACON 1 // = 1 support encryption beacon (bindkey)
 #define USE_HA_BLE_BEACON	1 // = 1 https://github.com/custom-components/ble_monitor/issues/548
@@ -444,11 +439,6 @@ enum{
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
 
 #define CHG_CONN_PARAM	// test
-
-#if BLE_EXT_ADV
-#undef VERSION
-#define VERSION 0x99	 // Test version
-#endif
 
 #include "vendor/common/default_config.h"
 

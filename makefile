@@ -9,6 +9,8 @@ PROJECT_NAME := ATC_Thermometer
 PROJECT_PATH := ./src
 OUT_PATH :=./out
 
+PGM_PORT?=COM11
+
 ifneq ($(TEL_PATH)/components/drivers/8258/gpio_8258.c, $(wildcard $(TEL_PATH)/components/drivers/8258/gpio_8258.c))
 $(error "Please check SDK Path and set TEL_PATH.")
 endif
@@ -89,16 +91,21 @@ SIZEDUMMY := sizedummy
 all: clean pre-build main-build
 
 flash: $(BIN_FILE)
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM8 -t50 -a2550 -m -w we 0 $(BIN_FILE)
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w we 0 $(BIN_FILE)
 
 reset:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM8 -t50 -a2550 -m -w i
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w i
 
 stop:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM8 -t50 -a2550 i
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 i
 
 go:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -pCOM8 -w -m
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -w -m
+
+TADDR?=0x840000
+TLEN?=128
+test_damp:
+	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z10 -c -g ds $(TADDR) $(TLEN)
 
 # Main-build Target
 main-build: $(ELF_FILE) secondary-outputs

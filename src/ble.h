@@ -210,6 +210,10 @@ void set_pvvx_adv_data(void);
 void set_atc_adv_data(void);
 void set_mi_adv_data(void);
 
+#if (BLE_EXT_ADV)
+int ext_adv_tx_level(void);
+#endif
+
 inline void ble_send_temp(void) {
 	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, (u8 *) &measured_data.temp_x01, 2);
 }

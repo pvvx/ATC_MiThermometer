@@ -23,6 +23,11 @@
 #endif
 #include "rds_count.h"
 
+#if (BLE_EXT_ADV)
+extern u32 blt_advExpectTime;
+extern u8 app_adv_set_param[];
+#endif
+
 RAM	rds_count_t rds;		// Reed switch pulse counter
 
 void rds_init(void) {
@@ -38,8 +43,8 @@ void rds_init(void) {
 	rds.report_tick = utc_time_sec;
 }
 
-
-_attribute_ram_code_ __attribute__((optimize("-Os")))
+//_attribute_ram_code_
+__attribute__((optimize("-Os")))
 void set_rds_adv_data(void) {
 	adv_buf.send_count++;
 	int advertising_type = cfg.flg.advertising_type;
@@ -93,59 +98,36 @@ void set_rds_adv_data(void) {
 	}
 	adv_buf.update_count = 0; // refresh adv_buf.data in next set_adv_data()
 #if (BLE_EXT_ADV)
-#if 0 // Not Work! SDK only 1 ext_adv...
 	if (ext_adv_init) { // support extension advertise
-		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED,
-				adv_buf.data_size, (u8 *)&adv_buf.data);
-	} else
+		if (cfg.flg2.adv_flags)
+			blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size + sizeof(adv_buf.flag), (u8 *)&adv_buf.flag);
+		else
+			blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size, (u8 *)&adv_buf.data);
+
+	} else {
 #endif
+	if (cfg.flg2.adv_flags) {
+		bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
+	} else {
+		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
+	}
+#if (BLE_EXT_ADV)
+	}
 #endif
-	bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
 }
 
-_attribute_ram_code_ static void start_ext_adv(void) {
-
+//_attribute_ram_code_
+static void start_ext_adv(void) {
 #if (BLE_EXT_ADV)
-#if 0 // Not Work! SDK only 1 ext_adv... 
 	if (ext_adv_init) { // support extension advertise
-		blc_ll_setExtAdvEnable_1(BLC_ADV_DISABLE, 1, ADV_HANDLE0, 0, 0);
-		//blc_ll_removeAdvSet(ADV_HANDLE0);
-		//blc_ll_clearAdvSets();
-		//adv_set: Extended, Connectable_scannable
-		blc_ll_setExtAdvParam(ADV_HANDLE0,
-				ADV_EVT_PROP_LEGACY_CONNECTABLE_SCANNABLE_UNDIRECTED,
-				EXT_ADV_INTERVAL, EXT_ADV_INTERVAL,
-				BLT_ENABLE_ADV_ALL, // primary advertising channel map
-				OWN_ADDRESS_PUBLIC, // own address type
-				BLE_ADDR_PUBLIC, // peer address type
-				NULL, // * peer address
-				ADV_FP_NONE, // advertising filter policy
-				TX_POWER_0dBm, // TODO: advertising TX power cfg.rf_tx_power
-				BLE_PHY_1M, // primary advertising channel PHY type
-				0, // secondary advertising minimum skip number
-				BLE_PHY_CODED, // primary advertising channel PHY type
-				ADV_SID_0,
-				0); // scan response notify enable ?
-
-		blc_ll_setExtScanRspData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED,
-				ble_name[0]+1, (uint8_t *) ble_name);
-
 		set_rds_adv_data();
-		adv_buf.data_size = 0; // flag adv_buf.send_count++ in app_advertise_prepare_handler()
-
-		// if Coded PHY is used, this API set default S2/S8 mode for Extended ADV
-		//blc_ll_setDefaultExtAdvCodingIndication(ADV_HANDLE0, CODED_PHY_PREFER_S8);
-
-		// debug!!!
-		//blc_ll_setAuxAdvChnIdxByCustomers(20); // auxiliary data channel, must be range of 0~36
-
-		blta.adv_duraton_en = EXT_ADV_COUNT-2;
-		blta.adv_interval = 0; // system tick
-		// Time = N * 10 ms, Time Range: 10 ms to 655,350 ms
-		blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, (EXT_ADV_INTERVAL*(EXT_ADV_COUNT-1)*625+35)/10000 , EXT_ADV_COUNT);
+		blta.adv_duraton_en = EXT_ADV_COUNT-1;
+		adv_buf.data_size = 0; // flag adv_buf.send_count++
+		ll_ext_adv_t *p = (ll_ext_adv_t *)&app_adv_set_param;
+		blt_advExpectTime = reg_system_tick + 250*CLOCK_16M_SYS_TIMER_CLK_1US; // set time next ext.adv
+		p->adv_event_tick = blt_advExpectTime;
+		p->advInt_use = EXT_ADV_INTERVAL;
 	} else
-
-#endif
 #endif
 	{
 		bls_ll_setAdvEnable(BLC_ADV_DISABLE);  // adv disable
