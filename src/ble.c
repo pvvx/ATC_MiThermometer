@@ -40,6 +40,9 @@ RAM	u8	app_secondary_adv_pkt[MAX_LENGTH_SECOND_ADV_PKT * APP_ADV_SETS_NUMBER];
 RAM	u8	app_advData[APP_MAX_LENGTH_ADV_DATA	* APP_ADV_SETS_NUMBER];
 RAM	u8	app_scanRspData[APP_MAX_LENGTH_SCAN_RESPONSE_DATA * APP_ADV_SETS_NUMBER];
 RAM u8	ext_adv_init; // flag ext_adv init
+
+extern  void * ll_module_adv_cb;
+
 #endif
 
 
@@ -91,7 +94,8 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 		tx_measures = 0;
 #if	(BLE_EXT_ADV)
 	// TODO: restart ext_adv?
-	blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
+	if(ext_adv_init)
+		blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
 #endif
 }
 
@@ -178,10 +182,18 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 }
 
 #if (BLE_EXT_ADV)
-extern  void * ll_module_adv_cb;
 _attribute_ram_code_ int _blt_ext_adv_proc (void) {
-//	ll_ext_adv_t *p = (ll_ext_adv_t *)app_adv_set_param;
-	blta.adv_duraton_en = 0;
+//	blt_advExpectTime
+#if 1
+	if(ext_adv_init && blta.adv_duraton_en) {
+		blta.adv_duraton_en--;
+		if(blta.adv_duraton_en == 0) {
+			ll_ext_adv_t *p = (ll_ext_adv_t *)&app_adv_set_param;
+			p->advInt_use = adv_interval;
+		}
+	}
+//	blta.adv_duraton_en = 0;
+#endif
 	app_advertise_prepare_handler(0);
 	return blt_ext_adv_proc();
 }
@@ -378,7 +390,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 		//blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
 		// set Default Connection Coding
 #if	(BLE_EXT_ADV)
-		if(cfg.flg2.ext_adv && cfg.flg2.longrange)
+		if(cfg.flg2.longrange)
 			blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
 		else
 #endif
@@ -387,7 +399,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 		//bls_app_registerEventCallback (BLT_EV_FLAG_PHY_UPDATE, &callback_phy_update_complete_event);
 	}
 #if	(BLE_EXT_ADV)
-	if (cfg.flg2.ext_adv) { // support extension advertise
+	if (cfg.flg2.longrange) { // support extension advertise Coded PHY
 		// init buffers ext adv
 		// and ll_module_adv_cb = blt_ext_adv_proc; pFunc_ll_SetAdv_Enable = ll_setExtAdv_Enable;
 		blc_ll_initExtendedAdvertising_module(app_adv_set_param, app_primary_adv_pkt, APP_ADV_SETS_NUMBER);
@@ -541,14 +553,16 @@ void set_adv_data(void) {
 			p = adv_buf.data;
 		}
 		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, size, p);
-		return;
-	}
+	} else {
 #endif
 	if (cfg.flg2.adv_flags) {
 		bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
 	} else {
 		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
 	}
+#if (BLE_EXT_ADV)
+	}
+#endif
 }
 
 _attribute_ram_code_ void ble_send_measures(void) {

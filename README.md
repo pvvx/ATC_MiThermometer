@@ -13,7 +13,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Improved measurement accuracy and extended format in 0.01 units
 * Full support Home Assistant ['BTHome integration'](https://bthome.io/)
 * Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon
-* Support Bluetooth5.0+ PHY (LE 1M/2M/LongRange:500K/125K), CSA1/CSA2 (Channel Selection Algorithm)
+* Full Support Bluetooth5.0+ LE Long Range (LE 1M/2M/LongRange:500K/125K), CSA1/CSA2 (Channel Selection Algorithm, Advertising Extensions: primary and secondary Coded PHY S=8, Connectable)
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
 * **Measurement values recording** & Charting. See [Reading Measurements from Flash](#reading-measurements-from-flash)
 * **Adjustable correction offsets** and **Comfort zones**
@@ -25,12 +25,22 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 |:--:|:--:|:--:|:--:|
 |  <img src="https://tasmota.github.io/docs/_media/bluetooth/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="160"/> |  <img src="https://tasmota.github.io/docs/_media/bluetooth/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="160"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="160"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/CGDK2/img/CGDK2.jpg" alt="CGDK2 Qingping Temp & RH Monitor Lite" width="160"/> |
 
-Warning:
+**Warnings**
+
 If you have many BLE devices, the adapter must be able to receive BLE advertisements every 3 ms. UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format. Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the reception.
 
 For reliable connection and refirmware on LYWSD03MMC, the battery level must be more than 40%. This is a design feature - a [cheaper version of the hardware from Xiaomi](https://user-images.githubusercontent.com/12629515/105704705-423fc600-5f20-11eb-88ca-a2db712d0222.png).
 
-On devices with missing power capacities, do not set 'Connect latency' to more than 1000 ms!
+[On devices with missing power capacities](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494), do not set 'Connect latency' to more than 1000 ms!
+
+Home Assistant in "Bloetooth" integration does not support Bloetooth 5.0 and is not implied. 
+(Как переключить адаптер USB-BT5.0+ на работу в LE Long Range в Home Assistant под Linux будет описано позже.)
+
+Ели случайно включили опцию 'Long Range' на термометре, а ваши устройства не поддерживают BT5.0, вытащите и вставьте батарейку - термометр перейдет режим поддержки BT4.2.
+Если имеется смартфон с BT5.0+ и программа nRFConnect, тогда сбросить все установки в default возможно путем соединения с термометром и прередачи команды 0x56, как показано на скриншоте:
+
+![img nRFConnect_set_default.png](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/nRFConnect_set_default.png)
+
 
 **Table of content**
 
@@ -122,11 +132,11 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 
-* [LYWSD03MMC Custom Firmware Version 4.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v41.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
-* [MHO-C401 Custom Firmware Version 4.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v41.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [CGG1-M 2020-2021 Custom Firmware Version 4.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v41.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGG1-M 2022 Custom Firmware Version 4.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v41.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGDK2 Custom Firmware Version 4.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v41.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
+* [LYWSD03MMC Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v42.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
+* [MHO-C401 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v42.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [CGG1-M 2020-2021 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGG1-M 2022 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v42.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 **Original Manufacturer Firmware Version**
 
@@ -177,7 +187,8 @@ In case you want to go back to the original firmware, you can download them here
 |     3.8 | Fix [clear_memo](https://github.com/pvvx/ATC_MiThermometer/issues/240), renaming 'HA BLE' format to ['BTHome'](https://bthome.io/) |
 |     3.9 | Changed the calculation of battery readings in %, optimization of consumption for the solar battery when the voltage drops below 2V (deep-sleep), added option to invert event for reed switch, small optimizations. |
 |     4.0 | Improved stability in connected mode. I2C bus CLK and PullUp correction.|
-|     4.1 | Changed "connection latency" for stability in connected.|
+|     4.1 | Changed "connection latency" for [stability in connected](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494).|
+|     4.2 | Added support: Bluetooth 5 LE Long Range (Advertising Extensions: primary and  secondary Coded PHY S=8, connectable)|
 
 ## Applications
 

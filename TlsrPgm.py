@@ -16,7 +16,7 @@ import io
 
 __progname__ = 'TLSR82xx TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '27.04.21'
+__version__ = '27.01.23'
 
 DEFAULT_UART_BAUD = 230400
 
@@ -777,15 +777,18 @@ class TLSRPGM:
 				return False
 		return True
 	# Test
-	def TestDebugPC(self, count = 1, offset = 0x6bc):
-		if count < 1:
-			count = 1
+	def TestDebugPC(self, ttime = 1, offset = 0x6bc):
+		if ttime < 1:
+			ttime = 1
 		flgsleep = False
 		flgrun = False
 		i = 0
+		print('Read register addres 0x%06x:' % offset)
 		wblk = struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, 4) 
 		t1 = time.time()
-		while i < count:
+		t2 = t1
+		te = t1 + ttime
+		while t2 < te:
 			self.write(crc_blk(wblk))
 			rblk = self.read(6)
 			t2 = time.time()
@@ -794,19 +797,16 @@ class TLSRPGM:
 				return False
 			self.err = rblk[1];
 			self.wcnt = rblk[2] | (rblk[3]<<8)
-			data = None
 			if self.wcnt == 4 and self.err == 0:
 				rblk += self.read(4)
 				if crc_chk(rblk):
 					if flgsleep:
 						t1 = t2
 						print()
-					self.ext_pc = struct.unpack('<I', rblk[4:8])
-					print('\rCPU PC=0x%08x' % self.ext_pc, end = '')
-					if count != 1 or i != 0:
+					self.ext_reg = struct.unpack('<I', rblk[4:8])
+					print('\r0x%08x' % self.ext_reg, end = '')
+					if flgrun:
 						print(' (%.3f)' % (t2-t1), end = '')
-					#if flgsleep:
-					#	return True
 					flgsleep = False
 					flgrun = True
 				else:
@@ -815,16 +815,51 @@ class TLSRPGM:
 			else:
 				if flgrun:
 					print()
-				print('\rCPU sleep? ', end = '')
-				if count != 1 or i != 0:
-					print(' (%.3f sec)' % (t2-t1), end = '')
+				print('\rCPU sleep? (%.3f sec)' % (t2-t1), end = '')
 				if not flgsleep:
 					t1 = t2
 				flgsleep = True
 				flgrun = False
-			i += 1
 		print()
 		return True
+	# Wait CPU run
+	def WaitCPU(self, twait_sec = 1, offset = 0x6bc):
+		if twait_sec < 1:
+			twait_sec = 1
+		flgsleep = False
+		wblk = struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, 4) 
+		t1 = time.time()
+		t2 = t1
+		te = t1 + twait_sec
+		while t2 < te:
+			self.write(crc_blk(wblk))
+			rblk = self.read(6)
+			t2 = time.time()
+			if rblk == None or len(rblk) < 6 or rblk[0] != wblk[0]:
+				print('\r\nError Read response!') 
+				return False
+			self.err = rblk[1];
+			self.wcnt = rblk[2] | (rblk[3]<<8)
+			if self.wcnt == 4 and self.err == 0:
+				rblk += self.read(4)
+				if crc_chk(rblk):
+					if flgsleep:
+						t1 = t2
+						print()
+					self.ext_pc = struct.unpack('<I', rblk[4:8])
+					print('\rCPU PC=0x%08x' % self.ext_pc)
+					return True
+				else:
+					print('\r\nError Read response!') 
+					return False
+			else:
+				print('\rCPU sleep? (%.3f sec)' % (t2-t1), end = '')
+				if not flgsleep:
+					t1 = t2
+				flgsleep = True
+		print()
+		return False
+
 #============================= 
 # main()
 #============================= 
@@ -859,6 +894,11 @@ def main():
 	parser.add_argument(
 		'-a', '--act',
 		help='Activation Time ms (0-off, default: 0 ms)',
+		type=arg_auto_int,
+		default = 0)
+	parser.add_argument(
+		'-z', '--zw',
+		help='Wait Start CPU (default: 0 sec) (before main processing)',
 		type=arg_auto_int,
 		default = 0)
 	parser.add_argument(
@@ -929,6 +969,12 @@ def main():
 	parser_read_flash.add_argument('size', help='Size of region', type=arg_auto_int)
 	parser_read_flash.add_argument('filename', help='Name of binary file')
 
+	parser_write_flash = subparsers.add_parser(
+			'ws',
+			help='Write file to Swire addres')
+	parser_write_flash.add_argument('address', help='Start address', type=arg_auto_int)
+	parser_write_flash.add_argument('filename', help='Name of binary file')
+
 	parser_read_flash = subparsers.add_parser(
 			'ra',
 			help='Read Analog Registers to binary file')
@@ -961,8 +1007,9 @@ def main():
 	parser_read_flash.add_argument('size', help='Size of region', type=arg_auto_int)
 	parser_read_flash = subparsers.add_parser(
 			'dc',
-			help='Chow PC')
-	parser_read_flash.add_argument('count', help='cycle count', type=arg_auto_int)
+			help='Show uit32 register or SRAM addres')
+	parser_read_flash.add_argument('address', help='address (PC - 0x6bc)', type=arg_auto_int)
+	parser_read_flash.add_argument('time', help='time (sec)', type=arg_auto_int)
 
 	args = parser.parse_args()
 	print('=======================================================')
@@ -987,8 +1034,12 @@ def main():
 	if args.baud != DEFAULT_UART_BAUD:
 		if not pgm.SetUartBaud(args.baud):
 			sys.exit(1)
-	if args.trst > 0 or args.act != 0 or args.stopcpu or args.cpustall:
+	if args.trst > 0 or args.act != 0 or args.stopcpu or args.cpustall or args.zw:
 		print('=== PreProcess ========================================')
+	if args.zw: # Wait CPU run
+		if not pgm.WaitCPU(args.zw):
+			pgm.close()
+			sys.exit(1)
 	if args.trst > 0: # Hard reset (Pin RST set '0')?	
 		if args.trst < 5: # min 5 ms
 			args.trst = 5
@@ -1152,15 +1203,13 @@ def main():
 		#	pgm.close()
 		#	sys.exit(1)
 		#print('ok')
-		if not pgm.TestDebugPC(args.count):
+		if not pgm.TestDebugPC(args.time, args.address):
 			pgm.close()
 			sys.exit(1)
 	else:
 		print('No action assigned.')
 	if args.run or args.go or args.mrst:
 		print('=== Post-Process ======================================')
-		if args.operation != 'dc':
-			pgm.TestDebugPC()
 	# Commands / flags post main processing
 	if args.run:
 		print('CPU Run...', end = ' ')

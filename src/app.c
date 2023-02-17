@@ -191,10 +191,7 @@ void set_hw_version(void) {
 }
 
 __attribute__((optimize("-Os"))) void test_config(void) {
-	if (cfg.flg2.longrange) {
-		cfg.flg2.bt5phy = 1;
-		cfg.flg2.ext_adv = 1;
-	} else 	if (cfg.flg2.ext_adv)
+	if (cfg.flg2.longrange)
 		cfg.flg2.bt5phy = 1;
 	if (cfg.rf_tx_power & BIT(7)) {
 		if (cfg.rf_tx_power < RF_POWER_N25p18dBm)
@@ -460,11 +457,12 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if USE_WK_RDS_COUNTER
 	rds_init();
 #endif
+#if BLE_EXT_ADV
 	if(analog_read(DEEP_ANA_REG0) != 0x55) {
-		cfg.flg2.ext_adv = 0;
 		cfg.flg2.longrange = 0;
 		analog_write(DEEP_ANA_REG0, 0x55);
 	}
+#endif
 
 	test_config();
 	memcpy(&ext, &def_ext, sizeof(ext));

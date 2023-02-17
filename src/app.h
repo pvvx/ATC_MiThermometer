@@ -66,9 +66,9 @@ typedef struct __attribute__((packed)) _cfg_t {
 		uint8_t smiley 		: 3;	// 0..7
 		uint8_t adv_crypto	: 1; 	// advertising uses crypto beacon
 		uint8_t adv_flags  	: 1; 	// advertising add flags
-		uint8_t bt5phy  	: 1; 	// support BT5.0 Coded PHY (сбрасывается после отключения питания)
-		uint8_t ext_adv		: 1;    // support extension advertise (сбрасывается после отключения питания)
+		uint8_t bt5phy  	: 1; 	// support BT5.0 All PHY
 		uint8_t longrange  	: 1;  	// advertising in LongRange mode (сбрасывается после отключения питания)
+		uint8_t reserved	: 1;
 	} flg2;
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)
