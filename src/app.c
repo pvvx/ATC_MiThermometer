@@ -151,29 +151,41 @@ void set_hw_version(void) {
 #else
 	uint8_t my_HardStr[4];
 #endif
+	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
+		if (cfg.hw_cfg.shtc3) { // sensor SHTC3 ?
+			cfg.hw_cfg.hwver = 0; // HW:B1.4
+		} else { // sensor SHT4x or ?
+			cfg.hw_cfg.hwver = 5; // HW:B1.7
+		}
+	} else if (lcd_i2c_addr == (B19_I2C_ADDR << 1)) {
+		cfg.hw_cfg.hwver = 3; // HW:B1.9
+	} else {
+		cfg.hw_cfg.hwver = 4; // HW:B1.6
+	}
 	if (flash_read_cfg(&my_HardStr, EEP_ID_HWV, sizeof(my_HardStr)) != sizeof(my_HardStr)
 	|| my_HardStr[0] != 'B'
 	|| my_HardStr[2] != '.' ) {
 		my_HardStr[0] = 'B';
 		my_HardStr[1] = '1';
 		my_HardStr[2] = '.';
-		my_HardStr[3] = '?';
-	}
-	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
-		if (cfg.hw_cfg.shtc3) { // sensor SHTC3 ?
-			cfg.hw_cfg.hwver = 0; // HW:B1.4
+		/*	0 - LYWSD03MMC B1.4
+			3 - LYWSD03MMC B1.9
+			4 - LYWSD03MMC B1.6
+			5 - LYWSD03MMC B1.7 */
+		switch(cfg.hw_cfg.hwver) {
+		case 3: // HW:B1.9
+			my_HardStr[3] = '9';
+			break;
+		case 4: // HW:B1.6
+			my_HardStr[3] = '6';
+			break;
+		case 5: // HW:B1.7
+			my_HardStr[3] = '7';
+			break;
+		default: // HW:B1.4
 			my_HardStr[3] = '4';
-		} else { // sensor SHT4x or ?
-			cfg.hw_cfg.hwver = 5; // HW:B1.7
-			if (my_HardStr[1] == '1') // HW:B1.?
-				my_HardStr[3] = '7';
 		}
-	} else if (lcd_i2c_addr == (B19_I2C_ADDR << 1)) {
-		cfg.hw_cfg.hwver = 3; // HW:B1.9
-		my_HardStr[3] = '9';
-	} else {
-		cfg.hw_cfg.hwver = 4; // HW:B1.6
-		my_HardStr[3] = '6';
+		flash_write_cfg(&my_HardStr, EEP_ID_HWV, sizeof(my_HardStr));
 	}
 #elif DEVICE_TYPE == DEVICE_MHO_C401
 	cfg.hw_cfg.hwver = 1;
@@ -289,10 +301,10 @@ _attribute_ram_code_ void WakeupLowPowerCb(int par) {
 		if (read_sensor_cb()) {
 #endif
 			measured_data.count++;
-#ifdef CHL_ADC1 // Test only!
+#ifdef CHL_ADC1 // DIY version only!
 			measured_data.temp = get_adc_mv(CHL_ADC1);
 #endif
-#ifdef CHL_ADC2 // Test only!
+#ifdef CHL_ADC2 // DIY version only!
 			measured_data.humi = get_adc_mv(CHL_ADC2);
 #endif
 			measured_data.temp_x01 = (measured_data.temp + 5)/ 10;

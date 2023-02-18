@@ -34,7 +34,7 @@ static inline void rds_input_on(void) {
 #include "mi_beacon.h"
 
 #define EXT_ADV_INTERVAL ADV_INTERVAL_50MS
-#define EXT_ADV_COUNT 5
+#define EXT_ADV_COUNT 4
 
 enum {
 	RDS_NONE = 0,
