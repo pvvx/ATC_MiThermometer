@@ -13,7 +13,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Improved measurement accuracy and extended format in 0.01 units
 * Full support Home Assistant ['BTHome integration'](https://bthome.io/)
 * Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon
-* Full Support Bluetooth5.0+ LE Long Range (LE 1M/2M/LongRange:500K/125K), CSA1/CSA2 (Channel Selection Algorithm, Advertising Extensions: primary and secondary Coded PHY S=8, Connectable)
+* Supports Bluetooth5.0+ **LE Long Range** (LE 1M/2M/Coded 500K/125K), CSA1/CSA2 (Channel Selection Algorithm), Advertising Extensions: primary and secondary Coded PHY S=8, Connectable
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
 * **Measurement values recording** & Charting. See [Reading Measurements from Flash](#reading-measurements-from-flash)
 * **Adjustable correction offsets** and **Comfort zones**
