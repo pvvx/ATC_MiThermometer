@@ -38,8 +38,6 @@ void rds_init(void) {
 		rds.count = 0;
 	}
 #endif
-	rds.count_byte[0] = analog_read(DEEP_ANA_REG0);
-	rds.count_byte[1] = analog_read(DEEP_ANA_REG1);
 	rds.report_tick = utc_time_sec;
 }
 
@@ -104,16 +102,15 @@ void set_rds_adv_data(void) {
 		else
 			blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size, (u8 *)&adv_buf.data);
 
-	} else {
+	} else
 #endif
-	if (cfg.flg2.adv_flags) {
-		bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
-	} else {
-		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
+	{
+		if (cfg.flg2.adv_flags) {
+			bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
+		} else {
+			bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
+		}
 	}
-#if (BLE_EXT_ADV)
-	}
-#endif
 }
 
 //_attribute_ram_code_
@@ -121,12 +118,13 @@ static void start_ext_adv(void) {
 #if (BLE_EXT_ADV)
 	if (ext_adv_init) { // support extension advertise
 		set_rds_adv_data();
-		blta.adv_duraton_en = EXT_ADV_COUNT-1;
+		blta.adv_duraton_en = EXT_ADV_COUNT;
 		adv_buf.data_size = 0; // flag adv_buf.send_count++
 		ll_ext_adv_t *p = (ll_ext_adv_t *)&app_adv_set_param;
+		// patch: set time next ext.adv = 0
 		blt_advExpectTime = reg_system_tick + 250*CLOCK_16M_SYS_TIMER_CLK_1US; // set time next ext.adv
 		p->adv_event_tick = blt_advExpectTime;
-		p->advInt_use = EXT_ADV_INTERVAL;
+		p->advInt_use = EXT_ADV_INTERVAL; // new adv. interval
 	} else
 #endif
 	{
@@ -136,7 +134,7 @@ static void start_ext_adv(void) {
 				BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 		set_rds_adv_data();
 		adv_buf.data_size = 0; // flag adv_buf.send_count++
-		bls_ll_setAdvDuration(EXT_ADV_INTERVAL*(EXT_ADV_COUNT-1)*625+33, 1);
+		bls_ll_setAdvDuration(EXT_ADV_INTERVAL*EXT_ADV_COUNT*625+33, 1);
 		blta.adv_interval = 0; // system tick
 		bls_ll_setAdvEnable(BLC_ADV_ENABLE);  // adv enable
 	}
@@ -170,9 +168,6 @@ void rds_task(void) {
 		if (trg.flg.rds_input) {
 			trg.flg.rds_input = 0;
 			rds.count++;
-			// store low 16 bits rds.count
-			analog_write(DEEP_ANA_REG0, rds.count);
-			analog_write(DEEP_ANA_REG1, rds.count >> 8);
 #if USE_WK_RDS_COUNTER32 // save 32 bits?
 			if (rds.count_short[0] == 0) {
 				flash_write_cfg(&rds.count_short[1], EEP_ID_RPC, sizeof(rds.count_short[1]));

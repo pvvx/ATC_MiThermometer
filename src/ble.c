@@ -174,6 +174,7 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	}
 #if USE_WK_RDS_COUNTER
 	else {
+		// restore next adv. interval (no ext.adv)
 		blta.adv_interval = EXT_ADV_INTERVAL*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
 		// set_rds_adv_data();
 	}
@@ -183,18 +184,14 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 
 #if (BLE_EXT_ADV)
 _attribute_ram_code_ int _blt_ext_adv_proc (void) {
-//	blt_advExpectTime
-#if 1
 	if(ext_adv_init && blta.adv_duraton_en) {
 		blta.adv_duraton_en--;
 		if(blta.adv_duraton_en == 0) {
 			ll_ext_adv_t *p = (ll_ext_adv_t *)&app_adv_set_param;
-			p->advInt_use = adv_interval;
+			p->advInt_use = adv_interval; // restore next ext.adv. interval
 		}
-	}
-//	blta.adv_duraton_en = 0;
-#endif
-	app_advertise_prepare_handler(0);
+	} else
+		app_advertise_prepare_handler(0);
 	return blt_ext_adv_proc();
 }
 #endif
@@ -251,6 +248,22 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 		if(ble_connected)
 			return;
 		//adv_set: Extended, Connectable_scannable
+#if 1
+		blc_ll_setExtAdvParam(ADV_HANDLE0,
+				ADV_EVT_PROP_EXTENDED_CONNECTABLE_UNDIRECTED,
+				adv_interval, adv_interval + 10,
+				BLT_ENABLE_ADV_ALL, // primary advertising channel map
+				OWN_ADDRESS_PUBLIC, // own address type
+				BLE_ADDR_PUBLIC, // peer address type
+				NULL, // * peer address
+				ADV_FP_NONE, // advertising filter policy
+				ext_adv_tx_level(), // cfg.rf_tx_power -> advertising TX power
+				BLE_PHY_CODED, // primary advertising channel PHY type
+				0, // secondary advertising minimum skip number
+				BLE_PHY_CODED, // secondary advertising channel PHY type
+				ADV_SID_0,
+				1); // scan response notify enable ?
+#else
 		blc_ll_setExtAdvParam(ADV_HANDLE0,
 				(cfg.flg2.longrange)? ADV_EVT_PROP_EXTENDED_CONNECTABLE_UNDIRECTED : ADV_EVT_PROP_LEGACY_CONNECTABLE_SCANNABLE_UNDIRECTED,
 				adv_interval, adv_interval + 10,
@@ -265,10 +278,11 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 				(cfg.flg2.longrange)? BLE_PHY_CODED : BLE_PHY_1M, // secondary advertising channel PHY type
 				ADV_SID_0,
 				1); // scan response notify enable ?
-
+#endif
 		blc_ll_setExtScanRspData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED,
 				ble_name[0]+1, (uint8_t *) ble_name);
-		// debug!!!  Fix CodedPHY channel?
+
+		// debug:  Fix CodedPHY channel
 		// blc_ll_setAuxAdvChnIdxByCustomers(20); // auxiliary data channel, must be range of 0~36
 
 		bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
@@ -383,11 +397,10 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_ll_initConnection_module(); // connection module  must for BLE slave/master
 	blc_ll_initSlaveRole_module(); // slave module: 	 must for BLE slave,
 	blc_ll_initPowerManagement_module(); //pm module:      	 optional
-	if (cfg.flg2.bt5phy) { // 1M, 2M, LongRange PHY
+	if (cfg.flg2.bt5phy) { // 1M, 2M, Coded PHY
 		blc_ll_init2MPhyCodedPhy_feature();	//if use 2M or Coded PHY
 		// set Default Connection Coding
 		blc_ll_setDefaultConnCodingIndication(CODED_PHY_PREFER_S8);
-		//blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
 		// set Default Connection Coding
 #if	(BLE_EXT_ADV)
 		if(cfg.flg2.longrange)
@@ -395,6 +408,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 		else
 #endif
 			blc_ll_setDefaultPhy(PHY_TRX_PREFER, PHY_PREFER_1M, PHY_PREFER_1M);
+		// set CSA2
 		blc_ll_initChannelSelectionAlgorithm_2_feature();
 		//bls_app_registerEventCallback (BLT_EV_FLAG_PHY_UPDATE, &callback_phy_update_complete_event);
 	}
@@ -408,8 +422,9 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 		blc_ll_initExtScanRspDataBuffer(app_scanRspData, APP_MAX_LENGTH_SCAN_RESPONSE_DATA);
 		// if Coded PHY is used, this API set default S2/S8 mode for Extended ADV
 		blc_ll_setDefaultExtAdvCodingIndication(ADV_HANDLE0, CODED_PHY_PREFER_S8);
+		// patch, set advertise prepare user cb (app_advertise_prepare_handler)
 		ll_module_adv_cb = _blt_ext_adv_proc;
-		ext_adv_init = 1;
+		ext_adv_init = 1; // flag ext_adv init
 	} else
 		ext_adv_init = 0;
 #endif
@@ -483,7 +498,6 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	///////////////////// Power Management initialization///////////////////
 	blc_ll_initPowerManagement_module();
 	bls_pm_setSuspendMask(SUSPEND_DISABLE);
-//	blc_pm_setDeepsleepRetentionThreshold(50, 30);
 	blc_pm_setDeepsleepRetentionThreshold(40, 18);
 	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
@@ -492,7 +506,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 #endif
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
-	bls_set_advertise_prepare(app_advertise_prepare_handler); // todo: not work if EXTENDED_ADVERTISING
+	bls_set_advertise_prepare(app_advertise_prepare_handler); // TODO: not work if EXTENDED_ADVERTISING
 #if	USE_WK_RDS_COUNTER
 	bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
 #endif
@@ -553,16 +567,15 @@ void set_adv_data(void) {
 			p = adv_buf.data;
 		}
 		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, size, p);
-	} else {
+	} else
 #endif
-	if (cfg.flg2.adv_flags) {
-		bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
-	} else {
-		bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
+	{
+		if (cfg.flg2.adv_flags) {
+			bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
+		} else {
+			bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
+		}
 	}
-#if (BLE_EXT_ADV)
-	}
-#endif
 }
 
 _attribute_ram_code_ void ble_send_measures(void) {
