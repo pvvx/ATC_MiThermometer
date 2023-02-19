@@ -122,7 +122,7 @@ const cfg_t def_cfg = {
 #endif
 #endif
 		.rf_tx_power = RF_POWER_P0p04dBm, // RF_POWER_P3p01dBm,
-		.connect_latency = (10000/(CON_INERVAL_LAT * 125)-1) // (49+1)*1.25*16 = 1000 ms
+		.connect_latency = DEF_CONNECT_LATENCY // (49+1)*1.25*16 = 1000 ms
 		};
 RAM cfg_t cfg;
 static const external_data_t def_ext = {
@@ -230,14 +230,14 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 	measurement_step_time = adv_interval * cfg.measure_interval * (625
 			* sys_tick_per_us) - 250; // measurement_step_time = adv_interval * 62.5 * measure_interval, max 250 sec
 
-	if(cfg.connect_latency > ((int)(1000*100)/(int)(CON_INERVAL_LAT * 125)-1) && measured_data.battery_mv < 2800)
-		cfg.connect_latency = (int)(1000*100)/(int)(CON_INERVAL_LAT * 125)-1;
+	if(cfg.connect_latency > DEF_CONNECT_LATENCY && measured_data.battery_mv < 2800)
+		cfg.connect_latency = DEF_CONNECT_LATENCY;
 	/* interval = 16;
 	 * connection_interval_ms = (interval * 125) / 100;
 	 * connection_latency_ms = (cfg.connect_latency + 1) * connection_interval_ms = (16*125/100)*(99+1) = 2000;
 	 * connection_timeout_ms = connection_latency_ms * 4 = 2000 * 4 = 8000;
 	 */
-	connection_timeout = ((cfg.connect_latency + 1) * (4 * CON_INERVAL_LAT * 125)) / 1000; // = 800, default = 8 sec
+	connection_timeout = ((cfg.connect_latency + 1) * (4 * DEF_CON_INERVAL * 125)) / 1000; // = 800, default = 8 sec
 	if (connection_timeout > 32 * 100)
 		connection_timeout = 32 * 100; //x10 ms, max 32 sec?
 	else if (connection_timeout < 100)
@@ -248,8 +248,8 @@ __attribute__((optimize("-Os"))) void test_config(void) {
 		my_periConnParameters.intervalMax = my_periConnParameters.intervalMin + 5;
 		my_periConnParameters.latency = 0;
 	} else {
-		my_periConnParameters.intervalMin = CON_INERVAL_LAT; // 16*1.25 = 20 ms
-		my_periConnParameters.intervalMax = CON_INERVAL_LAT; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMin = DEF_CON_INERVAL; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMax = DEF_CON_INERVAL; // 16*1.25 = 20 ms
 		my_periConnParameters.latency = cfg.connect_latency;
 	}
 	my_periConnParameters.timeout = connection_timeout;

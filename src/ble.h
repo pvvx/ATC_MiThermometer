@@ -43,7 +43,8 @@ extern u8 my_RxTx_Data[16];
 extern u8 my_HardStr[4];
 #endif
 
-#define CON_INERVAL_LAT		16 // 16*1.25 = 20 ms
+#define DEF_CON_INERVAL		16 // 16*1.25 = 20 ms
+#define DEF_CONNECT_LATENCY (((int)100000/(int)(DEF_CON_INERVAL * 125))-1) // = 49, (49+1)*1.25*16 = 1000 ms)
 
 typedef struct
 {

@@ -34,13 +34,14 @@ RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 
 #define APP_MAX_LENGTH_ADV_DATA					64			// Maximum Advertising Data Length,   (if legacy ADV, max length 31 bytes is enough)
 #define APP_MAX_LENGTH_SCAN_RESPONSE_DATA		31			// Maximum Scan Response Data Length, (if legacy ADV, max length 31 bytes is enough)
 
+RAM u8	ext_adv_init; // flag ext_adv init
 RAM	u8	app_adv_set_param[ADV_SET_PARAM_LENGTH * APP_ADV_SETS_NUMBER]; // struct ll_ext_adv_t
 RAM	u8	app_primary_adv_pkt[MAX_LENGTH_PRIMARY_ADV_PKT * APP_ADV_SETS_NUMBER];
 RAM	u8	app_secondary_adv_pkt[MAX_LENGTH_SECOND_ADV_PKT * APP_ADV_SETS_NUMBER];
 RAM	u8	app_advData[APP_MAX_LENGTH_ADV_DATA	* APP_ADV_SETS_NUMBER];
 RAM	u8	app_scanRspData[APP_MAX_LENGTH_SCAN_RESPONSE_DATA * APP_ADV_SETS_NUMBER];
-RAM u8	ext_adv_init; // flag ext_adv init
 
+extern u32 blt_advExpectTime;
 extern  void * ll_module_adv_cb;
 
 #endif
@@ -93,9 +94,13 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	else
 		tx_measures = 0;
 #if	(BLE_EXT_ADV)
-	// TODO: restart ext_adv?
-	if(ext_adv_init)
-		blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
+	if(ext_adv_init) {
+		// patch: restart ext_adv after 1 second
+		ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
+		blt_advExpectTime = clock_time() + CLOCK_16M_SYS_TIMER_CLK_1S; // set time next ext.adv
+		pea->advInt_use = adv_interval; // restore next ext.adv. interval
+		pea->extAdv_en = 1;
+	}
 #endif
 }
 
@@ -103,12 +108,12 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	(void) e; (void) p; (void) n;
 	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 	ble_connected = 1;
-	if(cfg.connect_latency > ((int)(1000*100)/(int)(CON_INERVAL_LAT * 125)-1) && measured_data.battery_mv < 2800)
-		cfg.connect_latency = (int)(1000*100)/(int)(CON_INERVAL_LAT * 125)-1;
+	if(cfg.connect_latency > DEF_CONNECT_LATENCY && measured_data.battery_mv < 2800)
+		cfg.connect_latency = DEF_CONNECT_LATENCY;
 	my_periConnParameters.latency = cfg.connect_latency;
 	if (cfg.connect_latency) {
-		my_periConnParameters.intervalMin = CON_INERVAL_LAT; // 16*1.25 = 20 ms
-		my_periConnParameters.intervalMax = CON_INERVAL_LAT; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMin = DEF_CON_INERVAL; // 16*1.25 = 20 ms
+		my_periConnParameters.intervalMax = DEF_CON_INERVAL; // 16*1.25 = 20 ms
 	}
 	my_periConnParameters.timeout = connection_timeout;
 	bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, my_periConnParameters.latency, my_periConnParameters.timeout);
@@ -174,7 +179,7 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	}
 #if USE_WK_RDS_COUNTER
 	else {
-		// restore next adv. interval (no ext.adv)
+		// restore next adv. interval
 		blta.adv_interval = EXT_ADV_INTERVAL*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
 		// set_rds_adv_data();
 	}
@@ -187,8 +192,8 @@ _attribute_ram_code_ int _blt_ext_adv_proc (void) {
 	if(ext_adv_init && blta.adv_duraton_en) {
 		blta.adv_duraton_en--;
 		if(blta.adv_duraton_en == 0) {
-			ll_ext_adv_t *p = (ll_ext_adv_t *)&app_adv_set_param;
-			p->advInt_use = adv_interval; // restore next ext.adv. interval
+			ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
+			pea->advInt_use = adv_interval; // restore next ext.adv. interval
 		}
 	} else
 		app_advertise_prepare_handler(0);
@@ -247,8 +252,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	if (ext_adv_init) { // extension advertise
 		if(ble_connected)
 			return;
-		//adv_set: Extended, Connectable_scannable
-#if 1
+		//adv_set: Extended, Connectable_undirected
 		blc_ll_setExtAdvParam(ADV_HANDLE0,
 				ADV_EVT_PROP_EXTENDED_CONNECTABLE_UNDIRECTED,
 				adv_interval, adv_interval + 10,
@@ -263,22 +267,6 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 				BLE_PHY_CODED, // secondary advertising channel PHY type
 				ADV_SID_0,
 				1); // scan response notify enable ?
-#else
-		blc_ll_setExtAdvParam(ADV_HANDLE0,
-				(cfg.flg2.longrange)? ADV_EVT_PROP_EXTENDED_CONNECTABLE_UNDIRECTED : ADV_EVT_PROP_LEGACY_CONNECTABLE_SCANNABLE_UNDIRECTED,
-				adv_interval, adv_interval + 10,
-				BLT_ENABLE_ADV_ALL, // primary advertising channel map
-				OWN_ADDRESS_PUBLIC, // own address type
-				BLE_ADDR_PUBLIC, // peer address type
-				NULL, // * peer address
-				ADV_FP_NONE, // advertising filter policy
-				ext_adv_tx_level(), // cfg.rf_tx_power -> advertising TX power
-				(cfg.flg2.longrange)? BLE_PHY_CODED : BLE_PHY_1M, // primary advertising channel PHY type
-				0, // secondary advertising minimum skip number
-				(cfg.flg2.longrange)? BLE_PHY_CODED : BLE_PHY_1M, // secondary advertising channel PHY type
-				ADV_SID_0,
-				1); // scan response notify enable ?
-#endif
 		blc_ll_setExtScanRspData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED,
 				ble_name[0]+1, (uint8_t *) ble_name);
 

@@ -122,7 +122,7 @@ static void start_ext_adv(void) {
 		adv_buf.data_size = 0; // flag adv_buf.send_count++
 		ll_ext_adv_t *p = (ll_ext_adv_t *)&app_adv_set_param;
 		// patch: set time next ext.adv = 0
-		blt_advExpectTime = reg_system_tick + 250*CLOCK_16M_SYS_TIMER_CLK_1US; // set time next ext.adv
+		blt_advExpectTime = clock_time() + 250*CLOCK_16M_SYS_TIMER_CLK_1US; // set time next ext.adv
 		p->adv_event_tick = blt_advExpectTime;
 		p->advInt_use = EXT_ADV_INTERVAL; // new adv. interval
 	} else
