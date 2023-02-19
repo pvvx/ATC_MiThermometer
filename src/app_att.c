@@ -124,10 +124,10 @@ static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 #endif // USE_DEVICE_INFO_CHR_UUID
 
 #ifdef CHG_CONN_PARAM
-RAM gap_periConnectParams_t my_periConnParameters = {CON_INERVAL_LAT, CON_INERVAL_LAT, 0, CON_INERVAL_LAT*250};
+RAM gap_periConnectParams_t my_periConnParameters = {DEF_CON_INERVAL, DEF_CON_INERVAL, 0, DEF_CON_INERVAL*250};
 #else
 static const gap_periConnectParams_t def_periConnParameters = {CON_INERVAL_LAT, CON_INERVAL_LAT*2, 0, CON_INERVAL_LAT*125};
-RAM gap_periConnectParams_t my_periConnParameters = {CON_INERVAL_LAT, CON_INERVAL_LAT+3, 0, CON_INERVAL_LAT*125};
+RAM gap_periConnectParams_t my_periConnParameters = {DEF_CON_INERVAL, DEF_CON_INERVAL+3, 0, DEF_CON_INERVAL*125};
 #endif
 
 static u32 serviceChangeVal = 0; // uint16 1..65535 "Start of Affected Attribute Handle Range", uint16 1..65535 "End of Affected Attribute Handle Range"
