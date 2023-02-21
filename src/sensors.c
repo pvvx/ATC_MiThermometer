@@ -11,6 +11,8 @@
 #include "sensor.h"
 #include "app.h"
 
+#define BAD_SENSOR 0 // (DEVICE_TYPE == DEVICE_CGDK2) test
+
 // Sensor SHTC3 https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHTC3_Datasheet.pdf
 //#define SHTC3_I2C_ADDR		0x70
 #define SHTC3_WAKEUP		0x1735 // Wake-up command of the sensor
@@ -19,7 +21,9 @@
 #define SHTC3_SOFT_RESET_us	240    // time us
 #define SHTC3_GO_SLEEP		0x98b0 // Sleep command of the sensor
 #define SHTC3_MEASURE		0x6678 // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First
+#define SHTC3_MEASURE_CS	0xA27C // Measurement commands, Clock Stretching, Normal Mode, Read T First
 #define SHTC3_LPMEASURE		0x9C60 // Measurement commands, Clock Stretching Disabled, Low Power Mode, Read T First
+#define SHTC3_LPMEASURE_CS	0x245C // Measurement commands, Clock Stretching, Low Power Mode, Read T First
 
 // Sensor SHT4x https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_Datasheet.pdf
 //#define SHT4x_I2C_ADDR		0x44
@@ -29,7 +33,6 @@
 #define SHT4x_MEASURE_HI_us 7000 // 6.9..8.2 ms
 #define SHT4x_MEASURE_LO	0xE0 // Measurement commands, Clock Stretching Disabled, Low Power Mode, Read T First
 #define SHT4x_MEASURE_LO_us 1700 // 1.7 ms
-
 
 #define CRC_POLYNOMIAL  0x131 // P(x) = x^8 + x^5 + x^4 + 1 = 100110001
 
@@ -44,6 +47,17 @@ static _attribute_ram_code_ void send_sensor_word(uint16_t cmd) {
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO | FLD_I2C_CMD_STOP;
 	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
+
+#if BAD_SENSOR
+static _attribute_ram_code_ void send_bdsensor_word(uint16_t cmd) {
+	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
+			init_i2c();
+	reg_i2c_id = 0;
+	reg_i2c_adr_dat = cmd;
+	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO | FLD_I2C_CMD_STOP;
+	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
+}
+#endif
 
 static _attribute_ram_code_ void send_sensor_byte(uint8_t cmd) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
@@ -82,9 +96,8 @@ static int check_sensor(void) {
 }
 
 void init_sensor(void) {
-	// SMBus ALERT
-	sensor_i2c_addr = 0;
-	send_sensor_byte(0x80);
+	// START byte
+	scan_i2c_addr(1);
 	// Reset command using the general call address
 	send_sensor_byte(0x06);
 	sleep_us(SHTC3_WAKEUP_us);	// 240 us
@@ -111,7 +124,11 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int read_sensor_cb(void) {
 			sensor_go_sleep();
 		return 0;
 	}
+#if	BAD_SENSOR
+	reg_i2c_id = FLD_I2C_WRITE_READ_BIT;
+#else
 	reg_i2c_id = sensor_i2c_addr | FLD_I2C_WRITE_READ_BIT;
+#endif
 	i = 512;
 	do {
 		reg_i2c_ctrl = FLD_I2C_CMD_ID | FLD_I2C_CMD_START;
@@ -178,23 +195,29 @@ _attribute_ram_code_ void start_measure_sensor_deep_sleep(void) {
 	if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
 		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
 		sleep_us(SHTC3_WAKEUP_us - 5);	// 240 us
+#if	BAD_SENSOR
+		send_bdsensor_word(SHTC3_MEASURE_CS);
+#else
 		send_sensor_word(SHTC3_MEASURE);
-		gpio_setup_up_down_resistor(I2C_SCL, PM_PIN_PULLUP_1M);
-		gpio_setup_up_down_resistor(I2C_SDA, PM_PIN_PULLUP_1M);
-		timer_measure_cb = clock_time() | 1;
+#endif
 	} else if (sensor_i2c_addr == (SHT4x_I2C_ADDR << 1)) {
 		send_sensor_byte(SHT4x_MEASURE_HI);
-		gpio_setup_up_down_resistor(I2C_SCL, PM_PIN_PULLUP_1M);
-		gpio_setup_up_down_resistor(I2C_SDA, PM_PIN_PULLUP_1M);
-		timer_measure_cb = clock_time() | 1;
-	}
+	} else
+		return;
+	gpio_setup_up_down_resistor(I2C_SCL, PM_PIN_PULLUP_1M);
+	gpio_setup_up_down_resistor(I2C_SDA, PM_PIN_PULLUP_1M);
+	timer_measure_cb = clock_time() | 1;
 }
 
 _attribute_ram_code_ void start_measure_sensor_low_power(void) {
 	if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
 		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
 		sleep_us(SHTC3_WAKEUP_us);	// 240 us
+#if	BAD_SENSOR
+		send_bdsensor_word(SHTC3_LPMEASURE_CS);
+#else
 		send_sensor_word(SHTC3_LPMEASURE);
+#endif
 	} else if ((sensor_i2c_addr) == SHT4x_I2C_ADDR << 1) {
 		send_sensor_byte(SHT4x_MEASURE_LO);
 		sleep_us(SHT4x_MEASURE_LO_us); // 1700 us
