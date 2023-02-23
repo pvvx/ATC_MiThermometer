@@ -49,7 +49,7 @@ enum {
 
 RAM blk_mi_keys_t keybuf;
 
-#if DEVICE_TYPE == DEVICE_MHO_C401
+#if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N))
 uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	uint32_t faddr = FLASH_MIKEYS_ADDR;
 	uint32_t faend = faddr + FLASH_SECTOR_SIZE;

@@ -8,6 +8,20 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
+enum {
+	HW_VER_LYWSD03MMC_B14 = 0,
+	HW_VER_MHO_C401,
+	HW_VER_CGG1,
+	HW_VER_LYWSD03MMC_B19,
+	HW_VER_LYWSD03MMC_B16,
+	HW_VER_LYWSD03MMC_B17,
+	HW_VER_CGDK2,
+	HW_VER_CGG1_2022,
+	HW_VER_MHO_C401_2022,
+	HW_VER_UNKNOWN = 15
+} HW_VERSION_ID;
+
+// EEPROM IDs
 #define EEP_ID_CFG (0x0CFC) // EEP ID config data
 #define EEP_ID_TRG (0x0DFE) // EEP ID trigger data
 #define EEP_ID_RPC (0x0DF5) // EEP ID reed switch pulse counter
@@ -18,6 +32,7 @@
 #define EEP_ID_KEY (0xBEAC) // EEP ID bkey
 #define EEP_ID_HWV (0x1234) // EEP ID Mi HW version
 
+// Adv. types
 enum {
 	ADV_TYPE_ATC = 0,
 	ADV_TYPE_PVVX, // (default)
@@ -77,22 +92,11 @@ typedef struct __attribute__((packed)) _cfg_t {
 	uint8_t rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm (130..191)
 	uint8_t connect_latency; // +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
 	uint8_t min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
-#if 0 // old version < 3.6
 	struct __attribute__((packed)) {
-		uint8_t hwver		: 3; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1, 3 - LYWSD03MMC B1.6, 4 - LYWSD03MMC B1.9, 5 - LYWSD03MMC B1.7
-		uint8_t clock		: 1; // uses clock (old version < 3.6)
-		uint8_t memo		: 1; // uses flash write measures
-		uint8_t trg			: 1; // uses trigger out
-		uint8_t reserved	: 1; // reserved
-		uint8_t shtc3		: 1; // =1 - sensor SHTC3, = 0 - sensor SHT4x
-	} hw_cfg; // read only
-#else
-	struct __attribute__((packed)) {
-		uint8_t hwver		: 4; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1-M, 3 - LYWSD03MMC B1.9, 4 - LYWSD03MMC B1.6, 5 - LYWSD03MMC B1.7, 6 - CGDK2, 7 - CGG1-M-2022
+		uint8_t hwver		: 4; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1-M, 3 - LYWSD03MMC B1.9, 4 - LYWSD03MMC B1.6, 5 - LYWSD03MMC B1.7, 6 - CGDK2, 7 - CGG1-M-2022, 8 - MHO-C401-2022
 		uint8_t reserved	: 3; // reserved
 		uint8_t shtc3		: 1; // =1 - sensor SHTC3, = 0 - sensor SHT4x
 	} hw_cfg; // read only
-#endif
 	uint8_t averaging_measurements; // * measure_interval, 0 - off, 1..255 * measure_interval
 }cfg_t;
 extern cfg_t cfg;
@@ -191,6 +195,9 @@ extern uint32_t pincode;
 extern uint32_t adv_interval;
 extern uint32_t connection_timeout;
 extern uint32_t measurement_step_time;
+extern uint32_t tim_last_chow; // timer show lcd >= 1.5 sec
+extern uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * (50 * CLOCK_16M_SYS_TIMER_CLK_1MS)
+
 void ev_adv_timeout(u8 e, u8 *p, int n);
 void test_config(void);
 void set_hw_version(void);

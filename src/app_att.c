@@ -84,36 +84,39 @@ static const u8 my_ManCharVal[5] = {
 	U16_LO(DeviceInformation_ManName_DP_H), U16_HI(DeviceInformation_ManName_DP_H),
 	U16_LO(CHARACTERISTIC_UUID_MANUFACTURER_NAME), U16_HI(CHARACTERISTIC_UUID_MANUFACTURER_NAME)
 };
+static const u8 my_FirmStr[] = {"github.com/pvvx"};
 #if DEVICE_TYPE == DEVICE_MHO_C401
 static const u8 my_ModelStr[] = {"MHO-C401"};
-static const u8 my_SerialStr[] = {"G-19-000000000000000"};
-static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.0_0010"
-static const u8 my_HardStr[] = {"V_14"};
+static const u8 my_SerialStr[] = {"0000-0000-0000-0001"}; // "0000-0000-0000-00000"
+static const u8 my_HardStr[] = {"2020"};
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0110"
+static const u8 my_ManStr[] = {"miaomiaoce.com"};
+#elif DEVICE_TYPE == DEVICE_MHO_C401N
+static const u8 my_ModelStr[] = {"MHO-C401N"};
+static const u8 my_SerialStr[] = {"0000-0000-0000-0008"}; // "0000-0000-0000-00000"
+static const u8 my_HardStr[] = {"2022"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0110"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 static const u8 my_ModelStr[] = {"LYWSD03MMC"};
 static const u8 my_SerialStr[] = {"F1.0-CFMK-LB-ZCXTJ--"}; // B1.5 "F2.0-CFMK-LB-JHBD---", B1.9 "F1.0-CFMK-LB-FLD----" 
-static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.0_0109"
 RAM u8 my_HardStr[4];// = {"B1.4"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_CGG1
 static const u8 my_ModelStr[] = {"CGG1"};
-//static const u8 my_SerialStr[] = {"1234"};
-#define my_SerialStr mac_public
-static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "1.0.1_0093"
 #if DEVICE_CGG1_ver == 2022
 static const u8 my_HardStr[] = {"2022"};
+static const u8 my_SerialStr[] = {"0000-0000-0000-0007"}; // "0000-0000-0000-00000"
 #else
 static const u8 my_HardStr[] = {"0001"};
+static const u8 my_SerialStr[] = {"0000-0000-0000-0002"}; // "0000-0000-0000-00000"
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 #elif DEVICE_TYPE == DEVICE_CGDK2
 static const u8 my_ModelStr[] = {"CGDK2"};
-#define my_SerialStr mac_public
-static const u8 my_FirmStr[] = {"github.com/pvvx"}; // "2.1.0"
+static const u8 my_SerialStr[] = {"0000-0000-0000-0006"}; // "0000-0000-0000-00000"
 static const u8 my_HardStr[] = {"2.1.0"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
