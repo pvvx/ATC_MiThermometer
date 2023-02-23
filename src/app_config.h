@@ -11,7 +11,7 @@ extern "C" {
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401 2020
 #define DEVICE_MHO_C401N   	0x0008	// E-Ink display MHO-C401 2022
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
-#define DEVICE_CGG1_ver		0 //2022  	// =2022 - CGG1-M version 2022, or = 0 - CGG1-M version 2020,2021
+#define DEVICE_CGG1_ver		2022  	// =2022 - CGG1-M version 2022, or = 0 - CGG1-M version 2020,2021
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 
 #ifndef DEVICE_TYPE

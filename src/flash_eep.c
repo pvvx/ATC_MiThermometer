@@ -424,8 +424,14 @@ bool flash_supported_eep_ver(unsigned int min_ver, unsigned int new_ver) {
 	unsigned int tmp;
 	unsigned int faddr = FMEMORY_SCFG_BASE_ADDR;
 	_flash_mutex_lock();
-	if (flash_read_cfg(&tmp, EEP_ID_VER, sizeof(tmp)) == sizeof(tmp) && tmp >= min_ver)
+	if (flash_read_cfg(&tmp, EEP_ID_VER, sizeof(tmp)) == sizeof(tmp) && tmp >= min_ver) {
+		if(tmp != new_ver) {
+			tmp = new_ver;
+			flash_write_cfg(&tmp, EEP_ID_VER, sizeof(tmp));
+		}
+		_flash_mutex_unlock();
 		return true;
+	}
 	do{
 		tmp = _flash_read_dword(faddr);
 		_flash_erase_sector(faddr);
