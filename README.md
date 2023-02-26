@@ -253,10 +253,12 @@ Xiaomi, ATC, Custom, BTHome and encrypted options.
 
 [Основное различие Advertising форматов](https://github.com/pvvx/ATC_MiThermometer/issues/298).
 
+[Test program](https://github.com/pvvx/ATC_MiThermometer/tree/master/python-interface) of used Bluetooth Advertising formats provided by [Ircama](https://github.com/Ircama).
+
 Only the [BTHome](https://www.home-assistant.io/integrations/bthome/) and Xiaomi support the native [HA Xiaomi Integration](https://www.home-assistant.io/integrations/xiaomi_ble/), for the others use the Custom Component [Passive BLE](https://github.com/custom-components/ble_monitor). 
 Supports bindkey beacon encryption.
 
-* (!) Custom Component [Passive BLE](https://github.com/custom-components/ble_monitor) does not support Bluetooth 5.0 (LE Long Range).
+* (!) Custom Component [Passive BLE](https://github.com/custom-components/ble_monitor) does not [support Bluetooth 5.0](https://github.com/custom-components/ble_monitor/issues/1135) (LE Long Range).
 
 
 #### atc1441 format:
