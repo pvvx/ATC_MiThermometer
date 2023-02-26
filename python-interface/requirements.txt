@@ -1,0 +1,6 @@
+wxPython
+construct
+construct-editor
+bleak
+construct-gallery
+pycryptodome
