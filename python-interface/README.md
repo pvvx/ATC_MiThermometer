@@ -1,6 +1,11 @@
 # Python interfacing methods and data representation model
 
+
+These programs and descriptions are provided by [Ircama](https://github.com/Ircama).
+
+
 This section provides Python components to represent the data model of the BLE advertisements produced by the custom firmware, as well as a documented interface and a testing tool to receive, decode, show and edit the BLE advertisements delivered via the custom firmware.
+
 
 The base components used here are:
 
