@@ -137,6 +137,7 @@ You can directly update/flash the firmware without downloading the binaries belo
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 
 * [LYWSD03MMC Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v42.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
+* [MJWSD05MMC Custom Firmware Version 4.2 (beta)](https://github.com/pvvx/ATC_MiThermometer/raw/master/BTH_v42.bin) ([MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC))
 * [MHO-C401 2020-2021 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v42.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
 * [MHO-C401 2022 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v42.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
 * [CGG1-M 2020-2021 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
@@ -193,7 +194,7 @@ In case you want to go back to the original firmware, you can download them here
 |     3.9 | Changed the calculation of battery readings in %, optimization of consumption for the solar battery when the voltage drops below 2V (deep-sleep), added option to invert event for reed switch, small optimizations. |
 |     4.0 | Improved stability in connected mode. I2C bus CLK and PullUp correction.|
 |     4.1 | Changed "connection latency" for [stability in connected](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494).|
-|     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N). |
+|     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N) and [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC). |
 
 ## Applications
 
