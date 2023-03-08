@@ -1,2 +1,4 @@
 # generated output
 out/*
+__pycache__/
+*.py[cod]
