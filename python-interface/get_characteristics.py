@@ -5,6 +5,12 @@ import argparse
 import time
 
 char_dict = {
+    "00000004-0000-1000-8000-00805f9b34fb": [
+        [[29], GreedyString("utf8"), 0, False]  # SJWS01LM Mi Flood Detector Version
+    ],
+    "00002a00-0000-1000-8000-00805f9b34fb": [
+        [[2], GreedyString("utf8"), 0, False]  # SJWS01LM Mi Flood Detector Device name
+    ],
     "00001800-0000-1000-8000-00805f9b34fb": [
         [[2], GreedyString("utf8"), 0, False]
     ],
@@ -12,7 +18,8 @@ char_dict = {
         [[13, 15, 17, 19, 21, 23], GreedyString("utf8"), 0, False]
     ],
     "0000180f-0000-1000-8000-00805f9b34fb": [
-        [[26], Int8ul, 1, False]  # Battery Level
+        [[16], Int8ul, 1, False],  # SJWS01LM Battery Level
+        [[26], Int8ul, 1, False]  # LYWSD03MMC Battery Level
     ],
     "0000181a-0000-1000-8000-00805f9b34fb": [  # custom format
         [[30], Int16sl_x10, 2, False],  # Temperature Celsius
@@ -27,7 +34,8 @@ char_dict = {
         [[66], native_comfort_values, 6, False],  # comfortable temp and humi
     ],
     "0000fe95-0000-1000-8000-00805f9b34fb": [
-        [[95], GreedyString("utf8"), 0, True],  # version & service.description
+        [[29], GreedyString("utf8"), 0, True],  # SJWS01LM version & service.description
+        [[95], GreedyString("utf8"), 0, True],  # LYWSD03MMC version & service.description
     ]
 }
 
@@ -53,8 +61,12 @@ async def atc_characteristics(client, verbosity=False):
                             char_list.append([char.handle, service.description,
                                 item[1].parse(name_bytes)])
                         else:
+                            try:
+                                string = item[1].parse(name_bytes)
+                            except Exception:
+                                string = name_bytes.hex(' ').upper()
                             char_list.append([char.handle, char.description,
-                                item[1].parse(name_bytes)])
+                                string])
 
     return char_list
 
