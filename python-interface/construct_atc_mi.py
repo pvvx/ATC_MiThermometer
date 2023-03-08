@@ -119,32 +119,37 @@ atc1441_enc_format = Struct(
 # https://github.com/pvvx/ATC_MiThermometer/tree/master/InfoMijiaBLE
 
 mi_like_data = Struct(  # https://github.com/pvvx/ATC_MiThermometer/blob/master/src/mi_beacon.h#L72-L97
-    "type" / Enum(Int16ul,
-        XIAOMI_DATA_ID_Sleep                =0x1002,
-        XIAOMI_DATA_ID_RSSI                 =0x1003,
-        XIAOMI_DATA_ID_Temperature          =0x1004,
-        XIAOMI_DATA_ID_Humidity             =0x1006,
-        XIAOMI_DATA_ID_LightIlluminance     =0x1007,
-        XIAOMI_DATA_ID_SoilMoisture         =0x1008,
-        XIAOMI_DATA_ID_SoilECvalue          =0x1009,
-        XIAOMI_DATA_ID_Power                =0x100A,  # Battery
-        XIAOMI_DATA_ID_TempAndHumidity      =0x100D,
-        XIAOMI_DATA_ID_Lock                 =0x100E,
-        XIAOMI_DATA_ID_Gate                 =0x100F,
-        XIAOMI_DATA_ID_Formaldehyde         =0x1010,
-        XIAOMI_DATA_ID_Bind                 =0x1011,
-        XIAOMI_DATA_ID_Switch               =0x1012,
-        XIAOMI_DATA_ID_RemAmCons            =0x1013,  # Remaining amount of consumables
-        XIAOMI_DATA_ID_Flooding             =0x1014,
-        XIAOMI_DATA_ID_Smoke                =0x1015,
-        XIAOMI_DATA_ID_Gas                  =0x1016,
-        XIAOMI_DATA_ID_NoOneMoves           =0x1017,
-        XIAOMI_DATA_ID_LightIntensity       =0x1018,
-        XIAOMI_DATA_ID_DoorSensor           =0x1019,
-        XIAOMI_DATA_ID_WeightAttributes     =0x101A,
-        XIAOMI_DATA_ID_NoOneMovesOverTime   =0x101B,  # No one moves over time
-        XIAOMI_DATA_ID_SmartPillow          =0x101C,
-        UNBOUND_DEVICE                      =0x0128,
+    "type" / Select(
+        Enum(Int16ul,
+            XIAOMI_DATA_ID_Sleep                =0x1002,
+            XIAOMI_DATA_ID_RSSI                 =0x1003,
+            XIAOMI_DATA_ID_Temperature          =0x1004,
+            XIAOMI_DATA_ID_Humidity             =0x1006,
+            XIAOMI_DATA_ID_LightIlluminance     =0x1007,
+            XIAOMI_DATA_ID_SoilMoisture         =0x1008,
+            XIAOMI_DATA_ID_SoilECvalue          =0x1009,
+            XIAOMI_DATA_ID_Power                =0x100A,  # Battery
+            XIAOMI_DATA_ID_TempAndHumidity      =0x100D,
+            XIAOMI_DATA_ID_Lock                 =0x100E,
+            XIAOMI_DATA_ID_Gate                 =0x100F,
+            XIAOMI_DATA_ID_Formaldehyde         =0x1010,
+            XIAOMI_DATA_ID_Bind                 =0x1011,
+            XIAOMI_DATA_ID_Switch               =0x1012,
+            XIAOMI_DATA_ID_RemAmCons            =0x1013,  # Remaining amount of consumables
+            XIAOMI_DATA_ID_Flooding             =0x1014,
+            XIAOMI_DATA_ID_Smoke                =0x1015,
+            XIAOMI_DATA_ID_Gas                  =0x1016,
+            XIAOMI_DATA_ID_NoOneMoves           =0x1017,
+            XIAOMI_DATA_ID_LightIntensity       =0x1018,
+            XIAOMI_DATA_ID_DoorSensor           =0x1019,
+            XIAOMI_DATA_ID_WeightAttributes     =0x101A,
+            XIAOMI_DATA_ID_NoOneMovesOverTime   =0x101B,  # No one moves over time
+            XIAOMI_DATA_ID_SmartPillow          =0x101C,
+            UNBOUND_DEVICE                      =0x0128,
+        ),
+        Enum(Int8ul,
+            XIAOMI_UNBOUND                      =0x08,
+        )
     ),
     "data" / Switch(this.type,  # https://github.com/pvvx/ATC_MiThermometer/blob/master/InfoMijiaBLE/Mijia%20BLE%20Object%20Definition.md
         {
@@ -191,7 +196,7 @@ mi_like_data = Struct(  # https://github.com/pvvx/ATC_MiThermometer/blob/master/
 )
 
 mi_like_format = Struct(
-    "version" / Computed(1),
+    "version" / Computed(2),
     "size" / Int8ul,  # e.g., 21
     "uid" / Int8ul,  # 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
     "UUID" / ByteSwapped(Const(b"\xfe\x95")),  # 16-bit UUID for Members 0xFE95 Xiaomi Inc.
