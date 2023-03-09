@@ -102,7 +102,7 @@ stop:
 go:
 	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -w -m
 
-TADDR?=0x840000
+TADDR?=0x844000
 TLEN?=128
 test_damp:
 	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z10 -c -g ds $(TADDR) $(TLEN)

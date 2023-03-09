@@ -85,7 +85,13 @@ static const u8 my_ManCharVal[5] = {
 	U16_LO(CHARACTERISTIC_UUID_MANUFACTURER_NAME), U16_HI(CHARACTERISTIC_UUID_MANUFACTURER_NAME)
 };
 static const u8 my_FirmStr[] = {"github.com/pvvx"};
-#if DEVICE_TYPE == DEVICE_MHO_C401
+#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+static const u8 my_ModelStr[] = {"MJWSD05MMC"};
+static const u8 my_SerialStr[] = {"F2.0-CFMK-LB-TMDZ---"};
+static const u8 my_HardStr[] = {"2022"}; // V2.3
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0026"
+static const u8 my_ManStr[] = {"miaomiaoce.com"};
+#elif DEVICE_TYPE == DEVICE_MHO_C401
 static const u8 my_ModelStr[] = {"MHO-C401"};
 static const u8 my_SerialStr[] = {"0000-0000-0000-0001"}; // "0000-0000-0000-00000"
 static const u8 my_HardStr[] = {"2020"};
@@ -129,7 +135,7 @@ static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 #ifdef CHG_CONN_PARAM
 RAM gap_periConnectParams_t my_periConnParameters = {DEF_CON_INERVAL, DEF_CON_INERVAL, 0, DEF_CON_INERVAL*250};
 #else
-static const gap_periConnectParams_t def_periConnParameters = {CON_INERVAL_LAT, CON_INERVAL_LAT*2, 0, CON_INERVAL_LAT*125};
+static const gap_periConnectParams_t def_periConnParameters = {DEF_CON_INERVAL, DEF_CON_INERVAL, DEF_CONNECT_LATENCY , DEF_CON_INERVAL*(DEF_CONNECT_LATENCY)*3};
 RAM gap_periConnectParams_t my_periConnParameters = {DEF_CON_INERVAL, DEF_CON_INERVAL+3, 0, DEF_CON_INERVAL*125};
 #endif
 
@@ -159,7 +165,7 @@ static const u8  my_OtaName[] = {'O', 'T', 'A'};
 // RxTx Char
 static const  u16 my_RxTxUUID				= 0x1f1f;
 static const  u16 my_RxTx_ServiceUUID		= 0x1f10;
-RAM u8 my_RxTx_Data[16];
+RAM u8 my_RxTx_Data[sizeof(cfg) + 2];
 RAM u16 RxTxValueInCCC;
 
 //0x95FE

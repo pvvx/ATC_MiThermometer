@@ -37,7 +37,7 @@ extern u16 RxTxValueInCCC;
 
 #define SEND_BUFFER_SIZE	(ATT_MTU_SIZE-3) // = 20
 extern uint8_t send_buf[SEND_BUFFER_SIZE];
-extern u8 my_RxTx_Data[16];
+extern u8 my_RxTx_Data[sizeof(cfg) + 2];
 
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
 extern u8 my_HardStr[4];
@@ -184,6 +184,7 @@ typedef enum
 
 }ATT_HANDLE;
 
+void app_enter_ota_mode(void);
 void set_adv_data(void);
 
 void my_att_init();
@@ -232,5 +233,6 @@ inline void ble_send_battery(void) {
 }
 
 inline void ble_send_cfg(void) {
+	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg) + 3);
 }

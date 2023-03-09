@@ -1,6 +1,9 @@
 #pragma once 
 enum {
 	CMD_ID_DNAME    = 0x01, // Get/Set device name, "\0" - default: ATC_xxxx
+	CMD_ID_GDEVS 	= 0x02, // Get address devises
+	CMD_ID_I2C_SCAN = 0x03, // I2C scan
+	CMD_ID_I2C_UTR	= 0x04, // Universal I2C/SMBUS read-write
 	CMD_ID_DEV_MAC	= 0x10, // Get/Set MAC [+RandMAC], [size][mac[6][randmac[2]]]
 	CMD_ID_MI_DNAME = 0x11, // Get/Set Mi key: DevNameId, [size]["\0"+miDevName]
 	CMD_ID_MI_TBIND = 0x12, // Get/Set Mi keys: Token & Bind, [size][keys]
@@ -28,6 +31,8 @@ enum {
 	CMD_ID_PINCODE  = 0x70, // Set new PinCode 0..999999
 	CMD_ID_MTU		= 0x71, // Request Mtu Size Exchange (23..255)
 	CMD_ID_REBOOT	= 0x72, // Set Reboot on disconnect
+	CMD_ID_SET_OTA	= 0x73, // Extension BigOTA: Get/set address and size OTA, erase sectors
+
 	// Debug commands (unsupported in different versions!):
 	CMD_ID_DEBUG    = 0xDE  // Test/Debug
 } CMD_ID_KEYS;
@@ -45,6 +50,10 @@ typedef struct __attribute__((packed)) _blk_mi_keys_t {
 	uint8_t data[MI_KEYTBIND_SIZE]; // token + bindkey
 } blk_mi_keys_t, * pblk_mi_keys_t;
 extern blk_mi_keys_t keybuf;
+
+#if USE_EXT_OTA  // Compatible BigOTA
+	void clear_ota_area(void);
+#endif
 
 uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt);
 

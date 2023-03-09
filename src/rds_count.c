@@ -14,6 +14,7 @@
 #include "sensor.h"
 #include "trigger.h"
 #include "ble.h"
+#include "lcd.h"
 #include "custom_beacon.h"
 #if USE_MIHOME_BEACON
 #include "mi_beacon.h"
@@ -97,19 +98,27 @@ void set_rds_adv_data(void) {
 	adv_buf.update_count = 0; // refresh adv_buf.data in next set_adv_data()
 #if (BLE_EXT_ADV)
 	if (ext_adv_init) { // support extension advertise
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size + sizeof(adv_buf.flag), (u8 *)&adv_buf.flag);
+#else
 		if (cfg.flg2.adv_flags)
 			blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size + sizeof(adv_buf.flag), (u8 *)&adv_buf.flag);
 		else
 			blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size, (u8 *)&adv_buf.data);
+#endif
 
 	} else
 #endif
 	{
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+		bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
+#else
 		if (cfg.flg2.adv_flags) {
 			bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
 		} else {
 			bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
 		}
+#endif
 	}
 }
 
@@ -140,6 +149,28 @@ static void start_ext_adv(void) {
 	}
 }
 
+#ifdef GPIO_KEY2
+void set_adv_con_time(int restore) {
+	if(restore) {
+		test_config();
+		rest_adv_int_tad = 0;
+	} else {
+		adv_interval = 1600; // 1 sec
+		rest_adv_int_tad = -1;
+	}
+	if((!ble_connected) && (!blta.adv_duraton_en)) {
+#if (BLE_EXT_ADV)
+		if (ext_adv_init) { // support extension advertise
+			ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
+			pea->advInt_use = adv_interval; // set next ext.adv. interval
+		}
+		else
+#endif
+			ev_adv_timeout(0,0,0);
+	}
+}
+#endif // GPIO_KEY2
+
 _attribute_ram_code_ void rds_suspend(void) {
 	if (!ble_connected) {
 		/* TODO: if connection mode, gpio wakeup throws errors in sdk libs!
@@ -154,7 +185,8 @@ _attribute_ram_code_ void rds_suspend(void) {
 
 /* if (rds.type) // rds.type: switch or counter */
 
-_attribute_ram_code_ __attribute__((optimize("-Os")))
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
 void rds_task(void) {
 //	rds_input_on(); // in "app_config.h" and WakeupLowPowerCb()
 	if (get_rds_input()) {

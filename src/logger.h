@@ -11,6 +11,10 @@
 
 #if USE_FLASH_MEMO
 
+#define MEMO_SEC_ID		0x55AAC0DE // sector head
+#define FLASH_ADDR_START_MEMO	0x40000
+#define FLASH_ADDR_END_MEMO		0x74000 // 49 sectors
+
 typedef struct _memo_blk_t {
 	uint32_t time;  // time (UTC)
 	int16_t temp;	// x0.01 C
