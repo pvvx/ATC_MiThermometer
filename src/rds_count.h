@@ -64,6 +64,16 @@ void set_rds_adv_data(void);
 
 #endif // defined GPIO_RDS
 
+#ifdef GPIO_KEY2
+
+void set_adv_con_time(int restore);
+
+static inline uint8_t get_key2_pressed(void) {
+	return BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff);
+}
+
+#endif // GPIO_KEY2
+
 #endif // USE_TRIGGER_OUT
 
 #endif /* RDS_COUNT_H_ */

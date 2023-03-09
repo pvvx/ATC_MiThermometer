@@ -74,7 +74,11 @@ _attribute_ram_code_ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDe
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4]
 			+ adc_sample[5]) / 4;
-	return ((adc_average * 1175) >> 10); // adc_vref default: 1175 (mV)
+#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+	return (adc_average * 1686) >> 10; // adc_vref default: 1175 (mV)
+#else
+	return (adc_average * 1175) >> 10; // adc_vref default: 1175 (mV)
+#endif
 }
 
 // 2200..3100 mv - 0..100%

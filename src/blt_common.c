@@ -39,6 +39,17 @@ void SwapMacAddress(u8 *mac_out, u8 *mac_in) {
 	mac_out[5] = mac_in[0];
 }
 
+extern void flash_write_all_size(unsigned int addr, unsigned int len, unsigned char *buf);
+
+/* Erase Flash sector CFG_ADR_MAC
+ * Save CUST_CAP_INFO_ADDR (Customize freq_offset adjust cap value) */
+void flash_erase_mac_sector(u32 faddr) {
+	u8 buf[16];
+	flash_read_page(faddr+0xff8, sizeof(buf), (unsigned char *) &buf);
+	flash_erase_sector(faddr);
+	flash_write_all_size(faddr+0xff8, sizeof(buf), (unsigned char *)&buf);
+}
+
 __attribute__((optimize("-Os")))
 void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand) {
 #if ((DEVICE_TYPE == DEVICE_CGG1) && (DEVICE_CGG1_ver == 2022))
@@ -54,12 +65,12 @@ void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand) {
 #else
 #if DEVICE_TYPE == DEVICE_CGDK2
 	u8 mac_flash[13];
-	flash_erase_sector(flash_addr);
+	flash_erase_mac_sector(flash_addr);
 	SwapMacAddress(&mac_flash[1], mac_pub);
 	SwapMacAddress(&mac_flash[7], mac_pub);
 #else // DEVICE_TYPE != DEVICE_CGDK2
 	u8 mac_flash[8];
-	flash_erase_sector(flash_addr);
+	flash_erase_mac_sector(flash_addr);
 #if DEVICE_TYPE == DEVICE_CGG1
 	SwapMacAddress(mac_flash, mac_pub);
 #else // DEVICE_TYPE != DEVICE_CGG1

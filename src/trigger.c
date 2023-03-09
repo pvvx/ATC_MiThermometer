@@ -12,6 +12,7 @@
 #include "drivers.h"
 #include "sensor.h"
 #include "trigger.h"
+#include "rds_count.h"
 
 const trigger_t def_trg = {
 		.temp_threshold = 2100, // 21 °C
@@ -20,6 +21,9 @@ const trigger_t def_trg = {
 		.humi_hysteresis = 0  // disable
 #if USE_WK_RDS_COUNTER
 		,.rds_time_report = 3600 // 1 hours
+#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+		,.rds.type = RDS_SWITCH
+#endif
 #endif
 };
 

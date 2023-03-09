@@ -23,6 +23,7 @@
 #if USE_HA_BLE_BEACON
 #include "ha_ble_beacon.h"
 #endif
+#include "stack/ble/service/ble_ll_ota.h"
 
 void bls_set_advertise_prepare(void *p); // add ll_adv.h
 
@@ -60,22 +61,30 @@ RAM uint8_t ble_name[32] = { 11, 0x09,
 		'C', 'G', 'G', '_', '0', '0', '0', '0',	'0', '0' };
 #elif DEVICE_TYPE == DEVICE_CGDK2
 		'C', 'G', 'D', '_', '0', '0', '0', '0',	'0', '0' };
+#elif DEVICE_TYPE == DEVICE_MJWSD05MMC
+		'B', 'T', 'H', '_', '0', '0', '0', '0',	'0', '0' };
 #else
 		'A', 'T', 'C', '_', '0', '0', '0', '0',	'0', '0' };
 #endif
 
 RAM uint8_t mac_public[6], mac_random_static[6];
 RAM adv_buf_t adv_buf;
-uint8_t ota_is_working = 0;
+RAM uint8_t ota_is_working = 0; // =1 ota enabled, = 0xff flag ext.ota
 
 void app_enter_ota_mode(void) {
 #if USE_NEW_OTA
 	bls_ota_clearNewFwDataArea();
 #endif
-	ota_is_working = 1;
+#if USE_EXT_OTA
+	if(ota_is_working != 0xff)
+#endif
+		ota_is_working = 1;
 	ble_connected &= ~2;
 	bls_pm_setManualLatency(0);
-	bls_ota_setTimeout(45 * 1000000); // set OTA timeout  45 seconds
+	bls_ota_setTimeout(16 * 1000000); // set OTA timeout  16 seconds
+#if (defined(SHOW_OTA_SCREEN) && SHOW_OTA_SCREEN)
+	show_ota_screen();
+#endif
 }
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
@@ -94,24 +103,34 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	else
 		tx_measures = 0;
 #if	(BLE_EXT_ADV)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+	set_adv_con_time(1);
+#else
+	test_config();
 	if(ext_adv_init) {
 		// patch: restart ext_adv after 1 second
 		ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
 		blt_advExpectTime = clock_time() + CLOCK_16M_SYS_TIMER_CLK_1S; // set time next ext.adv
 		pea->advInt_use = adv_interval; // restore next ext.adv. interval
 		pea->extAdv_en = 1;
+	} else {
+		ev_adv_timeout(0,0,0);
 	}
-#endif
+#endif // DEVICE_TYPE == DEVICE_MJWSD05MMC
+#endif // BLE_EXT_ADV
 #ifdef	LCD_CONN_SYMBOL
 	show_connected_symbol(false);
 #else
-	tim_last_chow = clock_time() - min_step_time_update_lcd - (CLOCK_16M_SYS_TIMER_CLK_1S);
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+	lcd_update = 1;
+#else // DEVICE_TYPE != DEVICE_MJWSD05MMC
+	tim_last_chow = clock_time() - min_step_time_update_lcd - (8*CLOCK_16M_SYS_TIMER_CLK_1MS);
 #endif
+#endif // LCD_CONN_SYMBOL
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	(void) e; (void) p; (void) n;
-	// bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 	ble_connected = 1;
 	if(cfg.connect_latency > DEF_CONNECT_LATENCY && measured_data.battery_mv < 2800)
 		cfg.connect_latency = DEF_CONNECT_LATENCY;
@@ -125,9 +144,16 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 #ifdef	LCD_CONN_SYMBOL
 	show_connected_symbol(true);
 #else
-	tim_last_chow = clock_time() - min_step_time_update_lcd - (CLOCK_16M_SYS_TIMER_CLK_1S);
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+	lcd_update = 1;
+#else
+	tim_last_chow = clock_time() - min_step_time_update_lcd - (8*CLOCK_16M_SYS_TIMER_CLK_1MS);
 #endif
-//	bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(2600);
+#endif
+#ifdef GPIO_KEY2
+	rest_adv_int_tad = 0;
+#endif
+	bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 }
 
 #ifdef CHG_CONN_PARAM
@@ -154,12 +180,16 @@ int app_conn_param_update_response(u8 id, u16  result) {
 	if (result == CONN_PARAM_UPDATE_ACCEPT)
 		ble_connected |= 2;
 	else if (result == CONN_PARAM_UPDATE_REJECT) {
-		bls_l2cap_requestConnParamUpdate(160, 200, 0, 2500); // (200 ms, 250 ms, 0, 2.5 s)
+		// TODO: необходимо подбирать другие параметры соединения если внешний адаптер не согласен или плюнуть и послать,
+		// что является лучшим решением для OTA, т.к. использовать плохие и сверх медленные адаптеры типа ESP32 для OTA нет смысла.
+		bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, my_periConnParameters.latency, my_periConnParameters.timeout);
+
 	}
 	return 0;
 }
 
-extern u32 blt_ota_start_tick;
+//extern u32 blt_ota_start_tick; // in "stack/ble/service/ble_ll_ota.h"
+
 int otaWritePre(void * p) {
 	blt_ota_start_tick = clock_time() | 1;
 	return otaWrite(p);
@@ -186,6 +216,15 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 			if (++adv_buf.call_count > adv_buf.update_count) // refresh adv_buf.data ?
 				set_adv_data();
 		}
+#ifdef GPIO_KEY2
+		if(rest_adv_int_tad) {
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+			if ((rest_adv_int_tad & 1) == 0)
+				lcd_update = 1;
+#endif
+			rest_adv_int_tad--;
+		}
+#endif
 	}
 #if USE_WK_RDS_COUNTER
 	else {
@@ -350,6 +389,11 @@ void ble_get_name(void) {
 		ble_name[3] = 'G';
 		ble_name[4] = 'D';
 		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_MJWSD05MMC
+		ble_name[2] = 'B';
+		ble_name[3] = 'T';
+		ble_name[4] = 'H';
+		ble_name[5] = '_';
 #else
 		ble_name[2] = 'A';
 		ble_name[3] = 'T';
@@ -389,7 +433,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	/// if bls_ll_setAdvParam( OWN_ADDRESS_RANDOM ) ->  blc_ll_setRandomAddr(mac_random_static);
 	ble_get_name();
 	////// Controller Initialization  //////////
-	blc_ll_initBasicMCU(); //must
+	//blc_ll_initBasicMCU(); // -> app.c user_init_normal()
 	blc_ll_initStandby_module(mac_public); //must
 	blc_ll_initAdvertising_module(mac_public); // adv module: 		 must for BLE slave,
 	blc_ll_initConnection_module(); // connection module  must for BLE slave/master
@@ -558,7 +602,12 @@ void set_adv_data(void) {
 			memcpy(&adv_buf.data[adv_buf.data_size], ble_name, ble_name[0] + 1);
 			size += ble_name[0] + 1;
 		}
-		if (cfg.flg2.adv_flags) {
+#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+		if(1)
+#else
+		if (cfg.flg2.adv_flags)
+#endif
+		{
 			p = adv_buf.flag;
 			size += sizeof(adv_buf.flag);
 		} else {
@@ -568,7 +617,12 @@ void set_adv_data(void) {
 	} else
 #endif
 	{
-		if (cfg.flg2.adv_flags) {
+#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+		if(1)
+#else
+		if (cfg.flg2.adv_flags)
+#endif
+		{
 			bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
 		} else {
 			bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);

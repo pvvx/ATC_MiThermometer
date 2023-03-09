@@ -9,6 +9,14 @@
 #include "lcd.h"
 #include "battery.h"
 
+RAM uint8_t lcd_i2c_addr;
+RAM uint8_t display_buff[18];
+RAM uint8_t display_cmp_buff[18];
+
+#define lcd_send_i2c_byte(a)  send_i2c_byte(lcd_i2c_addr, a)
+#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (uint8_t *) b, a)
+
+
 /*
   CGDK2 LCD buffer:  byte.bit
 
@@ -100,10 +108,7 @@ const uint8_t bottom_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {9, 3, 17, 7, 10, 7, 
 */
 const uint8_t lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc};
 
-RAM uint8_t lcd_i2c_addr;
-RAM uint8_t display_buff[18];
-RAM uint8_t display_cmp_buff[18];
-
+/*
 static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
@@ -119,7 +124,7 @@ static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
     reg_i2c_ctrl = FLD_I2C_CMD_STOP;
     while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
-
+*/
 
 _attribute_ram_code_ void send_to_lcd(void){
 	unsigned int buff_index;

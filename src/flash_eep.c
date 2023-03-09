@@ -110,6 +110,17 @@ inline unsigned int _flash_memcmp(unsigned int addr, unsigned int len, unsigned 
 }
 #endif
 
+/*
+void flash_erase_sector_bt(unsigned int addr) {
+	if(bls_ll_requestConnBrxEventDisable() > 256) {
+		bls_ll_disableConnBrxEvent();
+		flash_erase_sector(addr);
+		bls_ll_restoreConnBrxEvent();
+	} else
+		flash_erase_sector(addr);
+}
+*/
+
 // error flash write: patch (переход границы в 256 байт)
 _attribute_ram_code_ void flash_write_all_size(unsigned int addr, unsigned int len, unsigned char *buf) {
 	uint32_t xlen;
@@ -134,7 +145,7 @@ _attribute_ram_code_ void flash_write_all_size(unsigned int addr, unsigned int l
 // ret < FMEM_ERROR_MAX - ошибка
 //-----------------------------------------------------------------------------
 FEEP_CODE_ATTR
-LOCAL unsigned int get_addr_bscfg()
+LOCAL unsigned int get_addr_bscfg(void)
 {
 	unsigned int x1 = 0xFFFFFFFF, x2;
 	unsigned int faddr = FMEMORY_SCFG_BASE_ADDR;
@@ -424,6 +435,7 @@ bool flash_supported_eep_ver(unsigned int min_ver, unsigned int new_ver) {
 	unsigned int tmp;
 	unsigned int faddr = FMEMORY_SCFG_BASE_ADDR;
 	_flash_mutex_lock();
+	flash_unlock(FLASH_TYPE_GD); // Flash Unprotect
 	if (flash_read_cfg(&tmp, EEP_ID_VER, sizeof(tmp)) == sizeof(tmp) && tmp >= min_ver) {
 		if(tmp != new_ver) {
 			tmp = new_ver;

@@ -14,14 +14,9 @@
 #include "logger.h"
 #include "ble.h"
 
-#define FLASH_ADDR_START_MEMO	0x40000
-#define FLASH_ADDR_END_MEMO		0x74000 // 49 sectors
-
 #define MEMO_SEC_COUNT		((FLASH_ADDR_END_MEMO - FLASH_ADDR_START_MEMO) / FLASH_SECTOR_SIZE) // 49 sectors
 #define MEMO_SEC_RECS		((FLASH_SECTOR_SIZE-sizeof(memo_head_t))/sizeof(memo_blk_t)) // -  sector: 409 records
 //#define MEMO_REC_COUNT		(MEMO_SEC_RECS*(MEMO_SEC_COUNT-1))// max 48*409 = 20041 records
-
-#define MEMO_SEC_ID		0x55AAC0DE // sector head
 
 #define _flash_erase_sector(a) flash_erase_sector(FLASH_BASE_ADDR + a)
 #define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write_all_size(FLASH_BASE_ADDR + a, 4, (unsigned char *)&_dw); }
@@ -82,7 +77,8 @@ void memo_init_count(void) {
 }
 #endif
 
-__attribute__((optimize("-Os"))) void memo_init(void) {
+__attribute__((optimize("-Os")))
+void memo_init(void) {
 	memo_head_t mhs;
 	uint32_t tmp, fsec_end;
 	uint32_t faddr = FLASH_ADDR_START_MEMO;
@@ -172,6 +168,8 @@ void write_memo(void) {
 		summ_data.battery_mv += measured_data.battery_mv;
 		summ_data.count++;
 		if (cfg.averaging_measurements > summ_data.count)
+			return;
+		if(ble_connected && bls_pm_getSystemWakeupTick() - clock_time() < 125*CLOCK_16M_SYS_TIMER_CLK_1MS)
 			return;
 		mblk.temp = (int16_t)(summ_data.temp/(int32_t)summ_data.count);
 		mblk.humi = (uint16_t)(summ_data.humi/summ_data.count);

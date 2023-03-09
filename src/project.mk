@@ -4,13 +4,15 @@ OUT_DIR += /src
 OBJS += \
 $(OUT_PATH)/src/utils.o \
 $(OUT_PATH)/src/app.o \
-$(OUT_PATH)/src/lcd.o \
+$(OUT_PATH)/src/lcd_lywsd03mmc.o \
 $(OUT_PATH)/src/lcd_cgdk2.o \
+$(OUT_PATH)/src/lcd_mjwsd05mmc.o \
 $(OUT_PATH)/src/epd_cgg1.o \
-$(OUT_PATH)/src/epd_cgg1_2022.o \
+$(OUT_PATH)/src/epd_cgg1n.o \
 $(OUT_PATH)/src/epd_mho_c401.o \
 $(OUT_PATH)/src/epd_mho_c401n.o \
 $(OUT_PATH)/src/sensors.o \
+$(OUT_PATH)/src/rtc_pcf85163.o \
 $(OUT_PATH)/src/trigger.o \
 $(OUT_PATH)/src/rds_count.o \
 $(OUT_PATH)/src/app_att.o \

@@ -3,8 +3,12 @@
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
 #include "ble.h"
-
+#if USE_RTC
+#include "rtc.h"
+#endif
+#include "i2c.h"
 #include "lcd.h"
+#include "sensor.h"
 #include "app.h"
 #include "flash_eep.h"
 #if	USE_TRIGGER_OUT
@@ -18,12 +22,11 @@
 #include "mi_beacon.h"
 #endif
 #include "cmd_parser.h"
-
-
+#include "stack/ble/service/ble_ll_ota.h"
 
 #define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (uint32_t)faddr, len, (uint8_t *)pbuf)
 
-#define TX_MAX_SIZE	 (ATT_MTU_SIZE-3) // = 20
+//#define SEND_BUFFER_SIZE	 (ATT_MTU_SIZE-3) // = 20
 #define FLASH_MIMAC_ADDR CFG_ADR_MAC // 0x76000
 #define FLASH_MIKEYS_ADDR 0x78000
 //#define FLASH_SECTOR_SIZE 0x1000 // in "flash_eep.h"
@@ -48,6 +51,134 @@ enum {
 } MI_KEY_STAGES;
 
 RAM blk_mi_keys_t keybuf;
+
+#if USE_EXT_OTA  // Compatible BigOTA
+
+
+void ota_result_cb(int result) {
+	uint8_t id = 0;
+	if(result == OTA_SUCCESS) {
+		// clear the "bootable" identifier on the current work segment
+		flash_read_page(0x20008, sizeof(id), (unsigned char *) &id);
+		if(id == 'K') {
+			id = 0;
+			flash_write_page(0x20008, 1, (unsigned char *) &id);
+		}
+	}
+}
+
+typedef struct _ext_ota_t {
+	uint32_t start_addr;
+	uint32_t ota_size; // in kbytes
+	uint32_t check_addr;
+} ext_ota_t;
+
+RAM ext_ota_t ext_ota;
+
+uint32_t check_sector_clear(uint32_t addr) {
+	uint32_t faddr = addr, efaddr, fbuf;
+	faddr &= ~(FLASH_SECTOR_SIZE-1);
+	efaddr = faddr + FLASH_SECTOR_SIZE;
+	while(faddr < efaddr) {
+		flash_read_page(faddr, sizeof(fbuf), (unsigned char *) &fbuf);
+		if(fbuf != 0xffffffff) {
+#if 1
+			flash_erase_sector(faddr & (~(FLASH_SECTOR_SIZE-1)));
+#else
+			unsigned char r = irq_disable();
+			sleep_us(287*1000);
+			irq_restore(r);
+#endif
+			break;
+		}
+		faddr += 1024;
+	}
+	return efaddr;
+}
+
+
+// Ext.OTA return code
+enum {
+	EXT_OTA_OK = 0,		//0
+	EXT_OTA_WORKS,		//1
+	EXT_OTA_BUSY,		//2
+	EXT_OTA_READY,		//3
+	EXT_OTA_EVENT,		//4
+	EXT_OTA_ERR_PARM = 0xfe
+} EXT_OTA_ENUM;
+
+uint8_t check_ext_ota(uint32_t ota_addr, uint32_t ota_size) {
+	if(ota_is_working == 0xff)
+		return EXT_OTA_BUSY;
+	if(ota_is_working)
+		return EXT_OTA_WORKS;
+	if(ota_addr < 0x40000 && ota_size <= ota_firmware_size_k)
+		return EXT_OTA_OK;
+	if(ota_size >= 208
+		|| ota_size < 4
+		|| ota_addr & (FLASH_SECTOR_SIZE-1))
+		return EXT_OTA_ERR_PARM;
+#if (defined(SHOW_OTA_SCREEN) && SHOW_OTA_SCREEN)
+	show_ota_screen();
+#endif
+	ble_connected |= 0x80;
+	ota_is_working = 0xff; // flag ext.ota
+	ext_ota.start_addr = ota_addr;
+	ext_ota.check_addr = ota_addr;
+	ext_ota.ota_size = (ota_size + 3) & 0xfffffc;
+	bls_ota_registerResultIndicateCb(ota_result_cb);
+	bls_pm_setManualLatency(3);
+	return EXT_OTA_BUSY;
+}
+
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+static const uint8_t _mi_hw_vers[] = "V2.3F2.0-CFMK-LB-TMDZ---";
+#else
+#error "Define MI_HW_VER_FADDR & _mi_hw_vers!"
+#endif
+
+void clear_ota_area(void) {
+	union {
+		uint8_t b[24];
+		struct __attribute__((packed)) {
+			uint16_t id_ok;
+			uint32_t start_addr;
+			uint32_t ota_size;
+		} msg;
+	} buf;
+//	if(bls_pm_getSystemWakeupTick() - clock_time() < 512*CLOCK_16M_SYS_TIMER_CLK_1MS)
+//		return;
+	if(bls_ll_requestConnBrxEventDisable() < 256 || ext_ota.check_addr == 0)
+		return;
+	if (ext_ota.check_addr >= ext_ota.start_addr + (ext_ota.ota_size << 10)) {
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+			check_sector_clear(MI_HW_VER_FADDR);
+			memcpy(buf.b, &_mi_hw_vers, 24);
+			flash_write_page(MI_HW_VER_FADDR, 24, (unsigned char *)buf.b);
+#else
+#error "Define MI_HW_VER_FADDR & _mi_hw_vers!"
+#endif
+			ota_firmware_size_k = ext_ota.ota_size;
+			ota_program_offset = ext_ota.start_addr;
+			buf.msg.id_ok = (EXT_OTA_READY << 8) + CMD_ID_SET_OTA;
+			buf.msg.start_addr = ext_ota.start_addr;
+			buf.msg.ota_size = ext_ota.ota_size;
+			ota_is_working = 0x02; // flag ext.ota end
+			ext_ota.check_addr = 0;
+	}
+	else  {
+			bls_ll_disableConnBrxEvent();
+			ext_ota.check_addr = check_sector_clear(ext_ota.check_addr);
+			bls_ll_restoreConnBrxEvent();
+			buf.msg.id_ok = (EXT_OTA_EVENT << 8) + CMD_ID_SET_OTA;
+			buf.msg.start_addr = ext_ota.check_addr;
+			buf.msg.ota_size = 0;
+	}
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *)&buf.msg, sizeof(buf.msg));
+	bls_pm_setSuspendMask(
+			SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN); // MCU_STALL);
+}
+#endif // USE_EXT_OTA
 
 #if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N))
 uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
@@ -75,7 +206,7 @@ uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	} while (id != 0xffff || len != 0xff || faddr < faend);
 	return 0;
 }
-#else // DEVICE_LYWSD03MMC & DEVICE_CGG1 & DEVICE_CGDK2
+#else // DEVICE_LYWSD03MMC & DEVICE_CGG1 & DEVICE_CGDK2 & DEVICE_MJWSD05MMC
 /* if return != 0 -> keybuf = keys */
 uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 	uint32_t faddr = FLASH_MIKEYS_ADDR;
@@ -102,11 +233,11 @@ uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 
 uint8_t send_mi_key(void) {
 	if (blc_ll_getTxFifoNumber() < 9) {
-		while (keybuf.klen > TX_MAX_SIZE - 2) {
-			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *) &keybuf, TX_MAX_SIZE);
-			keybuf.klen -= TX_MAX_SIZE - 2;
+		while (keybuf.klen > SEND_BUFFER_SIZE - 2) {
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *) &keybuf, SEND_BUFFER_SIZE);
+			keybuf.klen -= SEND_BUFFER_SIZE - 2;
 			if (keybuf.klen)
-				memcpy(&keybuf.data, &keybuf.data[TX_MAX_SIZE - 2], keybuf.klen);
+				memcpy(&keybuf.data, &keybuf.data[SEND_BUFFER_SIZE - 2], keybuf.klen);
 		};
 		if (keybuf.klen)
 			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *) &keybuf,
@@ -266,7 +397,9 @@ static int32_t erase_mikeys(void) {
 	return tmp;
 }
 
-__attribute__((optimize("-Os"))) void cmd_parser(void * p) {
+__attribute__((optimize("-Os")))
+void cmd_parser(void * p) {
+	uint8_t send_buf[32];
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*) p;
 	uint32_t len = req->l2cap - 3;
 	if (len) {
@@ -286,8 +419,10 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			if (--len > sizeof(ext)) len = sizeof(ext);
 			if (len) {
 				memcpy(&ext, &req->dat[1], len);
-				chow_tick_sec = ext.vtime_sec;
-				chow_tick_clk = clock_time();
+				chow_tick_sec = utc_time_sec + ext.vtime_sec;
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+				lcd_update = 1;
+#endif
 			}
 			ble_send_ext();
 		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) { // Get/set config
@@ -295,9 +430,12 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			u8 tmp = ((volatile u8 *)&cfg.flg2)[0];
 			if (len) {
 				memcpy(&cfg, &req->dat[1], len);
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+				lcd_update = 1;
+#endif
 			}
 			test_config();
-			set_hw_version();
+//			set_hw_version();
 			ev_adv_timeout(0, 0, 0);
 			if (cmd != CMD_ID_CFG_NS) {	// Get/set config (not save to Flash)
 				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
@@ -312,7 +450,9 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			}
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 			test_config();
-			set_hw_version();
+//			set_hw_version();
+			if (!cfg.hw_cfg.shtc3) // sensor SHT4x ?
+				cfg.flg.lp_measures = 1;
 			ev_adv_timeout(0, 0, 0);
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
@@ -336,7 +476,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 #endif // USE_TRIGGER_OUT
 		} else if (cmd == CMD_ID_DEV_MAC) { // Get/Set mac
 			if (len == 2 && req->dat[1] == 0) { // default MAC
-				flash_erase_sector(FLASH_MIMAC_ADDR);
+				flash_erase_mac_sector(FLASH_MIMAC_ADDR);
 				blc_initMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
 				ble_connected |= 0x80; // reset device on disconnect
 			} else if (len == sizeof(mac_public)+2 && req->dat[1] == sizeof(mac_public)) {
@@ -396,11 +536,14 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 #endif
 			olen = 2;
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
-			if (--len > sizeof(display_buff)) len = sizeof(display_buff);
+			if (--len > sizeof(display_buff))
+				len = sizeof(display_buff);
 			if (len) {
 				memcpy(display_buff, &req->dat[1], len);
-				//update_lcd();
-				lcd_flg.b.ext_data = 1;
+				lcd_flg.b.ext_data = 1; // update_lcd();
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+				lcd_update = 1;
+#endif
 			} else lcd_flg.b.ext_data = 0;
 			ble_send_lcd();
 		} else if (cmd == CMD_ID_LCD_FLG) { // Start/stop notify lcd dump and ...
@@ -431,7 +574,7 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 			flash_write_cfg(&cmf, EEP_ID_CMF, sizeof(cmf));
 			ble_send_cmf();
 		} else if (cmd == CMD_ID_DNAME) { // Get/Set device name
-			if (--len > sizeof(ble_name) - 2) len = sizeof(ble_name) - 2;
+			if (--len > SEND_BUFFER_SIZE - 1) len = SEND_BUFFER_SIZE - 1;
 			if (len) {
 				flash_write_cfg(&req->dat[1], EEP_ID_DVN, (req->dat[1] != 0)? len : 0);
 				ble_get_name();
@@ -455,6 +598,12 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 				memcpy(&utc_time_sec, &req->dat[1], len);
 #if USE_TIME_ADJUST
 				utc_set_time_sec = utc_time_sec;
+#endif
+#if USE_RTC
+				rtc_set_utime(utc_time_sec);
+#endif
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+				lcd_update = 1;
 #endif
 			}
 			memcpy(&send_buf[1], &utc_time_sec, sizeof(utc_time_sec));
@@ -501,13 +650,65 @@ __attribute__((optimize("-Os"))) void cmd_parser(void * p) {
 		} else if (cmd == CMD_ID_REBOOT) { // Set Reboot on disconnect
 			ble_connected |= 0x80; // reset device on disconnect
 			olen = 2;
+		} else if (cmd == CMD_ID_SET_OTA) { // Set OTA address and size
+#if USE_EXT_OTA  // Compatible BigOTA
+			uint32_t ota_addr, ota_size;
+			if (len > 8) {
+				memcpy(&ota_addr, &req->dat[1], 4);
+				memcpy(&ota_size, &req->dat[5], 4);
+				send_buf[1] = check_ext_ota(ota_addr, ota_size);
+			} // else send_buf[1] = 0;
+#endif
+			memcpy(&send_buf[2], &ota_program_offset, 4);
+			memcpy(&send_buf[2+4], &ota_firmware_size_k, 4);
+			olen = 2 + 8;
+		} else if (cmd == CMD_ID_GDEVS) {   // Get address devises
+			send_buf[1] = sensor_i2c_addr;
+#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC))
+			send_buf[2] = lcd_i2c_addr;
+#else
+			send_buf[2] = 1;	// SPI
+#endif
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+			send_buf[3] = rtc_i2c_addr;
+			olen = 3 + 1;
+#else
+			olen = 2 + 1;
+#endif
+		} else if (cmd == CMD_ID_I2C_SCAN) {   // Universal I2C/SMBUS read-write
+			len = 0;
+			olen = 1;
+			while(len < 0x100 && olen < SEND_BUFFER_SIZE) {
+				send_buf[olen] = (uint8_t)scan_i2c_addr(len);
+				if(send_buf[olen])
+					olen++;
+				len += 2;
+			}
+		} else if (cmd == CMD_ID_I2C_UTR) {   // Universal I2C/SMBUS read-write
+			i2c_utr_t * pbufi = (i2c_utr_t *)&req->dat[1];
+			olen = pbufi->rdlen & 0x7f;
+			if(len > sizeof(i2c_utr_t)
+				&& olen <= SEND_BUFFER_SIZE - 3 // = 17
+				&& I2CBusUtr(&send_buf[3],
+						pbufi,
+						len - sizeof(i2c_utr_t) - 1) == 0 // wrlen: - addr
+						)  {
+				send_buf[1] = len - 1 - sizeof(i2c_utr_t); // write data len
+				send_buf[2] = pbufi->wrdata[0]; // i2c addr
+				olen += 3;
+			} else {
+				send_buf[1] = 0xff; // Error cmd
+				olen = 2;
+			}
 
 			// Debug commands (unsupported in different versions!):
-
 		} else if (cmd == CMD_ID_DEBUG && len > 3) { // test/debug
 			_flash_read((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), 18, &send_buf[4]);
 			memcpy(send_buf, req->dat, 4);
 			olen = 18+4;
+		} else {
+			send_buf[1] = 0xff; // Error cmd
+			olen = 2;
 		}
 		if (olen)
 			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, olen);

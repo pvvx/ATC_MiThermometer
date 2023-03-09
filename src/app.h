@@ -10,14 +10,15 @@
 
 enum {
 	HW_VER_LYWSD03MMC_B14 = 0,
-	HW_VER_MHO_C401,
-	HW_VER_CGG1,
-	HW_VER_LYWSD03MMC_B19,
-	HW_VER_LYWSD03MMC_B16,
-	HW_VER_LYWSD03MMC_B17,
-	HW_VER_CGDK2,
-	HW_VER_CGG1_2022,
-	HW_VER_MHO_C401_2022,
+	HW_VER_MHO_C401,		//1
+	HW_VER_CGG1,			//2
+	HW_VER_LYWSD03MMC_B19,	//3
+	HW_VER_LYWSD03MMC_B16,	//4
+	HW_VER_LYWSD03MMC_B17,	//5
+	HW_VER_CGDK2,			//6
+	HW_VER_CGG1_2022,		//7
+	HW_VER_MHO_C401_2022,	//8
+	HW_VER_MJWSD05MMC,		//9
 	HW_VER_UNKNOWN = 15
 } HW_VERSION_ID;
 
@@ -41,15 +42,27 @@ enum {
 } ADV_TYPE_ENUM;
 #define ADV_TYPE_DEFAULT	ADV_TYPE_PVVX
 
+#if	(DEVICE_TYPE != DEVICE_MJWSD05MMC)
 #define MASK_FLG2_REBOOT	0xe0
 #define MASK_FLG2_EXT_ADV	0xc0
+#else
+#define MASK_FLG2_REBOOT	0x60
+#endif
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
 		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - HA_BLE
 		uint8_t comfort_smiley		: 1;
+#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+		uint8_t x100				: 1;
+#else
 		uint8_t blinking_time_smile	: 1; //(USE_CLOCK = 0 - smile, =1 time)
+#endif
 		uint8_t temp_F_or_C			: 1;
+#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+		uint8_t time_am_pm			: 1;
+#else
 		uint8_t show_batt_enabled	: 1;
+#endif
 		uint8_t tx_measures			: 1; // Send all measurements in connected mode
 		uint8_t lp_measures			: 1; // Sensor measurements in "Low Power" mode
 	} flg;
@@ -77,10 +90,29 @@ typedef struct __attribute__((packed)) _cfg_t {
 	 * -------------------
 	 * CGG1:
 	 * 0 = "   " off,
-	 * &1 = "---" Line */
+	 * &1 = "---" Line
+	 * -------------------
+	 * MJWSD05MMC
+	 * screen_type:
+	 * 0 = Time
+	 * 1 = Temperature
+	 * 2 = Humidity
+	 * 3 = Battery %
+	 * 4 = Battery V
+	 * 5 = External number & symbols
+	 * */
+#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+		uint8_t screen_type	: 3;
+//		uint8_t reserved1	: 1;
+#else
 		uint8_t smiley 		: 3;	// 0..7
+#endif
 		uint8_t adv_crypto	: 1; 	// advertising uses crypto beacon
+#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+		uint8_t reserved1	: 1;
+#else
 		uint8_t adv_flags  	: 1; 	// advertising add flags
+#endif
 		uint8_t bt5phy  	: 1; 	// support BT5.0 All PHY
 		uint8_t longrange  	: 1;  	// advertising in LongRange mode (сбрасывается после отключения питания)
 		uint8_t reserved	: 1;
@@ -91,7 +123,11 @@ typedef struct __attribute__((packed)) _cfg_t {
 	uint8_t measure_interval; // measure_interval = advertising_interval * x (2..25)
 	uint8_t rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm (130..191)
 	uint8_t connect_latency; // +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
+#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+	uint8_t rezerved;
+#else
 	uint8_t min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
+#endif
 	struct __attribute__((packed)) {
 		uint8_t hwver		: 4; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1-M, 3 - LYWSD03MMC B1.9, 4 - LYWSD03MMC B1.6, 5 - LYWSD03MMC B1.7, 6 - CGDK2, 7 - CGG1-M-2022, 8 - MHO-C401-2022
 		uint8_t reserved	: 3; // reserved
@@ -103,6 +139,32 @@ extern cfg_t cfg;
 extern const cfg_t def_cfg;
 /* Warning: MHO-C401 Symbols: "%", "°Г", "(  )", "." have one control bit! */
 typedef struct __attribute__((packed)) _external_data_t {
+#if(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+	int32_t		number; // -999.50..19995.50, x0.01
+	uint16_t 	vtime_sec; // validity time, in sec
+	struct __attribute__((packed)) {
+		/* 0 = "     " off,
+		 * 1 = " ^-^ "
+		 * 2 = " -^- "
+		 * 3 = " ooo "
+		 * 4 = "(   )"
+		 * 5 = "(^-^)" happy
+		 * 6 = "(-^-)" sad
+		 * 7 = "(ooo)" */
+		uint8_t smiley			: 3;
+		uint8_t battery			: 1;
+		/* 0x00 = "  "
+		 * 0x01 = "°г"
+		 * 0x02 = " -"
+		 * 0x03 = "°c"
+		 * 0x04 = " |"
+		 * 0x05 = "°Г"
+		 * 0x06 = " г"
+		 * 0x07 = "°F"
+		 * 0x08 = "%" */
+		uint8_t temp_symbol		: 4;
+	} flg;
+#else
 	int16_t		big_number; // -995..19995, x0.1
 	int16_t		small_number; // -9..99, x1
 	uint16_t 	vtime_sec; // validity time, in sec
@@ -128,6 +190,7 @@ typedef struct __attribute__((packed)) _external_data_t {
 		 * 7 = "°E", shr 0xe0 */
 		uint8_t temp_symbol		: 3;
 	} flg;
+#endif
 } external_data_t, * pexternal_data_t;
 extern external_data_t ext;
 extern uint32_t chow_tick_clk; // count chow validity time, in clock
@@ -137,6 +200,7 @@ extern uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
 #if	USE_TIME_ADJUST
 extern uint32_t utc_time_tick_step; // adjust time clock (in 1/16 us for 1 sec)
 #endif
+extern int32_t rest_adv_int_tad;	// timer event restore adv.intervals
 
 #if BLE_SECURITY_ENABLE
 extern uint32_t pincode; // pincode (if = 0 - not used)
@@ -165,6 +229,17 @@ extern volatile uint8_t tx_measures; // connect notify send measure flag
 extern volatile uint8_t start_measure; // start measure all
 extern volatile uint8_t wrk_measure;
 extern volatile uint8_t end_measure;
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+extern volatile uint8_t lcd_update;
+#endif
+
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#define MI_HW_VER_FADDR 0x7D000 // Mi HW version
+#else
+#define MI_HW_VER_FADDR 0x55000 // Mi HW version
+#endif
+
+
 extern uint32_t tim_measure; // timer measurements >= 10 sec
 
 typedef union _lcd_flg_t {
@@ -196,7 +271,10 @@ extern uint32_t adv_interval;
 extern uint32_t connection_timeout;
 extern uint32_t measurement_step_time;
 extern uint32_t tim_last_chow; // timer show lcd >= 1.5 sec
+
+#if DEVICE_TYPE != DEVICE_MJWSD05MMC
 extern uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * (50 * CLOCK_16M_SYS_TIMER_CLK_1MS)
+#endif
 
 void ev_adv_timeout(u8 e, u8 *p, int n);
 void test_config(void);
@@ -205,5 +283,6 @@ void reset_cache(void);
 
 void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand);
 void SwapMacAddress(u8 *mac_out, u8 *mac_in);
+void flash_erase_mac_sector(u32 faddr);
 
 #endif /* MAIN_H_ */

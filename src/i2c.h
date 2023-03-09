@@ -2,7 +2,19 @@
 
 #include <stdint.h>
 
+/* Universal I2C/SMBUS read-write transaction struct */
+typedef struct _i2c_utr_t {
+	unsigned char mode;  // bit0..6: number wr_byte for new START (bit7: =1 - generate STOP/START)
+	unsigned char rdlen; // bit0..6: number rd_byte (bit7: =0 - old read byte generate NACK, =1 - ACK)
+	unsigned char wrdata[1]; // i2c_addr_wr, wr_byte1, wr_byte2, wr_byte3, ... wr_byte126
+} i2c_utr_t;
+
 void init_i2c();
 //void send_i2c(uint8_t device_id, uint8_t *buffer, int dataLen);
 int scan_i2c_addr(int address);
+int send_i2c_byte(uint8_t i2c_addr, uint8_t cmd);
+int send_i2c_word(uint8_t i2c_addr, uint16_t cmd);
+int send_i2c_buf(uint8_t i2c_addr, uint8_t * dataBuf, uint32_t dataLen);
+int read_i2c_byte_addr(uint8_t i2c_addr, uint8_t reg_addr, uint8_t * dataBuf, uint32_t dataLen);
+int I2CBusUtr(void * outdata, i2c_utr_t *tr, unsigned int wrlen);
 

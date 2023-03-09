@@ -11,11 +11,14 @@ extern "C" {
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401 2020
 #define DEVICE_MHO_C401N   	0x0008	// E-Ink display MHO-C401 2022
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
+#ifndef DEVICE_CGG1_ver
 #define DEVICE_CGG1_ver		2022  	// =2022 - CGG1-M version 2022, or = 0 - CGG1-M version 2020,2021
+#endif
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
+#define DEVICE_MJWSD05MMC	0x2832  // LCD display MJWSD05MMC
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 (+ set DEVICE_CGG1_ver) or DEVICE_CGDK2 or DEVICE_MHO_C401N
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 (+ set DEVICE_CGG1_ver) or DEVICE_CGDK2 or DEVICE_MHO_C401N or DEVICE_MJWSD05MMC
 #endif
 
 #define BLE_SECURITY_ENABLE 1 // = 1 support pin-code
@@ -26,10 +29,13 @@ extern "C" {
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
 #define USE_TRIGGER_OUT 	1 // = 1 use trigger out (GPIO_PA5)
 #define USE_WK_RDS_COUNTER	USE_TRIGGER_OUT // = 1 wake up when the reed switch is triggered + pulse counter
+#define USE_RTC				0 // = 1 RTC enabled
 
 #define USE_SECURITY_BEACON 1 // = 1 support encryption beacon (bindkey)
 #define USE_HA_BLE_BEACON	1 // = 1 https://github.com/custom-components/ble_monitor/issues/548
 #define USE_MIHOME_BEACON	1 // = 1 Compatible with MiHome beacon
+
+#define USE_EXT_OTA			0 // = 1 Compatible BigOTA
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
 
@@ -67,6 +73,8 @@ extern "C" {
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
 #define I2C_GROUP 	I2C_GPIO_GROUP_C2C3
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
 #define EPD_SHD				GPIO_PC4 // should be high
 #define PULL_WAKEUP_SRC_PC4 PM_PIN_PULLUP_10K
@@ -159,6 +167,8 @@ extern "C" {
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
 #define I2C_GROUP 	I2C_GPIO_GROUP_C2C3
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
 #define EPD_RST2			GPIO_PB7 // should be high
 #define PULL_WAKEUP_SRC_PB7 PM_PIN_PULLUP_1M
@@ -258,6 +268,8 @@ extern "C" {
 #define I2C_SCL 	GPIO_PC0
 #define I2C_SDA 	GPIO_PC1
 #define I2C_GROUP 	I2C_GPIO_GROUP_C0C1
+#define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
 
 #define EPD_SHD				GPIO_PA1 // should be high
 #define PULL_WAKEUP_SRC_PA1 PM_PIN_PULLUP_10K
@@ -342,7 +354,16 @@ extern "C" {
 #endif
 
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
-
+/* Original Flash markup:
+  0x00000 Old Firmware bin
+  0x20000 OTA New bin storage Area
+  0x55000 SerialStr: "B1.5F2.0-CFMK-LB-JHBD---"
+  0x74000 Pair & Security info (CFG_ADR_BIND)?
+  0x76000 MAC address (CFG_ADR_MAC)
+  0x77000 Customize freq_offset adjust cap value (CUST_CAP_INFO_ADDR)
+  0x78000 Mijia key-code
+  0x80000 End Flash (FLASH_SIZE)
+ */
 // TLSR8251F512ET24
 // GPIO_PA5 - DM, free, pcb mark "reset" (TRG)
 // GPIO_PA6 - DP, free, pcb mark "P8" (RDS)
@@ -365,6 +386,8 @@ extern "C" {
 #define I2C_SCL 	GPIO_PC2
 #define I2C_SDA 	GPIO_PC3
 #define I2C_GROUP 	I2C_GPIO_GROUP_C2C3
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
 #if USE_TRIGGER_OUT
 
@@ -436,6 +459,8 @@ extern "C" {
 #define I2C_SCL 	GPIO_PC0
 #define I2C_SDA 	GPIO_PC1
 #define I2C_GROUP 	I2C_GPIO_GROUP_C0C1
+#define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
 
 // PC4 - key
 #define GPIO_KEY			GPIO_PC4
@@ -486,6 +511,98 @@ extern "C" {
 #define PB6_FUNC			AS_GPIO
 #endif
 
+#elif DEVICE_TYPE == DEVICE_MJWSD05MMC
+/* Original Flash markup:
+  0x00000 Old Firmware bin
+  0x40000 OTA New bin storage Area
+  0x66000 Logger, saving measurements ?
+  0x74000 Pair & Security info (CFG_ADR_BIND)
+  0x76000 MAC address (CFG_ADR_MAC)
+  0x77000 Customize freq_offset adjust cap value (CUST_CAP_INFO_ADDR)
+  0x78000 Mijia key-code
+  0x7D000 Ver+SerialStr: "V2.3F2.0-CFMK-LB-TMDZ---"
+  0x7E000 ? 5A 07 00 02 CE 0C 5A 07 00 02 CB 0C 5A 07 00 02 CD 0C
+  0x80000 End Flash (FLASH_SIZE)
+ */
+// ### TLSR8250F512ET32
+// GPIO_PA0 - UART_RX
+// GPIO_PA1
+// GPIO_PA7 - SWS
+
+// GPIO_PB1
+// GPIO_PB4
+// GPIO_PB5 - R5 -> +BAT
+// GPIO_PB6 - key1
+// GPIO_PB7 - R10 -> /INT AT85163T
+
+// GPIO_PC0 - SDA, used I2C
+// GPIO_PC1 - SCL, used I2C
+// GPIO_PC2
+// GPIO_PC3
+// GPIO_PC4 - key2
+
+// GPIO_PD2
+// GPIO_PD3
+// GPIO_PD4
+// GPIO_PD7 - UART_TX
+
+// scan i2c: 0x7c, 0x88, 0xa2
+
+#define SHL_ADC_VBAT	6  // "B5P" in adc.h
+#define GPIO_VBAT	GPIO_PB5 // R5 -> +Vbat
+//#define PULL_WAKEUP_SRC_PB5 PM_PIN_PULLUP_1M
+//#define PB5_INPUT_ENABLE	1
+//#define PB5_DATA_OUT		1
+//#define PB5_OUTPUT_ENABLE	1
+
+#define I2C_SCL 	GPIO_PC1
+#define I2C_SDA 	GPIO_PC0
+#define I2C_GROUP 	I2C_GPIO_GROUP_C0C1
+#define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
+
+#define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX
+
+#define SHL_ADC_VBAT	6  // "B5P" in adc.h
+#define GPIO_VBAT	GPIO_PB5 // R5 -> +Vbat
+//#define PULL_WAKEUP_SRC_PB5 PM_PIN_PULLUP_1M
+//#define PB5_INPUT_ENABLE	1
+//#define PB5_DATA_OUT		1
+//#define PB5_OUTPUT_ENABLE	1
+
+#undef USE_TIME_ADJUST
+#define USE_TIME_ADJUST 	0 // disabled -> used RTC + Quartz 32.768 kHz
+#undef USE_RTC
+#define USE_RTC				1
+#undef USE_EXT_OTA
+#define USE_EXT_OTA			1 // = 1 Compatible BigOTA
+#undef USE_TRIGGER_OUT
+#define USE_TRIGGER_OUT		1
+
+#define GPIO_TRG			GPIO_PA0	// none
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLDOWN_100K
+
+#define GPIO_RDS			GPIO_PC4
+#define PC4_INPUT_ENABLE	1
+#define PC4_DATA_OUT		0
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC4	PM_PIN_PULLDOWN_100K
+
+#define GPIO_KEY1			GPIO_PC4
+#define GPIO_KEY2			GPIO_PB6
+#define PB6_INPUT_ENABLE	1
+#define PB6_DATA_OUT		0
+#define PB6_OUTPUT_ENABLE	0
+#define PB6_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB6	PM_PIN_PULLUP_10K
+
+#else // DEVICE_TYPE
+#error ("DEVICE_TYPE = ?")
 #endif // DEVICE_TYPE == ?
 
 #if UART_PRINT_DEBUG_ENABLE
@@ -536,7 +653,8 @@ enum{
 
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
 
-#define CHG_CONN_PARAM	// test
+//#define CHG_CONN_PARAM	// test
+#define DEV_NAME "ble_th"
 
 #include "vendor/common/default_config.h"
 

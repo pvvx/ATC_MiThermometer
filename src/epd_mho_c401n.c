@@ -189,7 +189,7 @@ void show_connected_symbol(bool state){
 		display_buff[0] |= BIT(0);
 	else
 		display_buff[0] &= ~BIT(0);
- 	tim_last_chow = clock_time() - min_step_time_update_lcd - (CLOCK_16M_SYS_TIMER_CLK_1S);
+ 	tim_last_chow = clock_time() - min_step_time_update_lcd - (8*CLOCK_16M_SYS_TIMER_CLK_1MS);
 }
 
 _attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
