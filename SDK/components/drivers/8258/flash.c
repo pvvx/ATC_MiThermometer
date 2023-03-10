@@ -451,6 +451,8 @@ _attribute_ram_code_ void flash_lock(Flash_TypeDef type , unsigned short data)
 	irq_restore(r);
 }
 
+#endif
+
 /**
  * @brief This function serves to protect data for flash.
  * @param[in]   type - flash type include GD,Puya and XTX
@@ -479,4 +481,3 @@ _attribute_ram_code_ void flash_unlock(Flash_TypeDef type)
 	irq_restore(r);
 }
 
-#endif
