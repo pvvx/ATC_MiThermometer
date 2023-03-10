@@ -88,7 +88,7 @@ _attribute_ram_code_ void flash_write_page(unsigned long addr, unsigned long len
 _attribute_ram_code_ void flash_read_page(unsigned long addr, unsigned long len, unsigned char *buf);
 
 /* according to your appliaction */
-#if 1
+#if 0
 /**
  * @brief     This function serves to erase a page(256 bytes).
  * @param[in] addr - the start address of the page needs to erase.
@@ -186,6 +186,7 @@ int flash_read_mid_uid_with_check( unsigned int *flash_mid ,unsigned char *flash
  * @return none
  */
 void flash_lock(Flash_TypeDef type , unsigned short data);
+#endif
 
 /**
  * @brief This function serves to protect data for flash.
@@ -193,4 +194,3 @@ void flash_lock(Flash_TypeDef type , unsigned short data);
  * @return none
  */
 void flash_unlock(Flash_TypeDef type);
-#endif
