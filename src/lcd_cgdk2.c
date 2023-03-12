@@ -10,8 +10,6 @@
 #include "battery.h"
 
 RAM uint8_t lcd_i2c_addr;
-RAM uint8_t display_buff[18];
-RAM uint8_t display_cmp_buff[18];
 
 #define lcd_send_i2c_byte(a)  send_i2c_byte(lcd_i2c_addr, a)
 #define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (uint8_t *) b, a)
@@ -106,7 +104,14 @@ const uint8_t bottom_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {9, 3, 17, 7, 10, 7, 
 3. 0xf0 - Blink control (BLKCTL): Off
 4. 0xfc - All pixel control (APCTL): Normal
 */
-const uint8_t lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc};
+//const uint8_t lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc}; // sleep all 16.6 uA
+/* LCD controller initialize
+1. 0xea - Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
+2. 0xf0 - Blink control (BLKCTL): Off
+4. 0xc0 - Mode Set (MODE SET): Display ON ?
+2. 0xbc - Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
+*/
+const uint8_t lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // sleep all 9.4 uA
 
 /*
 static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
@@ -126,7 +131,8 @@ static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
 }
 */
 
-_attribute_ram_code_ void send_to_lcd(void){
+_attribute_ram_code_
+void send_to_lcd(void){
 	unsigned int buff_index;
 	uint8_t * p = display_buff;
 	if (lcd_i2c_addr) {
@@ -161,14 +167,9 @@ void init_lcd(void){
 	}
 }
 
-_attribute_ram_code_ void update_lcd(void){
-	if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
-		send_to_lcd();
-		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
-	}
-}
-
-_attribute_ram_code_ __attribute__((optimize("-Os"))) static void cgdk22_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+static void cgdk22_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
     // set the segments, there are up to 11 segments in a digit
     int segment_byte;
     int segment_bit;
@@ -196,7 +197,8 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void cgdk22_set_dig
  * 0xA0 = "°C"
  * 0xC0 = " ="
  * 0xE0 = "°E" */
-_attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
+_attribute_ram_code_
+void show_temp_symbol(uint8_t symbol) {
 	if (symbol & 0x20)
 		display_buff[17] |= BIT(6);
 	else
@@ -221,7 +223,8 @@ _attribute_ram_code_ void show_smiley(uint8_t state){
 //		display_buff[x] &= ~BIT(x);
 }
 */
-_attribute_ram_code_ void show_battery_symbol(bool state){
+_attribute_ram_code_
+void show_battery_symbol(bool state){
 	display_buff[1] &= ~(BIT(1) | BIT(2) | BIT(3) | BIT(5) | BIT(6) | BIT(7));
 	if (state) {
 		display_buff[1] |= BIT(5);
@@ -244,7 +247,8 @@ _attribute_ram_code_ void show_battery_symbol(bool state){
 }
 
 /* CGDK22 no symbol 'ble' ! */
-_attribute_ram_code_ void show_ble_symbol(bool state){
+_attribute_ram_code_
+void show_ble_symbol(bool state){
 	if (state)
 		display_buff[1] |= BIT(4);
 	else
@@ -252,7 +256,8 @@ _attribute_ram_code_ void show_ble_symbol(bool state){
 }
 
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
+_attribute_ram_code_
+__attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 	display_buff[0] = 0;
 	display_buff[1] &= ~(BIT(0));
 	display_buff[2] = 0;
@@ -296,7 +301,8 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
 }
 
 /* number in 0.1 (-99..999) -> show:  -9.9 .. 99.9 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10(int16_t number, bool percent){
+_attribute_ram_code_
+__attribute__((optimize("-Os"))) void show_small_number_x10(int16_t number, bool percent){
 	display_buff[5] &= ~(BIT(0) | BIT(1) | BIT(2) | BIT(3));
 	display_buff[6] = 0;
 	display_buff[7] = 0;
@@ -343,8 +349,8 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10
 
 void show_batt_cgdk2(void) {
 	uint16_t battery_level = 0;
-	if (measured_data.battery_mv > MIN_VBAT_MV) {
-		battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+	if (measured_data.average_battery_mv > MIN_VBAT_MV) {
+		battery_level = ((measured_data.average_battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
 		if (battery_level > 995)
 			battery_level = 995;
 	}
@@ -352,7 +358,8 @@ void show_batt_cgdk2(void) {
 }
 
 #if	USE_CLOCK
-_attribute_ram_code_ void show_clock(void) {
+_attribute_ram_code_
+void show_clock(void) {
 	uint32_t tmp = utc_time_sec / 60;
 	uint32_t min = tmp % 60;
 	uint32_t hrs = tmp / 60 % 24;

@@ -95,8 +95,6 @@ const uint8_t digits[16][DEF_EPD_SUMBOL_SIGMENTS + 1] = {
     {1, 2, 8, 9, 10, 11, 12, 13, 0, 0, 0, 0, 0, 0}  // F
 };
 
-RAM uint8_t display_buff[16];
-RAM uint8_t display_cmp_buff[16];
 RAM uint8_t stage_lcd;
 //RAM uint8_t flg_lcd_init;
 RAM uint8_t lcd_refresh_cnt;
@@ -110,8 +108,9 @@ const uint8_t T_LUT_init[14] = {0x082, 0x068, 0x050, 0x0E8, 0x0D0, 0x0A8, 0x065,
 const uint8_t T_LUT_work[9] = {0x082, 0x080, 0x000, 0x0C0, 0x080, 0x080, 0x062, 0x0AC, 0x02B};
 //const uint8_t T_LUT_test[16] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00};
 
-#define delay_SPI_end_cycle() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*15)/10) // real clk 4.4 + 4.4 us : 114 kHz)
-#define delay_EPD_SCL_pulse() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*15)/10) // real clk 4.4 + 4.4 us : 114 kHz)
+#define delay_SPI_end_cycle() sleep_us(2)
+#define delay_EPD_SCL_pulse() sleep_us(2)
+
 /* 0x00 = "  "
  * 0x20 = "°Г"
  * 0x40 = " -"
@@ -357,6 +356,7 @@ _attribute_ram_code_ void update_lcd(void){
 	if (!stage_lcd) {
 		if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 			memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
+			lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
 			if (lcd_refresh_cnt) {
 				lcd_refresh_cnt--;
 			} else {

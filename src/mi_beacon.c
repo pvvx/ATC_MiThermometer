@@ -41,6 +41,7 @@ typedef struct _mi_beacon_data_t { // out data
 	int16_t temp;	// x0.1 C
 	uint16_t humi;	// x0.1 %
 	uint8_t batt;	// 0..100 %
+	uint8_t stage;
 } mi_beacon_data_t;
 RAM mi_beacon_data_t mi_beacon_data;
 
@@ -61,21 +62,22 @@ void mi_beacon_init(void) {
 /* Averaging measurements */
 _attribute_ram_code_
 void mi_beacon_summ(void) {
+	if(mib_summ_data.count > 0x7fff) {
+		memset(&mib_summ_data, 0, sizeof(mib_summ_data));
+	}
 	mib_summ_data.temp += measured_data.temp;
 	mib_summ_data.humi += measured_data.humi;
-	mib_summ_data.batt += measured_data.battery_mv;
+	mib_summ_data.batt += measured_data.average_battery_mv;
 	mib_summ_data.count++;
 }
 
-RAM uint8_t adv_mi_crypt_num;
 /* Create encrypted mi beacon packet */
 __attribute__((optimize("-Os")))
 void mi_encrypt_data_beacon(void) {
 	beacon_nonce.cnt32 = adv_buf.send_count;
 	adv_buf.update_count = -1; // next call if next measured
-	adv_mi_crypt_num++;
-	if (adv_mi_crypt_num > 2) {
-		adv_mi_crypt_num = 0;
+	if (++mi_beacon_data.stage > 2) {
+		mi_beacon_data.stage = 0;
 		if(mib_summ_data.count) {
 			mi_beacon_data.temp = ((int16_t)(mib_summ_data.temp/(int32_t)mib_summ_data.count) + 5)/10;
 			mi_beacon_data.humi = ((uint16_t)(mib_summ_data.humi/mib_summ_data.count)  + 5)/10;
@@ -94,7 +96,7 @@ void mi_encrypt_data_beacon(void) {
 	p->head.counter = beacon_nonce.cnt;
 	adv_mi_data_t data;
 	memcpy(p->MAC, mac_public, 6);
-	switch (adv_mi_crypt_num) {
+	switch (mi_beacon_data.stage) {
 		case 0:
 			data.id = XIAOMI_DATA_ID_Temperature; // XIAOMI_DATA_ID
 			data.size = 2;
@@ -153,6 +155,7 @@ void mi_encrypt_data_beacon(void) {
 						   pmic, 4); // указатель куда писать типа подпись-"контрольную сумму" шифра
 }
 #if USE_WK_RDS_COUNTER
+/* n - RDS_TYPES */
 void mi_encrypt_event_beacon(uint8_t n) {
 	padv_mi_cr_ev1_t p = (padv_mi_cr_ev1_t)&adv_buf.data;
 	uint8_t * pmic;

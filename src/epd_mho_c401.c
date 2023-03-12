@@ -4,14 +4,13 @@
 #if DEVICE_TYPE == DEVICE_MHO_C401
 /* Based on source: https://github.com/znanev/ATC_MiThermometer */
 #include "app.h"
+#include "lcd.h"
 #include "epd.h"
 #include "drivers/8258/pm.h"
 #include "drivers/8258/timer.h"
 
 #define DEF_EPD_REFRESH_CNT	32
 
-RAM uint8_t display_buff[18];
-RAM uint8_t display_cmp_buff[18];
 RAM uint8_t stage_lcd;
 RAM uint8_t flg_lcd_init;
 RAM uint8_t lcd_refresh_cnt;
@@ -39,8 +38,8 @@ const uint8_t bottom_right[22] = {7, 7, 6, 5, 2, 0, 2, 3, 0, 2, 1, 7, 2, 6, 7, 4
 // These values closely reproduce times captured with logic analyser
 //#define delay_SPI_end_cycle() pm_wait_us(3) // 1.5 us
 //#define delay_EPD_SCL_pulse() pm_wait_us(3) // 1.5 us
-#define delay_SPI_end_cycle() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*15)/10) // real clk 4.4 + 4.4 us : 114 kHz)
-#define delay_EPD_SCL_pulse() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*15)/10) // real clk 4.4 + 4.4 us : 114 kHz)
+#define delay_SPI_end_cycle() sleep_us(2)
+#define delay_EPD_SCL_pulse() sleep_us(2)
 
 /*
 Now define how each digit maps to the segments:
@@ -315,6 +314,7 @@ _attribute_ram_code_ void update_lcd(void){
 	if (!stage_lcd) {
 		if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 			memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
+			lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
 			if (lcd_refresh_cnt) {
 				lcd_refresh_cnt--;
 				flg_lcd_init = 0;

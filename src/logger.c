@@ -161,11 +161,11 @@ void write_memo(void) {
 	if (cfg.averaging_measurements == 1) {
 		mblk.temp = measured_data.temp;
 		mblk.humi = measured_data.humi;
-		mblk.vbat = measured_data.battery_mv;
+		mblk.vbat = measured_data.average_battery_mv;
 	} else {
 		summ_data.temp += measured_data.temp;
 		summ_data.humi += measured_data.humi;
-		summ_data.battery_mv += measured_data.battery_mv;
+		summ_data.battery_mv += measured_data.average_battery_mv;
 		summ_data.count++;
 		if (cfg.averaging_measurements > summ_data.count)
 			return;

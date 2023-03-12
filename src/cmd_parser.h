@@ -34,7 +34,10 @@ enum {
 	CMD_ID_SET_OTA	= 0x73, // Extension BigOTA: Get/set address and size OTA, erase sectors
 
 	// Debug commands (unsupported in different versions!):
+	CMD_ID_EEP_RW	= 0xDC,	// Get/set EEP
+	CMD_ID_LR_RESET = 0xDD,	// Reset Long Range
 	CMD_ID_DEBUG    = 0xDE  // Test/Debug
+
 } CMD_ID_KEYS;
 
 #define MI_KEYTBIND_ID  0x10 // id token + bindkey

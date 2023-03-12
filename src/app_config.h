@@ -50,7 +50,6 @@ extern "C" {
 #define UART_PRINT_DEBUG_ENABLE		0 // =1 use u_printf() (PA7/SWS), source: SDK/components/application/print/u_printf.c
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
-
 // TLSR8251F512ET24
 // GPIO_PA5 - used EPD_SHD
 // GPIO_PA6 - used EPD_RST
@@ -62,6 +61,8 @@ extern "C" {
 // GPIO_PC4 - used EPD_SHD
 // GPIO_PD2 - used EPD_CSB
 // GPIO_PD7 - used EPD_SCL
+
+#define USE_EPD			(600/50 - 1) // min update time x50 ms
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
@@ -156,6 +157,8 @@ extern "C" {
 // GPIO_PC4 - used EPD_SCL
 // GPIO_PD2 - used EPD_SDA
 // GPIO_PD7 - used EPD_RST
+
+#define USE_EPD			(600/50 - 1) // min update time ms
 
 #define SHL_ADC_VBAT		1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
@@ -257,6 +260,8 @@ extern "C" {
 // GPIO_PD3 - free (Reed Switch, input)
 // GPIO_PD4 - used EPD_BUSY
 // GPIO_PD7 - used EPD_SCL
+
+#define USE_EPD			(550/50 - 1) // min update time ms
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8253F512ET32
@@ -376,6 +381,8 @@ extern "C" {
 // GPIO_PD2 - CS/PWM, free
 // GPIO_PD7 - free [B1.4], UART TX LCD [B1.6], pcb mark "P7"
 
+#define USE_EPD			0 // min update time ms
+
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
@@ -428,6 +435,8 @@ extern "C" {
 #define PC4_FUNC			AS_GPIO
 #endif
 
+#define MI_HW_VER_FADDR 0x55000 // Mi HW version (DEVICE_LYWSD03MMC)
+
 #elif DEVICE_TYPE == DEVICE_CGDK2
 
 // TLSR8253F512ET32
@@ -448,6 +457,8 @@ extern "C" {
 // GPIO_PD3 - free
 // GPIO_PD4 - free
 // GPIO_PD7 - free
+
+#define USE_EPD			0 // min update time ms
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8253F512ET32
@@ -548,6 +559,8 @@ extern "C" {
 
 // scan i2c: 0x7c, 0x88, 0xa2
 
+#define USE_EPD			0 // min update time ms
+
 #define SHL_ADC_VBAT	6  // "B5P" in adc.h
 #define GPIO_VBAT	GPIO_PB5 // R5 -> +Vbat
 //#define PULL_WAKEUP_SRC_PB5 PM_PIN_PULLUP_1M
@@ -600,6 +613,8 @@ extern "C" {
 #define PB6_OUTPUT_ENABLE	0
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6	PM_PIN_PULLUP_10K
+
+#define MI_HW_VER_FADDR 0x7D000 // Mi HW version (DEVICE_MJWSD05MMC)
 
 #else // DEVICE_TYPE
 #error ("DEVICE_TYPE = ?")

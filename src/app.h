@@ -22,17 +22,6 @@ enum {
 	HW_VER_UNKNOWN = 15
 } HW_VERSION_ID;
 
-// EEPROM IDs
-#define EEP_ID_CFG (0x0CFC) // EEP ID config data
-#define EEP_ID_TRG (0x0DFE) // EEP ID trigger data
-#define EEP_ID_RPC (0x0DF5) // EEP ID reed switch pulse counter
-#define EEP_ID_PCD (0xC0DE) // EEP ID pincode
-#define EEP_ID_CMF (0x0FCC) // EEP ID comfort data
-#define EEP_ID_DVN (0x0DB5) // EEP ID device name
-#define EEP_ID_TIM (0x0ADA) // EEP ID time adjust
-#define EEP_ID_KEY (0xBEAC) // EEP ID bkey
-#define EEP_ID_HWV (0x1234) // EEP ID Mi HW version
-
 // Adv. types
 enum {
 	ADV_TYPE_ATC = 0,
@@ -55,7 +44,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 #if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
 		uint8_t x100				: 1;
 #else
-		uint8_t blinking_time_smile	: 1; //(USE_CLOCK = 0 - smile, =1 time)
+		uint8_t show_time_smile	: 1; // if USE_CLOCK: = 0 - smile, =1 time, else: blinking on/off
 #endif
 		uint8_t temp_F_or_C			: 1;
 #if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
@@ -193,8 +182,6 @@ typedef struct __attribute__((packed)) _external_data_t {
 #endif
 } external_data_t, * pexternal_data_t;
 extern external_data_t ext;
-extern uint32_t chow_tick_clk; // count chow validity time, in clock
-extern uint32_t chow_tick_sec; // count chow validity time, in sec
 
 extern uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
 #if	USE_TIME_ADJUST
@@ -207,80 +194,53 @@ extern uint32_t pincode; // pincode (if = 0 - not used)
 #endif
 
 typedef struct _measured_data_t {
-	uint16_t	battery_mv; // mV
+	uint16_t 	average_battery_mv; // mV
 	int16_t		temp; // x 0.01 C
 	int16_t		humi; // x 0.01 %
 	uint16_t 	count;
 
+	uint16_t	battery_mv; // mV
+
 	int16_t 	temp_x01; 		// x 0.1 C
 	int16_t		humi_x01; 		// x 0.1 %
 	uint8_t 	humi_x1; 		// x 1 %
-	uint8_t 	battery_level;	// 0..100%
+	uint8_t 	battery_level;	// 0..100% (average_battery_mv)
 } measured_data_t;
 #define  MEASURED_MSG_SIZE  8
 
 extern measured_data_t measured_data;
 
-//extern uint8_t battery_level; // 0..100%
-//extern int16_t last_temp; // x0.1 C
-//extern uint16_t last_humi; // x1 %
+extern volatile uint8_t tx_measures; // measurement transfer counter, flag
+extern volatile uint8_t start_measure; // start measurements
+extern volatile uint8_t wrk_measure; // measurements in process
+extern uint8_t end_measure; // measurements completed
 
-extern volatile uint8_t tx_measures; // connect notify send measure flag
-extern volatile uint8_t start_measure; // start measure all
-extern volatile uint8_t wrk_measure;
-extern volatile uint8_t end_measure;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-extern volatile uint8_t lcd_update;
-#endif
-
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-#define MI_HW_VER_FADDR 0x7D000 // Mi HW version
-#else
-#define MI_HW_VER_FADDR 0x55000 // Mi HW version
-#endif
-
-
-extern uint32_t tim_measure; // timer measurements >= 10 sec
-
-typedef union _lcd_flg_t {
-	struct  {
-		uint8_t ext_data: 	1; // LCD show external data
-		uint8_t notify_on: 	1; // Send LCD dump if Notify on
-		uint8_t res:  		5;
-		uint8_t new_update: 1; // flag update LCD for send notify
-	}b;
-	uint8_t uc;
-} lcd_flg_t;
-extern lcd_flg_t lcd_flg;
+extern uint32_t tim_measure; // measurement timer
 
 typedef struct _comfort_t {
 	int16_t  t[2];
 	uint16_t h[2];
 }scomfort_t, * pcomfort_t;
+extern scomfort_t cmf;
 
 #if USE_SECURITY_BEACON
 extern uint8_t bindkey[16];
 void bindkey_init(void);
 #endif
 
-extern scomfort_t cmf;
 #if BLE_SECURITY_ENABLE
 extern uint32_t pincode;
 #endif
-extern uint32_t adv_interval;
-extern uint32_t connection_timeout;
-extern uint32_t measurement_step_time;
-extern uint32_t tim_last_chow; // timer show lcd >= 1.5 sec
 
-#if DEVICE_TYPE != DEVICE_MJWSD05MMC
-extern uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * (50 * CLOCK_16M_SYS_TIMER_CLK_1MS)
-#endif
+extern uint32_t adv_interval; // adv interval in 0.625 ms // = cfg.advertising_interval * 100
+extern uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = connection_latency_ms * 4 = 2000 * 4 = 8000 ms
+extern uint32_t measurement_step_time; // = adv_interval * measure_interval
 
-void ev_adv_timeout(u8 e, u8 *p, int n);
-void test_config(void);
+void ev_adv_timeout(u8 e, u8 *p, int n); // DURATION_TIMEOUT Event Callback
+void test_config(void); // Test config values
 void set_hw_version(void);
-void reset_cache(void);
 
+//---- blt_common.c
 void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand);
 void SwapMacAddress(u8 *mac_out, u8 *mac_in);
 void flash_erase_mac_sector(u32 faddr);

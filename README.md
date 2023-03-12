@@ -230,24 +230,59 @@ This requires the _Experimental Web Platform Features_ flag enabled in your brow
 
 ### Average power consumption
 
-**Xiaomi Mijia (LYWSD03MMC)**
+**Xiaomi Mijia (LYWSD03MMC B1.4)**
 
 Using the default settings for advertising interval of 2.5 seconds
 and measurement interval of 10 seconds:
 
-* Bluetooth Advertisement: 14..20 uA 3.3V ([CR2032](https://pvvx.github.io/ATC_MiThermometer/CustPower.html) [over 6 months](https://github.com/pvvx/ATC_MiThermometer/issues/23#issuecomment-766898945))
-* Bluetooth Connection: 14..25 uA 3.3V (CR2032 over 6 months)
+* Bluetooth Advertisement: 14..15 uA 3.3V ([CR2032](https://pvvx.github.io/ATC_MiThermometer/CustPower.html) [over 1 years](https://github.com/pvvx/ATC_MiThermometer/issues/23#issuecomment-766898945))
+* Bluetooth Connection: 14..25 uA 3.3V (CR2032 over 10 months)
 
 ![PowerAdvInt](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/PowerAdvInt.gif)
 
 ![PowerLife.gif](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/PowerLife.gif)
 
+**Xiaomi Mijia (MJWSD05MMC)**
+
+Using the default settings for advertising interval of 5 seconds and measurement interval of 20 seconds:
+
+* Bluetooth Advertisement: 19..21 uA 3.3V (CR2450 over 2 years)
+* Bluetooth Connection: 25..30 uA 3.3V (CR2450 over 1.5 years)
+
 **Xiaomi Miaomiaoce (MHO-C401)**
 
 Using the default settings for advertising interval of 2.5 seconds and measurement interval of 20 seconds:
 
-* Bluetooth Advertisement: 12..30 uA 3.3V ([depends on the amount of temperature or humidity changes over time to display](https://pvvx.github.io/MHO_C401/power_altfw.html))
+* Bluetooth Advertisement: 15..30 uA 3.3V ([depends on the amount of temperature or humidity changes over time to display](https://pvvx.github.io/MHO_C401/power_altfw.html))
 * Bluetooth Connection: 15..30 uA 3.3V (depends on the amount of temperature or humidity changes over time to display)
+
+**Xiaomi Miaomiaoce (MHO-C401N)**
+
+Using the default settings for advertising interval of 2.5 seconds and measurement interval of 20 seconds:
+
+* Bluetooth Advertisement: 10..14 uA 3.3V (depends on the amount of temperature or humidity changes over time to display) 
+* Bluetooth Connection: 13..17 uA 3.3V (depends on the amount of temperature or humidity changes over time to display)
+
+**Qingping (CGDK2)**
+
+Using the default settings for advertising interval of 2.5 seconds and measurement interval of 20 seconds:
+
+* Bluetooth Advertisement: 18..21 uA 3.3V 
+* Bluetooth Connection: 23..30 uA 3.3V
+
+**Qingping (CGG1)**
+
+Using the default settings for advertising interval of 2.5 seconds and measurement interval of 20 seconds:
+
+* Bluetooth Advertisement: 12..16 uA 3.3V 
+* Bluetooth Connection: 23..30 uA 3.3V
+
+**Qingping (CGG1N)**
+
+Using the default settings for advertising interval of 2.5 seconds and measurement interval of 10 seconds:
+
+* Bluetooth Advertisement: 12..16 uA 3.3V 
+* Bluetooth Connection: 23..30 uA 3.3V
 
 ### Bluetooth Advertising Formats
 The Firmware can be configured to support one of four different Bluetooth advertisements data formats.

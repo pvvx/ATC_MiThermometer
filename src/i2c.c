@@ -31,9 +31,12 @@ void init_i2c(void){
 int scan_i2c_addr(int address) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 		init_i2c();
+	uint8_t r = reg_i2c_speed;
+	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
 	reg_i2c_id = (uint8_t) address;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_STOP;
 	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
+	reg_i2c_speed = r;
 	return ((reg_i2c_status & FLD_I2C_NAK)? 0 : address);
 }
 
@@ -91,7 +94,6 @@ int read_i2c_byte_addr(uint8_t i2c_addr, uint8_t reg_addr, uint8_t * dataBuf, ui
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
 	//unsigned char r = irq_disable();
-	//reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*125000)); // 125 kHz
 	reg_i2c_id = i2c_addr;
 	reg_i2c_adr = reg_addr;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR;
@@ -101,8 +103,6 @@ int read_i2c_byte_addr(uint8_t i2c_addr, uint8_t reg_addr, uint8_t * dataBuf, ui
 		// Start By Master Read, Write Slave Address, Read data first byte
 		reg_rst0 = FLD_RST0_I2C;
 		reg_rst0 = 0;
-	    //while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-		//reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*125000)); // 125 kHz
 		reg_i2c_id = i2c_addr | FLD_I2C_WRITE_READ_BIT;
 		reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_READ_ID;
 	    while(reg_i2c_status & FLD_I2C_CMD_BUSY);

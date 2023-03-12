@@ -17,6 +17,7 @@
 #define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (uint8_t *) b, a)
 
 RAM uint8_t lcd_i2c_addr;
+RAM lcd_flg_t lcd_flg;
 RAM uint8_t display_buff[LCD_BUF_SIZE];
 RAM uint8_t display_cmp_buff[LCD_BUF_SIZE];
 
@@ -166,7 +167,15 @@ const uint8_t sb_s4[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
 3. 0xf0 - Blink control (BLKCTL): Off
 4. 0xfc - All pixel control (APCTL): Normal
 */
-const uint8_t lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc};
+//const uint8_t lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc};
+/* LCD controller initialize
+1. 0xea - Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
+2. 0xf0 - Blink control (BLKCTL): Off
+4. 0xc0 - Mode Set (MODE SET): Display ON ?
+2. 0xbc - Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
+*/
+const uint8_t lcd_init1_cmd[] = {0xea,0xf0, 0xc0, 0xbc};
+
 const uint8_t lcd_init_clr_b19[] =	{0x00,0x00,0x00,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x00,0x00,0x00,0x00,0x00,0x00};
 
 // runtime: 600 us if I2C 450 kHz
@@ -196,13 +205,14 @@ _attribute_ram_code_ void send_to_lcd(void){
 	}
 }
 
-/* LCD controller initialize
-1. 0xea - Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
-2. 0xf0 - Blink control (BLKCTL): Off
-4. 0xc0 - Mode Set (MODE SET): Display ON ?
-2. 0xbc - Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
-*/
-const uint8_t lcd_init1_cmd[] = {0xea,0xf0, 0xc0, 0xbc};
+_attribute_ram_code_
+void update_lcd(void){
+	if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
+		send_to_lcd();
+		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
+		lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
+	}
+}
 
 void init_lcd(void){
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(MJWSD05MMC_LCD_I2C_ADDR << 1);
@@ -224,13 +234,6 @@ void init_lcd(void){
 		pm_wait_us(200);
 		//memset(display_buff, 0xff, sizeof(display_buff));
 		send_to_lcd();
-	}
-}
-
-_attribute_ram_code_ void update_lcd(void){
-	if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
-		send_to_lcd();
-		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
 	}
 }
 
@@ -763,7 +766,7 @@ void show_low_bat(void) {
 	display_buff[2] |= BIT(1) | BIT(3) | BIT(7);
 	// "bat"
 	display_buff[17] |= BIT(4);
-	//show_s1_number_x100(measured_data.battery_mv * 10, 0);
+	//show_s1_number_x100(measured_data.average_battery_mv * 10, 0);
 	send_to_lcd();
 }
 
@@ -796,13 +799,12 @@ _attribute_ram_code_
 __attribute__((optimize("-O2")))
 void lcd(void) {
 	uint8_t screen_type = cfg.flg2.screen_type;
-	if(chow_tick_sec >= utc_time_sec)
+	if(lcd_flg.chow_ext_ut >= utc_time_sec)
 		screen_type = SCR_TYPE_EXT;
-//	else chow_tick_sec = 0;
 
 	show_ble_symbol(ble_connected || (rest_adv_int_tad & 2));
 
-	show_battery_symbol(measured_data.battery_mv < 2400);
+	show_battery_symbol(measured_data.average_battery_mv < 2400);
 	switch(screen_type) {
 		case SCR_TYPE_TEMP:
 			if (cfg.flg.temp_F_or_C) {
@@ -840,7 +842,7 @@ void lcd(void) {
 			show_s4_number_x10(measured_data.humi_x01, LCD_SYM_P);
 			break;
 		case SCR_TYPE_BAT_V:
-			show_s1_number_x100((measured_data.battery_mv / 10), 0);
+			show_s1_number_x100((measured_data.average_battery_mv / 10), 0);
 			show_battery_symbol(1);
 			if (cfg.flg.temp_F_or_C)
 				show_s3_number_x10((((measured_data.temp / 5) * 9) + 3200) / 10, LCD_SYM_F); // convert C to F

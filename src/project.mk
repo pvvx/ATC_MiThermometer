@@ -4,6 +4,7 @@ OUT_DIR += /src
 OBJS += \
 $(OUT_PATH)/src/utils.o \
 $(OUT_PATH)/src/app.o \
+$(OUT_PATH)/src/lcd.o \
 $(OUT_PATH)/src/lcd_lywsd03mmc.o \
 $(OUT_PATH)/src/lcd_cgdk2.o \
 $(OUT_PATH)/src/lcd_mjwsd05mmc.o \
