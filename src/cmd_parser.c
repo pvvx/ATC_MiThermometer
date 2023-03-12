@@ -419,9 +419,11 @@ void cmd_parser(void * p) {
 			if (--len > sizeof(ext)) len = sizeof(ext);
 			if (len) {
 				memcpy(&ext, &req->dat[1], len);
-				chow_tick_sec = utc_time_sec + ext.vtime_sec;
+				lcd_flg.chow_ext_ut = utc_time_sec + ext.vtime_sec;
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-				lcd_update = 1;
+				SET_LCD_UPDATE();
+#else
+				lcd_flg.update_next_measure = 0;
 #endif
 			}
 			ble_send_ext();
@@ -431,7 +433,9 @@ void cmd_parser(void * p) {
 			if (len) {
 				memcpy(&cfg, &req->dat[1], len);
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-				lcd_update = 1;
+				SET_LCD_UPDATE();
+#else
+				lcd_flg.update_next_measure = 0;
 #endif
 			}
 			test_config();
@@ -450,7 +454,6 @@ void cmd_parser(void * p) {
 			}
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 			test_config();
-//			set_hw_version();
 			if (!cfg.hw_cfg.shtc3) // sensor SHT4x ?
 				cfg.flg.lp_measures = 1;
 			ev_adv_timeout(0, 0, 0);
@@ -540,16 +543,17 @@ void cmd_parser(void * p) {
 				len = sizeof(display_buff);
 			if (len) {
 				memcpy(display_buff, &req->dat[1], len);
-				lcd_flg.b.ext_data = 1; // update_lcd();
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-				lcd_update = 1;
-#endif
-			} else lcd_flg.b.ext_data = 0;
+				lcd_flg.b.ext_data_buf = 1; // update_lcd();
+				lcd_flg.update = 1;	// SET_LCD_UPDATE();
+			} else if(lcd_flg.b.ext_data_buf) {
+				lcd_flg.b.ext_data_buf = 0;
+				lcd_flg.update = 1;	// SET_LCD_UPDATE();
+			}
 			ble_send_lcd();
 		} else if (cmd == CMD_ID_LCD_FLG) { // Start/stop notify lcd dump and ...
 			 if (len > 1)
-				 lcd_flg.uc = req->dat[1];
-			 send_buf[1] = lcd_flg.uc;
+				 lcd_flg.all_flg = req->dat[1];
+			 send_buf[1] = lcd_flg.all_flg;
  			 olen = 2;
 #if BLE_SECURITY_ENABLE
 		} else if (cmd == CMD_ID_PINCODE && len > 4) { // Set new pinCode 0..999999
@@ -577,7 +581,7 @@ void cmd_parser(void * p) {
 			if (--len > SEND_BUFFER_SIZE - 1) len = SEND_BUFFER_SIZE - 1;
 			if (len) {
 				flash_write_cfg(&req->dat[1], EEP_ID_DVN, (req->dat[1] != 0)? len : 0);
-				ble_get_name();
+				ble_set_name();
 				ble_connected |= 0x80; // reset device on disconnect
 			}
 			memcpy(&send_buf[1], &ble_name[2], ble_name[0] - 1);
@@ -602,9 +606,7 @@ void cmd_parser(void * p) {
 #if USE_RTC
 				rtc_set_utime(utc_time_sec);
 #endif
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-				lcd_update = 1;
-#endif
+				SET_LCD_UPDATE();
 			}
 			memcpy(&send_buf[1], &utc_time_sec, sizeof(utc_time_sec));
 #if USE_TIME_ADJUST
@@ -702,10 +704,29 @@ void cmd_parser(void * p) {
 			}
 
 			// Debug commands (unsupported in different versions!):
+		} else if (cmd == CMD_ID_EEP_RW && len > 2) {
+			send_buf[1] = req->dat[1];
+			send_buf[2] = req->dat[2];
+			olen = req->dat[1] | (req->dat[2] << 8);
+			if(len > 3) {
+				flash_write_cfg(&req->dat[3], olen, len - 3);
+			}
+			int16_t i = flash_read_cfg(&send_buf[3], olen, SEND_BUFFER_SIZE - 3);
+			if(i < 0) {
+				send_buf[1] = (uint8_t)(i & 0xff); // Error
+				olen = 2;
+			} else
+				olen = i + 3;
 		} else if (cmd == CMD_ID_DEBUG && len > 3) { // test/debug
 			_flash_read((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), 18, &send_buf[4]);
 			memcpy(send_buf, req->dat, 4);
 			olen = 18+4;
+		} else if (cmd == CMD_ID_LR_RESET) { // Reset Long Range
+			cfg.flg2.longrange = 0;
+			cfg.flg2.bt5phy = 0;
+			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
+			ble_send_cfg();
+			ble_connected |= 0x80; // reset device on disconnect
 		} else {
 			send_buf[1] = 0xff; // Error cmd
 			olen = 2;

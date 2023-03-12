@@ -3,6 +3,30 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "app_config.h"
+
+typedef struct _lcd_flg_t {
+	uint32_t chow_ext_ut; // count chow ext.vars validity time, in sec
+#if (DEVICE_TYPE != DEVICE_MJWSD05MMC)
+	uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * (50 * CLOCK_16M_SYS_TIMER_CLK_1MS)
+	uint32_t tim_last_chow; // timer show lcd >= 1.5 sec
+	uint8_t show_stage; // count/stage update lcd code buffer
+	uint8_t update_next_measure; 	  // flag update LCD if next_measure
+#endif
+	uint8_t update; 	  // flag update LCD
+	union {
+		struct {
+			// reset all flags on disconnect
+			uint8_t ext_data_buf: 	1; // LCD show external buffer
+			uint8_t notify_on: 	1; // Send LCD dump if Notify on
+			uint8_t res:  		5;
+			uint8_t send_notify: 1; // flag update LCD for send notify
+		}b;
+		uint8_t all_flg;
+	};
+} lcd_flg_t;
+extern lcd_flg_t lcd_flg;
+
+
 #if (DEVICE_TYPE != DEVICE_MJWSD05MMC)
 /* CGG1 no symbol 'smiley' ! */
 #define SMILE_HAPPY 5 		// "(^-^)" happy
@@ -10,16 +34,19 @@
 #define TMP_SYM_C	0xA0	// "°C"
 #define TMP_SYM_F	0x60	// "°F"
 
+// LCD controller I2C address
 #define B14_I2C_ADDR		0x3C
-#define B16_I2C_ADDR		0	// UART
-#define B19_I2C_ADDR		0x3E
-#define CGDK2_I2C_ADDR		0x3E
+#define B16_I2C_ADDR		0	 // UART
+#define B19_I2C_ADDR		0x3E // BU9792AFUV
+#define CGDK2_I2C_ADDR		0x3E // BU9792AFUV
 
-extern uint8_t lcd_i2c_addr;
+extern uint8_t lcd_i2c_addr; // LCD controller I2C address
 
-
-void init_lcd();
-void update_lcd();
+//#define SET_LCD_UPDATE()
+void lcd(void);
+void init_lcd(void);
+void send_to_lcd(void);
+void update_lcd(void);
 /* 0x00 = "  "
  * 0x20 = "°Г"
  * 0x40 = " -"
@@ -61,32 +88,42 @@ void show_clock(void);
 #endif
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
-extern uint8_t display_buff[18];
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define LCD_BUF_SIZE	18
 extern uint8_t stage_lcd;
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
-extern uint8_t display_buff[16];
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define LCD_BUF_SIZE	16
 extern uint8_t stage_lcd;
 void show_small_number(int16_t number, bool percent); // -9 .. 99
-#define LCD_CONN_SYMBOL		1
 void show_connected_symbol(bool state);
+#define SHOW_CONNECTED_SYMBOL(a) show_connected_symbol(a)
 int task_lcd(void);
 #elif DEVICE_TYPE == DEVICE_CGG1
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
 #if DEVICE_CGG1_ver == 2022
-extern uint8_t display_buff[16];
+#define LCD_BUF_SIZE	16
 #else
-extern uint8_t display_buff[18];
+#define LCD_BUF_SIZE	18
 #endif
 extern uint8_t stage_lcd;
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
 void show_batt_cgg1(void);
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
-extern uint8_t display_buff[6];
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define LCD_BUF_SIZE	6
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 #elif DEVICE_TYPE == DEVICE_CGDK2
-extern uint8_t display_buff[18];
+#define LCD_BUF_SIZE	18
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
 void show_batt_cgdk2(void);
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 #else
@@ -108,7 +145,7 @@ enum {
 } SCR_TYPE_ENUM;
 
 #define MJWSD05MMC_LCD_I2C_ADDR	0x3E
-#define  min_step_time_update_lcd (500 * CLOCK_16M_SYS_TIMER_CLK_1MS)
+//#define  min_step_time_update_lcd (500 * CLOCK_16M_SYS_TIMER_CLK_1MS)
 
 #define LCD_SYM_SMILEY_NONE  0 	// "(^-^)" happy
 #define LCD_SYM_SMILEY_HAPPY 5 	// "(^-^)" happy
@@ -149,8 +186,13 @@ void show_ota_screen(void);
 void show_reboot_screen(void);
 #endif
 
+extern volatile uint8_t lcd_update;
+#define SET_LCD_UPDATE() lcd_flg.update = 1
+#define SHOW_CONNECTED_SYMBOL(a) lcd_flg.update = 1
+
 void init_lcd(void);
 void lcd(void);
+void send_to_lcd(void);
 void update_lcd(void);
 void show_battery_symbol(bool state);
 void show_ble_symbol(bool state);
@@ -165,8 +207,8 @@ void show_data_s2(void);
 void show_low_bat(void);
 
 #define LCD_BUF_SIZE	18
-//extern uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * 0.05 sec
-//extern uint32_t tim_last_chow; // timer show lcd >= 1.5 sec
-extern uint8_t display_buff[LCD_BUF_SIZE];
 
 #endif // (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
+

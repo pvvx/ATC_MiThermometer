@@ -89,7 +89,7 @@ void ha_ble_encrypt_data_beacon(void) {
 		p->swtch = trg.flg.trg_output;
 		p->v_st = HaBleType_uint + sizeof(p->v_id) + sizeof(p->battery_mv);
 		p->v_id = HaBleID_voltage;
-		p->battery_mv = measured_data.battery_mv; // x mV
+		p->battery_mv = measured_data.average_battery_mv; // x mV
 		ha_ble_encrypt(buf, sizeof(adv_ha_ble_data2_t));
 	}
 }
@@ -149,7 +149,7 @@ void ha_ble_data_beacon(void) {
 		p->data.swtch = trg.flg.trg_output;
 		p->data.v_st = HaBleType_uint + sizeof(p->data.v_id) + sizeof(p->data.battery_mv);
 		p->data.v_id = HaBleID_voltage;
-		p->data.battery_mv = measured_data.battery_mv; // x mV
+		p->data.battery_mv = measured_data.average_battery_mv; // x mV
 	}
 }
 

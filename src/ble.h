@@ -24,7 +24,7 @@ typedef struct _adv_buf_t {
 	uint8_t update_count;	// refresh adv_buf.data in next set_adv_data()
 	uint8_t call_count; 	// count 1..cfg.measure_interval
 	uint8_t data_size;
-	uint8_t flag[3];
+	uint8_t flag[3];		// Advertise type flags
 	uint8_t data[ADV_BUFFER_SIZE];
 }adv_buf_t;
 extern adv_buf_t adv_buf;
@@ -189,8 +189,7 @@ void set_adv_data(void);
 
 void my_att_init();
 void init_ble();
-void ble_get_name(void);
-bool ble_get_connected();
+void ble_set_name(void);
 void ble_send_measures(void);
 void ble_send_ext(void);
 void ble_send_lcd(void);

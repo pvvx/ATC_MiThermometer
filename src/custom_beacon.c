@@ -99,7 +99,7 @@ void pvvx_data_beacon(void) {
 	p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
 	p->temperature = measured_data.temp; // x0.01 C
 	p->humidity = measured_data.humi; // x0.01 %
-	p->battery_mv = measured_data.battery_mv; // x mV
+	p->battery_mv = measured_data.average_battery_mv; // x mV
 	p->battery_level = measured_data.battery_level; // x1 %
 	p->counter = (uint8_t)adv_buf.send_count;
 #if USE_TRIGGER_OUT
@@ -127,8 +127,8 @@ void atc_data_beacon(void) {
 	p->temperature[1] = (uint8_t)measured_data.temp_x01; // x0.1 C
 	p->humidity = measured_data.humi_x1; // x1 %
 	p->battery_level = measured_data.battery_level; // x1 %
-	p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
-	p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
+	p->battery_mv[0] = (uint8_t)(measured_data.average_battery_mv >> 8);
+	p->battery_mv[1] = (uint8_t)measured_data.average_battery_mv; // x1 mV
 	p->counter = (uint8_t)adv_buf.send_count;
 }
 

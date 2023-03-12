@@ -9,6 +9,7 @@
 #include "lcd.h"
 #include "app.h"
 #include "flash_eep.h"
+#include "battery.h"
 #if	USE_TRIGGER_OUT
 #include "trigger.h"
 #include "rds_count.h"
@@ -94,7 +95,7 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 0;
 	ota_is_working = 0;
 	mi_key_stage = 0;
-	lcd_flg.uc = 0;
+	lcd_flg.all_flg = 0;
 #if USE_FLASH_MEMO
 	rd_memo.cnt = 0;
 #endif
@@ -118,21 +119,13 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	}
 #endif // DEVICE_TYPE == DEVICE_MJWSD05MMC
 #endif // BLE_EXT_ADV
-#ifdef	LCD_CONN_SYMBOL
-	show_connected_symbol(false);
-#else
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-	lcd_update = 1;
-#else // DEVICE_TYPE != DEVICE_MJWSD05MMC
-	tim_last_chow = clock_time() - min_step_time_update_lcd - (8*CLOCK_16M_SYS_TIMER_CLK_1MS);
-#endif
-#endif // LCD_CONN_SYMBOL
+	SHOW_CONNECTED_SYMBOL(false);
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	(void) e; (void) p; (void) n;
 	ble_connected = 1;
-	if(cfg.connect_latency > DEF_CONNECT_LATENCY && measured_data.battery_mv < 2800)
+	if(cfg.connect_latency > DEF_CONNECT_LATENCY && measured_data.average_battery_mv < LOW_VBAT_MV)
 		cfg.connect_latency = DEF_CONNECT_LATENCY;
 	my_periConnParameters.latency = cfg.connect_latency;
 	if (cfg.connect_latency) {
@@ -141,15 +134,7 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	}
 	my_periConnParameters.timeout = connection_timeout;
 	bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, my_periConnParameters.latency, my_periConnParameters.timeout);
-#ifdef	LCD_CONN_SYMBOL
-	show_connected_symbol(true);
-#else
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-	lcd_update = 1;
-#else
-	tim_last_chow = clock_time() - min_step_time_update_lcd - (8*CLOCK_16M_SYS_TIMER_CLK_1MS);
-#endif
-#endif
+	SHOW_CONNECTED_SYMBOL(true);
 #ifdef GPIO_KEY2
 	rest_adv_int_tad = 0;
 #endif
@@ -203,7 +188,7 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 #endif
 	{
 		if (adv_buf.old_measured_count != measured_data.count) { // new measured_data ?
-			adv_buf.old_measured_count = measured_data.count; // save
+			adv_buf.old_measured_count = measured_data.count; // save measured count
 			adv_buf.call_count = 1; // count 1..cfg.measure_interval
 			adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
 			adv_buf.update_count = 0;
@@ -218,11 +203,11 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 		}
 #ifdef GPIO_KEY2
 		if(rest_adv_int_tad) {
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-			if ((rest_adv_int_tad & 1) == 0)
-				lcd_update = 1;
-#endif
 			rest_adv_int_tad--;
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+			if (rest_adv_int_tad & 1)
+				SET_LCD_UPDATE(); // show "ble"
+#endif
 		}
 #endif
 	}
@@ -230,7 +215,6 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	else {
 		// restore next adv. interval
 		blta.adv_interval = EXT_ADV_INTERVAL*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
-		// set_rds_adv_data();
 	}
 #endif
 	return 1;		// = 1 ready to send ADV packet, = 0 not send ADV
@@ -369,8 +353,9 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 #endif
 
 extern attribute_t my_Attributes[ATT_END_H];
-const char* hex_ascii = { "0123456789ABCDEF" };
-void ble_get_name(void) {
+static const char* hex_ascii = { "0123456789ABCDEF" };
+
+void ble_set_name(void) {
 	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, 31-2));
 	if (len < 1) {
 		//Set the BLE Name to the last three MACs the first ones are always the same
@@ -431,7 +416,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	////////////////// BLE stack initialization //////////////////////
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 	/// if bls_ll_setAdvParam( OWN_ADDRESS_RANDOM ) ->  blc_ll_setRandomAddr(mac_random_static);
-	ble_get_name();
+	ble_set_name();
 	////// Controller Initialization  //////////
 	//blc_ll_initBasicMCU(); // -> app.c user_init_normal()
 	blc_ll_initStandby_module(mac_public); //must
@@ -439,37 +424,35 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_ll_initConnection_module(); // connection module  must for BLE slave/master
 	blc_ll_initSlaveRole_module(); // slave module: 	 must for BLE slave,
 	blc_ll_initPowerManagement_module(); //pm module:      	 optional
+#if	(BLE_EXT_ADV)
+	ext_adv_init = 0;
+#endif
 	if (cfg.flg2.bt5phy) { // 1M, 2M, Coded PHY
 		blc_ll_init2MPhyCodedPhy_feature();	//if use 2M or Coded PHY
 		// set Default Connection Coding
 		blc_ll_setDefaultConnCodingIndication(CODED_PHY_PREFER_S8);
 		// set Default Connection Coding
-#if	(BLE_EXT_ADV)
-		if(cfg.flg2.longrange)
-			blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
-		else
-#endif
-			blc_ll_setDefaultPhy(PHY_TRX_PREFER, PHY_PREFER_1M, PHY_PREFER_1M);
 		// set CSA2
 		blc_ll_initChannelSelectionAlgorithm_2_feature();
 		//bls_app_registerEventCallback (BLT_EV_FLAG_PHY_UPDATE, &callback_phy_update_complete_event);
-	}
 #if	(BLE_EXT_ADV)
-	if (cfg.flg2.longrange) { // support extension advertise Coded PHY
-		// init buffers ext adv
-		// and ll_module_adv_cb = blt_ext_adv_proc; pFunc_ll_SetAdv_Enable = ll_setExtAdv_Enable;
-		blc_ll_initExtendedAdvertising_module(app_adv_set_param, app_primary_adv_pkt, APP_ADV_SETS_NUMBER);
-		blc_ll_initExtSecondaryAdvPacketBuffer(app_secondary_adv_pkt, MAX_LENGTH_SECOND_ADV_PKT);
-		blc_ll_initExtAdvDataBuffer(app_advData, APP_MAX_LENGTH_ADV_DATA);
-		blc_ll_initExtScanRspDataBuffer(app_scanRspData, APP_MAX_LENGTH_SCAN_RESPONSE_DATA);
-		// if Coded PHY is used, this API set default S2/S8 mode for Extended ADV
-		blc_ll_setDefaultExtAdvCodingIndication(ADV_HANDLE0, CODED_PHY_PREFER_S8);
-		// patch, set advertise prepare user cb (app_advertise_prepare_handler)
-		ll_module_adv_cb = _blt_ext_adv_proc;
-		ext_adv_init = 1; // flag ext_adv init
-	} else
-		ext_adv_init = 0;
+		if(cfg.flg2.longrange) { // support extension advertise Coded PHY
+			// init buffers ext adv
+			// and ll_module_adv_cb = blt_ext_adv_proc; pFunc_ll_SetAdv_Enable = ll_setExtAdv_Enable;
+			blc_ll_initExtendedAdvertising_module(app_adv_set_param, app_primary_adv_pkt, APP_ADV_SETS_NUMBER);
+			blc_ll_initExtSecondaryAdvPacketBuffer(app_secondary_adv_pkt, MAX_LENGTH_SECOND_ADV_PKT);
+			blc_ll_initExtAdvDataBuffer(app_advData, APP_MAX_LENGTH_ADV_DATA);
+			blc_ll_initExtScanRspDataBuffer(app_scanRspData, APP_MAX_LENGTH_SCAN_RESPONSE_DATA);
+			// if Coded PHY is used, this API set default S2/S8 mode for Extended ADV
+			blc_ll_setDefaultExtAdvCodingIndication(ADV_HANDLE0, CODED_PHY_PREFER_S8);
+			// patch, set advertise prepare user cb (app_advertise_prepare_handler)
+			ll_module_adv_cb = _blt_ext_adv_proc;
+			ext_adv_init = 1; // flag ext_adv init
+			blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
+		} else
 #endif
+			blc_ll_setDefaultPhy(PHY_TRX_PREFER, PHY_PREFER_1M, PHY_PREFER_1M);
+	}
 	////// Host Initialization  //////////
 	blc_gap_peripheral_init();
 	my_att_init(); //gatt initialization
@@ -550,7 +533,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 	bls_set_advertise_prepare(app_advertise_prepare_handler); // TODO: not work if EXTENDED_ADVERTISING
 #if	USE_WK_RDS_COUNTER
-	bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
+	bls_app_registerEventCallback(BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
 #endif
 	ev_adv_timeout(0,0,0);
 }

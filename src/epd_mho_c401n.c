@@ -43,8 +43,6 @@ None: 0.1..0.3, 0.5..0.7, 2.3..2.7, 4.3..4.7, 5.1, 5,3, 5.5, 5.7, 6.1, 6.3, 6.7,
 
 #define DEF_EPD_REFRESH_CNT	2048
 
-RAM uint8_t display_buff[16];
-RAM uint8_t display_cmp_buff[16];
 RAM uint8_t stage_lcd;
 RAM uint8_t epd_updated;
 RAM uint16_t lcd_refresh_cnt;
@@ -64,8 +62,8 @@ const uint8_t bottom_left[22] = {1, 7,  2, 2,  2, 1,  2, 0,  1, 5,  1, 0,  1, 1,
 const uint8_t bottom_right[22]= {3, 7,  4, 2,  4, 1,  4, 0,  3, 5,  3, 0,  3, 1,  3, 2,  3, 3,  3, 4,  3, 6};
 
 // These values closely reproduce times captured with logic analyser
-#define delay_SPI_end_cycle() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*12)/10) // real clk 4.4 + 4.4 us : 114 kHz)
-#define delay_EPD_SCL_pulse() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*12)/10) // real clk 4.4 + 4.4 us : 114 kHz)
+#define delay_SPI_end_cycle() sleep_us(2)
+#define delay_EPD_SCL_pulse() sleep_us(2)
 
 /*
 Now define how each digit maps to the segments:
@@ -108,7 +106,8 @@ const uint8_t digits[16][11] = {
  * 0xA0 = "°C"
  * 0xC0 = " ="
  * 0xE0 = "°E" */
-_attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
+_attribute_ram_code_
+void show_temp_symbol(uint8_t symbol) {
  	if (symbol & 0x20)
 		display_buff[14] |= BIT(4); // "Г", "%", "( )", "."
 	else
@@ -130,7 +129,8 @@ _attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
  * 5 = "vVv" happy
  * 6 = "^-^" sad
  * 7 = "oOo" */
-_attribute_ram_code_ void show_smiley(uint8_t state){
+_attribute_ram_code_
+void show_smiley(uint8_t state){
  	// off
 	display_buff[5] &= ~(BIT(2) | BIT(4) | BIT(6)); // do not reset %
 	display_buff[6] = 0;
@@ -170,14 +170,16 @@ _attribute_ram_code_ void show_smiley(uint8_t state){
 	}
 }
 
-_attribute_ram_code_ void show_battery_symbol(bool state){
+_attribute_ram_code_
+void show_battery_symbol(bool state){
  	if (state)
 		display_buff[14] |= BIT(6);
 	else
 		display_buff[14] &= ~BIT(6);
 }
 
-_attribute_ram_code_ void show_ble_symbol(bool state){
+_attribute_ram_code_
+void show_ble_symbol(bool state){
  	if (state)
 		display_buff[0] |= BIT(4); // "*"
 	else
@@ -189,10 +191,12 @@ void show_connected_symbol(bool state){
 		display_buff[0] |= BIT(0);
 	else
 		display_buff[0] &= ~BIT(0);
- 	tim_last_chow = clock_time() - min_step_time_update_lcd - (8*CLOCK_16M_SYS_TIMER_CLK_1MS);
+ 	SET_LCD_UPDATE();
 }
 
-_attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+static void epd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
     // set the segments, there are up to 11 segments in a digit
     int segment_byte;
     int segment_bit;
@@ -213,7 +217,9 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(
 }
 
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void show_big_number_x10(int16_t number){
 	display_buff[8] = 0;
 	display_buff[9] = 0;
 	display_buff[10] = 0;
@@ -258,7 +264,9 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
 }
 
 /* -9 .. 99 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void show_small_number(int16_t number, bool percent){
 	display_buff[1] = 0;
 	display_buff[2] = 0;
 	display_buff[3] = 0;
@@ -288,7 +296,9 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number(int
 	}
 }
 
-_attribute_ram_code_ __attribute__((optimize("-Os"))) static void transmit(uint8_t cd, uint8_t data_to_send) {
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+static void transmit(uint8_t cd, uint8_t data_to_send) {
     gpio_write(EPD_SCL, LOW);
     gpio_write(EPD_CSB, LOW);
     delay_EPD_SCL_pulse();
@@ -323,7 +333,8 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void transmit(uint8
     delay_SPI_end_cycle();
 }
 
-_attribute_ram_code_ static void transmit_blk(uint8_t cd, const uint8_t * pdata, size_t size_data) {
+_attribute_ram_code_
+static void transmit_blk(uint8_t cd, const uint8_t * pdata, size_t size_data) {
 	for (int i = 0; i < size_data; i++)
 		transmit(cd, pdata[i]);
 }
@@ -340,7 +351,8 @@ void init_lcd(void) {
 }
 
 
-_attribute_ram_code_ void update_lcd(void){
+_attribute_ram_code_
+void update_lcd(void){
  	if (!stage_lcd) {
 		if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 			memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
@@ -348,12 +360,14 @@ _attribute_ram_code_ void update_lcd(void){
 				lcd_refresh_cnt--;
 			else if(ble_connected == 0)
 				init_lcd(); // pulse RST_N low for 110 microseconds
+			lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
 			stage_lcd = 1;
 		}
 	}
 }
 
-_attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
+_attribute_ram_code_
+__attribute__((optimize("-Os"))) int task_lcd(void) {
 	if (gpio_read(EPD_BUSY)) {
 		switch (stage_lcd) {
 		case 1: // Update/Init, stage 1
@@ -397,7 +411,8 @@ _attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
 }
 
 #if	USE_CLOCK
-_attribute_ram_code_ void show_clock(void) {
+_attribute_ram_code_
+void show_clock(void) {
 	uint32_t tmp = utc_time_sec / 60;
 	uint32_t min = tmp % 60;
 	uint32_t hrs = tmp / 60 % 24;

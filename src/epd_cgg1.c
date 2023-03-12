@@ -13,8 +13,6 @@
 #define DEF_EPD_SUMBOL_SIGMENTS	13
 #define DEF_EPD_REFRESH_CNT		32
 
-RAM uint8_t display_buff[18];
-RAM uint8_t display_cmp_buff[18];
 RAM uint8_t stage_lcd;
 RAM uint8_t flg_lcd_init;
 RAM uint8_t lcd_refresh_cnt;
@@ -40,8 +38,8 @@ const uint8_t bottom_left[DEF_EPD_SUMBOL_SIGMENTS*2] = {13, 1, 13, 2, 14, 2, 14,
 const uint8_t bottom_middle[DEF_EPD_SUMBOL_SIGMENTS*2] = {9, 6, 8, 3, 8, 2, 8, 1, 8, 4, 7, 3, 10, 5, 10, 4, 10, 6, 9, 5, 9, 0, 10, 7, 9, 7};
 const uint8_t bottom_right[DEF_EPD_SUMBOL_SIGMENTS*2] = {5, 1, 5, 2, 7, 7, 3, 2, 3, 4, 0, 1, 0, 0, 3, 5, 3, 3, 3, 0, 7, 6, 6, 0, 3, 1};
 
-#define delay_SPI_end_cycle() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*15)/10) // real clk 4.4 + 4.4 us : 114 kHz)
-#define delay_EPD_SCL_pulse() cpu_stall_wakeup_by_timer0((CLOCK_SYS_CLOCK_1US*15)/10) // real clk 4.4 + 4.4 us : 114 kHz)
+#define delay_SPI_end_cycle() sleep_us(2)
+#define delay_EPD_SCL_pulse() sleep_us(2)
 
 /*
 Now define how each digit maps to the segments:
@@ -326,8 +324,8 @@ void init_lcd(void) {
 
 void show_batt_cgg1(void) {
 	uint16_t battery_level = 0;
-	if (measured_data.battery_mv > MIN_VBAT_MV) {
-		battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+	if (measured_data.average_battery_mv > MIN_VBAT_MV) {
+		battery_level = ((measured_data.average_battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
 		if (battery_level > 995)
 			battery_level = 995;
 	}
@@ -338,6 +336,7 @@ _attribute_ram_code_ void update_lcd(void){
 	if (!stage_lcd) {
 		if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 			memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
+			lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
 			if (lcd_refresh_cnt) {
 				lcd_refresh_cnt--;
 				flg_lcd_init = 0;
