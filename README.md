@@ -68,7 +68,7 @@ The Web Bluetooth API in Chrome does not yet allow scanning for Bluetooh 5.0+ de
     - [Bluetooth Advertising Formats](#bluetooth-advertising-formats)
     - [Bluetooth Connection Mode](#bluetooth-connection-mode)
     - [Temperature or humidity trigger](#temperature-or-humidity-trigger-gpio-pa5-lywsd03mmc-label-on-the-reset-pin)
-    - [Reed switch or button functions)](#reed-switch-or-button-functions)
+    - [Reed switch or button functions](#reed-switch-or-button-functions)
     - [Interface for receiving and displaying data on the LCD.](#interface-for-receiving-and-displaying-data-on-the-lcd)
     - [The USB-COM adapter writes the firmware in explorer. Web version.](#the-usb-com-adapter-writes-the-firmware-in-explorer-web-version)
 - [Related Work](#related-work)
@@ -96,7 +96,9 @@ To flash or update the firmware, use a Google Chrome, Microsoft Edge or Opera Br
 
  * Use [TelinkOTA](https://pvvx.github.io/ATC_MiThermometer/TelinkOTA.html) to flash old or alternative versions ([ATC1441](https://atc1441.github.io/TelinkFlasher.html)). This is a program for OTA projects with Telink SDK, no third-party (mijia) protections.
 
- * Addition for CGG1-M: Press and hold the button on the back of CGG1-M for 2 seconds until the Bluetooth icon starts blinking on the e-ink display, and then click the 'Connect' and 'Do Activation' buttons on the TeLinkMiFlasher.
+ * Addition for CGG1-M: Press and hold the button on the back of CGG1-M for 2 seconds until the Bluetooth icon starts blinking on the e-ink display, and then click the 'Connect' and 'Do Activation' buttons on the [TelinkMiFlasherl](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
+
+ * Addition for MJWSD05MMC: Press and hold both buttons for a few seconds until the screen blink (device resets). Next, briefly press the top side button, then briefly press the bottom button. The Bluetooth icon will start flashing.  Next "Connect" and "Perform activation" in [TelinkMiFlasherl](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
 ### Configuration
 After you have flashed the firmware, the device has changed it's bluetooth name to something like `ATC_F02AED`. Using the [`TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) you have various configuration options.
