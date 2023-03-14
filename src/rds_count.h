@@ -39,7 +39,8 @@ static inline void rds_input_on(void) {
 enum {
 	RDS_NONE = 0,
 	RDS_SWITCH,
-	RDS_COUNTER
+	RDS_COUNTER,
+	RDS_CONNECT // version 4.2+
 } RDS_TYPES;
 
 typedef struct _rds_count_t {
@@ -50,7 +51,7 @@ typedef struct _rds_count_t {
 		uint16_t count_short[2];
 		uint32_t count;
 	};
-	uint8_t type;	// 0 - none, 1 - switch, 2 - counter
+	uint8_t type;	// RDS_TYPES: 0 - none, 1 - switch, 2 - counter, 3 - connect
 	uint8_t event;  // Reed Switch event
 } rds_count_t;
 extern rds_count_t rds;		// Reed switch pulse counter
@@ -63,16 +64,6 @@ void set_rds_adv_data(void);
 #endif // USE_WK_RDS_COUNTER
 
 #endif // defined GPIO_RDS
-
-#ifdef GPIO_KEY2
-
-void set_adv_con_time(int restore);
-
-static inline uint8_t get_key2_pressed(void) {
-	return BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff);
-}
-
-#endif // GPIO_KEY2
 
 #endif // USE_TRIGGER_OUT
 

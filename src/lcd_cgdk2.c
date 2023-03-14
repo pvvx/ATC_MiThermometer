@@ -357,6 +357,35 @@ void show_batt_cgdk2(void) {
 	show_small_number_x10(battery_level, false);
 }
 
+void show_ota_screen(void) {
+	memset(&display_buff, 0, sizeof(display_buff));
+#if 0
+	// "0ta"
+	display_buff[0] = BIT(0) | BIT(1) | BIT(2) | BIT(4) | BIT(5) | BIT(6);
+	display_buff[1] = BIT(4); // "ble"
+	display_buff[2] = ~BIT(2);
+	display_buff[3] = 0xff;
+	display_buff[4] = BIT(0) | BIT(4) | BIT(5) | BIT(6);
+	display_buff[5] = BIT(4) | BIT(5) | BIT(7);
+	display_buff[17] = BIT(0) | BIT(1) | BIT(2) | BIT(3);
+#else
+	display_buff[0] = BIT(5); // "-"
+	display_buff[1] = BIT(4); // "ble"
+	display_buff[2] = BIT(2); // "-"
+	display_buff[4] = BIT(6); // "-"
+	display_buff[5] = BIT(4); // "-----"
+#endif
+
+	send_to_lcd();
+	lcd_send_i2c_byte(0xf2);
+}
+
+// #define SHOW_REBOOT_SCREEN()
+void show_reboot_screen(void) {
+	memset(&display_buff, 0xff, sizeof(display_buff));
+	send_to_lcd();
+}
+
 #if	USE_CLOCK
 _attribute_ram_code_
 void show_clock(void) {

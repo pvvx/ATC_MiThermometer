@@ -4,7 +4,7 @@ LIBS := -llt_8258
 
 TEL_PATH ?= ./SDK
 
-PROJECT_NAME := ATC_Thermometer
+PROJECT_NAME ?= ATC_Thermometer
 
 PROJECT_PATH := ./src
 OUT_PATH :=./out
@@ -59,6 +59,7 @@ GCC_FLAGS := \
 INCLUDE_PATHS := -I$(TEL_PATH)/components -I$(PROJECT_PATH)
 
 GCC_FLAGS += $(TEL_CHIP)
+GCC_FLAGS += $(POJECT_DEF)
 
 LS_FLAGS := $(PROJECT_PATH)/boot.link
 

@@ -10,15 +10,15 @@
 /*
  *  LYWSD03MMC LCD buffer:  byte.bit
 
-         --5.4--         --4.4--            --3.4--         -17.0--        BLE
-  |    |         |     |         |        |         |     |         |      2.4
-  |   5.5       5.0   4.5       4.0      3.1       3.0   0.1      17.1
-  |    |         |     |         |        |         |     |         |    o 2.5
- 5.3     --5.1--         --4.1--            --3.1--         --0.2--        +--- 2.5
-  |    |         |     |         |        |         |     |         |   2.5|
-  |   5.6       5.2   4.6       4.2      3.6       3.2   0.3      17.2     ---- 2.6
-  |    |         |     |         |        |         |     |         |   2.5|
-         --5.7--         --4.7--     *      --3.7--         -17.3--        ---- 2.7
+         --5.4--         --4.4--            --3.4--          BLE
+  |    |         |     |         |        |         |        2.4
+  |   5.5       5.0   4.5       4.0      3.5       3.0  
+  |    |         |     |         |        |         |      o 2.5
+ 5.3     --5.1--         --4.1--            --3.1--          +--- 2.5
+  |    |         |     |         |        |         |     2.5|
+  |   5.6       5.2   4.6       4.2      3.6       3.2       ---- 2.6
+  |    |         |     |         |        |         |     2.5|
+         --5.7--         --4.7--     *      --3.7--          ---- 2.7
                                     4.3
                                         --1.4--         --0.4--
                                       |         |     |         |
@@ -332,6 +332,23 @@ __attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool per
 		if (number > 9) display_buff[1] |= display_numbers[number / 10 % 10];
 		display_buff[0] |= display_numbers[number %10];
 	}
+}
+
+void show_ota_screen(void) {
+	memset(&display_buff, 0, sizeof(display_buff));
+	display_buff[2] = BIT(4); // "ble"
+	display_buff[3] = BIT(7); // "_"
+	display_buff[4] = BIT(7); // "_"
+	display_buff[5] = BIT(7); // "_"
+	send_to_lcd();
+	if(lcd_i2c_addr == B19_I2C_ADDR << 1)
+		lcd_send_i2c_byte(0xf2);
+}
+
+// #define SHOW_REBOOT_SCREEN()
+void show_reboot_screen(void) {
+	memset(&display_buff, 0xff, sizeof(display_buff));
+	send_to_lcd();
 }
 
 #if	USE_CLOCK

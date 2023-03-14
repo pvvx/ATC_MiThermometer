@@ -122,16 +122,12 @@ void utime_to_rtc(uint32_t ut, rtc_time_t *r) {
 }
 
 _attribute_ram_code_ uint8_t byte_to_bcd(uint8_t b) {
-#if 1
 	uint8_t bcd = 0;
 	while (b >= 10) {
 		b -= 10;
 		bcd += 0x10;
 	}
 	return bcd + b;
-#else
-	return ((b / 10) << 4) | (b % 10);
-#endif
 }
 
 _attribute_ram_code_ uint8_t bcd_to_byte(uint8_t bcd) {

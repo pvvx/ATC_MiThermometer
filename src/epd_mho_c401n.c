@@ -354,8 +354,8 @@ void init_lcd(void) {
 _attribute_ram_code_
 void update_lcd(void){
  	if (!stage_lcd) {
-		if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
-			memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
+		if (memcmp(display_cmp_buff, display_buff, sizeof(display_buff))) {
+			memcpy(display_cmp_buff, display_buff, sizeof(display_buff));
 			if (lcd_refresh_cnt)
 				lcd_refresh_cnt--;
 			else if(ble_connected == 0)

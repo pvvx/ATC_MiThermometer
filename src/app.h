@@ -8,6 +8,8 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
+#include "drivers/8258/gpio_8258.h"
+
 enum {
 	HW_VER_LYWSD03MMC_B14 = 0,
 	HW_VER_MHO_C401,		//1
@@ -97,11 +99,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 		uint8_t smiley 		: 3;	// 0..7
 #endif
 		uint8_t adv_crypto	: 1; 	// advertising uses crypto beacon
-#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
-		uint8_t reserved1	: 1;
-#else
 		uint8_t adv_flags  	: 1; 	// advertising add flags
-#endif
 		uint8_t bt5phy  	: 1; 	// support BT5.0 All PHY
 		uint8_t longrange  	: 1;  	// advertising in LongRange mode (сбрасывается после отключения питания)
 		uint8_t reserved	: 1;
@@ -187,7 +185,6 @@ extern uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
 #if	USE_TIME_ADJUST
 extern uint32_t utc_time_tick_step; // adjust time clock (in 1/16 us for 1 sec)
 #endif
-extern int32_t rest_adv_int_tad;	// timer event restore adv.intervals
 
 #if BLE_SECURITY_ENABLE
 extern uint32_t pincode; // pincode (if = 0 - not used)
@@ -235,6 +232,26 @@ extern uint32_t pincode;
 extern uint32_t adv_interval; // adv interval in 0.625 ms // = cfg.advertising_interval * 100
 extern uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = connection_latency_ms * 4 = 2000 * 4 = 8000 ms
 extern uint32_t measurement_step_time; // = adv_interval * measure_interval
+
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+// extension keys
+typedef struct {
+	int32_t rest_adv_int_tad;	// timer event restore adv.intervals (in adv count)
+	uint32_t key_pressed_tik1;   // timer1 key_pressed (in sys tik)
+	uint32_t key_pressed_tik2;	// timer2 key_pressed (in sys tik)
+#ifdef GPIO_KEY2
+	uint8_t  key2pressed;
+#endif
+} ext_key_t;
+extern ext_key_t ext_key; // extension keys
+
+void set_default_cfg(void);
+#ifdef GPIO_KEY2
+static inline uint8_t get_key2_pressed(void) {
+	return BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff);
+}
+#endif // GPIO_KEY2
+#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
 
 void ev_adv_timeout(u8 e, u8 *p, int n); // DURATION_TIMEOUT Event Callback
 void test_config(void); // Test config values

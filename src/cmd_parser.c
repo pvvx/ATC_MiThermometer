@@ -22,7 +22,9 @@
 #include "mi_beacon.h"
 #endif
 #include "cmd_parser.h"
-#include "stack/ble/service/ble_ll_ota.h"
+#if USE_EXT_OTA
+#include "ext_ota.h"
+#endif
 
 #define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (uint32_t)faddr, len, (uint8_t *)pbuf)
 
@@ -51,134 +53,6 @@ enum {
 } MI_KEY_STAGES;
 
 RAM blk_mi_keys_t keybuf;
-
-#if USE_EXT_OTA  // Compatible BigOTA
-
-
-void ota_result_cb(int result) {
-	uint8_t id = 0;
-	if(result == OTA_SUCCESS) {
-		// clear the "bootable" identifier on the current work segment
-		flash_read_page(0x20008, sizeof(id), (unsigned char *) &id);
-		if(id == 'K') {
-			id = 0;
-			flash_write_page(0x20008, 1, (unsigned char *) &id);
-		}
-	}
-}
-
-typedef struct _ext_ota_t {
-	uint32_t start_addr;
-	uint32_t ota_size; // in kbytes
-	uint32_t check_addr;
-} ext_ota_t;
-
-RAM ext_ota_t ext_ota;
-
-uint32_t check_sector_clear(uint32_t addr) {
-	uint32_t faddr = addr, efaddr, fbuf;
-	faddr &= ~(FLASH_SECTOR_SIZE-1);
-	efaddr = faddr + FLASH_SECTOR_SIZE;
-	while(faddr < efaddr) {
-		flash_read_page(faddr, sizeof(fbuf), (unsigned char *) &fbuf);
-		if(fbuf != 0xffffffff) {
-#if 1
-			flash_erase_sector(faddr & (~(FLASH_SECTOR_SIZE-1)));
-#else
-			unsigned char r = irq_disable();
-			sleep_us(287*1000);
-			irq_restore(r);
-#endif
-			break;
-		}
-		faddr += 1024;
-	}
-	return efaddr;
-}
-
-
-// Ext.OTA return code
-enum {
-	EXT_OTA_OK = 0,		//0
-	EXT_OTA_WORKS,		//1
-	EXT_OTA_BUSY,		//2
-	EXT_OTA_READY,		//3
-	EXT_OTA_EVENT,		//4
-	EXT_OTA_ERR_PARM = 0xfe
-} EXT_OTA_ENUM;
-
-uint8_t check_ext_ota(uint32_t ota_addr, uint32_t ota_size) {
-	if(ota_is_working == 0xff)
-		return EXT_OTA_BUSY;
-	if(ota_is_working)
-		return EXT_OTA_WORKS;
-	if(ota_addr < 0x40000 && ota_size <= ota_firmware_size_k)
-		return EXT_OTA_OK;
-	if(ota_size >= 208
-		|| ota_size < 4
-		|| ota_addr & (FLASH_SECTOR_SIZE-1))
-		return EXT_OTA_ERR_PARM;
-#if (defined(SHOW_OTA_SCREEN) && SHOW_OTA_SCREEN)
-	show_ota_screen();
-#endif
-	ble_connected |= 0x80;
-	ota_is_working = 0xff; // flag ext.ota
-	ext_ota.start_addr = ota_addr;
-	ext_ota.check_addr = ota_addr;
-	ext_ota.ota_size = (ota_size + 3) & 0xfffffc;
-	bls_ota_registerResultIndicateCb(ota_result_cb);
-	bls_pm_setManualLatency(3);
-	return EXT_OTA_BUSY;
-}
-
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-static const uint8_t _mi_hw_vers[] = "V2.3F2.0-CFMK-LB-TMDZ---";
-#else
-#error "Define MI_HW_VER_FADDR & _mi_hw_vers!"
-#endif
-
-void clear_ota_area(void) {
-	union {
-		uint8_t b[24];
-		struct __attribute__((packed)) {
-			uint16_t id_ok;
-			uint32_t start_addr;
-			uint32_t ota_size;
-		} msg;
-	} buf;
-//	if(bls_pm_getSystemWakeupTick() - clock_time() < 512*CLOCK_16M_SYS_TIMER_CLK_1MS)
-//		return;
-	if(bls_ll_requestConnBrxEventDisable() < 256 || ext_ota.check_addr == 0)
-		return;
-	if (ext_ota.check_addr >= ext_ota.start_addr + (ext_ota.ota_size << 10)) {
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-			check_sector_clear(MI_HW_VER_FADDR);
-			memcpy(buf.b, &_mi_hw_vers, 24);
-			flash_write_page(MI_HW_VER_FADDR, 24, (unsigned char *)buf.b);
-#else
-#error "Define MI_HW_VER_FADDR & _mi_hw_vers!"
-#endif
-			ota_firmware_size_k = ext_ota.ota_size;
-			ota_program_offset = ext_ota.start_addr;
-			buf.msg.id_ok = (EXT_OTA_READY << 8) + CMD_ID_SET_OTA;
-			buf.msg.start_addr = ext_ota.start_addr;
-			buf.msg.ota_size = ext_ota.ota_size;
-			ota_is_working = 0x02; // flag ext.ota end
-			ext_ota.check_addr = 0;
-	}
-	else  {
-			bls_ll_disableConnBrxEvent();
-			ext_ota.check_addr = check_sector_clear(ext_ota.check_addr);
-			bls_ll_restoreConnBrxEvent();
-			buf.msg.id_ok = (EXT_OTA_EVENT << 8) + CMD_ID_SET_OTA;
-			buf.msg.start_addr = ext_ota.check_addr;
-			buf.msg.ota_size = 0;
-	}
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *)&buf.msg, sizeof(buf.msg));
-	bls_pm_setSuspendMask(
-			SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN); // MCU_STALL);
-}
-#endif // USE_EXT_OTA
 
 #if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N))
 uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
@@ -237,7 +111,7 @@ uint8_t send_mi_key(void) {
 			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *) &keybuf, SEND_BUFFER_SIZE);
 			keybuf.klen -= SEND_BUFFER_SIZE - 2;
 			if (keybuf.klen)
-				memcpy(&keybuf.data, &keybuf.data[SEND_BUFFER_SIZE - 2], keybuf.klen);
+				memcpy(keybuf.data, &keybuf.data[SEND_BUFFER_SIZE - 2], keybuf.klen);
 		};
 		if (keybuf.klen)
 			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *) &keybuf,
@@ -273,16 +147,16 @@ uint8_t store_mi_keys(uint8_t klen, uint16_t key_id, uint8_t * pkey) {
 				if (memcmp(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], pkey, keybuf.klen)) {
 					memcpy(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], pkey, keybuf.klen);
 					flash_erase_sector(FLASH_MIKEYS_ADDR);
-					flash_write_all_size(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
+					flash_write(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
 					return 1;
 				}
 			} else if (faoldkey) {
 				if (memcmp(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], &backupsector[faoldkey - FLASH_MIKEYS_ADDR], keybuf.klen)) {
 					// memcpy(&keybuf.data, &backupsector[faoldkey - FLASH_MIKEYS_ADDR], keybuf.klen);
 					memcpy(&backupsector[faoldkey - FLASH_MIKEYS_ADDR], &backupsector[fanewkey - FLASH_MIKEYS_ADDR], keybuf.klen);
-					memcpy(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], &keybuf.data, keybuf.klen);
+					memcpy(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], keybuf.data, keybuf.klen);
 					flash_erase_sector(FLASH_MIKEYS_ADDR);
-					flash_write_all_size(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
+					flash_write(FLASH_MIKEYS_ADDR, sizeof(backupsector), backupsector);
 					return 1;
 				}
 			}
@@ -346,13 +220,12 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 		chk_stage = MI_KEY_STAGE_END;
 		break;
 	default: // Start get all mi keys // MI_KEY_STAGE_MAC
-#if 1
 #if (DEVICE_TYPE == DEVICE_CGG1)
 #if (DEVICE_CGG1_ver == 2022)
 		_flash_read(FLASH_MIMAC_ADDR + 1, 6, &keybuf.data[8]); // MAC[6] + mac_random[2]
 #else
 		_flash_read(FLASH_MIMAC_ADDR, 8, &keybuf.data[8]); // MAC[6] + mac_random[2]
-#endif
+#endif // (DEVICE_CGG1_ver == 2022)
 		SwapMacAddress(keybuf.data, &keybuf.data[8]);
 		keybuf.data[6] = keybuf.data[8+6];
 		keybuf.data[7] = keybuf.data[8+7];
@@ -363,22 +236,7 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 		keybuf.data[7] = keybuf.data[8+7];
 #else
 		_flash_read(FLASH_MIMAC_ADDR, 8, keybuf.data); // MAC[6] + mac_random[2]
-#endif
-#else
-#if (DEVICE_TYPE == DEVICE_CGG1)
-#if (DEVICE_CGG1_ver == 2022)
-		memcpy(&keybuf.data[8],(uint8_t *)(FLASH_MIMAC_ADDR + 1), 8); // MAC[6] + mac_random[2]
-#else
-		memcpy(&keybuf.data[8],(uint8_t *)(FLASH_MIMAC_ADDR), 8); // MAC[6] + mac_random[2]
-#endif
-		SwapMacAddress(keybuf.data, &keybuf.data[8]);
-#elif (DEVICE_TYPE == DEVICE_CGDK2)
-		memcpy(&keybuf.data[8],(uint8_t *)(FLASH_MIMAC_ADDR+1), 8); // MAC[6] + mac_random[2]
-		SwapMacAddress(keybuf.data, &keybuf.data[8]);
-#else
-		memcpy(&keybuf.data,(uint8_t *)(FLASH_MIMAC_ADDR), 8); // MAC[6] + mac_random[2]
-#endif
-#endif
+#endif // DEVICE_TYPE
 		keybuf.klen = 8;
 		keybuf.id = CMD_ID_DEV_MAC;
 		chk_stage = MI_KEY_STAGE_DNAME;
@@ -444,13 +302,13 @@ void cmd_parser(void * p) {
 			if (cmd != CMD_ID_CFG_NS) {	// Get/set config (not save to Flash)
 				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 				if((tmp ^ ((volatile u8 *)&cfg.flg2)[0]) & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
-					ble_connected |= 0x80; // reset device on disconnect
+					ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
 			}
 			ble_send_cfg();
 		} else if (cmd == CMD_ID_CFG_DEF) { // Set default config
 			if((((u8 *)&cfg.flg2)[0] ^ ((u8 *)&def_cfg.flg2)[0]) & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
-				ble_connected |= 0x80; // reset device on disconnect
+				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			}
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 			test_config();
@@ -464,12 +322,13 @@ void cmd_parser(void * p) {
 			if (--len > sizeof(trg))	len = sizeof(trg);
 			if (len)
 				memcpy(&trg, &req->dat[1], len);
+#if USE_WK_RDS_COUNTER
+			rds.type = trg.rds.type;
+			rds_init();
+#endif
 			test_trg_on();
 			if (cmd != CMD_ID_TRG_NS) // Get/set trg data (not save to Flash)
 				flash_write_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG);
-#if USE_WK_RDS_COUNTER
-			rds.type = trg.rds.type;
-#endif
 			ble_send_trg();
 		} else if (cmd == CMD_ID_TRG_OUT) { // Set trg out
 			if (len > 1)
@@ -481,23 +340,23 @@ void cmd_parser(void * p) {
 			if (len == 2 && req->dat[1] == 0) { // default MAC
 				flash_erase_mac_sector(FLASH_MIMAC_ADDR);
 				blc_initMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
-				ble_connected |= 0x80; // reset device on disconnect
+				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			} else if (len == sizeof(mac_public)+2 && req->dat[1] == sizeof(mac_public)) {
-				if (memcmp(&mac_public, &req->dat[2], sizeof(mac_public))) {
-					memcpy(&mac_public, &req->dat[2], sizeof(mac_public));
+				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))) {
+					memcpy(mac_public, &req->dat[2], sizeof(mac_public));
 					mac_random_static[0] = mac_public[0];
 					mac_random_static[1] = mac_public[1];
 					mac_random_static[2] = mac_public[2];
 					generateRandomNum(2, &mac_random_static[3]);
 					mac_random_static[5] = 0xC0; 			//for random static
 					blc_newMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
-					ble_connected |= 0x80; // reset device on disconnect
+					ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
 			} else	if (len == sizeof(mac_public)+2+2 && req->dat[1] == sizeof(mac_public)+2) {
-				if (memcmp(&mac_public, &req->dat[2], sizeof(mac_public))
+				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))
 						|| mac_random_static[3] != req->dat[2+6]
 						|| mac_random_static[4] != req->dat[2+7] ) {
-					memcpy(&mac_public, &req->dat[2], sizeof(mac_public));
+					memcpy(mac_public, &req->dat[2], sizeof(mac_public));
 					mac_random_static[0] = mac_public[0];
 					mac_random_static[1] = mac_public[1];
 					mac_random_static[2] = mac_public[2];
@@ -505,7 +364,7 @@ void cmd_parser(void * p) {
 					mac_random_static[4] = req->dat[2+7];
 					mac_random_static[5] = 0xC0; 			//for random static
 					blc_newMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
-					ble_connected |= 0x80; // reset device on disconnect
+					ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
 			}
 			get_mi_keys(MI_KEY_STAGE_MAC);
@@ -514,10 +373,10 @@ void cmd_parser(void * p) {
 		} else if (cmd == CMD_ID_BKEY) { // Get/set beacon bindkey
 			if (len == sizeof(bindkey) + 1) {
 				memcpy(bindkey, &req->dat[1], sizeof(bindkey));
-				flash_write_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey));
+				flash_write_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey));
 				bindkey_init();
 			}
-			if (flash_read_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey)) == sizeof(bindkey)) {
+			if (flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey)) == sizeof(bindkey)) {
 				memcpy(&send_buf[1], bindkey, sizeof(bindkey));
 				olen = sizeof(bindkey) + 1;
 			} else { // No bindkey in EEP!
@@ -529,7 +388,7 @@ void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
 		} else if (cmd == CMD_ID_MI_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
-			ble_connected |= 0x80; // reset device on disconnect
+			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 		} else if (cmd == CMD_ID_MI_CLR) { // Delete all mi keys
 #if USE_SECURITY_BEACON
 			if (erase_mikeys())
@@ -564,7 +423,7 @@ void cmd_parser(void * p) {
 				if (flash_write_cfg(&pincode, EEP_ID_PCD, sizeof(pincode))) {
 					if ((pincode != 0) ^ (old_pincode != 0)) {
 						bls_smp_eraseAllParingInformation();
-						ble_connected |= 0x80; // reset device on disconnect
+						ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 					}
 					send_buf[1] = 1;
 				} else	send_buf[1] = 3;
@@ -578,11 +437,11 @@ void cmd_parser(void * p) {
 			flash_write_cfg(&cmf, EEP_ID_CMF, sizeof(cmf));
 			ble_send_cmf();
 		} else if (cmd == CMD_ID_DNAME) { // Get/Set device name
-			if (--len > SEND_BUFFER_SIZE - 1) len = SEND_BUFFER_SIZE - 1;
+			if (--len > MAX_DEV_NAME_LEN) len = MAX_DEV_NAME_LEN;
 			if (len) {
 				flash_write_cfg(&req->dat[1], EEP_ID_DVN, (req->dat[1] != 0)? len : 0);
 				ble_set_name();
-				ble_connected |= 0x80; // reset device on disconnect
+				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			}
 			memcpy(&send_buf[1], &ble_name[2], ble_name[0] - 1);
 			olen = ble_name[0];
@@ -650,7 +509,7 @@ void cmd_parser(void * p) {
 				send_buf[1] = 0xff;
 			olen = 2;
 		} else if (cmd == CMD_ID_REBOOT) { // Set Reboot on disconnect
-			ble_connected |= 0x80; // reset device on disconnect
+			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			olen = 2;
 		} else if (cmd == CMD_ID_SET_OTA) { // Set OTA address and size
 #if USE_EXT_OTA  // Compatible BigOTA
@@ -719,14 +578,14 @@ void cmd_parser(void * p) {
 				olen = i + 3;
 		} else if (cmd == CMD_ID_DEBUG && len > 3) { // test/debug
 			_flash_read((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), 18, &send_buf[4]);
-			memcpy(send_buf, req->dat, 4);
+			memcpy(send_buf, &req->dat, 4);
 			olen = 18+4;
 		} else if (cmd == CMD_ID_LR_RESET) { // Reset Long Range
 			cfg.flg2.longrange = 0;
 			cfg.flg2.bt5phy = 0;
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
-			ble_connected |= 0x80; // reset device on disconnect
+			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 		} else {
 			send_buf[1] = 0xff; // Error cmd
 			olen = 2;

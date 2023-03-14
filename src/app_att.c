@@ -87,14 +87,14 @@ static const u8 my_ManCharVal[5] = {
 static const u8 my_FirmStr[] = {"github.com/pvvx"};
 #if DEVICE_TYPE == DEVICE_MJWSD05MMC
 static const u8 my_ModelStr[] = {"MJWSD05MMC"};
-static const u8 my_SerialStr[] = {"F2.0-CFMK-LB-TMDZ---"};
-static const u8 my_HardStr[] = {"2022"}; // V2.3
+RAM u8 my_HardStr[4];// = {"V2.3"}
+RAM u8 my_SerialStr[20]; // = {"F2.0-CFMK-LB-TMDZ---"}
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0026"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_MHO_C401
 static const u8 my_ModelStr[] = {"MHO-C401"};
-static const u8 my_SerialStr[] = {"0000-0000-0000-0001"}; // "0000-0000-0000-00000"
-static const u8 my_HardStr[] = {"2020"};
+RAM u8 my_HardStr[4]; // = {"2020"};
+RAM u8 my_SerialStr[20]; // "0000-0000-0000-00000"
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0110"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
@@ -105,8 +105,8 @@ static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; //
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 static const u8 my_ModelStr[] = {"LYWSD03MMC"};
-static const u8 my_SerialStr[] = {"F1.0-CFMK-LB-ZCXTJ--"}; // B1.5 "F2.0-CFMK-LB-JHBD---", B1.9 "F1.0-CFMK-LB-FLD----" 
 RAM u8 my_HardStr[4];// = {"B1.4"};
+RAM u8 my_SerialStr[20]; // = {"F1.0-CFMK-LB-ZCXTJ--"}; // B1.5 "F2.0-CFMK-LB-JHBD---", B1.9 "F1.0-CFMK-LB-FLD----"
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_CGG1

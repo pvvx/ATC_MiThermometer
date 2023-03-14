@@ -32,8 +32,18 @@ extern u8 app_adv_set_param[];
 RAM	rds_count_t rds;		// Reed switch pulse counter
 
 void rds_init(void) {
-	if (rds.type)
+	if (rds.type) {
+#ifndef GPIO_KEY2
+		if(rds.type == RDS_CONNECT)
+			trg.rds.rs_invert = 1;
+#else
+		if(rds.type == RDS_CONNECT) {
+			rds.type = RDS_SWITCH;
+			trg.rds.type = RDS_SWITCH;
+		}
+#endif
 		rds_input_on();
+	}
 #if USE_WK_RDS_COUNTER32 // save 32 bits?
 	if ((flash_read_cfg(&rds.count_short[1], EEP_ID_RPC, sizeof(rds.count_short[1])) != sizeof(rds.count_short[1])) {
 		rds.count = 0;
@@ -96,36 +106,13 @@ void set_rds_adv_data(void) {
 		}
 	}
 	adv_buf.update_count = 0; // refresh adv_buf.data in next set_adv_data()
-#if (BLE_EXT_ADV)
-	if (ext_adv_init) { // support extension advertise
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size + sizeof(adv_buf.flag), (u8 *)&adv_buf.flag);
-#else
-		if (cfg.flg2.adv_flags)
-			blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size + sizeof(adv_buf.flag), (u8 *)&adv_buf.flag);
-		else
-			blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, adv_buf.data_size, (u8 *)&adv_buf.data);
-#endif
-
-	} else
-#endif
-	{
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-		bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
-#else
-		if (cfg.flg2.adv_flags) {
-			bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
-		} else {
-			bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
-		}
-#endif
-	}
+	load_adv_data();
 }
 
 //_attribute_ram_code_
 static void start_ext_adv(void) {
 #if (BLE_EXT_ADV)
-	if (ext_adv_init) { // support extension advertise
+	if (adv_buf.ext_adv_init) { // support extension advertise
 		set_rds_adv_data();
 		blta.adv_duraton_en = EXT_ADV_COUNT;
 		adv_buf.data_size = 0; // flag adv_buf.send_count++
@@ -149,27 +136,6 @@ static void start_ext_adv(void) {
 	}
 }
 
-#ifdef GPIO_KEY2
-void set_adv_con_time(int restore) {
-	if(restore) {
-		test_config();
-		rest_adv_int_tad = 0;
-	} else {
-		adv_interval = 1600; // 1 sec
-		rest_adv_int_tad = -1;
-	}
-	if((!ble_connected) && (!blta.adv_duraton_en)) {
-#if (BLE_EXT_ADV)
-		if (ext_adv_init) { // support extension advertise
-			ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
-			pea->advInt_use = adv_interval; // set next ext.adv. interval
-		}
-		else
-#endif
-			ev_adv_timeout(0,0,0);
-	}
-}
-#endif // GPIO_KEY2
 
 _attribute_ram_code_ void rds_suspend(void) {
 	if (!ble_connected) {
@@ -191,13 +157,45 @@ void rds_task(void) {
 //	rds_input_on(); // in "app_config.h" and WakeupLowPowerCb()
 	if (get_rds_input()) {
 		if (!trg.flg.rds_input) {
+			// keypress event
 			trg.flg.rds_input = 1;
 			if (rds.type == RDS_SWITCH) { // switch mode
 				rds.event = rds.type;
 			}
+#ifndef GPIO_KEY2
+			else if (rds.type == RDS_CONNECT) { // connect mode
+				// connect keypress event
+				uint32_t new = clock_time();
+				ext_key.key_pressed_tik1 = new;
+				ext_key.key_pressed_tik2 = new;
+				set_adv_con_time(0); // set connection adv.
+				SET_LCD_UPDATE();
+				return;
+			}
+#endif
 		}
+#ifndef GPIO_KEY2
+		else if (rds.type == RDS_CONNECT) { // connect mode
+			// connection key held
+			uint32_t new = clock_time();
+			if(new - ext_key.key_pressed_tik1 > 1750*CLOCK_16M_SYS_TIMER_CLK_1MS) {
+				ext_key.key_pressed_tik1 = new;
+				cfg.flg.temp_F_or_C ^= 1;
+				if(ext_key.rest_adv_int_tad) {
+					set_adv_con_time(1); // restore default adv.
+					ext_key.rest_adv_int_tad = 0;
+				}
+				SET_LCD_UPDATE();
+			}
+			if(new - ext_key.key_pressed_tik2 > 20*CLOCK_16M_SYS_TIMER_CLK_1S) {
+				set_default_cfg();
+			}
+			return;
+		}
+#endif
 	} else {
 		if (trg.flg.rds_input) {
+			// key released event
 			trg.flg.rds_input = 0;
 			rds.count++;
 #if USE_WK_RDS_COUNTER32 // save 32 bits?
@@ -213,6 +211,21 @@ void rds_task(void) {
 				rds.event = rds.type;
 			}
 		}
+#ifndef GPIO_KEY2
+		if (rds.type == RDS_CONNECT) { // connect mode
+				// connection key released
+				uint32_t new = clock_time();
+				ext_key.key_pressed_tik1 = new;
+				ext_key.key_pressed_tik2 = new;
+/* in app.c: main_loop()
+				if(ext_key.rest_adv_int_tad < -80) {
+					set_adv_con_time(1); // restore default adv.
+					SET_LCD_UPDATE();
+				}
+*/
+				return;
+		}
+#endif
 	}
 	if (trg.rds_time_report
 		&& utc_time_sec - rds.report_tick > trg.rds_time_report) {

@@ -27,6 +27,7 @@
 #if USE_HA_BLE_BEACON
 #include "ha_ble_beacon.h"
 #endif
+#include "ext_ota.h"
 
 void app_enter_ota_mode(void);
 
@@ -49,9 +50,8 @@ RAM uint32_t utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S; // adjust time clo
 #else
 #define utc_time_tick_step CLOCK_16M_SYS_TIMER_CLK_1S
 #endif
-#ifdef GPIO_KEY2
-RAM  int32_t rest_adv_int_tad;	// timer event restore adv.intervals (in adv tik)
-RAM  uint32_t key_pressed_tik, key_pressed_tiks;	// timer key_pressed (in sys tik)
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+RAM  ext_key_t ext_key; // extension keys
 #endif
 
 #if BLE_SECURITY_ENABLE
@@ -312,9 +312,9 @@ void test_config(void) {
 		cfg.min_step_time_update_lcd = 10;
 	lcd_flg.min_step_time_update_lcd = cfg.min_step_time_update_lcd * (50 * CLOCK_16M_SYS_TIMER_CLK_1MS);
 #endif
+	set_hw_version();
 	my_RxTx_Data[0] = CMD_ID_CFG;
 	my_RxTx_Data[1] = VERSION;
-	set_hw_version();
 	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 }
 
@@ -329,7 +329,7 @@ void low_vbat(void) {
 #if (DEVICE_TYPE != DEVICE_CGDK2)
 	show_smiley(0);
 #endif
-	show_big_number_x10(measured_data.average_battery_mv * 10);
+	show_big_number_x10(measured_data.battery_mv * 10);
 #if (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
 	show_small_number_x10(-1023, 1); // "Lo"
 #else
@@ -410,12 +410,14 @@ static void suspend_exit_cb(u8 e, u8 *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
-#if USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
 _attribute_ram_code_
 static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
+#if USE_WK_RDS_COUNTER
 	if (rds.type) // rds: switch or counter
 		rds_suspend();
+#endif
 #ifdef GPIO_KEY2
 	if (1) { // !ble_connected) {
 		/* TODO: if connection mode, gpio wakeup throws errors in sdk libs!
@@ -426,9 +428,9 @@ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	} else {
 		cpu_set_gpio_wakeup(GPIO_KEY2, Level_Low, 0);  // pad wakeup suspend/deepsleep disable
 	}
-#endif
+#endif // GPIO_KEY2
 }
-#endif
+#endif // GPIO_KEY2 || (USE_WK_RDS_COUNTER)
 
 //--- check battery
 #define BAT_AVERAGE_SHL		4 // 2..7
@@ -469,100 +471,16 @@ static void start_tst_battery(void) {
 		bat_average.buf[i] = measured_data.battery_mv;
 }
 
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-extern unsigned char *_icload_size_div_16_;
-extern unsigned char *_bin_size_;
-
-#define MI_OTA2_FADDR 0x40000 // Big OTA2
-// Current OTA header:
-static const uint32_t head_id[4] = {
-			0x00008026, // asm("tj __reset")
-			0x025d0000, // id OTA
-			0x544c4e4b, // id "bootable" = "KNLT"
-			(uint32_t)(&_icload_size_div_16_ ) + 0x00880000 };
-/* Reformat Big OTA to Low OTA */
-void test_first_ota(void) {
-	// find the real FW flash address
-	uint32_t buf_blk[64], id, size, faddrw = 0x20000, faddrr = MI_OTA2_FADDR;
-	flash_unlock(FLASH_TYPE_GD);
-	flash_read_page(faddrr, 0x20, (unsigned char *) &buf_blk);
-	if(buf_blk[0] == MEMO_SEC_ID)
-		return;
-	if(memcmp(&buf_blk, &head_id, sizeof(head_id)) == 0) {
-		// calculate size OTA
-		size = (uint32_t)(&_bin_size_);
-		size += 15;
-		size &= ~15;
-		size += 4;
-		if(buf_blk[6] == size) { // OTA bin size
-//			bls_ota_clearNewFwDataArea();
-			flash_erase_sector(faddrw); // 45 ms, 4 mA
-			flash_read_page(faddrr, sizeof(buf_blk), (unsigned char *) &buf_blk);
-			buf_blk[2] &= 0xffffffff; // clear id "bootable"
-			faddrr += sizeof(buf_blk);
-			flash_write_page(faddrw, sizeof(buf_blk), (unsigned char *) &buf_blk);
-			size += faddrw;
-			faddrw += sizeof(buf_blk);
-			while(faddrw < size) {
-				if((faddrw & (FLASH_SECTOR_SIZE - 1)) == 0)
-					flash_erase_sector(faddrw); // 45 ms, 4 mA
-				// rd-wr 4kB - 20 ms, 4 mA
-				flash_read_page(faddrr, sizeof(buf_blk), (unsigned char *) &buf_blk);
-				faddrr += sizeof(buf_blk);
-				flash_write_page(faddrw, sizeof(buf_blk), (unsigned char *) &buf_blk);
-				faddrw += sizeof(buf_blk);
-			}
-			// set id "bootable" to new segment
-			id = head_id[2]; // = "KNLT"
-			flash_write_page(0x20008, sizeof(id), (unsigned char *) &id);
-			// clear the "bootable" identifier on the current OTA segment
-			id = 0;
-			flash_write_page(MI_OTA2_FADDR + 8, 1, (unsigned char *) &id);
-			//flash_erase_sector(CFG_ADR_BIND); // Pair & Security info
-			while(1)
-				start_reboot();
-		}
-	}
-}
-#endif // DEVICE_TYPE == DEVICE_MJWSD05MMC
-
-#if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-/*
- * Read HW version
- * Flash LYWSD03MMC:
- * 00055000:  42 31 2E 34 46 31 2E 30 2D 43 46 4D 4B 2D 4C 42  B1.4F1.0-CFMK-LB
- * 00055010:  2D 5A 43 58 54 4A 2D 2D FF FF FF FF FF FF FF FF  -ZCXTJ--
- * Flash MJWSD05MMC:
- * 0007D000:  56 32 2E 33 46 32 2E 30 2D 43 46 4D 4B 2D 4C 42  V2.3F2.0-CFMK-LB
- * 0007D010:  2D 54 4D 44 5A 2D 2D 2D FF FF FF FF FF FF FF FF  -TMDZ---  
- */
-uint32_t get_mi_hw_version(void) {
-	uint32_t hw;
-	flash_read_page(MI_HW_VER_FADDR, sizeof(hw), (unsigned char *) &hw);
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-	if ((hw & 0xf0fff0ff) != 0x302E3056)
-#else
-	if ((hw & 0xf0fff0ff) != 0x302E3042)
-#endif
-	{
-//		if (flash_read_cfg(&hw, EEP_ID_HWV, sizeof(hw)) != sizeof(hw))
-//			hw = 0;
-//		else if ((hw & 0xf0fff0ff) != 0x302E3042)
-			hw = 0;
-	}
-	return hw;
-}
-#endif // DEVICE_TYPE == DEVICE_LYWSD03MMC or DEVICE_TYPE == DEVICE_MJWSD05MMC
 
 #if USE_SECURITY_BEACON
 void bindkey_init(void) {
 #if	USE_MIHOME_BEACON
 	uint32_t faddr = find_mi_keys(MI_KEYTBIND_ID, 1);
 	if (faddr) {
-		memcpy(&bindkey, &keybuf.data[12], sizeof(bindkey));
+		memcpy(bindkey, &keybuf.data[12], sizeof(bindkey));
 		faddr = find_mi_keys(MI_KEYSEQNUM_ID, 1);
 		if (faddr)
-			memcpy(&adv_buf.send_count, &keybuf.data, sizeof(adv_buf.send_count)); // BLE_GAP_AD_TYPE_FLAGS
+			memcpy(&adv_buf.send_count, keybuf.data, sizeof(adv_buf.send_count)); // BLE_GAP_AD_TYPE_FLAGS
 	} else {
 		if (flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey))
 				!= sizeof(bindkey)) {
@@ -584,21 +502,20 @@ void bindkey_init(void) {
 }
 #endif // USE_SECURITY_BEACON
 
-#ifdef GPIO_KEY2
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
 void set_default_cfg(void) {
 	memcpy(&cfg, &def_cfg, sizeof(cfg));
+	test_config();
 	if(!cfg.hw_cfg.shtc3)
 		cfg.flg.lp_measures = 1;
 	flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
-#if (defined(SHOW_REBOOT_SCREEN) && SHOW_REBOOT_SCREEN)
-	show_reboot_screen();
-#endif
+	SHOW_REBOOT_SCREEN();
 	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + 2*CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 sec
 	while(1)
 		start_reboot();
 }
-#endif // GPIO_KEY2
+#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
 
 //=========================================================
 //-------------------- user_init_normal -------------------
@@ -609,11 +526,12 @@ void user_init_normal(void) {//this will get executed one time after power up
 	lpc_power_down();
 	blc_ll_initBasicMCU(); //must
 	start_tst_battery();
+	flash_unlock();
 	random_generator_init(); //must
 #if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
-	test_first_ota(); // Correct FW OTA address? Reformat Big OTA to Low OTA
+	test_first_ota(); // MJWSD05MMC: Correct FW OTA address? Reformat Big OTA to Low OTA
 #endif // (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-#if (DEVICE_TYPE == DEVICE_LYWSD03MMC)
+#if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 	uint32_t hw_ver = get_mi_hw_version();
 #endif // (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)
 	// Read config
@@ -623,7 +541,6 @@ void user_init_normal(void) {//this will get executed one time after power up
 	if (next_start) {
 		if (flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg))
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
-
 		if (flash_read_cfg(&cmf, EEP_ID_CMF, sizeof(cmf)) != sizeof(cmf))
 			memcpy(&cmf, &def_cmf, sizeof(cmf));
 #if USE_TIME_ADJUST
@@ -658,7 +575,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if	USE_TRIGGER_OUT
 		memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #endif
-#if (DEVICE_TYPE == DEVICE_LYWSD03MMC)
+#if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 		if (hw_ver)
 			flash_write_cfg(&hw_ver, EEP_ID_HWV, sizeof(hw_ver));
 #endif
@@ -666,30 +583,34 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if USE_WK_RDS_COUNTER
 	rds_init();
 #endif
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (USE_RTC) || (BLE_EXT_ADV) || (defined(SHOW_REBOOT_SCREEN) && SHOW_REBOOT_SCREEN)
+	init_i2c();
+	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
+#if (POWERUP_SCREEN) || (USE_RTC) || (BLE_EXT_ADV)
 	if(analog_read(DEEP_ANA_REG0) != 0x55) {
-#if BLE_EXT_ADV
+#if (BLE_EXT_ADV)
 		cfg.flg2.longrange = 0;
+		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 #endif // BLE_EXT_ADV
 		analog_write(DEEP_ANA_REG0, 0x55);
-#if (defined(SHOW_REBOOT_SCREEN) && SHOW_REBOOT_SCREEN) || (USE_RTC)
-#if (defined(SHOW_REBOOT_SCREEN) && SHOW_REBOOT_SCREEN)
+#if (USE_RTC)
+#if POWERUP_SCREEN
 		init_lcd();
-		show_reboot_screen();
-#endif // SHOW_REBOOT_SCREEN
+		SHOW_REBOOT_SCREEN();
+#endif // POWERUP_SCREEN
 		// RTC wakes up after powering on > 1 second.
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 					clock_time() + 1500*CLOCK_16M_SYS_TIMER_CLK_1MS); // go deep-sleep 1.5 sec
 #endif // SHOW_REBOOT_SCREEN || (USE_RTC)
-#endif // (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (USE_RTC) || (BLE_EXT_ADV) || SHOW_REBOOT_SCREEN
+#endif // POWERUP_SCREEN || (USE_RTC) || (BLE_EXT_ADV)
 	}
 	test_config();
 	memcpy(&ext, &def_ext, sizeof(ext));
 	init_ble();
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
-#if USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
 #endif
+	start_tst_battery();
 	init_sensor();
 #if USE_FLASH_MEMO
 	memo_init();
@@ -711,7 +632,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 	check_battery();
 	WakeupLowPowerCb(0);
 	lcd();
-#if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (!USE_EPD)
 	update_lcd();
 #endif
 	if (!next_start) { // first start?
@@ -720,6 +641,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 	}
 	test_config();
+#if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
+	set_SerialStr();
+#endif
 	start_measure = 1;
 }
 
@@ -757,13 +681,13 @@ void main_loop(void) {
 		WakeupLowPowerCb(0);
 	if (ota_is_working) {
 #if USE_EXT_OTA
-		if(ota_is_working == 0xff) {
+		if(ota_is_working == OTA_EXTENDED) {
 			bls_pm_setManualLatency(3);
 			clear_ota_area();
 		} else
 #endif
 		{
-			if ((ble_connected & 2)==0)
+			if ((ble_connected & BIT(CONNECTED_FLG_PAR_UPDATE))==0)
 				bls_pm_setManualLatency(0);
 		}
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN);
@@ -772,8 +696,48 @@ void main_loop(void) {
 		if (rds.type) // rds: switch or counter
 			rds_task();
 #endif
+		uint32_t new = clock_time();
+#ifdef GPIO_KEY2
+		if(!get_key2_pressed()) {
+			if(!ext_key.key2pressed) {
+				// key2 on
+				ext_key.key2pressed = 1;
+				ext_key.key_pressed_tik1 = new;
+				ext_key.key_pressed_tik2 = new;
+				set_adv_con_time(0); // set connection adv.
+				SET_LCD_UPDATE();
+			}
+			else {
+				if(new - ext_key.key_pressed_tik1 > 1750*CLOCK_16M_SYS_TIMER_CLK_1MS) {
+					ext_key.key_pressed_tik1 = new;
+					if(++cfg.flg2.screen_type > SCR_TYPE_EXT)
+						cfg.flg2.screen_type = SCR_TYPE_TIME;
+					if(ext_key.rest_adv_int_tad) {
+						set_adv_con_time(1); // restore default adv.
+						ext_key.rest_adv_int_tad = 0;
+					}
+					SET_LCD_UPDATE();
+				}
+				if(new - ext_key.key_pressed_tik2 > 5*CLOCK_16M_SYS_TIMER_CLK_1S) {
+					if((reg_gpio_in(GPIO_KEY1) & (GPIO_KEY1 & 0xff))==0)
+						set_default_cfg();
+				}
+			}
+		}
+		else {
+			// key2 off
+			ext_key.key2pressed = 0;
+			ext_key.key_pressed_tik1 = new;
+			ext_key.key_pressed_tik2 = new;
+		}
+#endif // GPIO_KEY2
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+		if(ext_key.rest_adv_int_tad < -80) {
+			set_adv_con_time(1); // restore default adv.
+			SET_LCD_UPDATE();
+		}
+#endif
 		if (!wrk_measure) {
-			uint32_t new = clock_time();
 			if (start_measure
 //				&& sensor_i2c_addr
 				&&	bls_pm_getSystemWakeupTick() - new > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
@@ -849,40 +813,6 @@ void main_loop(void) {
 					utc_time_sec = rtc_get_utime();
 				}
 #endif // USE_RTC
-#ifdef GPIO_KEY2
-				if(!get_key2_pressed()) {
-					if(!trg.flg.key2pressed) {
-						// key2 on
-						trg.flg.key2pressed = 1;
-						key_pressed_tik = new;
-						key_pressed_tiks = new;
-						set_adv_con_time(0);
-						SET_LCD_UPDATE();
-					}
-					else {
-						if(new - key_pressed_tik > 1750*CLOCK_16M_SYS_TIMER_CLK_1MS) {
-							key_pressed_tik = new;
-							if(++cfg.flg2.screen_type > SCR_TYPE_EXT)
-								cfg.flg2.screen_type = SCR_TYPE_TIME;
-							SET_LCD_UPDATE();
-						}
-						if(new - key_pressed_tiks > 5*CLOCK_16M_SYS_TIMER_CLK_1S) {
-							if((reg_gpio_in(GPIO_KEY1) & (GPIO_KEY1 & 0xff))==0)
-								set_default_cfg();
-						}
-					}
-				}
-				else {
-					// key2 off
-					trg.flg.key2pressed = 0;
-					key_pressed_tik = new;
-					key_pressed_tiks = new;
-					if(rest_adv_int_tad < -80) {
-						set_adv_con_time(1);
-						SET_LCD_UPDATE();
-					}
-				}
-#endif // GPIO_KEY2
 				if (new - tim_measure >= measurement_step_time) {
 					tim_measure = new;
 					start_measure = 1;
