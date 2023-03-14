@@ -215,9 +215,7 @@ During the step period, the sensor data and battery voltage are averaged, time s
 
 Setting the value to 0 disable logging to internal storage.
 
-![FlashData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/FlashData.gif)
-
-![Weater](https://pvvx.github.io/ATC_MiThermometer/img/weather.gif)
+![FlashData](https://pvvx.github.io/ATC_MiThermometer/img/Weather.gif)
 
 ### Reading Measurements in Connected Mode
 
