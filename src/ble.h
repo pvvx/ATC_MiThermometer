@@ -6,10 +6,23 @@
 #include "stack/ble/ble.h"
 
 extern uint8_t mac_public[6], mac_random_static[6];
-extern uint8_t ble_name[32];
+extern uint8_t ble_name[MAX_DEV_NAME_LEN + 2];
 
-extern uint8_t ota_is_working;
-extern uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset device on disconnect
+enum {
+	OTA_NONE = 0,
+	OTA_WORK,
+	OTA_WAIT,
+	OTA_EXTENDED
+} OTA_STAGES;
+extern uint8_t ota_is_working; // OTA_STAGES
+
+enum {
+	CONNECTED_FLG_ENABLE = 0,
+	CONNECTED_FLG_PAR_UPDATE = 1,
+	CONNECTED_FLG_BONDING = 2,
+	CONNECTED_FLG_RESET_OF_DISCONNECT = 7
+} CONNECTED_FLG_BITS;
+extern uint8_t ble_connected; // BIT(CONNECTED_FLG_BITS): bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset device on disconnect
 
 //extern uint32_t adv_send_count;
 #if (BLE_EXT_ADV)
@@ -23,7 +36,10 @@ typedef struct _adv_buf_t {
 	uint16_t old_measured_count; // old measured_data.count
 	uint8_t update_count;	// refresh adv_buf.data in next set_adv_data()
 	uint8_t call_count; 	// count 1..cfg.measure_interval
-	uint8_t data_size;
+#if (BLE_EXT_ADV) // support extension advertise
+	uint8_t ext_adv_init; 	// flag ext_adv init
+#endif
+	uint8_t data_size;		// Advertise data size
 	uint8_t flag[3];		// Advertise type flags
 	uint8_t data[ADV_BUFFER_SIZE];
 }adv_buf_t;
@@ -39,12 +55,15 @@ extern u16 RxTxValueInCCC;
 extern uint8_t send_buf[SEND_BUFFER_SIZE];
 extern u8 my_RxTx_Data[sizeof(cfg) + 2];
 
-#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+#if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C401)
 extern u8 my_HardStr[4];
+extern u8 my_SerialStr[20];
 #endif
 
-#define DEF_CON_INERVAL		16 // 16*1.25 = 20 ms
-#define DEF_CONNECT_LATENCY (((int)100000/(int)(DEF_CON_INERVAL * 125))-1) // = 49, (49+1)*1.25*16 = 1000 ms)
+#define DEF_CON_INERVAL		16 // in 1.25 ms -> 16*1.25 = 20 ms
+#define DEF_CON_LAT_INERVAL	1000 // in 1 ms -> 1 sec
+#define DEF_CONNECT_LATENCY (((int)(DEF_CON_LAT_INERVAL*100)/(int)(DEF_CON_INERVAL * 125))-1) // = 49, (49+1)*1.25*16 = 1000 ms)
+#define CONNECTABLE_ADV_INERVAL 1600 //x0.625 = 1 sec
 
 typedef struct
 {
@@ -198,6 +217,9 @@ void ble_send_cmf(void);
 void ble_send_trg(void);
 void ble_send_trg_flg(void);
 #endif
+#if defined(GPIO_KEY2) || defined(GPIO_RDS)
+void set_adv_con_time(int restore);
+#endif
 #if USE_FLASH_MEMO
 void send_memo_blk(void);
 #endif
@@ -212,7 +234,7 @@ void set_atc_adv_data(void);
 void set_mi_adv_data(void);
 
 #if (BLE_EXT_ADV)
-int ext_adv_tx_level(void);
+void load_adv_data(void);
 #endif
 
 inline void ble_send_temp(void) {

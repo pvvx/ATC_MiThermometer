@@ -45,7 +45,7 @@ void atc_encrypt_data_beacon(void) {
 	| ((trg.flg.trigger_on)? 0x80 : 0)
 #endif
 	;
-	memcpy(&cbn.MAC, mac_public, sizeof(cbn.MAC));
+	memcpy(cbn.MAC, mac_public, sizeof(cbn.MAC));
 	memcpy(&cbn.head, p, sizeof(cbn.head));
 	aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey,
 					   (uint8_t*)&cbn, sizeof(cbn),
@@ -74,7 +74,7 @@ void pvvx_encrypt_data_beacon(void) {
 #else
 	data.trg = 0;
 #endif
-	memcpy(&cbn.MAC, mac_public, sizeof(cbn.MAC));
+	memcpy(cbn.MAC, mac_public, sizeof(cbn.MAC));
 	memcpy(&cbn.head, p, sizeof(cbn.head));
 	aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey,
 					   (uint8_t*)&cbn, sizeof(cbn),

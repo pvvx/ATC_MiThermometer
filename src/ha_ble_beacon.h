@@ -61,9 +61,11 @@ typedef struct __attribute__((packed)) _adv_ha_ble_data1_t {
 } adv_ha_ble_data1_t, * padv_ha_ble_data1_t;
 
 typedef struct __attribute__((packed)) _adv_ha_ble_data2_t {
+#if USE_TRIGGER_OUT
 	uint8_t		s_st;
 	uint8_t		s_id;	// = HaBleID_switch ?
 	uint8_t		swtch;
+#endif
 	uint8_t		v_st;
 	uint8_t		v_id;	// = HaBleID_voltage
 	uint16_t	battery_mv; // mV

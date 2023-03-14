@@ -115,10 +115,6 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int read_sensor_cb(void) {
 	int i;
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 		init_i2c();
-	else {
-		//gpio_setup_up_down_resistor(I2C_SCL, PM_PIN_PULLUP_10K);
-		//gpio_setup_up_down_resistor(I2C_SDA, PM_PIN_PULLUP_10K);
-	}
 	if (sensor_i2c_addr == 0) {
 		if(check_sensor())
 			sensor_go_sleep();
@@ -204,8 +200,6 @@ _attribute_ram_code_ void start_measure_sensor_deep_sleep(void) {
 		send_sensor_byte(SHT4x_MEASURE_HI);
 	} else
 		return;
-	//gpio_setup_up_down_resistor(I2C_SCL, PM_PIN_PULLUP_1M);
-	//gpio_setup_up_down_resistor(I2C_SDA, PM_PIN_PULLUP_1M);
 	timer_measure_cb = clock_time() | 1;
 }
 

@@ -104,11 +104,12 @@ _attribute_ram_code_ void flash_erase_sector(unsigned long addr){
 
 
 /**
- * @brief This function writes the buffer's content to a page.
+ * @brief This function writes the buffer's content to a page (Warning: page < 256 bytes, write address not % 256).
  * @param[in]   addr the start address of the page
  * @param[in]   len the length(in byte) of content needs to write into the page
  * @param[in]   buf the start address of the content needs to write into
  * @return none
+ *
  */
 _attribute_ram_code_ void flash_write_page(unsigned long addr, unsigned long len, unsigned char *buf){
 	unsigned char r = irq_disable();
@@ -127,6 +128,30 @@ _attribute_ram_code_ void flash_write_page(unsigned long addr, unsigned long len
 	flash_wait_done();
 
 	irq_restore(r);
+}
+
+/**
+ * @brief This function write flash.
+ * @param[in]   addr the start address of the page
+ * @param[in]   len the length(in byte) of content needs to write into the page
+ * @param[in]   buf the start address of the content needs to write into
+ * @return none
+ */
+void flash_write(unsigned int addr, unsigned int len, unsigned char *buf) {
+	unsigned int xlen;
+	while (len) {
+		xlen = addr & 0xff;
+		if (xlen + len > 0x100) {
+			xlen = 0x100 - xlen;
+			flash_write_page(addr, xlen, buf);
+			len -= xlen;
+			addr += xlen;
+			buf += xlen;
+		} else {
+			flash_write_page(addr, len, buf);
+			break;
+		}
+	}
 }
 
 /**
@@ -157,6 +182,22 @@ _attribute_ram_code_ void flash_read_page(unsigned long addr, unsigned long len,
 	irq_restore(r);
 }
 
+/**
+ * @brief This function serves to protect data for flash.
+ * @return none
+ */
+_attribute_ram_code_ void flash_unlock(void) {
+	unsigned char r = irq_disable();
+	flash_send_cmd(FLASH_WRITE_ENABLE_CMD);
+	flash_send_cmd(FLASH_WRITE_STATUS_CMD);
+	mspi_write(0);   //8 bit status
+	mspi_wait();
+	mspi_high();
+	flash_wait_done();
+	sleep_us(100);
+	mspi_high();
+	irq_restore(r);
+}
 
 /* according to your appliaction */
 #if 0
@@ -451,8 +492,6 @@ _attribute_ram_code_ void flash_lock(Flash_TypeDef type , unsigned short data)
 	irq_restore(r);
 }
 
-#endif
-
 /**
  * @brief This function serves to protect data for flash.
  * @param[in]   type - flash type include GD,Puya and XTX
@@ -481,3 +520,4 @@ _attribute_ram_code_ void flash_unlock(Flash_TypeDef type)
 	irq_restore(r);
 }
 
+#endif

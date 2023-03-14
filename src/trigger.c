@@ -21,8 +21,10 @@ const trigger_t def_trg = {
 		.humi_hysteresis = 0  // disable
 #if USE_WK_RDS_COUNTER
 		,.rds_time_report = 3600 // 1 hours
-#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+#ifdef GPIO_KEY2
 		,.rds.type = RDS_SWITCH
+#else
+		,.rds.type = RDS_CONNECT
 #endif
 #endif
 };

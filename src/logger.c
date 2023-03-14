@@ -19,8 +19,8 @@
 //#define MEMO_REC_COUNT		(MEMO_SEC_RECS*(MEMO_SEC_COUNT-1))// max 48*409 = 20041 records
 
 #define _flash_erase_sector(a) flash_erase_sector(FLASH_BASE_ADDR + a)
-#define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write_all_size(FLASH_BASE_ADDR + a, 4, (unsigned char *)&_dw); }
-#define _flash_write(a,b,c) flash_write_all_size(FLASH_BASE_ADDR + a, b, (unsigned char *)c)
+#define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write(FLASH_BASE_ADDR + a, 4, (unsigned char *)&_dw); }
+#define _flash_write(a,b,c) flash_write(FLASH_BASE_ADDR + a, b, (unsigned char *)c)
 #define _flash_read(a,b,c) flash_read_page(FLASH_BASE_ADDR + a, b, (u8 *)c)
 
 typedef struct _summ_data_t {

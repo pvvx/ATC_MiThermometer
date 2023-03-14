@@ -28,7 +28,7 @@
 
 void bls_set_advertise_prepare(void *p); // add ll_adv.h
 
-RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
+RAM uint8_t ble_connected; // BIT(CONNECTED_FLG_BITS): bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
 
 #if (BLE_EXT_ADV) // support extension advertise
 
@@ -36,7 +36,6 @@ RAM uint8_t ble_connected; // bit 0 - connected, bit 1 - conn_param_update, bit 
 #define APP_MAX_LENGTH_ADV_DATA					64			// Maximum Advertising Data Length,   (if legacy ADV, max length 31 bytes is enough)
 #define APP_MAX_LENGTH_SCAN_RESPONSE_DATA		31			// Maximum Scan Response Data Length, (if legacy ADV, max length 31 bytes is enough)
 
-RAM u8	ext_adv_init; // flag ext_adv init
 RAM	u8	app_adv_set_param[ADV_SET_PARAM_LENGTH * APP_ADV_SETS_NUMBER]; // struct ll_ext_adv_t
 RAM	u8	app_primary_adv_pkt[MAX_LENGTH_PRIMARY_ADV_PKT * APP_ADV_SETS_NUMBER];
 RAM	u8	app_secondary_adv_pkt[MAX_LENGTH_SECOND_ADV_PKT * APP_ADV_SETS_NUMBER];
@@ -55,7 +54,7 @@ RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
 RAM my_fifo_t blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b, };
 RAM uint8_t blt_txfifo_b[40 * 16] = { 0 };
 RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
-RAM uint8_t ble_name[32] = { 11, 0x09,
+RAM uint8_t ble_name[MAX_DEV_NAME_LEN+2] = { 11, GAP_ADTYPE_LOCAL_NAME_COMPLETE,
 #if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N))
 		'M', 'H', 'O', '_', '0', '0', '0', '0',	'0', '0' };
 #elif DEVICE_TYPE == DEVICE_CGG1
@@ -70,30 +69,28 @@ RAM uint8_t ble_name[32] = { 11, 0x09,
 
 RAM uint8_t mac_public[6], mac_random_static[6];
 RAM adv_buf_t adv_buf;
-RAM uint8_t ota_is_working = 0; // =1 ota enabled, = 0xff flag ext.ota
+RAM uint8_t ota_is_working; // OTA_STAGES:  =1 ota enabled, =2 - ota wait, = 0xff flag ext.ota
 
 void app_enter_ota_mode(void) {
 #if USE_NEW_OTA
 	bls_ota_clearNewFwDataArea();
 #endif
 #if USE_EXT_OTA
-	if(ota_is_working != 0xff)
+	if(ota_is_working != OTA_EXTENDED)
 #endif
-		ota_is_working = 1;
-	ble_connected &= ~2;
+		ota_is_working = OTA_WORK;
+	ble_connected &= ~BIT(CONNECTED_FLG_PAR_UPDATE);
 	bls_pm_setManualLatency(0);
 	bls_ota_setTimeout(16 * 1000000); // set OTA timeout  16 seconds
-#if (defined(SHOW_OTA_SCREEN) && SHOW_OTA_SCREEN)
-	show_ota_screen();
-#endif
+	SHOW_OTA_SCREEN();
 }
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
-	if (ble_connected & 0x80) // reset device on disconnect?
+	if (ble_connected & BIT(CONNECTED_FLG_RESET_OF_DISCONNECT)) // reset device on disconnect?
 		start_reboot();
 
 	ble_connected = 0;
-	ota_is_working = 0;
+	ota_is_working = OTA_NONE;
 	mi_key_stage = 0;
 	lcd_flg.all_flg = 0;
 #if USE_FLASH_MEMO
@@ -104,11 +101,18 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	else
 		tx_measures = 0;
 #if	(BLE_EXT_ADV)
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-	set_adv_con_time(1);
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+	set_adv_con_time(1); // restore default adv. interval
+	if(adv_buf.ext_adv_init) {
+		// patch: restart ext_adv after 1 second
+		ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
+		blt_advExpectTime = clock_time() + CLOCK_16M_SYS_TIMER_CLK_1S; // set time next ext.adv
+		pea->advInt_use = adv_interval; // restore next ext.adv. interval
+		pea->extAdv_en = 1;
+	}
 #else
 	test_config();
-	if(ext_adv_init) {
+	if(adv_buf.ext_adv_init) {
 		// patch: restart ext_adv after 1 second
 		ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
 		blt_advExpectTime = clock_time() + CLOCK_16M_SYS_TIMER_CLK_1S; // set time next ext.adv
@@ -117,14 +121,14 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	} else {
 		ev_adv_timeout(0,0,0);
 	}
-#endif // DEVICE_TYPE == DEVICE_MJWSD05MMC
+#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
 #endif // BLE_EXT_ADV
 	SHOW_CONNECTED_SYMBOL(false);
 }
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	(void) e; (void) p; (void) n;
-	ble_connected = 1;
+	ble_connected = BIT(CONNECTED_FLG_ENABLE);
 	if(cfg.connect_latency > DEF_CONNECT_LATENCY && measured_data.average_battery_mv < LOW_VBAT_MV)
 		cfg.connect_latency = DEF_CONNECT_LATENCY;
 	my_periConnParameters.latency = cfg.connect_latency;
@@ -135,8 +139,8 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	my_periConnParameters.timeout = connection_timeout;
 	bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, my_periConnParameters.latency, my_periConnParameters.timeout);
 	SHOW_CONNECTED_SYMBOL(true);
-#ifdef GPIO_KEY2
-	rest_adv_int_tad = 0;
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+	ext_key.rest_adv_int_tad = 0;
 #endif
 	bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
 }
@@ -163,7 +167,7 @@ int chgConnParameters(void * p) {
 
 int app_conn_param_update_response(u8 id, u16  result) {
 	if (result == CONN_PARAM_UPDATE_ACCEPT)
-		ble_connected |= 2;
+		ble_connected |= BIT(CONNECTED_FLG_PAR_UPDATE);
 	else if (result == CONN_PARAM_UPDATE_REJECT) {
 		// TODO: необходимо подбирать другие параметры соединения если внешний адаптер не согласен или плюнуть и послать,
 		// что является лучшим решением для OTA, т.к. использовать плохие и сверх медленные адаптеры типа ESP32 для OTA нет смысла.
@@ -201,15 +205,15 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 			if (++adv_buf.call_count > adv_buf.update_count) // refresh adv_buf.data ?
 				set_adv_data();
 		}
-#ifdef GPIO_KEY2
-		if(rest_adv_int_tad) {
-			rest_adv_int_tad--;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-			if (rest_adv_int_tad & 1)
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+		if(ext_key.rest_adv_int_tad) {
+			ext_key.rest_adv_int_tad--;
+#if (!USE_EPD)
+			if (ext_key.rest_adv_int_tad & 1)
 				SET_LCD_UPDATE(); // show "ble"
 #endif
 		}
-#endif
+#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
 	}
 #if USE_WK_RDS_COUNTER
 	else {
@@ -222,13 +226,15 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 
 #if (BLE_EXT_ADV)
 _attribute_ram_code_ int _blt_ext_adv_proc (void) {
-	if(ext_adv_init && blta.adv_duraton_en) {
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+	if(adv_buf.ext_adv_init && blta.adv_duraton_en) {
 		blta.adv_duraton_en--;
 		if(blta.adv_duraton_en == 0) {
 			ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
 			pea->advInt_use = adv_interval; // restore next ext.adv. interval
 		}
 	} else
+#endif
 		app_advertise_prepare_handler(0);
 	return blt_ext_adv_proc();
 }
@@ -282,11 +288,28 @@ int ext_adv_tx_level(void) {
 void ev_adv_timeout(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 #if (BLE_EXT_ADV)
-	if (ext_adv_init) { // extension advertise
+	if (adv_buf.ext_adv_init) { // extension advertise
 		if(ble_connected)
 			return;
-		//adv_set: Extended, Connectable_undirected
-		blc_ll_setExtAdvParam(ADV_HANDLE0,
+		if(adv_buf.ext_adv_init == 3) {
+			//adv_set: Legacy
+			blc_ll_setExtAdvParam(ADV_HANDLE0,
+					ADV_EVT_PROP_LEGACY_CONNECTABLE_SCANNABLE_UNDIRECTED,
+					CONNECTABLE_ADV_INERVAL, CONNECTABLE_ADV_INERVAL + 10,
+					BLT_ENABLE_ADV_ALL, // primary advertising channel map
+					OWN_ADDRESS_PUBLIC, // own address type
+					BLE_ADDR_PUBLIC, // peer address type
+					NULL, // * peer address
+					ADV_FP_NONE, // advertising filter policy
+					ext_adv_tx_level(), // cfg.rf_tx_power -> advertising TX power
+					BLE_PHY_1M, // primary advertising channel PHY type
+					0, // secondary advertising minimum skip number
+					BLE_PHY_1M, // secondary advertising channel PHY type
+					ADV_SID_0,
+					0); // scan response notify enable ?
+		} else {
+			//adv_set: Extended, Connectable_undirected
+			blc_ll_setExtAdvParam(ADV_HANDLE0,
 				ADV_EVT_PROP_EXTENDED_CONNECTABLE_UNDIRECTED,
 				adv_interval, adv_interval + 10,
 				BLT_ENABLE_ADV_ALL, // primary advertising channel map
@@ -299,7 +322,8 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 				0, // secondary advertising minimum skip number
 				BLE_PHY_CODED, // secondary advertising channel PHY type
 				ADV_SID_0,
-				1); // scan response notify enable ?
+				0); // scan response notify enable ?
+		}
 		blc_ll_setExtScanRspData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED,
 				ble_name[0]+1, (uint8_t *) ble_name);
 
@@ -319,6 +343,46 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	}
 }
 
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+/**
+ * @brief This function change adv. interval.
+ * @param[in]  != 0 restore default adv. interval, = 0 connection adv. interval
+ * @return none
+ */
+void set_adv_con_time(int restore) {
+	if(restore) {
+		test_config(); // restore adv_interval
+		ext_key.rest_adv_int_tad = 0; // stop timer event restore adv.intervals
+	} else {
+		adv_interval = CONNECTABLE_ADV_INERVAL; // new adv.intervals = 1 sec
+		ext_key.rest_adv_int_tad = -1; // start timer event restore adv.intervals
+	}
+	if(!ble_connected) {
+#if (BLE_EXT_ADV)
+		if (adv_buf.ext_adv_init) { // support extension advertise
+			if(restore)
+				adv_buf.ext_adv_init = 1; // LE long range
+			else
+				adv_buf.ext_adv_init = 3; // legacy
+			blc_ll_removeAdvSet(ADV_HANDLE0);
+			ev_adv_timeout(0,0,0);
+			load_adv_data();
+/*
+			// patch: restart ext_adv after 1 second
+			ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
+			blt_advExpectTime = clock_time() + CLOCK_16M_SYS_TIMER_CLK_1S; // set time next ext.adv
+			pea->advInt_use = adv_interval; // restore next ext.adv. interval
+			pea->extAdv_en = 1;
+*/
+		}
+		else
+#endif
+			ev_adv_timeout(0,0,0);
+			load_adv_data();
+	}
+}
+#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
+
 #if BLE_SECURITY_ENABLE
 int app_host_event_callback(u32 h, u8 *para, int n) {
 	(void) para; (void) n;
@@ -332,7 +396,7 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 	} else if (event == GAP_EVT_SMP_PARING_SUCCESS) {
 		gap_smp_paringSuccessEvt_t* p = (gap_smp_paringSuccessEvt_t*)para;
 		if (p->bonding && p->bonding_result)  // paring success ?
-			ble_connected |= 4;
+			ble_connected |= BIT(CONNECTED_FLG_BONDING);
 	} else if (event == GAP_EVT_SMP_PARING_FAIL) {
 		//gap_smp_paringFailEvt_t * p = (gap_smp_paringFailEvt_t *)para;
 	} else if (event == GAP_EVT_SMP_TK_REQUEST_PASSKEY) {
@@ -356,7 +420,7 @@ extern attribute_t my_Attributes[ATT_END_H];
 static const char* hex_ascii = { "0123456789ABCDEF" };
 
 void ble_set_name(void) {
-	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, 31-2));
+	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, MAX_DEV_NAME_LEN));
 	if (len < 1) {
 		//Set the BLE Name to the last three MACs the first ones are always the same
 #if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N))
@@ -399,6 +463,30 @@ void ble_set_name(void) {
 	}
 	ble_name[1] = GAP_ADTYPE_LOCAL_NAME_COMPLETE;
 }
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void load_adv_data(void) {
+	u8 size = adv_buf.data_size;
+	if((!size)
+#if (BLE_EXT_ADV)
+		|| adv_buf.ext_adv_init == 1 // extension advertise LE long Range ?
+#endif
+		) {
+		memcpy(&adv_buf.data[size], ble_name, ble_name[0] + 1);
+		size += ble_name[0] + 1;
+	}
+	u8 *p = adv_buf.flag;
+	if (cfg.flg2.adv_flags)
+		size += sizeof(adv_buf.flag);
+	else
+		p += sizeof(adv_buf.flag);
+#if (BLE_EXT_ADV)
+	if (adv_buf.ext_adv_init)  // support extension advertise
+		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, size, p);
+	else
+#endif
+	bls_ll_setAdvData(p, size);
+}
 
 __attribute__((optimize("-Os"))) void init_ble(void) {
 	////////////////// adv buffer initialization //////////////////////
@@ -425,7 +513,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_ll_initSlaveRole_module(); // slave module: 	 must for BLE slave,
 	blc_ll_initPowerManagement_module(); //pm module:      	 optional
 #if	(BLE_EXT_ADV)
-	ext_adv_init = 0;
+	adv_buf.ext_adv_init = 0;
 #endif
 	if (cfg.flg2.bt5phy) { // 1M, 2M, Coded PHY
 		blc_ll_init2MPhyCodedPhy_feature();	//if use 2M or Coded PHY
@@ -447,7 +535,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 			blc_ll_setDefaultExtAdvCodingIndication(ADV_HANDLE0, CODED_PHY_PREFER_S8);
 			// patch, set advertise prepare user cb (app_advertise_prepare_handler)
 			ll_module_adv_cb = _blt_ext_adv_proc;
-			ext_adv_init = 1; // flag ext_adv init
+			adv_buf.ext_adv_init = 1; // flag ext_adv init
 			blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
 		} else
 #endif
@@ -532,10 +620,10 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 	bls_set_advertise_prepare(app_advertise_prepare_handler); // TODO: not work if EXTENDED_ADVERTISING
-#if	USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
 	bls_app_registerEventCallback(BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
 #endif
-	ev_adv_timeout(0,0,0);
+	ev_adv_timeout(0,0,0);	// set advertise config
 }
 
 /* adv_type: 0 - atc1441, 1 - Custom,  2 - Mi, 3 - HA_BLE  */
@@ -576,41 +664,7 @@ void set_adv_data(void) {
 		}
 	}
 	adv_buf.data_size = adv_buf.data[0] + 1;
-
-#if (BLE_EXT_ADV)
-	if (ext_adv_init) { // support extension advertise
-		u8 *p;
-		u8 size = adv_buf.data_size;
-		if (cfg.flg2.longrange) {
-			memcpy(&adv_buf.data[adv_buf.data_size], ble_name, ble_name[0] + 1);
-			size += ble_name[0] + 1;
-		}
-#if DEVICE_TYPE == DEVICE_MJWSD05MMC
-		if(1)
-#else
-		if (cfg.flg2.adv_flags)
-#endif
-		{
-			p = adv_buf.flag;
-			size += sizeof(adv_buf.flag);
-		} else {
-			p = adv_buf.data;
-		}
-		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, size, p);
-	} else
-#endif
-	{
-#if DEVICE_TYPE == DEVICE_MJWSD05MMC
-		if(1)
-#else
-		if (cfg.flg2.adv_flags)
-#endif
-		{
-			bls_ll_setAdvData((u8 *)&adv_buf.flag, adv_buf.data_size + sizeof(adv_buf.flag));
-		} else {
-			bls_ll_setAdvData((u8 *)&adv_buf.data, adv_buf.data_size);
-		}
-	}
+	load_adv_data();
 }
 
 _attribute_ram_code_ void ble_send_measures(void) {

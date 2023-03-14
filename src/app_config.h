@@ -12,7 +12,7 @@ extern "C" {
 #define DEVICE_MHO_C401N   	0x0008	// E-Ink display MHO-C401 2022
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
 #ifndef DEVICE_CGG1_ver
-#define DEVICE_CGG1_ver		2022  	// =2022 - CGG1-M version 2022, or = 0 - CGG1-M version 2020,2021
+#define DEVICE_CGG1_ver		0 //2022  	// =2022 - CGG1-M version 2022, or = 0 - CGG1-M version 2020,2021
 #endif
 #define DEVICE_CGDK2 		0x066F  // LCD display "Qingping Temp & RH Monitor Lite"
 #define DEVICE_MJWSD05MMC	0x2832  // LCD display MJWSD05MMC
@@ -27,7 +27,7 @@ extern "C" {
 #define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
 #define USE_TIME_ADJUST		1 // = 1 time correction enabled
 #define USE_FLASH_MEMO		1 // = 1 flash logger enable
-#define USE_TRIGGER_OUT 	1 // = 1 use trigger out (GPIO_PA5)
+#define USE_TRIGGER_OUT 	1 // = 1 use trigger out
 #define USE_WK_RDS_COUNTER	USE_TRIGGER_OUT // = 1 wake up when the reed switch is triggered + pulse counter
 #define USE_RTC				0 // = 1 RTC enabled
 
@@ -54,7 +54,7 @@ extern "C" {
 // GPIO_PA5 - used EPD_SHD
 // GPIO_PA6 - used EPD_RST
 // GPIO_PA7 - SWS, free, (debug TX)
-// GPIO_PB6 - used KEY, pcb mark "P5"
+// GPIO_PB6 - used KEY, pcb mark "P5" (TRG)
 // GPIO_PB7 - used EPD_SDA
 // GPIO_PC2 - SDA, used I2C
 // GPIO_PC3 - SCL, used I2C
@@ -63,6 +63,7 @@ extern "C" {
 // GPIO_PD7 - used EPD_SCL
 
 #define USE_EPD			(600/50 - 1) // min update time x50 ms
+#define MI_HW_VER_FADDR 0x55000 // Mi HW version
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
 #define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
@@ -115,17 +116,6 @@ extern "C" {
 
 #if USE_TRIGGER_OUT
 
-#if 0 // Test
-
-#define GPIO_TRG			GPIO_PB6	// pcb mark "P5"
-#define PB6_INPUT_ENABLE	1
-#define PB6_DATA_OUT		0
-#define PB6_OUTPUT_ENABLE	0
-#define PB6_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB6	PM_PIN_PULLDOWN_100K
-
-#else
-
 #define GPIO_TRG			GPIO_PA0	// none
 #define PA0_INPUT_ENABLE	1
 #define PA0_DATA_OUT		0
@@ -140,8 +130,6 @@ extern "C" {
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_1M
 
-#endif
-
 #endif // USE_TRIGGER_OUT
 
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
@@ -150,7 +138,7 @@ extern "C" {
 // GPIO_PA5 - used EPD_BUSY
 // GPIO_PA6 - used EPD_CSB
 // GPIO_PA7 - SWS, free, (debug TX)
-// GPIO_PB6 - used KEY, pcb mark "P5"
+// GPIO_PB6 - used KEY, pcb mark "P5" (TRG)
 // GPIO_PB7 - used EPD_RST2
 // GPIO_PC2 - SDA, used I2C
 // GPIO_PC3 - SCL, used I2C
@@ -211,17 +199,6 @@ extern "C" {
 
 #if USE_TRIGGER_OUT
 
-#if 0 // Test
-
-#define GPIO_TRG			GPIO_PB6	// pcb mark "P5"
-#define PB6_INPUT_ENABLE	1
-#define PB6_DATA_OUT		0
-#define PB6_OUTPUT_ENABLE	0
-#define PB6_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB6	PM_PIN_PULLDOWN_100K
-
-#else
-
 #define GPIO_TRG			GPIO_PA0	// none
 #define PA0_INPUT_ENABLE	1
 #define PA0_DATA_OUT		0
@@ -235,8 +212,6 @@ extern "C" {
 #define PB6_OUTPUT_ENABLE	0
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_1M
-
-#endif
 
 #endif // USE_TRIGGER_OUT
 
@@ -255,7 +230,7 @@ extern "C" {
 // GPIO_PC1 - SCL, used I2C
 // GPIO_PC2 - TX, free
 // GPIO_PC3 - RX, free, (Trigger, Output)
-// GPIO_PC4 - used KEY
+// GPIO_PC4 - used KEY (RDS)
 // GPIO_PD2 - used EPD_CSB
 // GPIO_PD3 - free (Reed Switch, input)
 // GPIO_PD4 - used EPD_BUSY
@@ -325,21 +300,12 @@ extern "C" {
 #define PC3_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLDOWN_100K
 
-#if 0 // = 0 test PC4 - key
-#define GPIO_RDS 			GPIO_PD3	// Reed Switch, input
-#define PD3_INPUT_ENABLE	1
-#define PD3_DATA_OUT		0
-#define PD3_OUTPUT_ENABLE	0
-#define PD3_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PD3 PM_PIN_PULLUP_1M
-#else
 #define GPIO_RDS 			GPIO_PC4	// Reed Switch, Input
 //#define PC4_INPUT_ENABLE	1
 #define PC4_DATA_OUT		0
 #define PC4_OUTPUT_ENABLE	0
 #define PC4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC4 PM_PIN_PULLUP_1M
-#endif
 
 #endif // USE_TRIGGER_OUT
 
@@ -369,6 +335,7 @@ extern "C" {
   0x78000 Mijia key-code
   0x80000 End Flash (FLASH_SIZE)
  */
+#define MI_HW_VER_FADDR 0x55000 // Mi HW version (DEVICE_LYWSD03MMC)
 // TLSR8251F512ET24
 // GPIO_PA5 - DM, free, pcb mark "reset" (TRG)
 // GPIO_PA6 - DP, free, pcb mark "P8" (RDS)
@@ -380,7 +347,6 @@ extern "C" {
 // GPIO_PC4 - free, pcb mark "P9" (ADC2)
 // GPIO_PD2 - CS/PWM, free
 // GPIO_PD7 - free [B1.4], UART TX LCD [B1.6], pcb mark "P7"
-
 #define USE_EPD			0 // min update time ms
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
@@ -435,8 +401,6 @@ extern "C" {
 #define PC4_FUNC			AS_GPIO
 #endif
 
-#define MI_HW_VER_FADDR 0x55000 // Mi HW version (DEVICE_LYWSD03MMC)
-
 #elif DEVICE_TYPE == DEVICE_CGDK2
 
 // TLSR8253F512ET32
@@ -452,7 +416,7 @@ extern "C" {
 // GPIO_PC1 - SCL, used I2C
 // GPIO_PC2 - free
 // GPIO_PC3 - free
-// GPIO_PC4 - used KEY
+// GPIO_PC4 - used KEY (RDS)
 // GPIO_PD2 - free
 // GPIO_PD3 - free
 // GPIO_PD4 - free
@@ -486,24 +450,12 @@ extern "C" {
 #define PB1_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
 
-#if 0 // = 0 test PC4 - key
-
-#define GPIO_RDS 			GPIO_PA0	// Reed Switch, Input
-#define PA0_INPUT_ENABLE	1
-#define PA0_DATA_OUT		0
-#define PA0_OUTPUT_ENABLE	0
-#define PA0_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PA0 PM_PIN_PULLUP_1M
-
-#else
-
 #define GPIO_RDS 			GPIO_PC4	// Reed Switch, Input
 //#define PC4_INPUT_ENABLE	1
 #define PC4_DATA_OUT		0
 #define PC4_OUTPUT_ENABLE	0
 #define PC4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC4 PM_PIN_PULLUP_1M
-#endif
 
 #endif // USE_TRIGGER_OUT
 
@@ -535,6 +487,7 @@ extern "C" {
   0x7E000 ? 5A 07 00 02 CE 0C 5A 07 00 02 CB 0C 5A 07 00 02 CD 0C
   0x80000 End Flash (FLASH_SIZE)
  */
+#define MI_HW_VER_FADDR 0x7D000 // Mi HW version
 // ### TLSR8250F512ET32
 // GPIO_PA0 - UART_RX
 // GPIO_PA1
@@ -543,14 +496,14 @@ extern "C" {
 // GPIO_PB1
 // GPIO_PB4
 // GPIO_PB5 - R5 -> +BAT
-// GPIO_PB6 - key1
+// GPIO_PB6 - key1 (KEY2)
 // GPIO_PB7 - R10 -> /INT AT85163T
 
 // GPIO_PC0 - SDA, used I2C
 // GPIO_PC1 - SCL, used I2C
 // GPIO_PC2
 // GPIO_PC3
-// GPIO_PC4 - key2
+// GPIO_PC4 - key2 (RDS)
 
 // GPIO_PD2
 // GPIO_PD3
@@ -589,8 +542,8 @@ extern "C" {
 #define USE_RTC				1
 #undef USE_EXT_OTA
 #define USE_EXT_OTA			1 // = 1 Compatible BigOTA
-#undef USE_TRIGGER_OUT
-#define USE_TRIGGER_OUT		1
+//#undef USE_TRIGGER_OUT
+//#define USE_TRIGGER_OUT		1
 
 #define GPIO_TRG			GPIO_PA0	// none
 #define PA0_INPUT_ENABLE	1
@@ -614,8 +567,6 @@ extern "C" {
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6	PM_PIN_PULLUP_10K
 
-#define MI_HW_VER_FADDR 0x7D000 // Mi HW version (DEVICE_MJWSD05MMC)
-
 #else // DEVICE_TYPE
 #error ("DEVICE_TYPE = ?")
 #endif // DEVICE_TYPE == ?
@@ -628,6 +579,17 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PA7 PM_PIN_PULLUP_1M
 #define PA7_FUNC		AS_GPIO
 #endif // UART_PRINT_DEBUG_ENABLE
+
+
+#if (USE_TRIGGER_OUT) && (!defined(GPIO_TRG))
+#error "Set GPIO_TRG!"
+#endif
+#if (USE_WK_RDS_COUNTER) && (!defined(GPIO_RDS))
+#error "Set GPIO_RDS!"
+#endif
+#if (USE_WK_RDS_COUNTER) && (!USE_TRIGGER_OUT)
+#error "Set USE_TRIGGER_OUT = 1!"
+#endif
 
 
 #define MODULE_WATCHDOG_ENABLE		0 //

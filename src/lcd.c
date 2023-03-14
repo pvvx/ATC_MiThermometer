@@ -51,6 +51,12 @@ _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void lcd(void) {
 	bool set_small_number_and_bat = true;
+
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+	bool _ble_con =	ble_connected != 0 || (ext_key.rest_adv_int_tad & 2) != 0;
+#else
+#define _ble_con ble_connected
+#endif
 	bool show_ext = lcd_flg.chow_ext_ut >= utc_time_sec;
 	if(cfg.flg.show_time_smile || cfg.flg.show_batt_enabled || show_ext)
 		lcd_flg.update_next_measure = 0;
@@ -81,7 +87,7 @@ void lcd(void) {
 			} else if (cfg.flg.show_time_smile) { // show clock
 #if	USE_CLOCK
 				show_clock(); // stage clock
-				show_ble_symbol(ble_connected);
+				show_ble_symbol(_ble_con);
 				return;
 #else
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
@@ -113,7 +119,7 @@ void lcd(void) {
 #if	USE_CLOCK
 			if (cfg.flg.show_time_smile && (lcd_flg.show_stage & 2)) {
 				show_clock(); // stage clock
-				show_ble_symbol(ble_connected);
+				show_ble_symbol(_ble_con);
 				return;
 			}
 #endif
@@ -140,7 +146,7 @@ void lcd(void) {
 			} else if (cfg.flg.show_time_smile) { // show clock
 #if	USE_CLOCK
 				show_clock(); // stage clock
-				show_ble_symbol(ble_connected);
+				show_ble_symbol(_ble_con);
 				return;
 #else
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
@@ -180,7 +186,7 @@ void lcd(void) {
 			show_big_number_x10(measured_data.temp_x01);
 		}
 	}
-	show_ble_symbol(ble_connected);
+	show_ble_symbol(_ble_con);
 }
 
 #endif // (DEVICE_TYPE != DEVICE_MJWSD05MMC)

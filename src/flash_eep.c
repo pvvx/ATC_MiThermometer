@@ -52,11 +52,11 @@
 #define _flash_mutex_unlock()
 #define _flash_clear_cache()	// TLRS8xxx ?
 #define _flash_erase_sector(a) flash_erase_sector(a)
-#define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write_all_size(a, 4, (unsigned char *)&_dw); }
+#define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write(a, 4, (unsigned char *)&_dw); }
 #if MAX_FOBJ_SIZE > 256
-#define _flash_write(a,b,c) flash_write_all_size(a,b,(unsigned char *)c) //flash_write(wraddr, len, pbuf);
+#define _flash_write(a,b,c) flash_write(a,b,(unsigned char *)c) //flash_write(wraddr, len, pbuf);
 #else
-#define _flash_write(a,b,c) flash_write_all_size(a,b,(unsigned char *)c)
+#define _flash_write(a,b,c) flash_write(a,b,(unsigned char *)c)
 #endif
 
 #ifndef LOCAL
@@ -98,6 +98,7 @@ unsigned char buf_epp[MAX_FOBJ_SIZE+fobj_head_size];
 #else
 #define _flash_read(a,b,c) flash_read_page(FLASH_BASE_ADDR + a, b, (u8 *)c)
 
+
 inline unsigned int _flash_read_dword(unsigned int addr) {
 	unsigned int ret;
 	_flash_read(FLASH_BASE_ADDR + addr, 4, &ret);
@@ -121,23 +122,6 @@ void flash_erase_sector_bt(unsigned int addr) {
 }
 */
 
-// error flash write: patch (переход границы в 256 байт)
-_attribute_ram_code_ void flash_write_all_size(unsigned int addr, unsigned int len, unsigned char *buf) {
-	uint32_t xlen;
-	while (len) {
-		xlen = addr & 0xff;
-		if (xlen + len > 0x100) {
-			xlen = 0x100 - xlen;
-			flash_write_page(addr, xlen, buf);
-			len -= xlen;
-			addr += xlen;
-			buf += xlen;
-		} else {
-			flash_write_page(addr, len, buf);
-			break;
-		}
-	}
-}
 //-----------------------------------------------------------------------------
 // FunctionName : get_addr_bscfg
 // поиск текушего сегмента
@@ -435,7 +419,7 @@ bool flash_supported_eep_ver(unsigned int min_ver, unsigned int new_ver) {
 	unsigned int tmp;
 	unsigned int faddr = FMEMORY_SCFG_BASE_ADDR;
 	_flash_mutex_lock();
-	flash_unlock(FLASH_TYPE_GD); // Flash Unprotect
+	// flash_unlock(); // Flash Unprotect, in user_init_normal()
 	if (flash_read_cfg(&tmp, EEP_ID_VER, sizeof(tmp)) == sizeof(tmp) && tmp >= min_ver) {
 		if(tmp != new_ver) {
 			tmp = new_ver;

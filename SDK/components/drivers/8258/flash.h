@@ -70,13 +70,21 @@ typedef enum{
 _attribute_ram_code_ void flash_erase_sector(unsigned long addr);
 
 /**
- * @brief This function writes the buffer's content to a page.
- * @param[in]   addr the start address of the page
+ * @brief This function writes the buffer's content to a page (Warning: page < 256 bytes, write address not % 256). * @brief This function writes the buffer's content to a page.
  * @param[in]   len the length(in byte) of content needs to write into the page
  * @param[in]   buf the start address of the content needs to write into
  * @return none
  */
 _attribute_ram_code_ void flash_write_page(unsigned long addr, unsigned long len, unsigned char *buf);
+
+/**
+ * @brief This function write flash.
+ * @param[in]   addr the start address of the page
+ * @param[in]   len the length(in byte) of content needs to write into the page
+ * @param[in]   buf the start address of the content needs to write into
+ * @return none
+ */
+void flash_write(unsigned int addr, unsigned int len, unsigned char *buf);
 
 /**
  * @brief This function reads the content from a page to the buf.
@@ -86,6 +94,12 @@ _attribute_ram_code_ void flash_write_page(unsigned long addr, unsigned long len
  * @return none
  */
 _attribute_ram_code_ void flash_read_page(unsigned long addr, unsigned long len, unsigned char *buf);
+
+/**
+ * @brief This function serves to protect data for flash.
+ * @return none
+ */
+_attribute_ram_code_ void flash_unlock(void);
 
 /* according to your appliaction */
 #if 0
@@ -186,7 +200,6 @@ int flash_read_mid_uid_with_check( unsigned int *flash_mid ,unsigned char *flash
  * @return none
  */
 void flash_lock(Flash_TypeDef type , unsigned short data);
-#endif
 
 /**
  * @brief This function serves to protect data for flash.
@@ -194,3 +207,5 @@ void flash_lock(Flash_TypeDef type , unsigned short data);
  * @return none
  */
 void flash_unlock(Flash_TypeDef type);
+
+#endif

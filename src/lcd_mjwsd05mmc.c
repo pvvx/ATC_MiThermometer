@@ -161,22 +161,22 @@ const uint8_t sb_s4[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
 		// "%" 15,0x08
 };
 
-/* LCD controller initialize:
-1. 0xea - Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
-2. 0xbe - Display control (DISCTL): Power save mode3, FRAME flip 1, Normal mode // (0xb6) Power save mode2
-3. 0xf0 - Blink control (BLKCTL): Off
-4. 0xfc - All pixel control (APCTL): Normal
-*/
-//const uint8_t lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc};
-/* LCD controller initialize
-1. 0xea - Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
-2. 0xf0 - Blink control (BLKCTL): Off
-4. 0xc0 - Mode Set (MODE SET): Display ON ?
-2. 0xbc - Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
-*/
-const uint8_t lcd_init1_cmd[] = {0xea,0xf0, 0xc0, 0xbc};
-
-const uint8_t lcd_init_clr_b19[] =	{0x00,0x00,0x00,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x00,0x00,0x00,0x00,0x00,0x00};
+/* Test cmd ():
+ * 0400007ceaa49cacbcf0fcc804ffffffff,
+ * 0400007c0449
+ * 0400007cf3c8 - blink
+ */
+//const uint8_t lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // original
+const uint8_t lcd_init_cmd[]	=	{
+		// LCD controller initialize:
+		0xea, // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
+		0xf0, // Blink control (BLKCTL): Off
+		0xc0, // Mode Set (MODE SET): Display OFF, 1/3 Bias
+		0xa4, // Display control (DISCTL): Normal mode, FRAME flip, Power save mode 1
+		0xac, // Display control (DISCTL): Power save mode 1, FRAME flip, Power save mode 1
+		0xbc, // Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
+		0xfc  // All pixel control (APCTL): Normal
+};
 
 // runtime: 600 us if I2C 450 kHz
 _attribute_ram_code_ void send_to_lcd(void){
@@ -186,7 +186,10 @@ _attribute_ram_code_ void send_to_lcd(void){
 		if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
 		reg_i2c_id = lcd_i2c_addr;
-		reg_i2c_adr_dat = 0xE800; // 0xe8 - Set IC Operarion(ICSET): Do not execute Software Reset, Internal oscillator circuit; 0x00 - ADSET
+		// LCD cmd:
+		// 0xe8 - Set IC Operarion(ICSET): Do not execute Software Reset, Internal oscillator circuit;
+		// 0x00 - ADSET 0
+		reg_i2c_adr_dat = 0xE800;
 		reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
 		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 
@@ -198,8 +201,8 @@ _attribute_ram_code_ void send_to_lcd(void){
 		reg_i2c_do = *p;
 		reg_i2c_ctrl = FLD_I2C_CMD_DO | FLD_I2C_CMD_STOP;
 		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
-
-		reg_i2c_adr = 0xC8; // 0xc8 - Mode Set (MODE SET): Display ON, 1/3 Bias
+		// LCD cmd: 0xc8 - Mode Set (MODE SET): Display ON, 1/3 Bias
+		reg_i2c_adr = 0xC8;
 		reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_STOP;
 		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	}
@@ -207,30 +210,17 @@ _attribute_ram_code_ void send_to_lcd(void){
 
 _attribute_ram_code_
 void update_lcd(void){
-	if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
-		send_to_lcd();
-		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
+	if (memcmp(display_cmp_buff, display_buff, sizeof(display_buff))) {
+		memcpy(display_cmp_buff, display_buff, sizeof(display_buff));
 		lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
+		send_to_lcd();
 	}
 }
 
 void init_lcd(void){
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(MJWSD05MMC_LCD_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // LCD CGDK2_I2C_ADDR ?
-#if 1 // sleep: 15.5 uA
-		lcd_send_i2c_buf((uint8_t *) lcd_init1_cmd, sizeof(lcd_init1_cmd));
-#else // sleep: 15.5 uA
-		lcd_send_i2c_byte(0xEA); // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
-		sleep_us(240);
-		lcd_send_i2c_byte(0xA4); // Display control (DISCTL): Normal mode, FRAME flip, Power save mode 1
-		lcd_send_i2c_byte(0x9C); // ? Address set (ADSET): 0x1C ?
-		lcd_send_i2c_byte(0xAC); // Display control (DISCTL): Power save mode 1, FRAME flip, Power save mode 1
-		lcd_send_i2c_byte(0xBC); // Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
-		lcd_send_i2c_byte(0xF0); // Blink control (BLKCTL): Off
-		lcd_send_i2c_byte(0xFC); // All pixel control (APCTL): Normal
-		lcd_send_i2c_buf((uint8_t *) lcd_init_clr_b19, sizeof(lcd_init_clr_b19));
-		lcd_send_i2c_byte(0xC8); // Mode Set (MODE SET): Display ON, 1/3 Bias
-#endif
+		lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd)); // sleep: 15.5 uA
 		pm_wait_us(200);
 		//memset(display_buff, 0xff, sizeof(display_buff));
 		send_to_lcd();
@@ -770,22 +760,20 @@ void show_low_bat(void) {
 	send_to_lcd();
 }
 
-#if (defined(SHOW_OTA_SCREEN) && SHOW_OTA_SCREEN)
 void show_ota_screen(void) {
-	memset(&display_buff, 0, sizeof(display_buff));
-	display_buff[0] = BIT(0) | BIT(2); // "ble", "-"
-	display_buff[1] = BIT(2); // "-"
-	display_buff[2] = BIT(2); // "-"
-	display_buff[3] = BIT(2); // "-"
+	clear_s1();
+	display_buff[0] = BIT(2);
+	display_buff[1] = BIT(2);
+	display_buff[2] = BIT(2);
+	display_buff[3] = BIT(2);
 	send_to_lcd();
+	lcd_send_i2c_byte(0xf2);
 }
-#endif // SHOW_OTA_SCREEN
-#if (defined(SHOW_REBOOT_SCREEN) && SHOW_REBOOT_SCREEN)
+
 void show_reboot_screen(void) {
 	memset(&display_buff, 0xff, sizeof(display_buff));
 	send_to_lcd();
 }
-#endif // SHOW_REBOOT_SCREEN
 
 _attribute_ram_code_
 uint8_t is_comfort(int16_t t, uint16_t h) {
@@ -801,9 +789,11 @@ void lcd(void) {
 	uint8_t screen_type = cfg.flg2.screen_type;
 	if(lcd_flg.chow_ext_ut >= utc_time_sec)
 		screen_type = SCR_TYPE_EXT;
-
-	show_ble_symbol(ble_connected || (rest_adv_int_tad & 2));
-
+	show_ble_symbol(ble_connected
+#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+		 || (ext_key.rest_adv_int_tad & 2)
+#endif
+	);
 	show_battery_symbol(measured_data.average_battery_mv < 2400);
 	switch(screen_type) {
 		case SCR_TYPE_TEMP:

@@ -80,31 +80,47 @@ void show_temp_symbol(uint8_t symbol);
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 void show_smiley(uint8_t state);
 #endif
+
 void show_battery_symbol(bool state);
 void show_big_number_x10(int16_t number); // x0.1, (-995..19995), point auto: -99 .. -9.9 .. 199.9 .. 1999
 void show_ble_symbol(bool state);
+
 #if	USE_CLOCK
 void show_clock(void);
 #endif
-
+////////// DEVICE_TYPE //////////
 #if DEVICE_TYPE == DEVICE_MHO_C401
+
+#define SHOW_OTA_SCREEN()
 #define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
 #define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+#define SHOW_REBOOT_SCREEN()
 #define LCD_BUF_SIZE	18
 extern uint8_t stage_lcd;
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
+
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
+
+#define SHOW_OTA_SCREEN()
 #define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+#define SHOW_REBOOT_SCREEN()
 #define LCD_BUF_SIZE	16
 extern uint8_t stage_lcd;
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 void show_connected_symbol(bool state);
-#define SHOW_CONNECTED_SYMBOL(a) show_connected_symbol(a)
 int task_lcd(void);
+
 #elif DEVICE_TYPE == DEVICE_CGG1
+
+#define SHOW_OTA_SCREEN()
 #define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
 #define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+#define SHOW_REBOOT_SCREEN()
 #if DEVICE_CGG1_ver == 2022
 #define LCD_BUF_SIZE	16
 #else
@@ -114,26 +130,39 @@ extern uint8_t stage_lcd;
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
 void show_batt_cgg1(void);
+
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
+
+void show_ota_screen(void);
+#define SHOW_OTA_SCREEN() show_ota_screen()
 #define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
 #define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+void show_reboot_screen(void);
+#define SHOW_REBOOT_SCREEN() show_reboot_screen()
 #define LCD_BUF_SIZE	6
 extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 void show_small_number(int16_t number, bool percent); // -9 .. 99
+
 #elif DEVICE_TYPE == DEVICE_CGDK2
+
+void show_ota_screen(void);
+#define SHOW_OTA_SCREEN() show_ota_screen()
 #define LCD_BUF_SIZE	18
 #define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
 #define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+void show_reboot_screen(void);
+#define SHOW_REBOOT_SCREEN() show_reboot_screen()
 void show_batt_cgdk2(void);
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
+
 #else
 #error "Set DEVICE_TYPE!"
 #endif
 
 #else // (DEVICE_TYPE == DEVICE_MJWSD05MMC)
 
-#define SHOW_OTA_SCREEN	1
-#define SHOW_REBOOT_SCREEN	1
 
 enum {
 	SCR_TYPE_TIME = 0,	//0 Time (default)
@@ -144,7 +173,7 @@ enum {
 	SCR_TYPE_EXT		//5 External number & symbols
 } SCR_TYPE_ENUM;
 
-#define MJWSD05MMC_LCD_I2C_ADDR	0x3E
+#define MJWSD05MMC_LCD_I2C_ADDR	0x3E // BU9792AFUV
 //#define  min_step_time_update_lcd (500 * CLOCK_16M_SYS_TIMER_CLK_1MS)
 
 #define LCD_SYM_SMILEY_NONE  0 	// "(^-^)" happy
@@ -179,16 +208,16 @@ void show_symbol_s1(uint8_t symbol);
 
 extern uint8_t lcd_i2c_addr;
 
-#if (defined(SHOW_OTA_SCREEN) && SHOW_OTA_SCREEN)
-void show_ota_screen(void);
-#endif
-#if (defined(SHOW_REBOOT_SCREEN) && SHOW_REBOOT_SCREEN)
 void show_reboot_screen(void);
-#endif
+#define POWERUP_SCREEN	1
+#define SHOW_REBOOT_SCREEN() show_reboot_screen()
 
 extern volatile uint8_t lcd_update;
 #define SET_LCD_UPDATE() lcd_flg.update = 1
 #define SHOW_CONNECTED_SYMBOL(a) lcd_flg.update = 1
+
+void show_ota_screen(void);
+#define SHOW_OTA_SCREEN() show_ota_screen()
 
 void init_lcd(void);
 void lcd(void);
