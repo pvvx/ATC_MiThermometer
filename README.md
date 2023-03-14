@@ -67,8 +67,8 @@ The Web Bluetooth API in Chrome does not yet allow scanning for Bluetooh 5.0+ de
     - [Average power consumption](#average-power-consumption)
     - [Bluetooth Advertising Formats](#bluetooth-advertising-formats)
     - [Bluetooth Connection Mode](#bluetooth-connection-mode)
-    - [Temperature or humidity trigger (LYWSD03MMC GPIO PA5 label on the "reset" pin)](#temperature-or-humidity-trigger-on-gpio-pa5-label-on-the-reset-pin)
-    - [Reed Switch or Key (LYWSD03MMC GPIO PA6 label on the "P8" pin)](#reed-switch-on-gpio-pa6-label-on-the-p8-pin)
+    - [Temperature or humidity trigger](#temperature-or-humidity-trigger-gpio-pa5-lywsd03mmc-label-on-the-reset-pin)
+    - [Reed switch or button functions)](#reed-switch-or-button-functions)
     - [Interface for receiving and displaying data on the LCD.](#interface-for-receiving-and-displaying-data-on-the-lcd)
     - [The USB-COM adapter writes the firmware in explorer. Web version.](#the-usb-com-adapter-writes-the-firmware-in-explorer-web-version)
 - [Related Work](#related-work)
@@ -291,7 +291,7 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 The Firmware can be configured to support one of four different Bluetooth advertisements data formats.
 Xiaomi, ATC, Custom, BTHome and encrypted options.
 
-[Основное различие Advertising форматов](https://github.com/pvvx/ATC_MiThermometer/issues/298).
+[Advertising formats](https://github.com/pvvx/ATC_MiThermometer/issues/298).
 
 [Test program](https://github.com/pvvx/ATC_MiThermometer/tree/master/python-interface) of used Bluetooth Advertising formats provided by [Ircama](https://github.com/Ircama).
 
@@ -377,15 +377,15 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 [Trigger and reed switch status receiver on JDY-10 module ($1).](https://github.com/pvvx/AdScanerTrg)
 
-### Reed Switch or button on the case (LYWSD03MMC GPIO PA6 label on the "P8" pin)
-
-It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P8" and GND.
+### Reed switch or button functions
 
 For CGG1, MHO_C401, CGDK2, MJWSD05MMC, a button on the case is used.
 
-The state of the reed switch or button is transferred to the advertising packet and events are sent in the "Switch" and "Ccounter" modes.
+It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P8" (GPIO PA6) and GND.
 
 The button on the body can turn the light on and off when creating a scenario in an external program...
+
+The state of the reed switch or button is transferred to the advertising packet and events are sent in the "Switch" and "Ccounter" modes.
 
 Setting the "Connect" option has several functions:
 
