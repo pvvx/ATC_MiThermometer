@@ -35,22 +35,19 @@ For reliable connection and refirmware on LYWSD03MMC, the battery level must be 
 
 Home Assistant in "Bloetooth" integration does not support Bloetooth 5.0 and is not implied. 
 
-[Как переключить адаптер USB-BT5.0+ на работу в LE Long Range в Home Assistant под Linux](https://github.com/pvvx/ATC_MiThermometer/issues/297)
+[How to switch the USB-BT5.0+ adapter to work in LE Long Range in Home Assistant under Linux:](https://github.com/pvvx/ATC_MiThermometer/issues/297)
 
-На термометрах с кнопкой, если на функцию кнопки установлен вариант "Connect", тогда короткое нажатие на кнопку на 80 секунд включает возможность соединения в режиме BT4.0.
+On thermometers with a button, if the button function is set to Connect, then a short application on the button for 80 seconds enables connection in BT4.0 mode.
 
-Если случайно включили опцию 'Long Range' на термометре, а ваши устройства не поддерживают BT5.0, вытащите и вставьте батарейку - термометр перейдет в режим поддержки BT4.2.
+If you accidentally set the 'LE Long Range' on the thermometer, and your device does not support BT5.0, remove and insert the battery - the thermometer will switch to BT4.2 support mode.
 
-Если имеется смартфон с BT5.0+ и программа nRFConnect, тогда сбросить все установки в default возможно путем соединения с термометром и прередачи команды 0x56, как показано на скриншоте:
+If you have a smartphone with BT5.0+ and the nRFConnect program, then you can reset all settings to default by connecting to a thermometer and sending the 0x56 command, as shown in the screenshot:
 
 ![img nRFConnect_set_default.png](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/nRFConnect_set_default.png)
 
-Для отключения только опции 'Long Range' используйте код 0xDD.
+To disable only the 'Long Range' option, use the code 0xDD.
 
-Web Bluetooth API в Chrome пока не позволяет переключать PHY BT адаптера. 
-
-На Android API всё работает успешно, включая бесшовное получение рекламы на основных каналах BLE с разными настройками PHY на большинстве смартфонов выпущенных ещё в прошлом году (другие не изучал).
-
+The Web Bluetooth API in Chrome does not yet allow scanning for Bluetooh 5.0+ devices.
 
 **Table of content**
 
@@ -70,8 +67,8 @@ Web Bluetooth API в Chrome пока не позволяет переключа�
     - [Average power consumption](#average-power-consumption)
     - [Bluetooth Advertising Formats](#bluetooth-advertising-formats)
     - [Bluetooth Connection Mode](#bluetooth-connection-mode)
-    - [Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)](#temperature-or-humidity-trigger-on-gpio-pa5-label-on-the-reset-pin)
-    - [Reed Switch on GPIO PA6 (label on the "P8" pin)](#reed-switch-on-gpio-pa6-label-on-the-p8-pin)
+    - [Temperature or humidity trigger (LYWSD03MMC GPIO PA5 label on the "reset" pin)](#temperature-or-humidity-trigger-on-gpio-pa5-label-on-the-reset-pin)
+    - [Reed Switch or Key (LYWSD03MMC GPIO PA6 label on the "P8" pin)](#reed-switch-on-gpio-pa6-label-on-the-p8-pin)
     - [Interface for receiving and displaying data on the LCD.](#interface-for-receiving-and-displaying-data-on-the-lcd)
     - [The USB-COM adapter writes the firmware in explorer. Web version.](#the-usb-com-adapter-writes-the-firmware-in-explorer-web-version)
 - [Related Work](#related-work)
@@ -357,7 +354,7 @@ UUID 0x181A - size 19: Custom extended format in 0.01 units (all data little-end
 + Primary Service (0x1F10):
  * Characteristic UUID [0x1F1F](https://github.com/pvvx/ATC_MiThermometer#primary-service-uuid-0x1f10-characteristic-uuid-0x1f1f) - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
-### Temperature or humidity trigger on GPIO PA5 (label on the "reset" pin)
+### Temperature or humidity trigger (GPIO PA5 LYWSD03MMC label on the "reset" pin)
 
 Xiaomi LYWSD03MMC has a PCB soldering test point. Available without disassembling the case and [marked "Reset"](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout). 
 Use as a trigger output with adjustable temperature and / or humidity hysteresis. 
@@ -380,12 +377,21 @@ Setting the pin to "1" or "0" works if both hysteresis are set to zero (TRG off)
 
 [Trigger and reed switch status receiver on JDY-10 module ($1).](https://github.com/pvvx/AdScanerTrg)
 
-### Reed Switch on GPIO PA6 (label on the "P8" pin)
+### Reed Switch or button on the case (LYWSD03MMC GPIO PA6 label on the "P8" pin)
 
 It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P8" and GND.
-The state of the reed switch is transferred to the advertising packet and events are sent in the "switch" and "counter" modes.
-For CGG1 - GPIO_PC4 (button on the case), MHO_C401 - GPIO_PB6 (button on the case), CGDK2 - GPIO_PVC4 (button on the case).
+
+For CGG1, MHO_C401, CGDK2, MJWSD05MMC, a button on the case is used.
+
+The state of the reed switch or button is transferred to the advertising packet and events are sent in the "Switch" and "Ccounter" modes.
+
 The button on the body can turn the light on and off when creating a scenario in an external program...
+
+Setting the "Connect" option has several functions:
+
+1. Short press for 80 seconds turns on the ability to connect with a device in BLE 4.2 format
+2. Long press toggles temperature display to C or F.
+3. Holding more than 20 seconds will reset the device settings to default. 
 
 ### Interface for receiving and displaying data on the LCD.
 >* LCD shows: 
@@ -469,6 +475,9 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 |  ID  | Command                                       |
 | :--: | --------------------------------------------- |
 | 0x01 | Get/Set device name                           |
+| 0x02 | Get address of internal devices               |
+| 0x03 | I2C scan                           		   |
+| 0x04 | I2C Universal TRansaction (UTR)               |
 | 0x10 | Get/Set MAC                                   |
 | 0x11 | Get/Set Mi key: DevNameID                     |
 | 0x12 | Get/Set Mi keys: Token & Bind                 |
@@ -493,6 +502,9 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 | 0x61 | Start/Stop notify LCD buffer                  |
 | 0x70 | Set PinCode                                   |
 | 0x71 | Request Mtu Size Exchange                     |
+| 0x72 | Set Reboot on disconnect                      |
+| 0x73 | Extension BigOTA (MJWSD05MMC)                 |
+| 0xDD | Reset LE Long Range mode                      |
 
 ---
 
