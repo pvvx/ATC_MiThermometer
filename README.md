@@ -13,7 +13,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Improved measurement accuracy and extended format in 0.01 units
 * Full support Home Assistant ['BTHome integration'](https://bthome.io/)
 * Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon
-* Supports Bluetooth5.0+ **[LE Long Range](https://www.youtube.com/watch?v=2VkbGIEFn4g&t=80s)** (LE 1M/2M/Coded 500K/125K), CSA1/CSA2 (Channel Selection Algorithm), Advertising Extensions: primary and secondary Coded PHY S=8, Connectable
+* Supports Bluetooth v5.0+ **[LE Long Range](https://www.youtube.com/watch?v=2VkbGIEFn4g&t=80s)** (LE 1M/2M/Coded 500K/125K), CSA1/CSA2 (Channel Selection Algorithm), Advertising Extensions: primary and secondary Coded PHY S=8, Connectable
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
 * **Measurement values recording** & Charting. See [Reading Measurements from Flash](#reading-measurements-from-flash)
 * **Adjustable correction offsets** and **Comfort zones**
@@ -29,11 +29,15 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 If you have many BLE devices, the adapter must be able to receive BLE advertisements every 3 ms. UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format. Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the reception.
 
+Do not use ESP32xxx - it cannot work with BLE at normal speed and drains the batteries of all BLE devices when connected!
+
+ESPHome does not work with Bluetooth 5.0 and misses a lot of advertising packets from BLE devices.
+
 For reliable connection and refirmware on LYWSD03MMC, the battery level must be more than 40%. This is a design feature - a [cheaper version of the hardware from Xiaomi](https://user-images.githubusercontent.com/12629515/105704705-423fc600-5f20-11eb-88ca-a2db712d0222.png).
 
 [On devices with missing power capacities](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494), do not set 'Connect latency' to more than 1000 ms!
 
-Home Assistant in "Bloetooth" integration does not support Bloetooth 5.0 and is not implied. 
+Home Assistant in "Bluetooth" integration does not full support Bluetooth  5.0 and is not implied. 
 
 [How to switch the USB-BT5.0+ adapter to work in LE Long Range in Home Assistant under Linux:](https://github.com/pvvx/ATC_MiThermometer/issues/297)
 
@@ -98,7 +102,7 @@ To flash or update the firmware, use a Google Chrome, Microsoft Edge or Opera Br
 
  * Addition for CGG1-M: Press and hold the button on the back of CGG1-M for 2 seconds until the Bluetooth icon starts blinking on the e-ink display, and then click the 'Connect' and 'Do Activation' buttons on the [TelinkMiFlasherl](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
- * Addition for MJWSD05MMC: Press and hold both buttons for a few seconds until the screen blink (device resets). Next, briefly press the top side button, then briefly press the bottom button. The Bluetooth icon will start flashing.  Next "Connect" and "Perform activation" in [TelinkMiFlasherl](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
+ * [Addition for MJWSD05MMC](https://github.com/pvvx/ATC_MiThermometer/issues/307): Press and hold both buttons for a few seconds until the screen blink (device resets). Next, briefly press the top side button, then briefly press the bottom button. The Bluetooth icon will start flashing.  Next 'Connect' and 'Do Activation' in [TelinkMiFlasherl](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
 ### Configuration
 After you have flashed the firmware, the device has changed it's bluetooth name to something like `ATC_F02AED`. Using the [`TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) you have various configuration options.
@@ -394,6 +398,8 @@ Setting the "Connect" option has several functions:
 1. Short press for 80 seconds turns on the ability to connect with a device in BLE 4.2 format
 2. Long press toggles temperature display to C or F.
 3. Holding more than 20 seconds will reset the device settings to default. 
+
+* [For MJWSD05MMC, the 'Connect' function is always configured on the top button](https://github.com/pvvx/ATC_MiThermometer/issues/307).
 
 ### Interface for receiving and displaying data on the LCD.
 >* LCD shows: 
