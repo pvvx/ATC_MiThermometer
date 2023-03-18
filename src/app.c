@@ -397,9 +397,6 @@ void WakeupLowPowerCb(int par) {
 	}
 	timer_measure_cb = 0;
 	bls_pm_setAppWakeupLowPower(0, 0); // clear callback
-
-	if (measured_data.battery_mv < END_VBAT_MV) // It is not recommended to write Flash below 2V
-		low_vbat();
 }
 
 _attribute_ram_code_
@@ -433,30 +430,46 @@ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 #endif // GPIO_KEY2 || (USE_WK_RDS_COUNTER)
 
 //--- check battery
-#define BAT_AVERAGE_SHL		4 // 2..7
-#define BAT_AVERAGE_COUNT	(1 << BAT_AVERAGE_SHL) // 8,16,32, ...
+#define BAT_AVERAGE_SHL		4 // 16*16 = 256 ( 256*10/60 = 42.7 min)
+#define BAT_AVERAGE_COUNT	(1 << BAT_AVERAGE_SHL) // 8
 RAM struct {
-	uint16_t buf[BAT_AVERAGE_COUNT];
-	uint8_t index;
+	uint32_t buf2[BAT_AVERAGE_COUNT];
+	uint16_t buf1[BAT_AVERAGE_COUNT];
+	uint8_t index1;
+	uint8_t index2;
 } bat_average;
 
 _attribute_ram_code_
+__attribute__((optimize("-Os")))
 void check_battery(void) {
-	uint32_t i, summ = 0;
+	uint32_t i;
+	uint32_t summ = 0;
 	measured_data.battery_mv = get_battery_mv();
-	bat_average.index++;
-	bat_average.index &= (BAT_AVERAGE_COUNT - 1);
-	bat_average.buf[bat_average.index] = measured_data.battery_mv;
+	if (measured_data.battery_mv < END_VBAT_MV) // It is not recommended to write Flash below 2V
+		low_vbat();
+	bat_average.index1++;
+	bat_average.index1 &= BAT_AVERAGE_COUNT - 1;
+	if(bat_average.index1 == 0) {
+		bat_average.index2++;
+		bat_average.index2 &= BAT_AVERAGE_COUNT - 1;
+	}
+	bat_average.buf1[bat_average.index1] = measured_data.battery_mv;
 	for(i = 0; i < BAT_AVERAGE_COUNT; i++)
-		summ += bat_average.buf[i];
-	measured_data.average_battery_mv = summ >> BAT_AVERAGE_SHL;
+		summ += bat_average.buf1[i];
+	bat_average.buf2[bat_average.index2] = summ;
+	summ = 0;
+	for(i = 0; i < BAT_AVERAGE_COUNT; i++)
+		summ += bat_average.buf2[i];
+	measured_data.average_battery_mv = summ >> (2*BAT_AVERAGE_SHL);
 	measured_data.battery_level = get_battery_level(measured_data.average_battery_mv);
 }
 
+__attribute__((optimize("-Os")))
 static void start_tst_battery(void) {
 	int i;
-	measured_data.battery_mv = get_battery_mv();
-	if (measured_data.battery_mv < MIN_VBAT_MV) { // 2.2V
+	uint16_t avr_mv = get_battery_mv();
+	measured_data.battery_mv = avr_mv;
+	if (avr_mv < MIN_VBAT_MV) { // 2.2V
 #if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC)
 		// Set LYWSD03MMC sleep < 1 uA
 		init_i2c();
@@ -466,9 +479,12 @@ static void start_tst_battery(void) {
 		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 	}
-	measured_data.average_battery_mv = measured_data.battery_mv;
+	measured_data.average_battery_mv = avr_mv;
 	for(i = 0; i < BAT_AVERAGE_COUNT; i++)
-		bat_average.buf[i] = measured_data.battery_mv;
+		bat_average.buf1[i] = avr_mv;
+	avr_mv <<= BAT_AVERAGE_SHL;
+	for(i = 0; i < BAT_AVERAGE_COUNT; i++)
+		bat_average.buf2[i] = avr_mv;
 }
 
 
