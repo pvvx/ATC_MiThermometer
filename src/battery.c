@@ -9,7 +9,8 @@ uint8_t adc_hw_initialized = 0;
 #define ADC_BUF_COUNT	8
 
 // Process takes about 120 μs at CPU CLK 24Mhz.
-_attribute_ram_code_ static void adc_channel_init(ADC_InputPchTypeDef p_ain) {
+_attribute_ram_code_
+static void adc_channel_init(ADC_InputPchTypeDef p_ain) {
 	adc_set_sample_clk(5);
 	adc_set_left_right_gain_bias(GAIN_STAGE_BIAS_PER100, GAIN_STAGE_BIAS_PER100);
 	adc_set_chn_enable_and_max_state_cnt(ADC_MISC_CHN, 2);
@@ -22,7 +23,8 @@ _attribute_ram_code_ static void adc_channel_init(ADC_InputPchTypeDef p_ain) {
 }
 
 // Process takes about 260 μs at CPU CLK 24Mhz.
-_attribute_ram_code_ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDef
+_attribute_ram_code_
+uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDef
 	volatile unsigned int adc_dat_buf[ADC_BUF_COUNT];
 	uint16_t temp;
 	int i, j;
@@ -82,7 +84,8 @@ _attribute_ram_code_ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDe
 }
 
 // 2200..3100 mv - 0..100%
-_attribute_ram_code_ uint8_t get_battery_level(uint16_t battery_mv) {
+_attribute_ram_code_
+uint8_t get_battery_level(uint16_t battery_mv) {
 	uint8_t battery_level = 0;
 	if (battery_mv > MIN_VBAT_MV) {
 		battery_level = (battery_mv - MIN_VBAT_MV) / ((MAX_VBAT_MV
