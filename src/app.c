@@ -251,6 +251,13 @@ void set_hw_version(void) {
 #endif
 }
 
+// go deep-sleep 
+void go_sleep(uint32_t tik) {
+	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
+				clock_time() + tik); 
+	while(1);
+}
+
 __attribute__((optimize("-Os")))
 void test_config(void) {
 	if (cfg.flg2.longrange)
@@ -341,9 +348,7 @@ void low_vbat(void) {
 	while(task_lcd()) pm_wait_ms(10);
 #endif
 #endif
-	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
-			clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
-	while(1);
+	go_sleep(120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 }
 
 _attribute_ram_code_
@@ -402,8 +407,6 @@ void WakeupLowPowerCb(int par) {
 _attribute_ram_code_
 static void suspend_exit_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
-	if (timer_measure_cb)
-		init_i2c();
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
@@ -470,14 +473,14 @@ static void start_tst_battery(void) {
 	uint16_t avr_mv = get_battery_mv();
 	measured_data.battery_mv = avr_mv;
 	if (avr_mv < MIN_VBAT_MV) { // 2.2V
+#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+		// Set sleep power < 1 uA
 #if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC)
-		// Set LYWSD03MMC sleep < 1 uA
-		init_i2c();
 		send_i2c_word(0x70 << 1, 0x98b0); // SHTC3 go SLEEP: Sleep command of the sensor
+#endif
 		send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
 #endif
-		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
-				clock_time() + 120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
+		go_sleep(120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 	}
 	measured_data.average_battery_mv = avr_mv;
 	for(i = 0; i < BAT_AVERAGE_COUNT; i++)
@@ -526,10 +529,7 @@ void set_default_cfg(void) {
 		cfg.flg.lp_measures = 1;
 	flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 	SHOW_REBOOT_SCREEN();
-	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
-				clock_time() + 2*CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 sec
-	while(1)
-		start_reboot();
+	go_sleep(2*CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 sec
 }
 #endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
 
@@ -614,8 +614,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 		SHOW_REBOOT_SCREEN();
 #endif // POWERUP_SCREEN
 		// RTC wakes up after powering on > 1 second.
-		cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
-					clock_time() + 1500*CLOCK_16M_SYS_TIMER_CLK_1MS); // go deep-sleep 1.5 sec
+		go_sleep(1500*CLOCK_16M_SYS_TIMER_CLK_1MS);  // go deep-sleep 1.5 sec
 #endif // SHOW_REBOOT_SCREEN || (USE_RTC)
 #endif // POWERUP_SCREEN || (USE_RTC) || (BLE_EXT_ADV)
 	}
@@ -792,7 +791,7 @@ void main_loop(void) {
 #endif
 			} else {
 				bls_pm_setAppWakeupLowPower(0, 0); // clear callback
-				if ((blc_ll_getCurrentState() & BLS_LINK_STATE_CONN) && blc_ll_getTxFifoNumber() < 9) {
+				if (ble_connected && blc_ll_getTxFifoNumber() < 9) {  
 					// connect, TxFifo ready
 					if (end_measure & 1) {
 						end_measure &= ~1;
@@ -833,33 +832,35 @@ void main_loop(void) {
 					tim_measure = new;
 					start_measure = 1;
 				}
+				if(!cfg.flg2.screen_off) {
 #if (USE_EPD)
-				if ((!stage_lcd) && (new - lcd_flg.tim_last_chow >= lcd_flg.min_step_time_update_lcd)) {
-					lcd_flg.tim_last_chow = new;
-					lcd_flg.show_stage++;
-					if(lcd_flg.update_next_measure) {
-						lcd_flg.update = end_measure & 2;
-						end_measure &= ~2;
-					} else
-						lcd_flg.update = 1;
-				}
-#elif (DEVICE_TYPE != DEVICE_MJWSD05MMC)
-				if (new - lcd_flg.tim_last_chow >= lcd_flg.min_step_time_update_lcd) {
-					lcd_flg.tim_last_chow = new;
-					lcd_flg.show_stage++;
-					if(lcd_flg.update_next_measure) {
-						lcd_flg.update = end_measure & 2;
-						end_measure &= ~2;
-					} else
-						lcd_flg.update = 1;
-				}
-#endif
-				if (lcd_flg.update) {
-					lcd_flg.update = 0;
-					if (!lcd_flg.b.ext_data_buf) { // LCD show external data ? No
-						lcd();
+					if ((!stage_lcd) && (new - lcd_flg.tim_last_chow >= lcd_flg.min_step_time_update_lcd)) {
+						lcd_flg.tim_last_chow = new;
+						lcd_flg.show_stage++;
+						if(lcd_flg.update_next_measure) {
+							lcd_flg.update = end_measure & 2;
+							end_measure &= ~2;
+						} else
+							lcd_flg.update = 1;
 					}
-					update_lcd();
+#elif (DEVICE_TYPE != DEVICE_MJWSD05MMC)
+					if (new - lcd_flg.tim_last_chow >= lcd_flg.min_step_time_update_lcd) {
+						lcd_flg.tim_last_chow = new;
+						lcd_flg.show_stage++;
+						if(lcd_flg.update_next_measure) {
+							lcd_flg.update = end_measure & 2;
+							end_measure &= ~2;
+						} else
+							lcd_flg.update = 1;
+					}
+#endif
+					if (lcd_flg.update) {
+						lcd_flg.update = 0;
+						if (!lcd_flg.b.ext_data_buf) { // LCD show external data ? No
+							lcd();
+						}
+						update_lcd();
+					}
 				}
 			}
 		}

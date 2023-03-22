@@ -72,9 +72,6 @@ RAM adv_buf_t adv_buf;
 RAM uint8_t ota_is_working; // OTA_STAGES:  =1 ota enabled, =2 - ota wait, = 0xff flag ext.ota
 
 void app_enter_ota_mode(void) {
-#if USE_NEW_OTA
-	bls_ota_clearNewFwDataArea();
-#endif
 #if USE_EXT_OTA
 	if(ota_is_working != OTA_EXTENDED)
 #endif
@@ -245,10 +242,12 @@ _attribute_ram_code_ int RxTxWrite(void * p) {
 	return 0;
 }
 
+/* moved app.c: suspend_exit_cb
 _attribute_ram_code_ void user_set_rf_power(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
+*/
 
 #if (BLE_EXT_ADV)
 /* cfg.rf_tx_power -> ext.advertising TX power */
@@ -511,7 +510,6 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_ll_initAdvertising_module(mac_public); // adv module: 		 must for BLE slave,
 	blc_ll_initConnection_module(); // connection module  must for BLE slave/master
 	blc_ll_initSlaveRole_module(); // slave module: 	 must for BLE slave,
-	blc_ll_initPowerManagement_module(); //pm module:      	 optional
 #if	(BLE_EXT_ADV)
 	adv_buf.ext_adv_init = 0;
 #endif
@@ -604,7 +602,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 
 	///////////////////// USER application initialization ///////////////////
 	rf_set_power_level_index(cfg.rf_tx_power);
-	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power);
+	// bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power); // -> app.c: suspend_exit_cb
 	bls_app_registerEventCallback(BLT_EV_FLAG_CONNECT, &ble_connect_callback);
 	bls_app_registerEventCallback(BLT_EV_FLAG_TERMINATE, &ble_disconnect_callback);
 
@@ -614,9 +612,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_pm_setDeepsleepRetentionThreshold(40, 18);
 	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
-#if USE_NEW_OTA == 0
 	bls_ota_clearNewFwDataArea();
-#endif
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 	bls_set_advertise_prepare(app_advertise_prepare_handler); // TODO: not work if EXTENDED_ADVERTISING

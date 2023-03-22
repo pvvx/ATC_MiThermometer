@@ -286,8 +286,8 @@ void cmd_parser(void * p) {
 			}
 			ble_send_ext();
 		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) { // Get/set config
-			if (--len > sizeof(cfg)) len = sizeof(cfg);
 			u8 tmp = ((volatile u8 *)&cfg.flg2)[0];
+			if (--len > sizeof(cfg)) len = sizeof(cfg);
 			if (len) {
 				memcpy(&cfg, &req->dat[1], len);
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
@@ -297,23 +297,29 @@ void cmd_parser(void * p) {
 #endif
 			}
 			test_config();
-//			set_hw_version();
+			tmp ^= ((volatile u8 *)&cfg.flg2)[0];
+			if(tmp & MASK_FLG2_SCR_OFF)
+				init_lcd();
 			ev_adv_timeout(0, 0, 0);
 			if (cmd != CMD_ID_CFG_NS) {	// Get/set config (not save to Flash)
-				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
-				if((tmp ^ ((volatile u8 *)&cfg.flg2)[0]) & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
+				if(tmp & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
 					ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
+				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			}
 			ble_send_cfg();
 		} else if (cmd == CMD_ID_CFG_DEF) { // Set default config
-			if((((u8 *)&cfg.flg2)[0] ^ ((u8 *)&def_cfg.flg2)[0]) & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
-				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
-			}
+			u8 tmp = ((volatile u8 *)&cfg.flg2)[0];
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 			test_config();
 			if (!cfg.hw_cfg.shtc3) // sensor SHT4x ?
 				cfg.flg.lp_measures = 1;
+			tmp ^= ((volatile u8 *)&cfg.flg2)[0];
+			if(tmp & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
+				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+			}
+			if(tmp & MASK_FLG2_SCR_OFF)
+				init_lcd();
 			ev_adv_timeout(0, 0, 0);
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();

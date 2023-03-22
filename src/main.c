@@ -139,25 +139,40 @@ _attribute_ram_code_ void _gpio_init(int anaRes_init_en) {
 	}
 }
 
+/**
+ * @brief   IRQ handler
+ * @param   none.
+ * @return  none.
+ */
 _attribute_ram_code_ void irq_handler(void) {
 	irq_blt_sdk_handler();
 }
 
+#if (CLOCK_SYS_CLOCK_HZ == 16000000)
+#define SYS_CLK_TYPE	SYS_CLK_16M_Crystal
+#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
+#define SYS_CLK_TYPE	SYS_CLK_24M_Crystal
+#elif (CLOCK_SYS_CLOCK_HZ == 32000000)
+#define SYS_CLK_TYPE	SYS_CLK_32M_Crystal
+#elif (CLOCK_SYS_CLOCK_HZ == 48000000)
+#define SYS_CLK_TYPE	SYS_CLK_48M_Crystal
+#else
+#error "Set CLOCK_SYS_CLOCK_HZ!"
+#endif
+
+
+/**
+ * @brief		This is main function
+ * @param[in]	none
+ * @return      none
+ */
 _attribute_ram_code_ int main (void) {    //must run in ramcode
 	blc_pm_select_internal_32k_crystal(); // or blc_pm_select_external_32k_crystal();
 	cpu_wakeup_init();
 	int deepRetWakeUp = pm_is_MCU_deepRetentionWakeup();  //MCU deep retention wakeUp
 	_gpio_init(!deepRetWakeUp);  //analog resistance will keep available in deepSleep mode, so no need initialize again
+	clock_init(SYS_CLK_TYPE);
 	rf_drv_init(RF_MODE_BLE_1M);
-#if (CLOCK_SYS_CLOCK_HZ == 16000000)
-	clock_init(SYS_CLK_16M_Crystal);
-#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
-	clock_init(SYS_CLK_24M_Crystal);
-#elif (CLOCK_SYS_CLOCK_HZ == 32000000)
-	clock_init(SYS_CLK_32M_Crystal);
-#elif (CLOCK_SYS_CLOCK_HZ == 48000000)
-	clock_init(SYS_CLK_48M_Crystal);
-#endif
 	reg_clk_en0 = 0 //FLD_CLK0_I2C_EN
 //			| FLD_CLK0_UART_EN
 			| FLD_CLK0_SWIRE_EN;
@@ -166,8 +181,10 @@ _attribute_ram_code_ int main (void) {    //must run in ramcode
 	blc_app_loadCustomizedParameters();
 
 	if (deepRetWakeUp)
+		//MCU wake_up from deepSleep retention mode
 		user_init_deepRetn();
 	else
+		//MCU power_on or wake_up from deepSleep mode
 		user_init_normal();
 
 #if (MODULE_WATCHDOG_ENABLE)

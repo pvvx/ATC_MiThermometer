@@ -31,6 +31,8 @@ RAM uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 #if (!USE_EPD)
 _attribute_ram_code_
 void update_lcd(void){
+	if(cfg.flg2.screen_off)
+		return;
 	if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 		send_to_lcd();
 		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
@@ -50,6 +52,8 @@ uint8_t is_comfort(int16_t t, uint16_t h) {
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void lcd(void) {
+	if(cfg.flg2.screen_off)
+		return;
 	bool set_small_number_and_bat = true;
 
 #if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
