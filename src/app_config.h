@@ -46,7 +46,6 @@ extern "C" {
 #define DIY_ADC_TO_TH 	0
 
 #define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)
-#define USE_NEW_OTA					0 // = 1 keeping the old firmware, erasing the region when updating (test version only!)
 #define UART_PRINT_DEBUG_ENABLE		0 // =1 use u_printf() (PA7/SWS), source: SDK/components/application/print/u_printf.c
 
 #if DEVICE_TYPE == DEVICE_MHO_C401

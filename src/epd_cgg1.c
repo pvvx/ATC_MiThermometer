@@ -333,6 +333,10 @@ void show_batt_cgg1(void) {
 }
 
 _attribute_ram_code_ void update_lcd(void){
+	if(cfg.flg2.screen_off) {
+		stage_lcd = 0;
+		return;
+	}
 	if (!stage_lcd) {
 		if (memcmp(display_cmp_buff, display_buff, sizeof(display_buff))) {
 			memcpy(display_cmp_buff, display_buff, sizeof(display_buff));
@@ -349,6 +353,10 @@ _attribute_ram_code_ void update_lcd(void){
 }
 
 _attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
+	if(cfg.flg2.screen_off) {
+		stage_lcd = 0;
+		return stage_lcd;
+	}
 	if (gpio_read(EPD_BUSY)) {
 		switch (stage_lcd) {
 		case 1: // Update/Init lcd, stage 1

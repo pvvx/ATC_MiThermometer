@@ -149,6 +149,8 @@ _attribute_ram_code_
 void send_to_lcd(void){
 	unsigned int buff_index;
 	uint8_t * p = display_buff;
+	if(cfg.flg2.screen_off)
+		return;
 	if (lcd_i2c_addr) {
 		if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
@@ -212,15 +214,21 @@ void init_lcd(void){
 	if (lcd_i2c_addr) { // B1.4, B1.7, B2.0
 // 		GPIO_PB6 set in app_config.h!
 //		gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
-		pm_wait_ms(50);
-		lcd_send_i2c_buf((uint8_t *) lcd_init_cmd_b14, sizeof(lcd_init_cmd_b14));
-		lcd_send_i2c_buf((uint8_t *) lcd_init_clr_b14, sizeof(lcd_init_clr_b14));
+		if(!cfg.flg2.screen_off) {
+			pm_wait_ms(50);
+			lcd_send_i2c_buf((uint8_t *) lcd_init_cmd_b14, sizeof(lcd_init_cmd_b14));
+			lcd_send_i2c_buf((uint8_t *) lcd_init_clr_b14, sizeof(lcd_init_clr_b14));
+		}
 		return;
 	}
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B19_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // B1.9
-		lcd_send_i2c_buf((uint8_t *) lcd_init_b19, sizeof(lcd_init_b19));
-		lcd_send_i2c_buf((uint8_t *) lcd_init_b19, sizeof(lcd_init_b19));
+		if(cfg.flg2.screen_off) {
+			lcd_send_i2c_byte(0xEA); // BU9792AFUV reset
+		} else {
+			lcd_send_i2c_buf((uint8_t *) lcd_init_b19, sizeof(lcd_init_b19));
+			lcd_send_i2c_buf((uint8_t *) lcd_init_b19, sizeof(lcd_init_b19));
+		}
 		return;
 	}
 	// B1.6 (UART), lcd_i2c_addr = 0

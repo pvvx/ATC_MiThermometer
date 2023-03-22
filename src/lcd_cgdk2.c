@@ -135,6 +135,8 @@ _attribute_ram_code_
 void send_to_lcd(void){
 	unsigned int buff_index;
 	uint8_t * p = display_buff;
+	if(cfg.flg2.screen_off)
+		return;
 	if (lcd_i2c_addr) {
 		if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
@@ -161,9 +163,13 @@ void send_to_lcd(void){
 void init_lcd(void){
 	lcd_i2c_addr = (uint8_t) scan_i2c_addr(CGDK2_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // LCD CGDK2_I2C_ADDR ?
-		lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd));
-		pm_wait_us(200);
-		send_to_lcd();
+		if(cfg.flg2.screen_off) {
+			lcd_send_i2c_byte(0xEA); // BU9792AFUV reset
+		} else {
+			lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd));
+			pm_wait_us(200);
+			send_to_lcd();
+		}
 	}
 }
 
