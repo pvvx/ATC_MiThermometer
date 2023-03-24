@@ -21,11 +21,17 @@ The software in this section includes:
 
 ![Preview](images/ble_browser.gif)
 
-This GUI exploits the [construct_gallery](https://github.com/Ircama/construct-gallery) library, that extends the [Construct Editor](https://github.com/timrid/construct-editor/) library underneath.
+This GUI exploits the [construct-gallery](https://github.com/Ircama/construct-gallery) library, that extends the [Construct Editor](https://github.com/timrid/construct-editor/) library underneath.
 
 ## Decoding and encoding
 
 The [construct_atc_mi.py](construct_atc_mi.py) module allows managing all data formats, including parsing frames to variables, building frames from variables, encrypting and decrypting using related keys and more. It relies on [construct_atc_mi_adapters.py](construct_atc_mi_adapters.py) that implements the custom adapters used by *construct_atc_mi.py*.
+
+Install prerequisites:
+
+```
+python3 -m pip install construct pycryptodome
+```
 
 Parsing a [*custom* frame](https://github.com/pvvx/ATC_MiThermometer#custom-format-all-data-little-endian):
 
@@ -338,7 +344,15 @@ Output:
 
 # Processing BLE advertisements
 
-The simplest program to process BLE advertisements produced by the thermometers is the following one:
+To process BLE advertisements, *bleak* is used, together with *atc_mi_advertising_format*. Install prerequisites with:
+
+```
+python3 -m pip install bleak construct pycryptodome
+```
+
+With Raspberry Pi, *bleak* requires *dbus-fast*, which needs to build the Python *wheel* (related compilation takes some time).
+
+The simplest program to process BLE advertisements produced by the thermometers is the following:
 
 ```python
 import asyncio
@@ -383,18 +397,45 @@ async def main():
 asyncio.run(main())
 ```
 
-The program prints the first 5 parsed frames from available thermometers, regardless their configurations. It exploits `atc_mi_advertising_format()`, which adds headers to the BLE advertisements produced by the thermometers and discovered by `BleakScanner()` (from *bleak*), so that the resulting frame can be directly processed by the *construct* structures included in `construct_atc_mi`.
+The program [runs on](https://github.com/hbldh/bleak#features) Windows, Linux, OS/X, Raspberry Pi, Android. It prints the first 5 parsed frames from available thermometers, regardless their configurations. It exploits `atc_mi_advertising_format()`, which adds headers to the BLE advertisements produced by the thermometers and discovered by `BleakScanner()` (from *bleak*), so that the resulting frame can be directly processed by the *construct* structures included in `construct_atc_mi`.
+
+After the advertisement dump (e.g., before the *count* increment), you can optionally add:
+
+```python
+        print("temperature:", atc_mi_data.search_all("^temperature"))
+        print("humidity:", atc_mi_data.search_all("^humidity"))
+        print("battery_level:", atc_mi_data.search_all("^battery_level"))
+        print("battery_v:", atc_mi_data.search_all("^battery_v"))
+```
 
 ## BLE Advertisement Browser GUI
 
 [atc_mi_advertising.py](atc_mi_advertising.py) is a Python GUI performing BLE advertisement analysis of data transmitted by thermometers, data editing and testing.
 
-Before running it, it is important to install prerequisites with the following command:
+Activating this program and related prerequisites is optional.
+
+Install prerequisites with the following command:
 
 ```bash
 # Install prerequisites:
 pip3 install -r requirements.txt
 ```
+
+Additional prerequisites for Raspberry Pi:
+
+```
+sudo apt-get install -y libgtk-3-dev
+python3 -m pip install attrdict
+```
+
+With Python 3.11 replace *attrdict* with *attrdict3*:
+
+```
+python3 -m pip uninstall attrdict
+python3 -m pip install attrdict3
+```
+
+The C compiler is needed too.
 
 To run the program:
 
@@ -450,7 +491,7 @@ python3 atc_mi_advertising.py -m -l all-formats.pickle
 
 ### atc_mi_advertising.py
 
-Technically, *atc_mi_advertising.py* is a very small and basic wrapper of the separate *construct_gallery* Python module, which does all the logic underneath. In turn, *construct_gallery*  relies on [construct-editor](https://github.com/timrid/construct-editor), a very powerful, well-designed and extensible module which implements all the construct editor widgets.
+Technically, *atc_mi_advertising.py* is a very small and basic wrapper of the separate *construct-gallery* Python module, which does all the logic underneath. In turn, *construct-gallery*  relies on [construct-editor](https://github.com/timrid/construct-editor), a very powerful, well-designed and extensible module which implements all the construct editor widgets.
 
 ```mermaid
 classDiagram
