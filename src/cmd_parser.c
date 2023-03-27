@@ -567,6 +567,10 @@ void cmd_parser(void * p) {
 				send_buf[1] = 0xff; // Error cmd
 				olen = 2;
 			}
+		} else if (cmd == CMD_ID_SEN_ID) { // Get sensor ID
+			memcpy(&send_buf[1], &sensor_id, sizeof(sensor_id));
+			olen = sizeof(sensor_id) + 1;
+
 
 			// Debug commands (unsupported in different versions!):
 		} else if (cmd == CMD_ID_EEP_RW && len > 2) {
@@ -592,6 +596,7 @@ void cmd_parser(void * p) {
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
 			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+
 		} else {
 			send_buf[1] = 0xff; // Error cmd
 			olen = 2;

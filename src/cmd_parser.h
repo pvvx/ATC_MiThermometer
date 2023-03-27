@@ -4,6 +4,7 @@ enum {
 	CMD_ID_GDEVS 	= 0x02, // Get address devises
 	CMD_ID_I2C_SCAN = 0x03, // I2C scan
 	CMD_ID_I2C_UTR	= 0x04, // Universal I2C/SMBUS read-write
+	CMD_ID_SEN_ID	= 0x05,	// Get sensor ID
 	CMD_ID_DEV_MAC	= 0x10, // Get/Set MAC [+RandMAC], [size][mac[6][randmac[2]]]
 	CMD_ID_MI_DNAME = 0x11, // Get/Set Mi key: DevNameId, [size]["\0"+miDevName]
 	CMD_ID_MI_TBIND = 0x12, // Get/Set Mi keys: Token & Bind, [size][keys]
@@ -36,7 +37,7 @@ enum {
 	// Debug commands (unsupported in different versions!):
 	CMD_ID_EEP_RW	= 0xDC,	// Get/set EEP
 	CMD_ID_LR_RESET = 0xDD,	// Reset Long Range
-	CMD_ID_DEBUG    = 0xDE  // Test/Debug
+	CMD_ID_DEBUG    = 0xDE // Test/Debug
 
 } CMD_ID_KEYS;
 
