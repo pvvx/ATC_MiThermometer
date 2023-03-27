@@ -8,8 +8,10 @@ extern volatile uint32_t timer_measure_cb; // time start measure
 
 #define SHTC3_I2C_ADDR		0x70
 #define SHT4x_I2C_ADDR		0x44
+#define SHT4xB_I2C_ADDR		0x45
 
 extern uint8_t sensor_i2c_addr;
+extern uint32_t sensor_id;
 
 void init_sensor(void);
 void start_measure_sensor_deep_sleep(void);
