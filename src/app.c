@@ -573,9 +573,6 @@ void user_init_normal(void) {//this will get executed one time after power up
 		if (flash_read_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG)
 				!= FEEP_SAVE_SIZE_TRG)
 			memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
-#if USE_WK_RDS_COUNTER
-		rds.type = trg.rds.type;
-#endif
 #endif
 		// if version < 4.2 -> clear cfg.flg2.longrange
 		if (old_ver <= 0x41) {
@@ -583,11 +580,11 @@ void user_init_normal(void) {//this will get executed one time after power up
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 		}
 	} else {
-		memcpy(&cfg, &def_cfg, sizeof(cfg));
-		memcpy(&cmf, &def_cmf, sizeof(cmf));
 #if BLE_SECURITY_ENABLE
 		pincode = 0;
 #endif
+		memcpy(&cfg, &def_cfg, sizeof(cfg));
+		memcpy(&cmf, &def_cmf, sizeof(cmf));
 #if	USE_TRIGGER_OUT
 		memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #endif
@@ -597,10 +594,12 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 	}
 #if USE_WK_RDS_COUNTER
+	rds.type = trg.rds.type;
 	rds_init();
 #endif
 	init_i2c();
 	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
+	test_config();
 #if (POWERUP_SCREEN) || (USE_RTC) || (BLE_EXT_ADV)
 	if(analog_read(DEEP_ANA_REG0) != 0x55) {
 #if (BLE_EXT_ADV)
@@ -618,7 +617,6 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif // SHOW_REBOOT_SCREEN || (USE_RTC)
 #endif // POWERUP_SCREEN || (USE_RTC) || (BLE_EXT_ADV)
 	}
-	test_config();
 	memcpy(&ext, &def_ext, sizeof(ext));
 	init_ble();
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
