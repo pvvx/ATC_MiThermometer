@@ -100,7 +100,7 @@ uint8_t sensor_crc(uint8_t crc) {
 
 uint32_t get_sensor_id(void) {
 	static const uint8_t utr_c3_gid[] = { 0x02,0x03,SHTC3_I2C_ADDR << 1, SHTC3_GET_ID & 0xff, (SHTC3_GET_ID >> 8) & 0xff };
-	static const uint8_t utr_4x_gid[] = { 0x01,0x06,SHT4x_I2C_ADDR << 1, SHT4x_GET_ID };
+	i2c_utr_t utr;
 	uint8_t buf_id[6];
 	uint32_t id = 0;
 	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
@@ -109,11 +109,17 @@ uint32_t get_sensor_id(void) {
 			id = (buf_id[0] << 8) | buf_id[1]; // = 0x8708
 		}
 	} else if(sensor_i2c_addr)	{
-		if(!I2CBusUtr(&buf_id, (i2c_utr_t *)&utr_4x_gid, sizeof(utr_4x_gid) - 3)
+		if(!send_i2c_byte(sensor_i2c_addr, SHT4x_GET_ID)) {
+			utr.mode = 0;
+			utr.rdlen = 6;
+			utr.wrdata[0] = sensor_i2c_addr | 1;
+			sleep_us(SHT4x_SOFT_RESET_us);
+			if(I2CBusUtr(&buf_id, (i2c_utr_t *)&utr, 0) == 0
 			&& buf_id[2] == sensor_crc(buf_id[1] ^ sensor_crc(buf_id[0] ^ 0xff))
 			&& buf_id[5] == sensor_crc(buf_id[4] ^ sensor_crc(buf_id[3] ^ 0xff))
 			) {
-			id = (buf_id[3] << 24) | (buf_id[4] << 16) | (buf_id[0] << 8) | buf_id[1];
+				id = (buf_id[3] << 24) | (buf_id[4] << 16) | (buf_id[0] << 8) | buf_id[1];
+			}
 		}
 	}
 	return id;

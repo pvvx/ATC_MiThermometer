@@ -152,13 +152,12 @@ int I2CBusUtr(void * outdata, i2c_utr_t * tr, unsigned int wrlen) {
 		if(--wrlen == cntstart && ret == 0) { // + send start & id
 			if(tr->mode & 0x80) {
 				reg_i2c_ctrl = FLD_I2C_CMD_STOP;
-				while(reg_i2c_status & FLD_I2C_CMD_BUSY);
-			}
-			else {
+			} else {
 				// hw reset I2C
 				reg_rst0 = FLD_RST0_I2C;
 				reg_rst0 = 0;
 			}
+			while(reg_i2c_status & FLD_I2C_CMD_BUSY);
 			reg_i2c_id = tr->wrdata[0] |  FLD_I2C_WRITE_READ_BIT;
 			// start + id
 			reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID;
@@ -168,8 +167,7 @@ int I2CBusUtr(void * outdata, i2c_utr_t * tr, unsigned int wrlen) {
 	}
 	if(ret == 0) {
 		while(rdlen) {
-			rdlen--;
-			if(rdlen == 0 && (tr->rdlen & 0x80) == 0)
+			if(--rdlen == 0 && (tr->rdlen & 0x80) == 0)
 				reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID | FLD_I2C_CMD_ACK;
 			else
 				reg_i2c_ctrl = FLD_I2C_CMD_DI | FLD_I2C_CMD_READ_ID;
