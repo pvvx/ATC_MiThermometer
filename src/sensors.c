@@ -11,8 +11,6 @@
 #include "sensor.h"
 #include "app.h"
 
-#define BAD_SENSOR 0 // (DEVICE_TYPE == DEVICE_CGDK2) test
-
 // Sensor SHTC3 https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHTC3_Datasheet.pdf
 //#define SHTC3_I2C_ADDR		0x70
 #define SHTC3_WAKEUP		0x1735 // Wake-up command of the sensor
@@ -38,6 +36,7 @@
 
 #define CRC_POLYNOMIAL  0x131 // P(x) = x^8 + x^5 + x^4 + 1 = 100110001
 
+
 RAM volatile uint32_t timer_measure_cb;
 RAM uint8_t sensor_i2c_addr;
 RAM uint32_t sensor_id;
@@ -51,7 +50,7 @@ static _attribute_ram_code_ void send_sensor_word(uint16_t cmd) {
 	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 }
 
-#if BAD_SENSOR
+#if (DEVICE_TYPE == DEVICE_CGDK2)
 static _attribute_ram_code_ void send_bdsensor_word(uint16_t cmd) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
@@ -104,6 +103,7 @@ uint32_t get_sensor_id(void) {
 	uint8_t buf_id[6];
 	uint32_t id = 0;
 	if(sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
+
 		if(!I2CBusUtr(&buf_id, (i2c_utr_t *)&utr_c3_gid, sizeof(utr_c3_gid) - 3)
 			&& buf_id[2] == sensor_crc(buf_id[1] ^ sensor_crc(buf_id[0] ^ 0xff))) { // = 0x5b
 			id = (buf_id[0] << 8) | buf_id[1]; // = 0x8708
@@ -162,8 +162,11 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int read_sensor_cb(void) {
 			sensor_go_sleep();
 		return 0;
 	}
-#if	BAD_SENSOR
-	reg_i2c_id = FLD_I2C_WRITE_READ_BIT;
+#if (DEVICE_TYPE == DEVICE_CGDK2)
+	if(sensor_id)
+		reg_i2c_id = sensor_i2c_addr | FLD_I2C_WRITE_READ_BIT;
+	else
+		reg_i2c_id = FLD_I2C_WRITE_READ_BIT;
 #else
 	reg_i2c_id = sensor_i2c_addr | FLD_I2C_WRITE_READ_BIT;
 #endif
@@ -221,8 +224,11 @@ _attribute_ram_code_ void start_measure_sensor_deep_sleep(void) {
 	if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
 		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
 		sleep_us(SHTC3_WAKEUP_us - 5);	// 240 us
-#if	BAD_SENSOR
-		send_bdsensor_word(SHTC3_MEASURE_CS);
+#if (DEVICE_TYPE == DEVICE_CGDK2)
+		if(sensor_id)
+			send_sensor_word(SHTC3_MEASURE);
+		else
+			send_bdsensor_word(SHTC3_MEASURE_CS);
 #else
 		send_sensor_word(SHTC3_MEASURE);
 #endif
@@ -237,8 +243,11 @@ _attribute_ram_code_ void start_measure_sensor_low_power(void) {
 	if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
 		send_sensor_word(SHTC3_WAKEUP); //	Wake-up command of the sensor
 		sleep_us(SHTC3_WAKEUP_us);	// 240 us
-#if	BAD_SENSOR
-		send_bdsensor_word(SHTC3_LPMEASURE_CS);
+#if (DEVICE_TYPE == DEVICE_CGDK2)
+		if(sensor_id)
+			send_sensor_word(SHTC3_LPMEASURE);
+		else
+			send_bdsensor_word(SHTC3_LPMEASURE_CS);
 #else
 		send_sensor_word(SHTC3_LPMEASURE);
 #endif
