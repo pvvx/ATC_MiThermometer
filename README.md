@@ -161,7 +161,7 @@ In case you want to go back to the original firmware, you can download them here
 * [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0130](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin) (HW: B1.4..B2.0)
 * [Xiaomi MJWSD05MMC Original Firmware v2.0.0_0026](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MJWSD05MMC_v2.0.0_0026.bin) (HW: V2.3)
 * [Xiaomi MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
-* [Xiaomi and Azarton MHO_C401 Original Firmware v1.0.0_0016](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Azarton_MHO_C401_v1.0.0_0016.bin)
+* [Xiaomi and Azarton MHO_C401 Original Firmware v1.0.0_0016](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0016.bin)
 * [Xiaomi SJWS01LM Original Firmware v1.1.1_0018](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_SJWS01LM_1.1.1_0018.bin)
 * [Qingping CGG1-M 2020-2021 Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1_v1.0.1_0093.bin)
 * [Qingping CGG1-M 2022 Original Firmware v2.2.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1M_v2.2.1.bin)
