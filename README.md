@@ -295,8 +295,14 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 * Bluetooth Connection: 23..30 uA 3.3V
 
 ### Bluetooth Advertising Formats
-The Firmware can be configured to support one of four different Bluetooth advertisements data formats.
-Xiaomi, ATC, Custom, BTHome and encrypted options.
+
+The Firmware can be configured to support one of four different Bluetooth advertisements data formats:
+
+Xiaomi, ATC, Custom, BTHome and encrypted options. 
+
+Only the BTHome and Xiaomi support the native [HA Xiaomi Integration](https://www.home-assistant.io/integrations/xiaomi_ble/), for the others use the Custom Component [Passive BLE](https://github.com/custom-components/ble_monitor).
+
+Supports bindkey beacon encryption.
 
 [Advertising formats](https://github.com/pvvx/ATC_MiThermometer/issues/298).
 
