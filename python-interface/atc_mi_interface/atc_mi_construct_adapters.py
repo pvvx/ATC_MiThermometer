@@ -1,4 +1,4 @@
-# Library module used by construct_atc_mi.py
+# Library module used by atc_mi_construct.py
 
 from construct import *  # pip3 install construct
 from Crypto.Cipher import AES  # pip3 install pycryptodome
@@ -23,13 +23,13 @@ class BtHomeCodec(Tunnel):
 
     def bindkey(self, ctx):
         try:
-            return (ctx._params.bindkey or self.default_bindkey)
-        except Exception as e:
+            return ctx._params.bindkey or self.default_bindkey
+        except Exception:
             return self.default_bindkey
 
     def mac(self, ctx):
         try:
-            return (ctx._params.mac_address or self.def_mac)
+            return ctx._params.mac_address or self.def_mac
         except Exception:
             return self.def_mac
 
@@ -157,3 +157,14 @@ Int16sb_x10 = ExprAdapter(
     Int16sb, obj_ / 10, lambda obj, ctx: int(float(obj) * 10))
 Int16sl_x10 = ExprAdapter(
     Int16sl, obj_ / 10, lambda obj, ctx: int(float(obj) * 10))
+
+def normalize_report(report):
+    report = re.sub(r"\n\s*Container:\n?", "\n", report, flags=re.DOTALL)
+    report = re.sub(r"\n\s*version =[^\n]*\n", "\n", report, flags=re.DOTALL)
+    report = re.sub(r" = Container:\s*\n", ":\n", report, flags=re.DOTALL)
+    report = re.sub(r" = ListContainer:\s*\n", ":\n", report, flags=re.DOTALL)
+    report = re.sub(r" = u'", " = '", report, flags=re.DOTALL)
+    report = re.sub(r"\n\s*\n", "\n", report, flags=re.DOTALL)
+    report = re.sub(r"unhexlify\('([A-Fa-f0-9]*)'\)",
+        lambda m: f"    {m.group(1).upper()}", report, flags=re.DOTALL)
+    return report
