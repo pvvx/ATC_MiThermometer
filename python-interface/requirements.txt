@@ -1,6 +1,5 @@
-wxPython
+# Base requirements:
 construct
-construct-editor
 bleak
-construct-gallery
 pycryptodome
+arrow
