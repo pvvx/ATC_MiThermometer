@@ -1,4 +1,8 @@
-from construct_atc_mi_adapters import *
+#############################################################################
+# atc_mi_construct.py
+#############################################################################
+
+from .atc_mi_construct_adapters import *
 
 # -------------- custom_format -------------------------------------------------
 # "PVVX (Custom)" advertising type, encrypted beacon unchecked
@@ -379,10 +383,251 @@ native_temp_hum_v_values = Struct(
 
 # BLE client connection, characteristic id 66 (comfortable temp and humi):
 native_comfort_values = Struct(
-    "version" / Computed(1),
+    "version" / Computed(2),
     "temperature_high" / Int16sl_x100,
     "temperature_low" / Int16sl_x100,
+    "temperature_unit" / Computed("°C"),
     "humidity_high" / Int8ul,  # 0..100 %
     "humidity_low" / Int8ul,  # 0..100 %
     "humidity_unit" / Computed("%"),
+)
+
+# -------------- App Cmd internal structures ----------------------------------
+# Ref. Firmware Version >= 4.3
+
+# App cfg (version byte + 11 bytes)
+cfg = Struct(
+    "version" / Computed(1),
+    "firmware_version" / BitStruct(
+        "major" / BitsInteger(4),
+        "minor" / BitsInteger(4)
+    ),
+    "flg" / BitStruct(
+        "lp_measures" / Flag,  # Sensor measurements in "Low Power" mode
+        "tx_measures" / Flag,  # Send all measurements in connected mode
+        "show_batt_enabled" / Flag,
+        "temp_F_or_C" / Enum(Flag,
+            temp_F = 1,
+            temp_C = 0,
+        ),
+        "blinking_time_smile" / Enum(Flag,  # (USE_CLOCK = 0 - smile, =1 time)
+            blinking_smile = 0,
+            blinking_time = 1,
+        ),
+        "comfort_smiley" / Flag,
+        "advertising_type" / Enum(BitsInteger(2),  # 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - HA_BLE
+            adv_type_atc1441 = 0,
+            adv_type_custom = 1,
+            adv_type_mi = 2,
+            adv_type_ha_ble = 3,
+        )
+    ),
+    "flg2" / BitStruct(
+        "screen_off" / Flag,  # screen off, v4.3+
+        "longrange" / Flag,  # advertising in LongRange mode (reset after switch off)
+        "bt5phy" / Flag,  # support BT5.0 All PHY
+        "adv_flags" / Flag,  # advertising add flags
+        "adv_crypto" / Flag,  # advertising uses crypto beacon
+        "smiley" / Enum(BitsInteger(3),  # 0..7
+            smiley_off = 0,      # "     " off,
+            smiley_happy = 1,    # " ^_^ "
+            smiley_sad = 2,      # " -^- "
+            smiley_ooo = 3,      # " ooo "
+            smiley_p_off = 4,    # "(   )"
+            smiley_p_happy = 5,  # "(^_^)" happy
+            smiley_p_sad = 6,    # "(-^-)" sad
+            smiley_p_ooo = 7,    # "(ooo)" */
+        )
+    ),
+    "temp_offset" / ExprAdapter(Int8sl,  # Set temp offset, -12,5 - +12,5 °C (-125..125)
+        obj_ / 10, lambda obj, ctx: int(float(obj) * 10)),
+    "temperature_unit" / Computed("°C"),
+    "humi_offset" / ExprAdapter(Int8sl,  # Set humi offset, -12,5 - +12,5 % (-125..125)
+        obj_ / 10, lambda obj, ctx: int(float(obj) * 10)),
+    "humidity_unit" / Computed("%"),
+    "advertising_interval" / ExprAdapter(Int8ul,  # multiply by 62.5 for value in ms (1..160,  62.5 ms .. 10 sec)
+        obj_ * 0.0625, lambda obj, ctx: int(float(obj) / 0.0625)),
+    "adv_int_unit" / Computed("sec."),
+    "measure_interval" / Int8ul,  # measure_interval = advertising_interval * x (2..25)
+    "rf_tx_power" / Enum(Int8ul,  # RF_POWER_Negative_25p18_dBm .. RF_POWER_Positive_3p01_dBm (128+2=130..128+63=191)
+        RF_POWER_Positive_3p01_dBm  = 128 + 63,  #  3.01 dbm
+        RF_POWER_Positive_2p81_dBm  = 128 + 61,  #  2.81 dbm
+        RF_POWER_Positive_2p61_dBm  = 128 + 59,  #  2.61 dbm
+        RF_POWER_Positive_2p39_dBm  = 128 + 57,  #  2.39 dbm
+        RF_POWER_Positive_1p99_dBm  = 128 + 54,  #  1.99 dbm
+        RF_POWER_Positive_1p73_dBm  = 128 + 52,  #  1.73 dbm
+        RF_POWER_Positive_1p45_dBm  = 128 + 50,  #  1.45 dbm
+        RF_POWER_Positive_1p17_dBm  = 128 + 48,  #  1.17 dbm
+        RF_POWER_Positive_0p90_dBm  = 128 + 46,  #  0.90 dbm
+        RF_POWER_Positive_0p58_dBm  = 128 + 44,  #  0.58 dbm
+        RF_POWER_Positive_0p04_dBm  = 128 + 41,  #  0.04 dbm (default)
+        RF_POWER_Negative_0p14_dBm  = 128 + 40,  # -0.14 dbm
+        RF_POWER_Negative_0p97_dBm  = 128 + 36,  # -0.97 dbm
+        RF_POWER_Negative_1p42_dBm  = 128 + 34,  # -1.42 dbm
+        RF_POWER_Negative_1p89_dBm  = 128 + 32,  # -1.89 dbm
+        RF_POWER_Negative_2p48_dBm  = 128 + 30,  # -2.48 dbm
+        RF_POWER_Negative_3p03_dBm  = 128 + 28,  # -3.03 dbm
+        RF_POWER_Negative_3p61_dBm  = 128 + 26,  # -3.61 dbm
+        RF_POWER_Negative_4p26_dBm  = 128 + 24,  # -4.26 dbm
+        RF_POWER_Negative_5p03_dBm  = 128 + 22,  # -5.03 dbm
+        RF_POWER_Negative_5p81_dBm  = 128 + 20,  # -5.81 dbm
+        RF_POWER_Negative_6p67_dBm  = 128 + 18,  # -6.67 dbm
+        RF_POWER_Negative_7p65_dBm  = 128 + 16,  # -7.65 dbm
+        RF_POWER_Negative_8p65_dBm  = 128 + 14,  # -8.65 dbm
+        RF_POWER_Negative_9p89_dBm  = 128 + 12,  # -9.89 dbm
+        RF_POWER_Negative_11p4_dBm  = 128 + 10,  # -11.4 dbm
+        RF_POWER_Negative_13p29_dBm = 128 + 8,  # -13.29 dbm
+        RF_POWER_Negative_15p88_dBm = 128 + 6,  # -15.88 dbm
+        RF_POWER_Negative_19p27_dBm = 128 + 4,  # -19.27 dbm
+        RF_POWER_Negative_25p18_dBm = 128 + 2,  # -25.18 dbm
+        RF_POWER_Negative_30_dBm    = 0xff,     # -30 dbm
+        RF_POWER_Negative_50_dBm    = 128 + 0,  # -50 dbm
+
+        RF_POWER_Positive_10p46_dBm = 63,  #  10.46 dbm
+        RF_POWER_Positive_10p29_dBm = 61,  #  10.29 dbm
+        RF_POWER_Positive_10p01_dBm = 58,  #  10.01 dbm
+        RF_POWER_Positive_9p81_dBm  = 56,  #   9.81 dbm
+        RF_POWER_Positive_9p48_dBm  = 53,  #   9.48 dbm
+        RF_POWER_Positive_9p24_dBm  = 51,  #   9.24 dbm
+        RF_POWER_Positive_8p97_dBm  = 49,  #   8.97 dbm
+        RF_POWER_Positive_8p73_dBm  = 47,  #   8.73 dbm
+        RF_POWER_Positive_8p44_dBm  = 45,  #   8.44 dbm
+        RF_POWER_Positive_8p13_dBm  = 43,  #   8.13 dbm
+        RF_POWER_Positive_7p79_dBm  = 41,  #   7.79 dbm
+        RF_POWER_Positive_7p41_dBm  = 39,  #   7.41 dbm
+        RF_POWER_Positive_7p02_dBm  = 37,  #   7.02 dbm
+        RF_POWER_Positive_6p60_dBm  = 35,  #   6.60 dbm
+        RF_POWER_Positive_6p14_dBm  = 33,  #   6.14 dbm
+        RF_POWER_Positive_5p65_dBm  = 31,  #   5.65 dbm
+        RF_POWER_Positive_5p13_dBm  = 29,  #   5.13 dbm
+        RF_POWER_Positive_4p57_dBm  = 27,  #   4.57 dbm
+        RF_POWER_Positive_3p94_dBm  = 25,  #   3.94 dbm
+        RF_POWER_Positive_3p23_dBm  = 23,  #   3.23 dbm
+    ),
+    "connect_latency" / ExprAdapter(Int8ul,  # +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
+        (obj_ + 1) * 0.02, lambda obj, ctx: int(float(obj) / 0.02) - 1),
+    "connect_latency_unit" / Computed("sec."),
+    "min_step_time_update_lcd" / ExprAdapter(Int8ul,  # x0.05 sec, 0.5..12.75 sec (10..255)
+        obj_ * 0.05, lambda obj, ctx: int(float(obj) / 0.05)),
+    "min_s_t_upd_lcd_unit" / Computed("sec."),
+    "hw_cfg" / BitStruct(
+        "sensor" / Enum(Flag,  # =1 - sensor SHTC3, = 0 - sensor SHT4x
+            sensor_SHTC3 = 1,
+            sensor_SHT4x = 0,
+        ),
+        "reserved" / BitsInteger(3),
+        "hwver" / Enum(BitsInteger(4),  # 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1-M, 3 - LYWSD03MMC B1.9, 4 - LYWSD03MMC B1.6, 5 - LYWSD03MMC B1.7, 6 - CGDK2, 7 - CGG1-M-2022, 8 - MHO-C401-2022
+            hwver_LYWSD03MMC_B1_4 = 0,
+            hwver_MHO_C401 =        1,
+            hwver_CGG1_M_OLD =      2,
+            hwver_LYWSD03MMC_B1_9 = 3,
+            hwver_LYWSD03MMC_B1_6 = 4,
+            hwver_LYWSD03MMC_B1_7 = 5,
+            hwver_CGDK2 =           6,
+            hwver_CGG1_M_2022 =     7,
+            hwver_MHO_C401N_2022 =  8,
+            hwver_MJWSD05MMC =      9,
+        )
+    ),
+    "averaging_measurements" / Int8ul,  # * measure_interval, 0 - off, 1..255 * measure_interval
+)
+
+comfort_values = Struct(
+    "version" / Computed(1),
+    "temperature_low" / Int16sl_x100,
+    "temperature_high" / Int16sl_x100,
+    "temperature_unit" / Computed("°C"),
+    "humidity_low" / Int16ul_x100,  # 0..100 %
+    "humidity_high" / Int16ul_x100,  # 0..100 %
+    "humidity_unit" / Computed("%"),
+)
+
+trigger = Struct(
+    "version" / Computed(1),
+	"temp_threshold" / Int16sl_x100,  # x0.01°, Set temp threshold
+	"humi_threshold" / Int16ul_x100,  # x0.01%, Set humi threshold
+	"temp_hysteresis" / Int16sl_x100,  # Set temp hysteresis, -327.67..327.67 °
+	"humi_hysteresis" / Int16ul_x100,  # Set humi hysteresis, -327.67..327.67 %
+    "temperature_unit" / Computed("°C"),
+    "humidity_unit" / Computed("%"),
+	"rds_time_report" / Int16ul,  # Reed switch count report interval (sec)
+    "rds_time_unit" / Computed("sec."),
+    "rds" / BitStruct(  # flags Reed switch
+        Padding(3),
+        "rs_invert" / Enum(Flag,  # GPIO events (Reed switch): 0 - rising, 1 - falling
+            rs_invert_rising = 0,
+            rs_invert_falling = 1,
+        ),
+        "reserved_for_types" / BitsInteger(2),
+        "type" / Enum(BitsInteger(2),  # RDS_TYPES, Reed switch types: 0 - none, 1 - switch, 2 - counter
+            type_none = 0,
+            type_switch = 1,
+            type_counter = 2,
+            type_connect = 3,  # version 4.2+
+        )
+    ),
+    "flg" / BitStruct(  # GPIO_TRG pin (marking "reset" on circuit board) flags
+        Padding(3),
+        "humi_out_on" / Flag,  # Humidity trigger event
+        "temp_out_on" / Flag,  # Temperature trigger event
+        "trigger_on" / Flag,  # Output GPIO_TRG pin is controlled according to the set parameters threshold temperature or humidity
+        "trg_output" / Flag,  # GPIO_TRG pin output value (pull Up/Down)
+        "rds_input" / Flag,  # Reed Switch, input
+    )
+)
+
+device_name = Struct(
+    "version" / Computed(1),
+    "null byte" / Const(b"\x00"),
+    "name" / GreedyString("utf8")
+)
+
+device_type = Struct(
+    "device type" / Enum(Int8ul,
+        Device_LCD_I2C_3C           = 0x3c << 1,
+        Device_LCD_I2C_3E           = 0x3e << 1,
+        Device_Sensor_SHT4x_I2C_44  = 0x44 << 1,
+        Device_Sensor_SHT4xB_I2C_45 = 0x45 << 1,
+        Device_Sensor_SHTC3_I2C_70  = 0x70 << 1,
+        Device_RTC_I2C_51           = 0x51 << 1,
+    ),
+)
+
+i2c_devices = Struct(  # Simplified formatting
+    "version" / Computed(1),
+    "device" / GreedyRange(device_type)
+)
+
+mac_address = Struct(
+    "version" / Computed(1),
+    "length" / Int8ul,
+    "MAC" / ReversedMacAddress,  # [0] - lo, .. [6] - hi digits
+    "mac_vendor" / MacVendor,
+    "hex RandMAC digits" / Int16ul,
+)
+
+token_bind_mi_keys = Struct(
+    "version" / Computed(1),
+    "Token Mi key" / Hex(Bytes(12)),
+    "Bind Mi key" / Hex(Bytes(16)),
+)
+
+import datetime
+current_last_date = Struct(
+    "version" / Computed(1),
+    "Current_set_date_local" / Timestamp(Int32ul, 1, 1970),
+    "Last_set_date_local" / Timestamp(Int32ul, 1, 1970),
+    "Host Local Date" / Computed(
+        datetime.datetime.now().replace(microsecond=0).isoformat()),
+    "Last_set_date_is_stored" / IfThenElse(
+        lambda this: this.Last_set_date_local.timestamp() > 0,
+        Computed("True"),
+        Computed("False"),
+    )
+)
+
+time_tick_step = Struct(
+    "version" / Computed(1),
+    "Time_Tick_Step" / Int32ul,
+    "Time Tick Step (delta)" / Computed(this.Time_Tick_Step - 16000000),
 )

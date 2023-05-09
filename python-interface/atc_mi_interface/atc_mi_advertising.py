@@ -1,16 +1,21 @@
-import wx
-from wx.lib.embeddedimage import PyEmbeddedImage
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#############################################################################
+# atc_mi_advertising.py
+#############################################################################
+
 import logging
-from construct_gallery import BleakScannerConstruct
 import argparse
 
-from atc_mi_adv_format import atc_mi_advertising_format
-import construct_module
-import construct_atc_mi
+import wx
+from wx.lib.embeddedimage import PyEmbeddedImage
+from construct_gallery import BleakScannerConstruct
+
+from .atc_mi_adv_format import atc_mi_advertising_format
+from . import construct_module
 
 
 class AtcMiConstructFrame(wx.Frame):
-
     icon_image = PyEmbeddedImage(
         "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAHFJ"
         "REFUWIXt1jsKgDAQRdF7xY25cpcWC60kioI6Fm/ahHBCMh+BRmGMnAgEWnvPpzK8dvrFCCCA"
@@ -80,6 +85,7 @@ class AtcMiBleakScannerConstruct(BleakScannerConstruct):
 
 def main():
     parser = argparse.ArgumentParser(
+        prog='atc_mi_advertising',
         epilog='Xiaomi Mijia Thermometer - BLE Advertisement Browser')
     parser.add_argument(
         '-s',
@@ -107,22 +113,25 @@ def main():
         "--inspectable",
         dest='inspectable',
         action='store_true',
-        help="enable Inspection")
+        help="enable Inspection (Ctrl-Alt-I)")
     args = parser.parse_args()
     loadfile = None
     if args.log_data_file:
         loadfile = args.log_data_file
-    inspect = False
     if args.inspectable:
         import wx.lib.mixins.inspection as wit
         app = wit.InspectableApp()
     else:
-        wit = None
         app = wx.App(False)
-    frame = AtcMiConstructFrame(None, maximized=args.maximized,
-        loadfile=loadfile, ble_start=args.ble_start)
+    frame = AtcMiConstructFrame(
+        None,
+        maximized=args.maximized,
+        loadfile=loadfile,
+        ble_start=args.ble_start
+    )
     frame.Show(True)
     app.MainLoop()
+
 
 if __name__ == "__main__":
     main()
