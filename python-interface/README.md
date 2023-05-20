@@ -17,13 +17,13 @@ The software in this section includes:
 - an easy to use [BLE Advertisement Browser GUI](atc_mi_interface/atc_mi_advertising.py) based on the [wxPython](https://www.wxpython.org/) cross-platform desktop GUI toolkit, including controls on the BLE advertisements, map of MAC addresses, bindkeys, etc;
 - a [configuration tool](atc_mi_interface/atc_mi_config.py) allowing to browse and edit the configuration parameters of the latest releases of the "pvvx" firmware, with a command-line interface and optionally with a GUI, including the possibility to use this configuration feature as an API.
 
-## Module installation
+## Installation
 
-The software can be installed as a module named *atc-mi-interface* and referenced as *atc_mi_interface*, or can be run from the current directory after downloading the whole *https://github.com/pvvx/ATC_MiThermometer* repository and after installing prerequisites.
+The software is delivered as a package named *atc-mi-interface*, which can be installed and referenced as *atc_mi_interface*, or can be run from the current directory after downloading it and having installed prerequisites.
 
-Minimum Python version: 3.8. Update `pip` to the latest version.
+Minimum Python version: 3.8. Updating `pip` to the latest version is suggested.
 
-### Installation as a module
+### Package installation
 
 The package can be installed from PyPI with the following command:
 
@@ -37,29 +37,9 @@ If also the GUI has to be run, use the following command instead of the previous
 pip install atc-mi-interface[gui]
 ```
 
-All prerequisites are automatically installed and the package can be immediately referenced as the *atc_mi_interface* module.
+All prerequisites are automatically installed and the package can be immediately referenced as *atc_mi_interface*.
 
-Additional prerequisites for Raspberry Pi:
-
-```
-sudo apt-get install -y libgtk-3-dev  # if GUI is needed
-python3 -m pip install attrdict
-```
-
-The GUI prerequisites take sensible storage space on a Rasperry Pi.
-
-With Python 3.11 replace *attrdict* with *attrdict3*:
-
-```
-python3 -m pip uninstall attrdict
-python3 -m pip install attrdict3
-```
-
-The C compiler is needed too.
-
-With Raspberry Pi, the *bleak* prerequisite also requires *dbus-fast*, which needs to build the Python *wheel* (related compilation takes some time).
-
-The module also installs the following three entry-points, which can be run from the command-line: *atc_mi_advertising*, *atc_mi_config* and *atc_mi_format_test*. These entry-points are related to tools which can also be invoked through the `atc_mi_interface -a | -c | -t` module global options, as in the following usage:
+The package also installs the following three entry-points, which can be run from the command-line: *atc_mi_advertising*, *atc_mi_config* and *atc_mi_format_test*. These entry-points are related to tools that can also be invoked through the `atc_mi_interface -a | -c | -t` global command-line options, as in the following usage:
 
 ```
 usage: atc_mi_interface [-h] (-a | -c | -t) [-H]
@@ -78,7 +58,7 @@ optional arguments:
 atc_mi_interface tools
 ```
 
-To uninstall the module:
+To uninstall the package:
 
 ```cmd
 pip uninstall -y atc-mi-interface
@@ -107,35 +87,58 @@ pip install .
 
 If also the GUI has to be run, replace `pip install .` with `pip install .[gui]`.
 
-### Running the product from the current directory without module installation
+### Additional prerequisites for Raspberry Pi
 
-Alternatively from the module installation, the execution can be directly performed from the current directory, using *requirements.txt* and *gui-requirements.txt* to install the prerequisites:
+```
+sudo apt-get install -y libgtk-3-dev  # if GUI is needed
+python3 -m pip install attrdict
+```
+
+The GUI prerequisites take sensible storage space on a Rasperry Pi.
+
+With Raspberry Pi, the *bleak* prerequisite also requires *dbus-fast*, which needs to build the Python *wheel* (related compilation takes some time).
+
+### Note with Python 3.11 when using the GUI
+
+With Python 3.11 replace *attrdict* with *attrdict3*:
+
+```
+python3 -m pip uninstall attrdict
+python3 -m pip install attrdict3
+```
+
+The C compiler is needed too.
+
+### Running the package without installation
+
+Alternatively from installation, the execution can be directly performed from the package directory, using *requirements.txt* and *gui-requirements.txt* to install the prerequisites:
 
 ```bash
+cd ATC_MiThermometer/python-interface
 pip3 install -r requirements.txt
 ```
 
 For using the GUI option, the installation of prerequisites needs to also add *gui-requirements.txt*:
 
 ```bash
+cd ATC_MiThermometer/python-interface
 pip3 install -r requirements.txt -r gui-requirements.txt
 ```
 
-The above command can also be used to subsequently install the GUI prerequisites if the module installation was missing of the `[gui]` extra.
+The above command can also be used to subsequently install the GUI prerequisites if the package installation was missing of the `[gui]` extra.
 
-Example of execution of *atc_mi_advertising* from the current module directory with installation of prerequisites:
+Example of execution of *atc_mi_advertising* from the current package directory with installation of prerequisites:
 
 ```cmd
 git clone https://github.com/pvvx/ATC_MiThermometer
 cd ATC_MiThermometer/python-interface
-
 pip3 install -r requirements.txt -r gui-requirements.txt
-python3 python3 -m atc_mi_interface.atc_mi_advertising
+python3 -m atc_mi_interface.atc_mi_advertising  # or python3 -m atc_mi_interface -a
 ```
 
 ## Decoding and encoding
 
-To only test decoding and encoding, the standard module installation procedure (which also loads *bleak*) is not needed and the following prerequisites can be manually installed instead:
+To only test decoding and encoding, the standard package installation procedure (which also loads *bleak*) is not needed and the following prerequisites can be manually installed instead:
 
 ```
 python3 -m pip install construct pycryptodome arrow
@@ -264,7 +267,7 @@ Output:
 
 ## Encrypting and decrypting
 
-All encoded versions of the structures (*custom_enc_format*, *atc1441_enc_format*, *bt_home_enc_format* and *mi_like_format* with encryption flag) support the following additional parameters:
+All encoded versions of the *construct* structures (*custom_enc_format*, *atc1441_enc_format*, *bt_home_enc_format*, *mi_like_format* with the "isEncrypted" flag) support the following additional parameters:
 
 - `mac_address`: MAC address in bytes (e.g., `bytes.fromhex("A4:C1:38:AA:BB:CC".replace(":", ""))`)
 - `bindkey`: Bindkey in bytes (e.g., `bytes.fromhex("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")`)
@@ -286,7 +289,7 @@ Alternatively (but not suggested), if the same MAC address and key are needed fo
 )
 ```
 
-The following example uses the `general_format` to parse, that also includes encrypted formats like `custom_enc_format`:
+The following example uses the `general_format` to parse an array of bytes encoded with the `custom_enc_format` encrypted format:
 
 ```python
 from atc_mi_interface import general_format
@@ -369,7 +372,7 @@ Output:
 
 For the build process, generally `Container` is mapped to a dictionary (`{ ... }`), `ListContainer` to a list (`[ ... ]`) and `(enum)` with a normal `key: value` inside a dictionary (with the strings in quotes).
 
-Another parsing example with `bt_home_enc_format`:
+Another parsing example using as input an array of bytes encoded with `bt_home_enc_format`:
 
 ```python
 from atc_mi_interface import bt_home_enc_format
@@ -452,7 +455,7 @@ Output:
 
 ## Processing BLE advertisements
 
-The simplest program to process BLE advertisements produced by the thermometers is the following:
+After performing the [installation](#Installation) procedure, the simplest program to process BLE advertisements produced by the thermometers is the following:
 
 ```python
 import asyncio
@@ -496,7 +499,7 @@ async def main():
 asyncio.run(main())
 ```
 
-The program [runs on](https://github.com/hbldh/bleak#features) Windows, Linux, OS/X, Raspberry Pi, Android. It prints the first 5 parsed frames from available thermometers, regardless their configurations. It exploits `atc_mi_advertising_format()`, which adds headers to the BLE advertisements produced by the thermometers and discovered by `BleakScanner()` (from *bleak*), so that the resulting frame can be directly processed by the *construct* structures included in the module.
+The program [runs on](https://github.com/hbldh/bleak#features) Windows, Linux, OS/X, Raspberry Pi, Android. It prints the first 5 parsed frames from available thermometers, regardless their configurations. It exploits the `atc_mi_advertising_format()` function, which adds headers to the BLE advertisements produced by the thermometers and discovered by `BleakScanner()` (from *bleak*), so that the resulting frame can be directly processed by the *construct* structures included in the package.
 
 After the advertisement dump (e.g., before the *count* increment), you can optionally add:
 
@@ -509,7 +512,7 @@ After the advertisement dump (e.g., before the *count* increment), you can optio
 
 ## atc_mi_advertising: BLE Advertisement Browser GUI
 
-[atc_mi_advertising](atc_mi_interface/atc_mi_advertising.py) is a Python GUI performing BLE advertisement analysis of data transmitted by thermometers, data editing and testing.
+[atc_mi_advertising](atc_mi_interface/atc_mi_advertising.py) is a Python GUI allowing BLE advertisement analysis of data transmitted by thermometers, including a function to edit data and perform testing.
 
 ![Preview](images/ble_browser.gif)
 
@@ -570,7 +573,7 @@ Main functionalities.
 
 ## atc_mi_format_test
 
-The stand-alone sample program [atc_mi_interface.atc_mi_format_test](atc_mi_interface/atc_mi_format_test.py), which can be run with `python3 -m atc_mi_interface.atc_mi_format_test`, allows browsing all available formats, with samples. It consists of a very simple source code, which sets the *gallery_descriptor* variable and then calls *ConstructGallery* passing appropriate parameters. For instance, after running this program, included sample data can be saved to *all-formats.pickle* and then loaded with *atc_mi_advertising.py* via:
+The stand-alone sample program [atc_mi_interface.atc_mi_format_test](atc_mi_interface/atc_mi_format_test.py), which can be run with `python3 -m atc_mi_interface.atc_mi_format_test`, allows browsing all available formats, with predefined samples. It consists of a very simple source code, which sets the *gallery_descriptor* variable and then calls *ConstructGallery* passing appropriate parameters. For instance, after running this program, included sample data can be saved to *all-formats.pickle* and then loaded with *atc_mi_advertising.py* via:
 
 ```bash
 python3 -m atc_mi_interface.atc_mi_advertising -m -l all-formats.pickle
@@ -626,7 +629,7 @@ async def main(address):
 asyncio.run(main(mac_address))
 ```
 
-This program performs a BLE connection (which discarges the battery). The address must be changed withe the actual MAC address.
+This program performs a BLE connection (which discarges the battery). The address must be changed with the actual MAC address.
 
 With native LYWSD03MMC firmware, its output is:
 
@@ -692,7 +695,7 @@ The *atc_mi_config* Python command-line tool, which can be run with `python3 -m 
 - reset default device configuration to the factory settings (i.e., to the default custom firmware configuration);
 - configure the firmware to perform a reboot after disconnection;
 - edit the device configuration via GUI, via command-line or both;
-- provide a development module that includes the `atc_mi_configuration()` API.
+- provide the `atc_mi_configuration()` API.
 
 With a proper Python installation, the entry-point `atc_mi_config` should also work in place of `python3 python3 -m atc_mi_interface.atc_mi_config`.
 
@@ -749,7 +752,7 @@ python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -c
 # Printing the date as well as time delta adjustment
 python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -d
 
-# Setting the date to the system date
+# Setting the device date to the host system's date
 python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -Dd
 
 # Setting the time delta adjustment to DELTA = -30
@@ -764,7 +767,7 @@ python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -g
 # Dump editable values of the configuration, so that they can be copied into the command-line edit mode
 python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -E
 
-# Edit the configuration via command-line (use -E without subsequent parameters to dump th editable format)
+# Edit the configuration via command-line (use -E without subsequent parameters to dump the editable strings)
 python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -E "Comfort parameters|temperature_low = -15.5" "Internal configuration|flg2|smiley = 7" "Internal configuration|flg2|screen_off = True" -E "Comfort parameters|humidity_high = 65.6"
 
 # Set advertising mode to "atc1441"
@@ -784,7 +787,7 @@ Notice again that `atc_mi_config` can be used in place of `python3 python3 -m at
 
 Using the GUI configuration, to enable editing a non-readonly parameter you need to tiple-click it, then, after completing the editing, close the GUI to store the new configuration to the device. To discard changes, without closing the GUI press Control-C on the Python application. Parameters notified as read-only, even if changed will not be uploaded to the device.
 
-The command-line editor is also allowed through the `-E` option: when used without additional parameters, it dumps the editable parameters so that they can be copied and reused with the command-line edit mode, which uses the same `-E` option followed by a list of configuration settings (`EDIT_LIST`). When changing a configuration via command-line, keep the same format for the configuration parameters (multiple words separated by "|") and the assignment format (" = " including spaces): just update the value (without heading and trailing spaces). Each element can be enclosed in quotes: e.g., `"Internal configuration|flg|advertising_type = 0"`. Multiple `-E` options can be used; besides, a `-E` option accepts one or multiple assignment arguments. If `-E` is used without parameters after a set of edited parameters defined though a previous `-E` option, the device is connected, but the edited configuration is not saved to the device (dry-run mode).
+The command-line configuration editor uses the `-E` option: without additional parameters, it dumps the editable strings so that they can be copied and reused with the same `-E` option followed by a list of configuration strings (`EDIT_LIST`). Each string is composed of configuration parameter and related assignment; when changing it, keep the same format for the configuration parameter (multiple words separated by "|") and the assignment symbol (" = " including spaces): just update the value (without heading and trailing spaces). Each element can be enclosed in quotes: e.g., `"Internal configuration|flg|advertising_type = 0"`. Multiple `-E` options can be used; besides, a `-E` option accepts one or multiple assignment arguments. If `-E` is used without parameters after a set of edited parameters defined though a previous `-E` option, the device is connected, but the edited configuration is not saved to the device (dry-run mode).
 
 Notice that "Comfort parameters" will not be reset with "-R".
 
@@ -792,7 +795,7 @@ Notice that "Comfort parameters" will not be reset with "-R".
 
 ### atc_mi_configuration() API interface
 
-The *atc_mi_interface* module exposes the `atc_mi_configuration(args: argparse.Namespace)` async API.
+The *atc_mi_interface* package exposes the `atc_mi_configuration(args: argparse.Namespace)` async API.
 
 Usage:
 
@@ -806,7 +809,7 @@ The return code (first value of the tuple) can be:
 
 - `False`, in case of error,
 - `None`, in case of successful execution of a test,
-- `True`, in case of successful execution of the configuration.
+- `True`, in case of successful change of the configuration.
 
 The payload (second value of the tuple) is a list of dictionaries, where each dictionary has a single *key* string representing the value identifier (e.g., can be parsed to process related values with specific decoders) and the *value*, that is in turn a list of one or more values, which, e.g., can be printed with `print(*value)`.
 
@@ -844,7 +847,7 @@ for item in data_out:
         print("Entity name:", key, "- Value:", *value)
 ```
 
-`configuration.edit_list`, when valued, requires a list of lists of strings, where each element is a `EDIT_LIST` string assignment, like described before. The sequence of `EDIT_LIST` assignments can be added in any format, regardless it is included in the outer list, or in the nested one, or in both. To assign a null list: `configuration.edit_list = [[]]`.
+`configuration.edit_list`, when valued, requires a list of lists of strings, where each element is a `EDIT_LIST` string assignment, like described before. The sequence of `EDIT_LIST` assignments can be added in any format, regardless it is included in the outer list, or in the nested one, or in both. To assign a null list (i.e., `-E` option without arguments): `configuration.edit_list = [[]]`.
 
 # Class diagrams and technical notes
 
@@ -921,7 +924,7 @@ classDiagram
     }
 ```
 
-### construct-gallery module
+### construct-gallery package
 
 ```mermaid
 classDiagram
@@ -965,7 +968,7 @@ classDiagram
     }
 ```
 
-### construct-editor module
+### construct-editor package
 
 ```mermaid
 classDiagram
@@ -985,7 +988,7 @@ note   "...
 
 ## atc_mi_config.py
 
-*atc_mi_config.py* exploits *ConfigEditorPanel* from the *construct-gallery* Python module. The *editing_structure* dictionary allows to easily keep the tool updated with possible new changes in the firmware. All internal structures of the custom firmware, like "cfg", "flg2", "comfort_values", "trigger", etc. are described in *atc_mi_construct.py*.
+*atc_mi_config.py* exploits *ConfigEditorPanel* from the *construct-gallery* Python package. The *editing_structure* dictionary allows to easily keep the tool updated with possible new changes in the firmware. All internal structures of the custom firmware, like "cfg", "flg2", "comfort_values", "trigger", etc. are described in *atc_mi_construct.py*.
 
 ```mermaid
 classDiagram
