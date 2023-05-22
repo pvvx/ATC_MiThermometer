@@ -1,0 +1,4 @@
+# Additional requirements if GUI is used (requirements.txt is also needed):
+wxPython
+construct-gallery>=1.1.0
+construct-editor
