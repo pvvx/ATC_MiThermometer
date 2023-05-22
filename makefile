@@ -91,6 +91,9 @@ SIZEDUMMY := sizedummy
 # All Target
 all: clean pre-build main-build
 
+build: pre-build main-build
+
+
 flash: $(BIN_FILE)
 	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w we 0 $(BIN_FILE)
 
@@ -138,12 +141,11 @@ sizedummy: $(ELF_FILE)
 
 clean:
 	-$(RM) $(FLASH_IMAGE) $(ELFS) $(OBJS) $(LST) $(SIZEDUMMY) $(ELF_FILE) $(BIN_FILE) $(LST_FILE)
-	-@echo ' '
-
+	-@echo 'Clean...  '
 
 pre-build:
 	mkdir -p $(foreach s,$(OUT_DIR),$(OUT_PATH)$(s))
-	-@echo ' '
+	-@echo 'Create OUT-dir '
 ifeq ($(COMPILEOS),$(LINUX_OS))
 ifneq ($(TC32_PATH)tc32-elf-gcc, $(wildcard $(TC32_PATH)tc32-elf-gcc))
 	@wget -P $(TOOLS_PATH) http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32_gcc_v2.0.tar.bz2 
