@@ -1,2 +1,5 @@
+__pycache__/
+*.py[cod]
+.idea/
 # generated output
 out/*
