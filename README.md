@@ -1,4 +1,4 @@
-# Xiaomi Mijia LYWSD03MMC HW: [B1.4](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout), [B1.6](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145), [B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B2.0](https://github.com/pvvx/ATC_MiThermometer/issues/166) & Xiaomi Mijia [MJWSD05MMC](https://github.com/pvvx/ATC_MiThermometer/issues/307) & Xiaomi Miaomiaoce [MHO-C401](https://pvvx.github.io/MHO_C401) & CGG1-M ver: [2020, 2021 - "Qingping Temp & RH M"](https://pvvx.github.io/CGG1), [2022 - "Qingping Temp RH M"](https://pvvx.github.io/CGG1_2022) & [CGDK2](https://pvvx.github.io/CGDK2) Qingping Temp & RH Monitor Lite
+# Xiaomi Mijia LYWSD03MMC HW: [B1.4](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout), [B1.5](https://github.com/pvvx/ATC_MiThermometer/issues/338), [B1.6](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145), [B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B2.0](https://github.com/pvvx/ATC_MiThermometer/issues/166) & Xiaomi Mijia [MJWSD05MMC](https://github.com/pvvx/ATC_MiThermometer/issues/307) & Xiaomi Miaomiaoce [MHO-C401](https://pvvx.github.io/MHO_C401) & CGG1-M ver: [2020, 2021 - "Qingping Temp & RH M"](https://pvvx.github.io/CGG1), [2022 - "Qingping Temp RH M"](https://pvvx.github.io/CGG1_2022) & [CGDK2](https://pvvx.github.io/CGDK2) Qingping Temp & RH Monitor Lite
 
 _This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
@@ -205,7 +205,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.0 | Improved stability in connected mode. I2C bus CLK and PullUp correction.|
 |     4.1 | Changed "connection latency" for [stability in connected](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494).|
 |     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N) and [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC). Added function key: Connect |
-|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. |
+|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check HW: B1.5 |
 
 ## Applications
 

@@ -172,9 +172,10 @@ RAM external_data_t ext;
 /*	0 - LYWSD03MMC B1.4
 	3 - LYWSD03MMC B1.9
 	4 - LYWSD03MMC B1.6
-	5 - LYWSD03MMC B1.7 */
+	5 - LYWSD03MMC B1.7
+	10 - LYWSD03MMC B1.5 */
 static const uint8_t id2hwver[8] = {
-		'4','4','4','9','6','7','4','4'
+		'4','0','5','9','6','7','0','0'
 };
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
 
@@ -190,6 +191,7 @@ void set_hw_version(void) {
 	HW | LCD I2C   addr | SHTxxx   I2C addr | Note
 	-- | -- | -- | --
 	B1.4 | 0x3C | 0x70   (SHTC3) |  
+	B1.5 | UART! | 0x70   (SHTC3) |  
 	B1.6 | UART! | 0x44   (SHT4x) |  
 	B1.7 | 0x3C | 0x44   (SHT4x) | Test   original string HW
 	B1.9 | 0x3E | 0x44   (SHT4x) |  
@@ -222,8 +224,12 @@ void set_hw_version(void) {
 	} else {
 		if (lcd_i2c_addr == (B19_I2C_ADDR << 1))
 			hwver = HW_VER_LYWSD03MMC_B19; // HW:B1.9
-		else
-			hwver = HW_VER_LYWSD03MMC_B16; // HW:B1.6
+		else { // UART
+			if(cfg.hw_cfg.shtc3)
+				hwver = HW_VER_LYWSD03MMC_B15; // HW:B1.5
+			else
+				hwver = HW_VER_LYWSD03MMC_B16; // HW:B1.6
+		}
 	}
 	my_HardStr[0] = 'B';
 	my_HardStr[1] = '1';

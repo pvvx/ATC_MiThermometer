@@ -36,6 +36,7 @@ gatt_dict = {
     }
 }
 
+
 def atc_mi_advertising_format(advertisement_data):
     if not advertisement_data.service_data:
         return "", ""
