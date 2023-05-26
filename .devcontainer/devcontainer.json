@@ -1,0 +1,26 @@
+{
+	"name": "ATC_MiThermometer",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"runArgs": [
+		"--name",
+		"ATC_MiThermometer",
+		"--rm"
+	],
+	"postStartCommand": "/usr/bin/git config --global --add safe.directory \"*\";",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.cpptools",
+				"ms-vscode.cpptools-extension-pack",
+				"spencerwmiles.vscode-task-buttons"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash"
+			}
+		}
+	},
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workdir,type=bind,consistency=delegated",
+	"workspaceFolder": "/workdir"
+}
