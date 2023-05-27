@@ -109,6 +109,10 @@ python3 -m pip install attrdict3
 
 The C compiler is needed too.
 
+With Python 3.12, *attrdict* might still be a problem.
+
+Usage of Python 3.10 is suggested.
+
 ### Running the package without installation
 
 Alternatively from installation, the execution can be directly performed from the package directory, using *requirements.txt* and *gui-requirements.txt* to install the prerequisites:
@@ -484,7 +488,7 @@ async def main():
             bindkey=bindkey[mac_address] if mac_address in bindkey else None
         )
         print(f"{count[0]}. {format_label} advertisement: {atc_mi_data}. "
-            f"RSSI: {device.rssi}")
+            f"RSSI: {advertisement_data.rssi}")
         count[0] += 1
         if count[0] == 5:
             stop_event.set()
