@@ -51,8 +51,8 @@ RAM uint8_t lcd_i2c_addr;
 #define LCD_SYM_L	0b10000101	// "L"
 #define LCD_SYM_o	0b11000110	// "o"
 
-#define LCD_SYM_BLE	0b10000000	// connect
-#define LCD_SYM_BAT	0b010000000	// battery
+#define LCD_SYM_BLE	BIT(7)	// BLE connect
+#define LCD_SYM_BAT	BIT(7)	// battery
 
 const uint8_t lcd_init_cmd_b14[] =	{0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
 								//	{0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6};
@@ -195,7 +195,7 @@ void show_battery_symbol(bool state){
 _attribute_ram_code_
 __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 	display_buff[0] = 0;
-	display_buff[1] &= BIT(3); // smiley contour
+	display_buff[1] &= BIT(3); // Clear digit (except smiley contour)
 	display_buff[2] = 0;
 
 	if (number > 19995) {
@@ -231,8 +231,8 @@ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 /* -9 .. 99 */
 _attribute_ram_code_
 __attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
-	display_buff[4] &= BIT(7); // and ble
-	display_buff[5] &= BIT(7); // and battery
+	display_buff[4] &= LCD_SYM_BLE; //Clear digit (except BLE symbol)
+	display_buff[5] &= LCD_SYM_BAT; //Clear digit (except BAT symbol)
 
 	if (percent)
 		display_buff[3] |= BIT(4); // %
@@ -279,16 +279,19 @@ void show_clock(void) {
 	uint32_t min = tmp % 60;
 	uint32_t hrs = tmp / 60 % 24;
 
-	display_buff[0] = display_numbers[hrs % 10];
-	display_buff[1] = display_numbers[hrs / 10 % 10];
+	display_buff[0] = 0;
+	display_buff[1] &= BIT(3); //Clear digit (except smiley contour)
+
+	display_buff[0] = display_numbers[hrs / 10 % 10];
+	display_buff[1] = display_numbers[hrs % 10];
 	display_buff[2] = 0;
 	display_buff[3] = 0;
 
-	display_buff[5] &= ~BIT(7); // and battery
-	display_buff[5] |= display_small_numbers[min % 10];
-	
-	display_buff[4] &= ~BIT(7); // and ble
-	display_buff[4] |= display_small_numbers[min / 10 % 10];
+	display_buff[4] &= LCD_SYM_BLE; //Clear digit (except BLE symbol)
+	display_buff[5] &= LCD_SYM_BAT; //Clear digit (except BAT symbol)
+
+	display_buff[4] |= display_small_numbers[min % 10];
+	display_buff[5] |= display_small_numbers[min / 10 % 10];
 }
 #endif // USE_CLOCK
 
