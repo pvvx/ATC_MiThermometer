@@ -157,6 +157,19 @@ void show_reboot_screen(void);
 void show_batt_cgdk2(void);
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 
+#elif DEVICE_TYPE == DEVICE_MHO_C122
+
+void show_ota_screen(void);
+#define SHOW_OTA_SCREEN() show_ota_screen()
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+void show_reboot_screen(void);
+#define SHOW_REBOOT_SCREEN() show_reboot_screen()
+#define LCD_BUF_SIZE	6
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
+void show_small_number(int16_t number, bool percent); // -9 .. 99
+
 #else
 #error "Set DEVICE_TYPE!"
 #endif

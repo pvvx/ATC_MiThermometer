@@ -531,7 +531,7 @@ void cmd_parser(void * p) {
 			olen = 2 + 8;
 		} else if (cmd == CMD_ID_GDEVS) {   // Get address devises
 			send_buf[1] = sensor_i2c_addr;
-#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC))
+#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122))
 			send_buf[2] = lcd_i2c_addr;
 #else
 			send_buf[2] = 1;	// SPI
