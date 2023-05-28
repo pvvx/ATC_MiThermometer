@@ -1,3 +1,11 @@
+/*
+ * lcd_mho_c122.c
+ *
+ *      Created: pvvx, 28.05.2023 
+ *      Edited by: FaBjE
+ *
+ *  https://github.com/pvvx/ATC_MiThermometer/issues/339
+ */
 #include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
@@ -20,13 +28,13 @@
   |    |         |     |         |        |         |     3.0|
          --0.7--         --1.7--     *      --2.7--          ---- 3.2
                                     2.3
-           --5.3--         --4.3--              1.3      1.3            
- (|)     |         |     |         |            / \      / \      
- 3.6    5.6       5.2   4.6       4.2     1.3(  ___  3.1 ___  )1.3
-         |         |     |         |            1.3  / \ 1.3      
- BLE       --5.5--         --4.5--                   ___          
- 4.7     |         |     |         |                 3.5          
-        5.4       5.1   4.4       4.1     	
+           --5.3--         --4.3--              1.3       1.3            
+ (|)     |         |     |         |            / \       / \      
+ 3.6    5.6       5.2   4.6       4.2     1.3(  ___  3.1  ___  )1.3
+         |         |     |         |            1.3 /3.6\ 1.3      
+ BLE       --5.5--         --4.5--                  _____
+ 4.7     |         |     |         |                \3.5/
+        5.4       5.1   4.4       4.1     	          
  BAT     |         |     |         |                  %
  5.7       --5.0--         --4.0--                   3.4
 
@@ -44,7 +52,7 @@ RAM uint8_t lcd_i2c_addr;
 #define LCD_SYM_o	0b11000110	// "o"
 
 #define LCD_SYM_BLE	0b10000000	// connect
-#define LCD_SYM_BAT	0b10000000	// battery
+#define LCD_SYM_BAT	0b010000000	// battery
 
 const uint8_t lcd_init_cmd_b14[] =	{0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
 								//	{0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6};
@@ -158,12 +166,13 @@ _attribute_ram_code_
 void show_smiley(uint8_t state){
 	display_buff[1] &= ~BIT(3);
 	display_buff[3] &= ~(BIT(5) | BIT(6));
+
 	if(state & 1)
-		display_buff[3] &= ~BIT(6);
+		display_buff[3] |= BIT(5); //Happy mouth
 	if(state & 2)
-		display_buff[3] &= ~BIT(5);
+		display_buff[3] |= BIT(6); //Sad mouth
 	if(state & 4)
-		display_buff[1] &= ~BIT(3);
+		display_buff[1] |= BIT(3); //Smiley contour
 }
 
 _attribute_ram_code_
@@ -185,35 +194,36 @@ void show_battery_symbol(bool state){
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
 _attribute_ram_code_
 __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
-	display_buff[1] &= ~BIT(3); // smiley
+	display_buff[0] = 0;
+	display_buff[1] &= BIT(3); // smiley contour
 	display_buff[2] = 0;
+
 	if (number > 19995) {
-   		display_buff[0] = LCD_SYM_H; // "H"
-   		display_buff[1] = LCD_SYM_i; // "i"
+   		display_buff[0] |= LCD_SYM_H; // "H"
+   		display_buff[1] |= LCD_SYM_i; // "i"
 	} else if (number < -995) {
-   		display_buff[0] = LCD_SYM_L; // "L"
-   		display_buff[1] = LCD_SYM_o; // "o"
+   		display_buff[0] |= LCD_SYM_L; // "L"
+   		display_buff[1] |= LCD_SYM_o; // "o"
 	} else {
-		display_buff[0] = 0;
 		/* number: -995..19995 */
 		if (number > 1995 || number < -95) {
 			if (number < 0){
 				number = -number;
-				display_buff[0] = BIT(1); // "-"
+				display_buff[0] |= BIT(1); // "-"
 			}
 			number = (number / 10) + ((number % 10) > 5); // round(div 10)
 		} else { // show: -9.9..199.9
 			display_buff[2] = BIT(3); // point
 			if (number < 0){
 				number = -number;
-				display_buff[0] = BIT(1); // "-"
+				display_buff[0] |= BIT(1); // "-"
 			}
 		}
 		/* number: -99..1999 */
 		if (number > 999) display_buff[0] |= BIT(3); // "1" 1000..1999
 		if (number > 99) display_buff[0] |= display_numbers[number / 100 % 10];
 		if (number > 9) display_buff[1] |= display_numbers[number / 10 % 10];
-		else display_buff[1] |= 0b11110101; // "0"
+		else display_buff[1] |= display_numbers[0]; // "0"
 	    display_buff[2] |= display_numbers[number %10];
 	}
 }
@@ -221,12 +231,14 @@ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 /* -9 .. 99 */
 _attribute_ram_code_
 __attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
-	display_buff[4] &= ~BIT(7); // and ble
-	display_buff[5] &= ~BIT(7); // and battery
+	display_buff[4] &= BIT(7); // and ble
+	display_buff[5] &= BIT(7); // and battery
+
 	if (percent)
 		display_buff[3] |= BIT(4); // %
 	else
 		display_buff[3] &= ~BIT(4); // %
+
 	if (number > 99) {
 		display_buff[5] |= BIT(1) | BIT(2) | BIT(4) | BIT(5) | BIT(6) ; // "H"
 		display_buff[4] |= BIT(4); // "i"
@@ -236,9 +248,11 @@ __attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool per
 	} else {
 		if (number < 0) {
 			number = -number;
-			display_buff[5] = BIT(5); // "-"
+			display_buff[5] |= BIT(5); // "-"
 		}
-		if (number > 9) display_buff[5] |= display_small_numbers[number / 10 % 10];
+		if (number > 9) 
+			display_buff[5] |= display_small_numbers[number / 10 % 10];
+
 		display_buff[4] |= display_small_numbers[number %10];
 	}
 }
@@ -269,7 +283,11 @@ void show_clock(void) {
 	display_buff[1] = display_numbers[hrs / 10 % 10];
 	display_buff[2] = 0;
 	display_buff[3] = 0;
+
+	display_buff[5] &= ~BIT(7); // and battery
 	display_buff[5] |= display_small_numbers[min % 10];
+	
+	display_buff[4] &= ~BIT(7); // and ble
 	display_buff[4] |= display_small_numbers[min / 10 % 10];
 }
 #endif // USE_CLOCK
