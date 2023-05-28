@@ -853,6 +853,198 @@ for item in data_out:
 
 `configuration.edit_list`, when valued, requires a list of lists of strings, where each element is a `EDIT_LIST` string assignment, like described before. The sequence of `EDIT_LIST` assignments can be added in any format, regardless it is included in the outer list, or in the nested one, or in both. To assign a null list (i.e., `-E` option without arguments): `configuration.edit_list = [[]]`.
 
+# Querying and editing the thermometer settings programmatically
+
+Set `configuration.chars = True` in the previous program to print all the thermometer settings.
+
+Alternatively, the following program can be used to query the thermometer for command '0x55' (CMD_ID_CFG, Get/set custom firmware internal configuration):
+
+```python
+import asyncio
+from bleak import BleakClient
+from atc_mi_interface import cfg, normalize_report
+
+characteristic_uuid = "00001f1f-0000-1000-8000-00805f9b34fb"  # Characteristic UUID 0x1F1F
+command_to_read = b'\x55'  # use 'cfg' to decode this command
+mac_address = "A4:C1:38:AA:BB:CC"  # change this with the device MAC address
+
+async def main(address):
+    def notification_handler(handle: int, data: bytes) -> None:
+        print(handle, data.hex(' ').upper())
+        if bytes([data[0]]) == command_to_read:
+            print(normalize_report(str(cfg.parse(data[1:]))))
+
+    for times in range(20):
+        print(f"Attempt n. {times + 1}")
+        try:
+            async with BleakClient(address, timeout=60.0) as client:
+                paired = await client.pair(protection_level=2)
+                print(f"Paired: {paired}")
+                await client.start_notify(
+                    characteristic_uuid, notification_handler)
+                await client.write_gatt_char(
+                    characteristic_uuid, command_to_read, response=True)
+            break
+        except Exception as e:
+            print(f"Retrying... ({e})")
+
+asyncio.run(main(mac_address))
+```
+
+Output:
+
+```
+Attempt n. 1
+Paired: True
+00001f1f-0000-1000-8000-00805f9b34fb (Handle: 44): Vendor specific 55 43 85 10 00 00 28 04 A9 31 31 04 B4 00
+Container:
+    firmware_version:
+        major = 4
+        minor = 3
+    flg:
+        lp_measures = True
+        tx_measures = False
+        show_batt_enabled = False
+        temp_F_or_C = (enum) temp_C 0
+        blinking_time_smile = (enum) blinking_smile 0
+        comfort_smiley = True
+        advertising_type = (enum) adv_type_custom 1
+    flg2:
+        screen_off = False
+        longrange = False
+        bt5phy = False
+        adv_flags = True
+        adv_crypto = False
+        smiley = (enum) smiley_off 0
+    temp_offset = 0.0
+    temperature_unit = '°C' (total 2)
+    humi_offset = 0.0
+    humidity_unit = '%' (total 1)
+    advertising_interval = 2.5
+    adv_int_unit = 'sec.' (total 4)
+    measure_interval = 4
+    rf_tx_power = (enum) RF_POWER_Positive_0p04_dBm 169
+    connect_latency = 1.0
+    connect_latency_unit = 'sec.' (total 4)
+    min_step_time_update_lcd = 2.45
+    min_s_t_upd_lcd_unit = 'sec.' (total 4)
+    hw_cfg:
+        sensor = (enum) sensor_SHT4x 0
+        reserved = 0
+        hwver = (enum) hwver_LYWSD03MMC_B1_6 4
+    averaging_measurements = 180
+```
+
+Within the output, the obtained bytes '55 43 85 10 00 00 28 04 A9 31 31 04 B4 00' can be decoded with the following code:
+
+```python
+from atc_mi_interface import cfg, normalize_report
+data = '55 43 85 10 00 00 28 04 A9 31 31 04 B4 00'
+print(normalize_report(str(cfg.parse(bytes.fromhex(data)[1:]))))
+```
+
+To only change some specific parameters from a predefined settings, first obtain the *construct* form from the settings, then perform the specific assignment (the `construct` model allows doing this elegantly), then build the new bytes (which in case of command 0x55 can be stored to the device after removing the version).
+
+```python
+from atc_mi_interface import cfg, normalize_report
+
+data = '55 43 85 10 00 00 28 04 A9 31 31 04 B4 00'  # settings
+
+cfg_data = cfg.parse(bytes.fromhex(data)[1:])  # obtain the *construct* form from the settings
+cfg_data.temp_offset = 1.2                     # perform the assignment
+new_data = cfg.build(cfg_data)                 # build the new settings
+
+print(new_data.hex(' '))
+print(normalize_report(str(cfg.parse(new_data))))
+```
+
+The following program changes the `temp_offset` parameter to 1.2 (e.g., instead of 0.0) and then stores the new settings to the device:
+
+```python
+import asyncio
+from bleak import BleakClient
+from atc_mi_interface import cfg
+
+characteristic_uuid = "00001f1f-0000-1000-8000-00805f9b34fb"  # Characteristic UUID 0x1F1F
+command_to_set = b'\x55'  # use 'cfg' to decode this command
+mac_address = "A4:C1:38:AA:BB:CC"  # change this with the device MAC address
+temp_offset_value = 1.2
+
+async def main(address):
+    data_out = []
+
+    def notification_handler(handle: int, data: bytes) -> None:
+        print("Notifying", handle, data.hex(' ').upper())
+        data_out.append(data)  # store the parameter (settings)
+
+    for times in range(20):
+        print(f"Attempt n. {times + 1}")
+        try:
+            async with BleakClient(address, timeout=60.0) as client:
+                paired = await client.pair(protection_level=2)
+                print(f"Paired: {paired}")
+                await client.start_notify(  # store notifications to data_out
+                    characteristic_uuid, notification_handler)
+                await client.write_gatt_char(  # get the initial settings to data_out
+                    characteristic_uuid, command_to_set, response=True)
+                await asyncio.sleep(0.1)  # data_out should include the initial settings
+                for data in data_out:
+                    if bytes([data[0]]) == command_to_set:
+                        print("Initial settings:", data.hex(' '))
+                        cfg_data = cfg.parse(data[1:])  # obtain the *construct* form
+                        cfg_data.temp_offset = temp_offset_value  # perform the assignment
+                        new_char = command_to_set + cfg.build(cfg_data)[1:]  # build the new settings removing the initial byte (version ID) and adding the command (command_to_set)
+                        print("New settings:", new_char.hex(' '))
+                        await client.write_gatt_char(  # store the new settings
+                            characteristic_uuid, new_char, response=True)
+                        break
+            break
+        except Exception as e:
+            print(f"Retrying... ({e})")
+
+asyncio.run(main(mac_address))
+```
+
+The same command 0x55 can be alternatively sent via the following command-line tool:
+
+```
+python3 -m atc_mi_interface -c -m A4:C1:38:AA:BB:CC -E "Internal configuration|temp_offset = 1.2"
+```
+
+or also via this program, exploiting `atc_mi_configuration()`:
+
+```python
+import asyncio
+import argparse
+from atc_mi_interface import atc_mi_configuration
+
+configuration = argparse.Namespace()  # all attributes need to be initialized
+
+configuration.edit_list = [["Internal configuration|temp_offset = 1.2"]]  # actual setting
+configuration.address = 'A4:C1:38:AA:BB:CC'  # Set to the actual MAC address of the device
+configuration.info = False  # True to return the device information
+configuration.chars = False  # True to return the device characteristics (configuration)
+configuration.gui = False  # True to edit the device configuration using the GUI. [It should be set to False with API]
+configuration.set_date = False  # True to set the current device date with the host time
+configuration.delta = None  # set to a relative number to configure the time delta adjustment (-32767..32767, in 1/16 usec. for 1 sec.)
+configuration.read_date = False  # True to return the date and the delta time adjustment (after previous actions)
+configuration.string = None  # set to a hex string to store it to the device
+configuration.reset = False  # True to reset the default configuration of the device
+configuration.reboot = False  # True to activate a device reboot on disconnect
+configuration.attempts = 20  # set the max number of attempts to connect the device
+configuration.show_error = False  # True to print the BLE error information. [It should be set to False with API]
+configuration.verbosity = False  # True to print the process information. [It should be set to False with API]
+configuration.test = False  # True to activate the test GUI and the test command-line editing
+configuration.inspectable = False  # True to enable inspection in the GUI (Ctrl-Alt-I). [It should be set to False with API]
+
+ret, data_out = asyncio.run(atc_mi_configuration(configuration))
+
+print("Return code (False, None, True):", ret)
+for item in data_out:
+    for key, value in item.items():
+        print("Entity name:", key, "- Value:", *value)
+```
+
 # Class diagrams and technical notes
 
 ## atc_mi_construct.py
