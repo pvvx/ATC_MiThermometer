@@ -13,8 +13,8 @@ void init_i2c(void) {
 #if (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)
 	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
 #elif (DEVICE_TYPE == DEVICE_LYWSD03MMC)
-	if(cfg.hw_cfg.hwver == 3) // HW:B1.9
-		reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*500000)); // 500 kHz
+	if(cfg.hw_cfg.hwver == HW_VER_LYWSD03MMC_B19) // HW:B1.9
+		reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
 	else
 		reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*700000)); // 700 kHz
 #else

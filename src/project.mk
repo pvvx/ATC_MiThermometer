@@ -8,6 +8,7 @@ $(OUT_PATH)/src/lcd.o \
 $(OUT_PATH)/src/lcd_lywsd03mmc.o \
 $(OUT_PATH)/src/lcd_cgdk2.o \
 $(OUT_PATH)/src/lcd_mjwsd05mmc.o \
+$(OUT_PATH)/src/lcd_mho_c122.o \
 $(OUT_PATH)/src/epd_cgg1.o \
 $(OUT_PATH)/src/epd_cgg1n.o \
 $(OUT_PATH)/src/epd_mho_c401.o \
