@@ -145,13 +145,14 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 
-* [LYWSD03MMC Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v42.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
-* [MJWSD05MMC Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/BTH_v42.bin) ([MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC))
-* [MHO-C401 2020-2021 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v42.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [MHO-C401 2022 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v42.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [CGG1-M 2020-2021 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGG1-M 2022 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGDK2 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v42.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
+* [LYWSD03MMC Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v43.bin) (HW: B1.4, B1.5, B1.6, B1.7, B1.9, B2.0)
+* [MJWSD05MMC Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/BTH_v43.bin) ([MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC))
+* [MHO-C122 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C122_v43.bin) ([2AWMOMHOC122](https://github.com/pvvx/ATC_MiThermometer/issues/339))
+* [MHO-C401 2020-2021 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v43.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [MHO-C401 2022 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v43.bin) (manufacturer Xiaomi and [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114))
+* [CGG1-M 2020-2021 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGG1-M 2022 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v43.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v43.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 **Original Manufacturer Firmware Version**
 
@@ -160,6 +161,7 @@ In case you want to go back to the original firmware, you can download them here
 * [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0109](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin) (HW: B1.4 only)
 * [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0130](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin) (HW: B1.4..B2.0)
 * [Xiaomi MJWSD05MMC Original Firmware v2.0.0_0026](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MJWSD05MMC_v2.0.0_0026.bin) (HW: V2.3)
+* [MiaoMiaoCe Technology (Beijing) Co., Ltd. MHO-C122 Original Firmware (Tuya)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_MHO_C122_tuya.bin)
 * [Xiaomi MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
 * [Xiaomi and Azarton MHO_C401 Original Firmware v1.0.0_0016](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0016.bin)
 * [Xiaomi SJWS01LM Original Firmware v1.1.1_0018](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_SJWS01LM_1.1.1_0018.bin)
@@ -205,7 +207,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.0 | Improved stability in connected mode. I2C bus CLK and PullUp correction.|
 |     4.1 | Changed "connection latency" for [stability in connected](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494).|
 |     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N) and [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC). Added function key: Connect |
-|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check HW: B1.5 |
+|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check HW: B1.5. Added MHO-C122 (2AWMOMHOC122) test support. |
 
 ## Applications
 
