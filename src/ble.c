@@ -55,7 +55,7 @@ RAM my_fifo_t blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b, };
 RAM uint8_t blt_txfifo_b[40 * 16] = { 0 };
 RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
 RAM uint8_t ble_name[MAX_DEV_NAME_LEN+2] = { 11, GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-#if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N))
+#if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N)) || (DEVICE_TYPE == DEVICE_MHO_C122)
 		'M', 'H', 'O', '_', '0', '0', '0', '0',	'0', '0' };
 #elif DEVICE_TYPE == DEVICE_CGG1
 		'C', 'G', 'G', '_', '0', '0', '0', '0',	'0', '0' };
@@ -422,7 +422,7 @@ void ble_set_name(void) {
 	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, MAX_DEV_NAME_LEN));
 	if (len < 1) {
 		//Set the BLE Name to the last three MACs the first ones are always the same
-#if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N))
+#if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N) || (DEVICE_TYPE == DEVICE_MHO_C122))
 		ble_name[2] = 'M';
 		ble_name[3] = 'H';
 		ble_name[4] = 'O';

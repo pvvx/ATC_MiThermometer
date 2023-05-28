@@ -126,6 +126,12 @@ static const u8 my_SerialStr[] = {"0000-0000-0000-0006"}; // "0000-0000-0000-000
 static const u8 my_HardStr[] = {"2.1.0"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
+#elif DEVICE_TYPE == DEVICE_MHO_C122
+static const u8 my_ModelStr[] = {"MHO-C122"};
+static const u8 my_HardStr[] = {"V1.1-202106"};
+static const u8 my_SerialStr[] = {"2AWMOMHOC122"};
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
+static const u8 my_ManStr[] = {"MiaoMiaoCe Technology (Beijing) Co., Ltd."};
 #else
 #error "DEVICE_TYPE = ?"
 #endif

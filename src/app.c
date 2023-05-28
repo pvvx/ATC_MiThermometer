@@ -145,6 +145,16 @@ const cfg_t def_cfg = {
 #if USE_FLASH_MEMO
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
+#elif DEVICE_TYPE == DEVICE_MHO_C122
+		.flg2.adv_flags = true,
+		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
+		.flg.comfort_smiley = true,
+		.measure_interval = 4, // * advertising_interval = 10 sec
+		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
+		.hw_cfg.hwver = HW_VER_MHO_C122,
+#if USE_FLASH_MEMO
+		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
+#endif
 #endif
 		};
 RAM cfg_t cfg;
@@ -252,6 +262,8 @@ void set_hw_version(void) {
 	cfg.hw_cfg.hwver = HW_VER_MHO_C401_2022;
 #elif DEVICE_TYPE == DEVICE_MJWSD05MMC
 	cfg.hw_cfg.hwver = HW_VER_MJWSD05MMC;
+#elif DEVICE_TYPE == DEVICE_MHO_C122
+	cfg.hw_cfg.hwver = HW_VER_MHO_C122;
 #else
 	cfg.hw_cfg.hwver = HW_VER_UNKNOWN;
 #endif
@@ -479,9 +491,9 @@ static void start_tst_battery(void) {
 	uint16_t avr_mv = get_battery_mv();
 	measured_data.battery_mv = avr_mv;
 	if (avr_mv < MIN_VBAT_MV) { // 2.2V
-#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122)
 		// Set sleep power < 1 uA
-#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC)
+#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MHO_C122)
 		send_i2c_word(0x70 << 1, 0x98b0); // SHTC3 go SLEEP: Sleep command of the sensor
 #endif
 		send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
