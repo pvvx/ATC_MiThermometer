@@ -54,7 +54,7 @@ If you have a smartphone with BT5.0+ and the nRFConnect program, then you can re
 
 To disable only the 'Long Range' option, use the code 0xDD.
 
-The Web Bluetooth API in Chrome does not yet allow scanning for Bluetooh 5.0+ devices.
+The [Web Bluetooth API](https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md) in Chrome does not yet allow scanning for Bluetooh 5.0+ devices.
 
 **Table of content**
 

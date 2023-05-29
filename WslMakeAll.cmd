@@ -20,6 +20,9 @@ wsl make -s PROJECT_NAME=MHO_C401%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MHO_C4
 @del /Q "MHO_C401N%SWVER%.bin"
 wsl make -s PROJECT_NAME=MHO_C401N%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MHO_C401N"
 @if not exist "MHO_C401N%SWVER%.bin" goto :error
+@del /Q "MHO_C122%SWVER%.bin"
+wsl make -s PROJECT_NAME=MHO_C122%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MHO_C122"
+@if not exist "MHO_C122%SWVER%.bin" goto :error
 @exit
 :error
 echo "Error!"
