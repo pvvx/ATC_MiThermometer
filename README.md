@@ -1,4 +1,4 @@
-# Xiaomi Mijia LYWSD03MMC HW: [B1.4](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout), [B1.5](https://github.com/pvvx/ATC_MiThermometer/issues/338), [B1.6](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145), [B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B2.0](https://github.com/pvvx/ATC_MiThermometer/issues/166) & Xiaomi Mijia [MJWSD05MMC](https://github.com/pvvx/ATC_MiThermometer/issues/307) & Xiaomi Miaomiaoce [MHO-C401](https://pvvx.github.io/MHO_C401) & CGG1-M ver: [2020, 2021 - "Qingping Temp & RH M"](https://pvvx.github.io/CGG1), [2022 - "Qingping Temp RH M"](https://pvvx.github.io/CGG1_2022) & [CGDK2](https://pvvx.github.io/CGDK2) Qingping Temp & RH Monitor Lite
+# Custom firmware for BLE thermometers on the Telink chipset.
 
 _This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
@@ -6,6 +6,7 @@ Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin)
 Custom firmware is not supported in MiHome. But it is possible to work LYWSD03MMC with 'Xiaomi Gateway 3' by first registering in MiHome on the official firmware, flashing to custom firmware with restoring the binding key from MiHome, replacing the device name with "LYWSD03MMC" and setting the advertising type to "MIJIA (MiHome)" marked "encrypted"._
 
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time. OTA and configuration main page - [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
+
 
 **Key features**
 
@@ -21,9 +22,11 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Adjustable RF TX Power & Bluetooth advertising interval
 * DIY improvements - relay control by temperature or humidity, transmission of the reed switch status - open / closed or pulse counter
 
-|[Xiaomi Mijia (LYWSD03MMC)](https://pvvx.github.io/ATC_MiThermometer) | [Xiaomi Miaomiaoce (MHO-C401)](https://pvvx.github.io/MHO_C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) | [CGDK2 Qingping Temp & RH Monitor Lite](https://pvvx.github.io/CGDK2) | [Xiaomi Mijia MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC) |
-|:--:|:--:|:--:|:--:|:--:|
-|  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |  <img src="https://pvvx.github.io/MHO_C401/img/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="120"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="120"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/CGDK2/img/CGDK2.jpg" alt="CGDK2 Qingping Temp & RH Monitor Lite" width="120"/> | <img src="https://pvvx.github.io/MJWSD05MMC/img/MJWSD05MMC.png" alt="Xiaomi Mijia (MJWSD05MMC)" width="120"/> |
+Supported models:
+
+|[Xiaomi Mijia (LYWSD03MMC)](https://pvvx.github.io/ATC_MiThermometer) | [Xiaomi Miaomiaoce (MHO-C401)](https://pvvx.github.io/MHO_C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) | [CGDK2 Qingping Temp & RH Monitor Lite](https://pvvx.github.io/CGDK2) | [Xiaomi Mijia MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC) | [MHO-C122 (2AWMOMHOC122)](https://pvvx.github.io/MHO_C122) |
+|:--:|:--:|:--:|:--:|:--:|:--:|
+|  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |  <img src="https://pvvx.github.io/MHO_C401/img/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="120"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="120"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/CGDK2/img/CGDK2.jpg" alt="CGDK2 Qingping Temp & RH Monitor Lite" width="120"/> | <img src="https://pvvx.github.io/MJWSD05MMC/img/MJWSD05MMC.png" alt="Xiaomi Mijia (MJWSD05MMC)" width="120"/> | <img src="https://pvvx.github.io/MHO_C122/img/MHO-C122.png" alt="MHO-C122 (2AWMOMHOC122)" width="120"/> |
 
 **Warnings**
 
