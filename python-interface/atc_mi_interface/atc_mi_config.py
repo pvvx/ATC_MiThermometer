@@ -4,6 +4,7 @@
 # atc_mi_config.py
 #############################################################################
 
+import datetime
 import asyncio
 import argparse
 import time
@@ -12,9 +13,11 @@ from functools import partial
 import enum
 import sys
 from bleak import BleakClient, exc
+import re
 
 from .atc_mi_construct import *
 from .atc_mi_construct_adapters import *
+from .__version__ import __version__
 
 notify_uuid = "00001f10-0000-1000-8000-00805f9b34fb"  # Primary Service UUID 0x1F10
 characteristic_uuid = "00001f1f-0000-1000-8000-00805f9b34fb"  # Characteristic UUID 0x1F1F
@@ -31,6 +34,9 @@ CMD_ID_UTC_TIME = 0x23  # Get/set utc time
 CMD_ID_TADJUST = 0x24  # Get/set adjust time clock delta (in 1/16 us for 1 sec)
 CMD_ID_TRG = 0x44  # Get/set trg data
 CMD_ID_CFG = 0x55  # Get/set device config
+CMD_ID_CFG_DEF = 0x56  # Set default device config
+CMD_ID_LCD_DUMP = 0x60  # Get/set lcd buf
+CMD_ID_REBOOT = 0x72  # Set Reboot on disconnect
 
 STRTIME_FORMAT = '%A, %d %B %Y %H:%M:%S'
 BC_TIMEOUT = 40.0
@@ -80,8 +86,7 @@ class IntegerFormat(enum.Enum):
     Dec = enum.auto()
     Hex = enum.auto()
 
-
-editing_structure = {
+command_structure = {
     CMD_ID_DNAME: {
         "name": "Device name",
         "sample_binary": b"ATC_AABBCC",
@@ -292,20 +297,28 @@ async def atc_characteristics(client, verbosity=False):
                                     str(item[1].parse(name_bytes)))])  # Construct
                         else:
                             try:
-                                string = normalize_report(
+                                string_data = normalize_report(
                                     str(item[1].parse(name_bytes)))
                             except Exception:
-                                string = name_bytes.hex(' ').upper()
+                                string_data = name_bytes.hex(' ').upper()
                             char_list.append(
-                                [char.handle, char.description, string])
+                                [char.handle, char.description, string_data])
 
     return char_list
 
 
-def get_display_report(tag):
+def get_display_report(editing_structure, tag):
     report = ""
     for key, item in editing_structure.items():
         if tag not in item:
+            continue
+        if "construct" not in item:
+            report += (
+                f'{key}: {item["name"]}\n' +
+                "    Raw data: " +
+                item[tag].hex(' ').upper() +
+                '\n'
+            )
             continue
         report += normalize_report(
             f'{key}: {item["name"]}\n'
@@ -314,10 +327,10 @@ def get_display_report(tag):
     return report
 
 
-def get_editable_report(tag):
+def get_editable_report(editing_structure, tag):
     report = ""
     for key, item in editing_structure.items():
-        if tag not in item or item["read_only"]:
+        if tag not in item or item["read_only"] or "construct" not in item:
             continue
         report += traverse_construct(
             item["construct"],
@@ -327,7 +340,7 @@ def get_editable_report(tag):
     return report
 
 
-def gui_edit(args: argparse.Namespace):
+def gui_edit(editing_structure: dict, args: argparse.Namespace):
     try:
         import wx
     except (ImportError, ModuleNotFoundError):
@@ -415,7 +428,7 @@ def assign_pathname(constr, editable_path, value):
     return assign_pathname(constr[editable_path.pop(0)], editable_path, value)
 
 
-def edit_value(editable, tag, new_tag):
+def edit_value(editing_structure, editable, tag, new_tag):
     EQUAL_SIGN = " = "
     PATH_SEPARATOR = "|"
     assignment = editable.split(EQUAL_SIGN)
@@ -427,9 +440,7 @@ def edit_value(editable, tag, new_tag):
     for _, item in editing_structure.items():
         if item["name"] == name:
             break
-    if item["name"] != name:
-        return False
-    if item['read_only']:
+    if item["name"] != name or "construct" not in item or item['read_only']:
         return False
     if tag not in item:
         return False
@@ -448,6 +459,12 @@ def edit_value(editable, tag, new_tag):
 async def atc_mi_configuration(args: argparse.Namespace):
     char_n = [0]
     data_out = []
+    editing_structure = {}
+
+    for key, item in command_structure.items():
+        editing_structure[key] = {}
+        for k, i in item.items():
+            editing_structure[key][k] = i  # deep copy of the first two levels
 
     if args.verbosity:
         print("Command line arguments:", args)
@@ -456,18 +473,19 @@ async def atc_mi_configuration(args: argparse.Namespace):
             char_n: int,
             args: argparse.Namespace,
             handle: int, data: bytes) -> None:
-        n = "%0.2X: " % char_n[0]
         if args.verbosity:
-            print(handle, n, data, data.hex(' ').upper())
+            print(handle, "%0.2X: " % char_n[0], data, data.hex(' ').upper())
         if data[0] not in editing_structure:
-            if args.verbosity:
-                print("Error: no data")
-            return
+            editing_structure[data[0]] = {
+                    "name": "Command_" + "%0.2X" % data[0],
+                    "read_only": True,
+                    "construct": HexDump(GreedyBytes)
+                }
         item = editing_structure[data[0]]
         start_data = item.get("start_data") or 0
         item["binary"] = (item.get("binary") or b'') + data[start_data:]
         if args.verbosity:
-            print("Binary:", item["binary"])
+            print("Binary:", item["binary"], item["binary"].hex(' ').upper())
         if args.verbosity and start_data == 2:
             item["length"] = data[1] + (item.get("length") or 0)
             print("Length:", item["length"])
@@ -477,31 +495,40 @@ async def atc_mi_configuration(args: argparse.Namespace):
             edited = False
             for editable_group in args.edit_list:
                 if editable_group == []:
-                    data_out.append({"test_editable": [
-                        get_editable_report("sample_binary")]})
+                    data_out.append(
+                        {"test_editable": [
+                            get_editable_report(
+                                editing_structure, "sample_binary")]})
                     if edited:
                         data_out.append(
                             {"test_edited_header": ["Edited components:"]})
                         data_out.append(
-                            {"test_edited": [get_editable_report("binary")]})
-                    return None, data_out
+                            {"test_edited": [get_editable_report(
+                                editing_structure, "binary")]})
+                    return None, editing_structure, data_out
                 for editable in editable_group:
-                    if edit_value(editable, 'sample_binary', "binary"):
+                    if edit_value(
+                            editing_structure,
+                            editable,
+                            'sample_binary',
+                            "binary"):
                         edited = True
                         data_out.append({"test_edit_ok": [
                             f'Successfully edited "{editable}"']})
                     else:
                         data_out.append({"test_edit_error": [
                             f'Error: cannot edit "{editable}"']})
-                        return False, data_out
+                        return False, editing_structure, data_out
         data_out.append({"test_gui_start": ["TEST GUI STARTED"]})
         for _, item in editing_structure.items():
-            if "binary" not in item:
+            if "binary" not in item and "sample_binary" in item:
                 item["binary"] = item["sample_binary"]
-        data_out.append({"test_display_report": [get_display_report("binary")]})
-        gui_edit(args)
+        data_out.append(
+            {"test_display_report": [get_display_report(
+                editing_structure, "binary")]})
+        gui_edit(editing_structure, args)
         data_out.append({"test_gui_end": ["TEST GUI TERMINATED"]})
-        return None, data_out
+        return None, editing_structure, data_out
 
     for times in range(args.attempts):
         if args.verbosity:
@@ -527,9 +554,10 @@ async def atc_mi_configuration(args: argparse.Namespace):
                 if args.reset:
                     data_out.append(
                         {"notification_reset": ["Reset default configuration"]})
-                    char_n[0] = 0xEE56
+                    char_n[0] = CMD_ID_CFG_DEF + 0xEE00
                     await client.write_gatt_char(
-                        characteristic_uuid, b'\x56', response=True)
+                        characteristic_uuid, bytes([CMD_ID_CFG_DEF]),
+                        response=True)
                     await asyncio.sleep(SLEEP_TIMEOUT)
                 if args.chars or args.gui or args.edit_list:
                     for c in editing_structure:
@@ -539,35 +567,43 @@ async def atc_mi_configuration(args: argparse.Namespace):
                         await asyncio.sleep(SLEEP_TIMEOUT)
                     if not args.edit_list == [[]]:
                         data_out.append(
-                            {"display_report": [get_display_report("binary")]})
+                            {"display_report":[get_display_report(
+                                editing_structure, "binary")]})
                 edited = False
                 if args.edit_list:
                     for editable_group in args.edit_list:
                         if editable_group == []:
                             data_out.append({"display_editable": [
-                                get_editable_report("binary")]})
+                                get_editable_report(
+                                    editing_structure, "binary")]})
                             if edited:
                                 data_out.append({"notification_test_edit": [
                                     "Test edit components (not saved):"]})
                                 data_out.append({"editable_report": [
-                                    get_editable_report("new_binary")]})
-                            return None, data_out
+                                    get_editable_report(
+                                        editing_structure, "new_binary")]})
+                            return None, editing_structure, data_out
                         for editable in editable_group:
-                            if edit_value(editable, 'binary', "new_binary"):
+                            if edit_value(
+                                    editing_structure,
+                                    editable,
+                                    'binary',
+                                    "new_binary"):
                                 data_out.append({"edited_ok": [
                                     f'Successfully edited "{editable}"']})
                                 edited = True
                             else:
                                 data_out.append({"edited_error": [
                                     f'Error: cannot edit "{editable}"']})
-                                return False, data_out
+                                return False, editing_structure, data_out
                     if args.gui:  # allow using updated values with the GUI
                         for _, item in editing_structure.items():
-                            item["old_binary"] = item["binary"]
+                            if "binary" in item:
+                                item["old_binary"] = item["binary"]
                             if "new_binary" in item:
                                 item["binary"] = item["new_binary"]
                 if args.gui:
-                    gui_edit(args)
+                    gui_edit(editing_structure, args)
                 if args.gui or edited:
                     for _, item in editing_structure.items():
                         if "old_binary" in item:
@@ -576,12 +612,14 @@ async def atc_mi_configuration(args: argparse.Namespace):
                         slice_begin = item.get("slice_begin")
                         slice_end = item.get("slice_end")
                         new_conf = item.get("new_binary")
-                        if (new_conf is not None and
-                                item["binary"] != new_conf
+                        binary = item.get("binary")
+                        if (new_conf is not None
+                                and binary
+                                and binary != new_conf
                                 and not item["read_only"]):
                             data_out.append({"setting_char": [
                                 f"Setting characteristic {hex(char)}."]})
-                            char_n[0] = 0xEE00 + char  # Set configuration
+                            char_n[0] = char + 0xEE00  # Set configuration
                             set_conf = bytes([char]) + new_conf[
                                                        slice_begin:slice_end]
                             await client.write_gatt_char(
@@ -594,17 +632,50 @@ async def atc_mi_configuration(args: argparse.Namespace):
                 if args.set_date:
                     data_out.append(
                         {"setting_date": ["Setting date:", args.set_date]})
-                    set_date = b'\x23' + Int32ul.build(
+                    set_date = bytes([CMD_ID_UTC_TIME]) + Int32ul.build(
                         calendar.timegm(time.localtime(time.time())))
-                    char_n[0] = 0xEE23  # Set utc time
+                    char_n[0] = CMD_ID_UTC_TIME + 0xEE00 # Set utc time
                     await client.write_gatt_char(
                         characteristic_uuid, set_date, response=True)
+                    await asyncio.sleep(SLEEP_TIMEOUT)
+                if args.send_digits:
+                    lcd_digcode = {
+                        "0": 0xf5, "1": 0x05, "2": 0xd3, "3": 0x97, "4": 0x27,
+                        "5": 0xb6, "6": 0xf6, "7": 0x15, "8": 0xf7, "9": 0xb7,
+                        "10": 0xf5 | 8, "11": 0x05 | 8, "12": 0xd3 | 8,
+                        "A": 0x77, "P": 0x73, "M": 0x75
+                    }
+                    data_out.append({"send_digits": [
+                        "Send a number of six digits to the LCD display:",
+                        args.send_digits]})
+                    lcd_buff = bytes([CMD_ID_LCD_DUMP])
+                    if args.send_digits == "time":
+                        now = datetime.datetime.now()
+                        h = str(now.hour % 12)
+                        md = str(now.minute // 10)
+                        mu = str(now.minute % 10)
+                        a = "P" if now.hour > 12 else "A"
+                        digits = [h, md, mu, "_", a, "M"]
+                    else:
+                        digits = "".join(args.send_digits.split()).split(",")
+                    for i in reversed(digits):
+                        if i.startswith("0x") or i.startswith("0X"):
+                            try:
+                                n = int(i, 16)
+                            except ValueError:
+                                n = 0
+                        else:
+                            n = lcd_digcode[i] if i in lcd_digcode else 0x00
+                        lcd_buff += bytes([n])
+                    char_n[0] = CMD_ID_LCD_DUMP + 0xEE00  # Set lcd buffer
+                    await client.write_gatt_char(
+                        characteristic_uuid, lcd_buff, response=True)
                     await asyncio.sleep(SLEEP_TIMEOUT)
                 if args.delta is not None:
                     data_out.append({"setting_time_adj": [
                         "Setting time delta adjustment:", args.delta]})
-                    adj = b'\x24' + Int16sl.build(args.delta)
-                    char_n[0] = 0xEE24  # Set adjust time clock delta (in 1/16 us for 1 sec)
+                    adj = bytes([CMD_ID_TADJUST]) + Int16sl.build(args.delta)
+                    char_n[0] = CMD_ID_TADJUST + 0xEE00  # Set adjust time clock delta (in 1/16 us for 1 sec)
                     await client.write_gatt_char(
                         characteristic_uuid, adj, response=True)
                     await asyncio.sleep(SLEEP_TIMEOUT)
@@ -620,22 +691,36 @@ async def atc_mi_configuration(args: argparse.Namespace):
                             characteristic_uuid, bytes([c]), response=True)
                         await asyncio.sleep(SLEEP_TIMEOUT)
                     data_out.append(
-                        {"display_report_date": [get_display_report("binary")]})
+                        {"display_report_date": [get_display_report(
+                            editing_structure, "binary")]})
                 if args.string:
                     char_n[0] = 0xEEFF
+                    std_str = re.sub(r".*[\"'](.*)[\"'].*", r"\1", args.string)
+                    try:
+                        digits = bytes.fromhex(std_str)
+                    except Exception:
+                        hex_list = re.findall(r'[0-9A-Fa-fXx]+', std_str)
+                        try:
+                            digits = bytes(map(lambda x: int(x, 16), hex_list))
+                        except Exception as e:
+                            data_out.append({"value_error": [str(e)]})
+                            return False, editing_structure, data_out
                     data_out.append({"write_string": [
-                        "Write hex", bytes.fromhex(args.string).hex(' ')]})
+                        "Write hex", digits.hex(' ')]})
                     await client.write_gatt_char(
                         characteristic_uuid,
-                        bytes.fromhex(args.string),
+                        digits,
                         response=True)
                     await asyncio.sleep(SLEEP_TIMEOUT)
+                    data_out.append(
+                        {"display_report": [get_display_report(
+                            editing_structure, "binary")]})
                 if args.reboot:
                     data_out.append({"notification_set_reboot": [
                         "Set Reboot on disconnect"]})
-                    char_n[0] = 0xEE72
+                    char_n[0] = CMD_ID_REBOOT + 0xEE00
                     await client.write_gatt_char(
-                        characteristic_uuid, b'\x72')
+                        characteristic_uuid, bytes([CMD_ID_REBOOT]))
                     await asyncio.sleep(SLEEP_TIMEOUT)
                 await asyncio.sleep(1)
 
@@ -663,28 +748,33 @@ async def atc_mi_configuration(args: argparse.Namespace):
     if times + 1 == args.attempts:
         data_out.append(
             {"timeout": [f"Cannot connect after {args.attempts} attempts."]})
-    return True, data_out
+    return True, editing_structure, data_out
 
 
 def main():
     parser = argparse.ArgumentParser(
         prog='atc_mi_config',
         epilog='Xiaomi Mijia Thermometer - Get/Set Configuration')
-    config_group = parser.add_mutually_exclusive_group()
-    parser.add_argument(
+    config_group = parser.add_mutually_exclusive_group(required=True)
+    config_group.add_argument(
+        '-V',
+        "--version",
+        dest='version',
+        action='store_true',
+        help="Print version and exit")
+    config_group.add_argument(
         '-m',
         '--mac',
         dest='address',
         action="store",
-        help='Device MAC Address (required). Example: -m A4:C1:38:AA:BB:CC',
-        required=True)
+        help='Device MAC Address (required). Example: -m A4:C1:38:AA:BB:CC')
     parser.add_argument(
         '-i',
         "--info",
         dest='info',
         action='store_true',
         help="Show device information")
-    config_group.add_argument(
+    parser.add_argument(
         '-c',
         "--chars",
         dest='chars',
@@ -726,11 +816,23 @@ def main():
         action='store_true',
         help="Show date and delta time adjustment at the end")
     parser.add_argument(
+        '-n',
+        "--numbers",
+        dest='send_digits',
+        type=str,
+        metavar='CSV_STRING',
+        action='store',
+        help=
+            'Send 6 digits to LCD in the form "1,2,3,_,4,5" or "0xf5,0x05,..."'
+    )
+    parser.add_argument(
         '-s',
         "--string",
         dest='string',
+        type=str,
+        metavar='HEX_SEQUENCE',
         action="store",
-        help="Set the hex string defined in the subsequent argument")
+        help="Send the hex byte sequence defined in the subsequent argument")
     parser.add_argument(
         '-R',
         "--reset",
@@ -778,10 +880,21 @@ def main():
 
     ret = False
     data_out = None
+    es = {}
+    args = parser.parse_args()
+    if args.version:
+        print(f'atc_mi_config version {__version__}')
+        sys.exit(0)
     try:
-        ret, data_out = asyncio.run(atc_mi_configuration(parser.parse_args()))
+        ret, data_dict, data_out = asyncio.run(
+            atc_mi_configuration(args))
     except KeyboardInterrupt:
         print('Interrupted')
+        sys.exit(2)
+    if args.verbosity:
+        for key, item in data_dict.items():
+            if "binary" in item:
+                print("Command", hex(key), "=", item["binary"].hex(' ').upper())
     if data_out:
         for item in data_out:
             for _, value in item.items():

@@ -4,6 +4,7 @@
 # atc_mi_advertising.py
 #############################################################################
 
+import sys
 import logging
 import argparse
 
@@ -13,7 +14,7 @@ from construct_gallery import BleakScannerConstruct
 
 from .atc_mi_adv_format import atc_mi_advertising_format
 from . import construct_module
-
+from .__version__ import __version__
 
 class AtcMiConstructFrame(wx.Frame):
     icon_image = PyEmbeddedImage(
@@ -116,7 +117,16 @@ def main():
         dest='inspectable',
         action='store_true',
         help="enable Inspection (Ctrl-Alt-I)")
+    parser.add_argument(
+        '-V',
+        "--version",
+        dest='version',
+        action='store_true',
+        help="Print version and exit")
     args = parser.parse_args()
+    if args.version:
+        print(f'atc_mi_advertising version {__version__}')
+        sys.exit(0)
     loadfile = None
     if args.log_data_file:
         loadfile = args.log_data_file
