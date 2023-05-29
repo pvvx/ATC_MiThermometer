@@ -1,0 +1,58 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Re-Build",
+			"group": "build",
+			"type": "shell",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"Clean",
+				"Build"
+			]
+		},
+		{
+			"label": "Build",
+			"type": "shell",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"close": false,
+				"panel": "dedicated",
+				"clear": true,
+				"revealProblems": "onProblem",
+			},
+			"command": "make",
+			"problemMatcher": {
+				//Note: If you get a "the description can't be converted into a problem matcher" error here
+				// The "C/C++" extension has not been installed (yet)
+				"source": "GCC-Build",
+				"base": "$gcc",
+				"fileLocation": [
+					"autodetect",
+					"${workspaceFolder}/build"
+				]
+			}
+		},
+		{
+			"label": "Clean",
+			"type": "shell",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"close": false,
+				"panel": "dedicated",
+				"clear": true,
+				"revealProblems": "never",
+			},
+			"linux": {
+				"command": "make clean",
+			},
+			"problemMatcher": []
+		}
+	]
+}

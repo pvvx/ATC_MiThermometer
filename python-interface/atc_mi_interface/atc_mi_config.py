@@ -38,6 +38,7 @@ SLEEP_TIMEOUT = 0.1
 
 char_dict = {
     "00000004-0000-1000-8000-00805f9b34fb": [
+        # [IDs], Construct, Length, Type (False or True)
         [[29], GreedyString("utf8"), 0, False]  # SJWS01LM Mi Flood Detector Version
     ],
     "00002a00-0000-1000-8000-00805f9b34fb": [
@@ -68,6 +69,9 @@ char_dict = {
     "0000fe95-0000-1000-8000-00805f9b34fb": [
         [[29], GreedyString("utf8"), 0, True],  # SJWS01LM version & service.description
         [[95], GreedyString("utf8"), 0, True],  # LYWSD03MMC version & service.description
+    ],
+    notify_uuid: [
+        [[44], Struct("Config ID" / Const(b"\x55"), "Data" / cfg), 13, True]
     ]
 }
 
@@ -204,7 +208,7 @@ editing_structure = {
     },
     CMD_ID_CFG: {
         "name": "Internal configuration",
-        "sample_binary": b'C\x85\x10\x00\x00(\x04\xa911\x04\xb4',
+        "sample_binary": bytes.fromhex("43 85 10 00 00 28 04 a9 31 31 04 b4"),
         "construct": cfg,
         "read_only": False,
         "size": 875,
@@ -277,20 +281,23 @@ async def atc_characteristics(client, verbosity=False):
                       "=", name_bytes)
             if service.uuid in char_dict:
                 for item in char_dict[service.uuid]:
-                    if char.handle not in item[0]:
+                    if char.handle not in item[0]:  # char ID
                         continue
                     name_bytes = await client.read_gatt_char(char.uuid)
-                    if not item[2] or len(name_bytes) == item[2]:
-                        if item[3]:
-                            char_list.append([char.handle, service.description,
-                                              item[1].parse(name_bytes)])
+                    if not item[2] or len(name_bytes) == item[2]:  # length
+                        if item[3]:  # Type
+                            char_list.append(
+                                [char.handle, service.description,
+                                normalize_report(
+                                    str(item[1].parse(name_bytes)))])  # Construct
                         else:
                             try:
-                                string = item[1].parse(name_bytes)
+                                string = normalize_report(
+                                    str(item[1].parse(name_bytes)))
                             except Exception:
                                 string = name_bytes.hex(' ').upper()
-                            char_list.append([char.handle, char.description,
-                                              string])
+                            char_list.append(
+                                [char.handle, char.description, string])
 
     return char_list
 
@@ -647,6 +654,8 @@ async def atc_mi_configuration(args: argparse.Namespace):
         except exc.BleakError as e:
             if args.show_error:
                 print("GATT error:", e)
+            if 'Characteristic ' in str(e) and ' not found!' in str(e):
+                break
         try:
             time.sleep(1)
         except KeyboardInterrupt:

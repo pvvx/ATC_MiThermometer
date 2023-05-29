@@ -8,6 +8,7 @@ extern "C" {
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
+#define DEVICE_MHO_C122   	0x000B	// LCD display MHO_C122
 #define DEVICE_MHO_C401   	0x0387	// E-Ink display MHO-C401 2020
 #define DEVICE_MHO_C401N   	0x0008	// E-Ink display MHO-C401 2022
 #define DEVICE_CGG1 		0x0B48  // E-Ink display CGG1-M "Qingping Temp & RH Monitor"
@@ -18,7 +19,7 @@ extern "C" {
 #define DEVICE_MJWSD05MMC	0x2832  // LCD display MJWSD05MMC
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 (+ set DEVICE_CGG1_ver) or DEVICE_CGDK2 or DEVICE_MHO_C401N or DEVICE_MJWSD05MMC
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 (+ set DEVICE_CGG1_ver) or DEVICE_CGDK2 or DEVICE_MHO_C401N or DEVICE_MJWSD05MMC or DEVICE_MHO_C122
 #endif
 
 #define BLE_SECURITY_ENABLE 1 // = 1 support pin-code
@@ -565,6 +566,72 @@ extern "C" {
 #define PB6_OUTPUT_ENABLE	0
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6	PM_PIN_PULLUP_10K
+
+#elif DEVICE_TYPE == DEVICE_MHO_C122
+// TLSR8251F512ET24
+// GPIO_PA5 - DM, free, (TRG)
+// GPIO_PA6 - DP, free, (RDS)
+// GPIO_PA7 - SWS, free, (debug TX)
+// GPIO_PB6 - used LCD, set "1"
+// GPIO_PB7 - free, (ADC1)
+// GPIO_PC2 - SDA, used I2C
+// GPIO_PC3 - SCL, used I2C
+// GPIO_PC4 - free
+// GPIO_PD2 - CS/PWM, free
+// GPIO_PD7 - free
+#define USE_EPD			0 // min update time ms
+
+#define SHL_ADC_VBAT	1  // "B0P" in adc.h
+#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define I2C_SCL 	GPIO_PC2
+#define I2C_SDA 	GPIO_PC3
+#define I2C_GROUP 	I2C_GPIO_GROUP_C2C3
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
+
+#if USE_TRIGGER_OUT
+
+#define GPIO_TRG			GPIO_PA5	// Trigger, output, pcb mark "reset"
+#define PA5_INPUT_ENABLE	1
+#define PA5_DATA_OUT		0
+#define PA5_OUTPUT_ENABLE	0
+#define PA5_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA5	PM_PIN_PULLDOWN_100K
+
+#define GPIO_RDS 			GPIO_PA6	// Reed Switch, input, pcb mark "P8"
+#define PA6_INPUT_ENABLE	1
+#define PA6_DATA_OUT		0
+#define PA6_OUTPUT_ENABLE	0
+#define PA6_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA6 PM_PIN_PULLUP_1M
+
+#define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX (B1.6)
+//#define PD7_INPUT_ENABLE	1
+//#define PD7_FUNC			AS_UART
+
+#define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
+
+#endif // USE_TRIGGER_OUT
+
+#if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
+#define CHL_ADC1 			8	// B7P
+#define GPIO_ADC1 			GPIO_PB7	// ADC input, pcb mark "B1"
+#define PB7_OUTPUT_ENABLE	0
+#define PB7_FUNC			AS_ADC
+#endif
+
+#if DIY_ADC_TO_TH // Special version: Humidity 0..36 = ADC pin PC4 input 0..3.6В, pcb mark "P9"
+#define CHL_ADC2 			9	// C4P
+#define GPIO_ADC2 			GPIO_PC4	// ADC input, pcb mark "P9"
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_DATA_STRENGTH	0
+#define PC4_FUNC			AS_GPIO
+#endif
 
 #else // DEVICE_TYPE
 #error ("DEVICE_TYPE = ?")

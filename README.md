@@ -1,4 +1,4 @@
-# Xiaomi Mijia LYWSD03MMC HW: [B1.4](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout), [B1.5](https://github.com/pvvx/ATC_MiThermometer/issues/338), [B1.6](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145), [B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125), [B2.0](https://github.com/pvvx/ATC_MiThermometer/issues/166) & Xiaomi Mijia [MJWSD05MMC](https://github.com/pvvx/ATC_MiThermometer/issues/307) & Xiaomi Miaomiaoce [MHO-C401](https://pvvx.github.io/MHO_C401) & CGG1-M ver: [2020, 2021 - "Qingping Temp & RH M"](https://pvvx.github.io/CGG1), [2022 - "Qingping Temp RH M"](https://pvvx.github.io/CGG1_2022) & [CGDK2](https://pvvx.github.io/CGDK2) Qingping Temp & RH Monitor Lite
+# Custom firmware for BLE thermometers on the Telink chipset.
 
 _This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
@@ -6,6 +6,7 @@ Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin)
 Custom firmware is not supported in MiHome. But it is possible to work LYWSD03MMC with 'Xiaomi Gateway 3' by first registering in MiHome on the official firmware, flashing to custom firmware with restoring the binding key from MiHome, replacing the device name with "LYWSD03MMC" and setting the advertising type to "MIJIA (MiHome)" marked "encrypted"._
 
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time. OTA and configuration main page - [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
+
 
 **Key features**
 
@@ -21,9 +22,11 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Adjustable RF TX Power & Bluetooth advertising interval
 * DIY improvements - relay control by temperature or humidity, transmission of the reed switch status - open / closed or pulse counter
 
-|[Xiaomi Mijia (LYWSD03MMC)](https://pvvx.github.io/ATC_MiThermometer) | [Xiaomi Miaomiaoce (MHO-C401)](https://pvvx.github.io/MHO_C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) | [CGDK2 Qingping Temp & RH Monitor Lite](https://pvvx.github.io/CGDK2) | [Xiaomi Mijia MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC) |
-|:--:|:--:|:--:|:--:|:--:|
-|  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |  <img src="https://pvvx.github.io/MHO_C401/img/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="120"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="120"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/CGDK2/img/CGDK2.jpg" alt="CGDK2 Qingping Temp & RH Monitor Lite" width="120"/> | <img src="https://pvvx.github.io/MJWSD05MMC/img/MJWSD05MMC.png" alt="Xiaomi Mijia (MJWSD05MMC)" width="120"/> |
+Supported models:
+
+|[Xiaomi Mijia (LYWSD03MMC)](https://pvvx.github.io/ATC_MiThermometer) | [Xiaomi Miaomiaoce (MHO-C401)](https://pvvx.github.io/MHO_C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) | [CGDK2 Qingping Temp & RH Monitor Lite](https://pvvx.github.io/CGDK2) | [Xiaomi Mijia MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC) | [MHO-C122 (2AWMOMHOC122)](https://pvvx.github.io/MHO_C122) |
+|:--:|:--:|:--:|:--:|:--:|:--:|
+|  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |  <img src="https://pvvx.github.io/MHO_C401/img/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="120"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="120"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/CGDK2/img/CGDK2.jpg" alt="CGDK2 Qingping Temp & RH Monitor Lite" width="120"/> | <img src="https://pvvx.github.io/MJWSD05MMC/img/MJWSD05MMC.png" alt="Xiaomi Mijia (MJWSD05MMC)" width="120"/> | <img src="https://pvvx.github.io/MHO_C122/img/MHO-C122.png" alt="MHO-C122 (2AWMOMHOC122)" width="120"/> |
 
 **Warnings**
 
@@ -51,7 +54,7 @@ If you have a smartphone with BT5.0+ and the nRFConnect program, then you can re
 
 To disable only the 'Long Range' option, use the code 0xDD.
 
-The Web Bluetooth API in Chrome does not yet allow scanning for Bluetooh 5.0+ devices.
+The [Web Bluetooth API](https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md) in Chrome does not yet allow scanning for Bluetooh 5.0+ devices.
 
 **Table of content**
 
@@ -145,13 +148,14 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 
-* [LYWSD03MMC Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v42.bin) (HW: B1.4, B1.6, B1.7, B1.9, B2.0)
-* [MJWSD05MMC Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/BTH_v42.bin) ([MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC))
-* [MHO-C401 2020-2021 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v42.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [MHO-C401 2022 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v42.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [CGG1-M 2020-2021 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGG1-M 2022 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGDK2 Custom Firmware Version 4.2](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v42.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
+* [LYWSD03MMC Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v43.bin) (HW: B1.4, B1.5, B1.6, B1.7, B1.9, B2.0)
+* [MJWSD05MMC Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/BTH_v43.bin) ([MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC))
+* [MHO-C122 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C122_v43.bin) ([2AWMOMHOC122](https://github.com/pvvx/ATC_MiThermometer/issues/339))
+* [MHO-C401 2020-2021 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v43.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [MHO-C401 2022 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v43.bin) (manufacturer Xiaomi and [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114))
+* [CGG1-M 2020-2021 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGG1-M 2022 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v43.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v43.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 **Original Manufacturer Firmware Version**
 
@@ -160,6 +164,7 @@ In case you want to go back to the original firmware, you can download them here
 * [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0109](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin) (HW: B1.4 only)
 * [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0130](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin) (HW: B1.4..B2.0)
 * [Xiaomi MJWSD05MMC Original Firmware v2.0.0_0026](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MJWSD05MMC_v2.0.0_0026.bin) (HW: V2.3)
+* [MiaoMiaoCe Technology (Beijing) Co., Ltd. MHO-C122 Original Firmware (Tuya)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_MHO_C122_tuya.bin)
 * [Xiaomi MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
 * [Xiaomi and Azarton MHO_C401 Original Firmware v1.0.0_0016](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0016.bin)
 * [Xiaomi SJWS01LM Original Firmware v1.1.1_0018](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_SJWS01LM_1.1.1_0018.bin)
@@ -205,7 +210,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.0 | Improved stability in connected mode. I2C bus CLK and PullUp correction.|
 |     4.1 | Changed "connection latency" for [stability in connected](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494).|
 |     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N) and [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC). Added function key: Connect |
-|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check HW: B1.5 |
+|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check HW: B1.5. Added MHO-C122 (2AWMOMHOC122) test support. |
 
 ## Applications
 
@@ -433,6 +438,20 @@ Setting the "Connect" option has several functions:
 [LYWSD03MMC B1.4 BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
 
 ![TabPins](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout/TabPins.gif)
+
+For LYWSD03MMC, the HW version is determined by the display and sensor addresses on I2C:
+
+|HW | LCD I2C   addr | SHTxxx   I2C addr | Note
+|-- | -- | -- | --
+|B1.4 | 0x3C | 0x70   (SHTC3) |  
+|B1.5 | UART | 0x70   (SHTC3) |  
+|B1.6 | UART | 0x44   (SHT4x) |  
+|B1.7 | 0x3C | 0x44   (SHT4x) | Test   original string HW
+|B1.9 | 0x3E | 0x44   (SHT4x) |  
+|B2.0 | 0x3C | 0x44   (SHT4x) | Test   original string HW
+
+Version 1.7 or 2.0 is determined at first run by reading the HW line written in Flash.
+Display matrices or controllers are different for all versions, except B1.7 = B2.0.
 
 
 #### Building the firmware

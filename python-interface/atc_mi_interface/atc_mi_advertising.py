@@ -70,7 +70,8 @@ class AtcMiBleakScannerConstruct(BleakScannerConstruct):
         if "Unknown" in format_label:
             logging.warning(
                 "mac: %s. %s advertisement: %s. RSSI: %s",
-                device.address, format_label, advertisement_data, device.rssi)
+                device.address, format_label, advertisement_data,
+                advertisement_data.rssi)
             return
         if adv_data:
             self.add_data(
@@ -80,7 +81,8 @@ class AtcMiBleakScannerConstruct(BleakScannerConstruct):
             )
         logging.info(
             "mac: %s. %s advertisement: %s. RSSI: %s",
-            device.address, format_label, advertisement_data, device.rssi)
+            device.address, format_label, advertisement_data,
+            advertisement_data.rssi)
 
 
 def main():

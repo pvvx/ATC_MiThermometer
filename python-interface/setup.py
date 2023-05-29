@@ -7,14 +7,14 @@
 from setuptools import setup
 
 DESCRIPTION = (
-    'Python tools and API of the "atc1441" and "pvvx" Xiaomi Mijia Thermometer'
-    ' custom firmware (ATC_MiThermometer)'
+    'Python tools and API for the "atc1441" and "pvvx" Xiaomi Mijia'
+    ' Thermometer custom firmware (ATC_MiThermometer)'
 )
 
 LONG_DESCRIPTION = '''
 # atc-mi-interface
 
-__Python tools and API of the "atc1441" and "pvvx" Xiaomi Mijia Thermometer custom firmware__
+__Python tools and API for the "atc1441" and "pvvx" Xiaomi Mijia Thermometer custom firmware__
 
 Python components (API and command-line tools, including some GUI) to represent
 the data model of the BLE advertisements of the Xiaomi Mijia Thermometer custom
@@ -47,7 +47,7 @@ Full information, installation notes, API reference and usage details at the
 
 setup(
     name="atc-mi-interface",
-    version="1.0.3",  # Format: A.B.C.postN
+    version="1.0.4",  # Format: A.B.C.postN
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
@@ -97,6 +97,7 @@ setup(
         "bleak",
         "BLE",
         "bluetooth",
+        "LYWSD03MMC",
     ],
     python_requires=">=3.8",
 )

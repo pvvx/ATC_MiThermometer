@@ -1,0 +1,19 @@
+{
+    "VsCodeTaskButtons.tasks": [
+        {
+            "label": "$(notebook-move-down) Build",
+            "task": "Build",
+            "tooltip": "🛠️ Start a \"Build\" action"
+        },
+        {
+            "label": "$(search-refresh) Re-Build",
+            "task": "Re-Build",
+            "tooltip": "🧹🛠️ Start a \"Clean & Debug-Build\" action"
+        },
+        {
+            "label": "$(notebook-delete-cell) Clean build",
+            "task": "Clean",
+            "tooltip": "🧹 Start a \"clean\" action"
+        }
+    ],
+}
