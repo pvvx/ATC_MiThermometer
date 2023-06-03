@@ -159,6 +159,7 @@ void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 
 #elif DEVICE_TYPE == DEVICE_MHO_C122
 
+void show_clear(void);
 void show_ota_screen(void);
 #define SHOW_OTA_SCREEN() show_ota_screen()
 #define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }

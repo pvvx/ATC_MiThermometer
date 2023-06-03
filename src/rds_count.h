@@ -11,6 +11,7 @@
 #include "app_config.h"
 
 #if	USE_TRIGGER_OUT
+#include "trigger.h"
 #ifdef GPIO_RDS
 
 static inline uint8_t get_rds_input(void) {
@@ -45,6 +46,7 @@ enum {
 
 typedef struct _rds_count_t {
 	uint32_t report_tick; // timer reed switch count report interval (utc_time_sec)
+	uint32_t last_event_tick; // timer of last reed switch report tick event (utc_time_sec)
 	uint32_t adv_counter;
 	union {				// rs counter pulses
 		uint8_t count_byte[4];

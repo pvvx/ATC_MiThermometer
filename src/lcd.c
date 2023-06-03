@@ -18,6 +18,7 @@
 #include "lcd.h"
 #include "ble.h"
 #include "battery.h"
+#include "rds_count.h"
 
 //RAM uint8_t show_stage; // count/stage update lcd code buffer
 //RAM uint32_t chow_ext_sec; // count show validity time, in sec
@@ -40,6 +41,11 @@ void update_lcd(void){
 	}
 }
 #endif
+
+_attribute_ram_code_
+void show_clear(void) {
+	memset(&display_buff, 0, sizeof(display_buff));
+}
 
 _attribute_ram_code_
 uint8_t is_comfort(int16_t t, uint16_t h) {
@@ -66,6 +72,21 @@ void lcd(void) {
 		lcd_flg.update_next_measure = 0;
 	else
 		lcd_flg.update_next_measure = 1;
+
+	if (rds.type && utc_time_sec - rds.last_event_tick < 3) { // when rds is triggered, show last 3 digits for a few seconds
+		show_clear();
+		show_big_number_x10(rds.count % 1000);
+		//show_small_number(0);
+		//show_smiley(0);
+		//show_battery_symbol(0);
+		show_temp_symbol(0xC0); // " ="
+		show_ble_symbol(_ble_con);
+
+		lcd_flg.update_next_measure = 0;
+
+		return;
+	}
+
 	if (show_ext && (lcd_flg.show_stage & 2)) { // show ext data
 		if (lcd_flg.show_stage & 1) { // stage blinking or show battery or clock
 			if (cfg.flg.show_batt_enabled
@@ -145,6 +166,7 @@ void lcd(void) {
 #endif
 #else
 				show_small_number((measured_data.battery_level >= 100) ? 99 : measured_data.battery_level, 1);
+
 #endif // (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
 				set_small_number_and_bat = false;
 			} else if (cfg.flg.show_time_smile) { // show clock

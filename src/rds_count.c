@@ -50,6 +50,7 @@ void rds_init(void) {
 	}
 #endif
 	rds.report_tick = utc_time_sec;
+	rds.last_event_tick = 0;
 }
 
 //_attribute_ram_code_
@@ -198,6 +199,8 @@ void rds_task(void) {
 			// key released event
 			trg.flg.rds_input = 0;
 			rds.count++;
+			rds.last_event_tick = utc_time_sec;
+			SET_LCD_UPDATE(); // SET_LCD_UPDATE() vs update_lcd()
 #if USE_WK_RDS_COUNTER32 // save 32 bits?
 			if (rds.count_short[0] == 0) {
 				flash_write_cfg(&rds.count_short[1], EEP_ID_RPC, sizeof(rds.count_short[1]));
