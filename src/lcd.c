@@ -47,6 +47,25 @@ void show_clear(void) {
 	memset(&display_buff, 0, sizeof(display_buff));
 }
 
+#if USE_WK_RDS_COUNTER
+_attribute_ram_code_
+void show_rds_counter() {
+	show_clear();
+	show_big_number_x10(rds.count % 1000);
+	//show_small_number(0);
+	//show_smiley(0);
+	//show_battery_symbol(0);
+	show_temp_symbol(0xC0); // " ="
+
+	lcd_flg.update_next_measure = 0;
+}
+
+#define SHOW_CLOCK() { if (rds.type) show_rds_counter(); else show_clock(); }
+#else // USE_WK_RDS_COUNTER
+#define SHOW_CLOCK() { show_clock(); }
+#endif // USE_WK_RDS_COUNTER
+
+
 _attribute_ram_code_
 uint8_t is_comfort(int16_t t, uint16_t h) {
 	uint8_t ret = SMILE_SAD;
@@ -73,19 +92,13 @@ void lcd(void) {
 	else
 		lcd_flg.update_next_measure = 1;
 
+#if USE_WK_RDS_COUNTER
 	if (rds.type && utc_time_sec - rds.last_event_tick < 3) { // when rds is triggered, show last 3 digits for a few seconds
-		show_clear();
-		show_big_number_x10(rds.count % 1000);
-		//show_small_number(0);
-		//show_smiley(0);
-		//show_battery_symbol(0);
-		show_temp_symbol(0xC0); // " ="
+		show_rds_counter();
 		show_ble_symbol(_ble_con);
-
-		lcd_flg.update_next_measure = 0;
-
 		return;
 	}
+#endif // USE_WK_RDS_COUNTER
 
 	if (show_ext && (lcd_flg.show_stage & 2)) { // show ext data
 		if (lcd_flg.show_stage & 1) { // stage blinking or show battery or clock
@@ -111,7 +124,7 @@ void lcd(void) {
 				set_small_number_and_bat = false;
 			} else if (cfg.flg.show_time_smile) { // show clock
 #if	USE_CLOCK
-				show_clock(); // stage clock
+				SHOW_CLOCK(); // stage clock
 				show_ble_symbol(_ble_con);
 				return;
 #else
@@ -143,7 +156,7 @@ void lcd(void) {
 		if (lcd_flg.show_stage & 1) { // stage clock/blinking or show battery
 #if	USE_CLOCK
 			if (cfg.flg.show_time_smile && (lcd_flg.show_stage & 2)) {
-				show_clock(); // stage clock
+				SHOW_CLOCK(); // stage clock
 				show_ble_symbol(_ble_con);
 				return;
 			}
@@ -171,7 +184,7 @@ void lcd(void) {
 				set_small_number_and_bat = false;
 			} else if (cfg.flg.show_time_smile) { // show clock
 #if	USE_CLOCK
-				show_clock(); // stage clock
+				SHOW_CLOCK(); // stage clock
 				show_ble_symbol(_ble_con);
 				return;
 #else
