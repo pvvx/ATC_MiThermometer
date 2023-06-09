@@ -4,3 +4,4 @@ __pycache__/
 # generated output
 out/*
 .metadata/
+ATC_Thermometer.bin
