@@ -95,21 +95,21 @@ build: pre-build main-build
 
 
 flash: $(BIN_FILE)
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w we 0 $(BIN_FILE)
+	@python $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w we 0 $(BIN_FILE)
 
 reset:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w i
+	@python $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w i
 
 stop:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 i
+	@python $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 i
 
 go:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -w -m
+	@python $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -w -m
 
 TADDR?=0x844000
 TLEN?=128
 test_damp:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z10 -c -g ds $(TADDR) $(TLEN)
+	@python $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z10 -c -g ds $(TADDR) $(TLEN)
 
 # Main-build Target
 main-build: $(ELF_FILE) secondary-outputs
@@ -119,7 +119,7 @@ $(ELF_FILE): $(OBJS) $(USER_OBJS)
 	@echo 'Building Standard target: $@'
 	@$(TC32_PATH)tc32-elf-ld --gc-sections -L $(TEL_PATH)/components/proj_lib -L $(OUT_PATH) -T $(LS_FLAGS) -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Building Reduced target: $@'
-	@$(TC32_PATH)tc32-elf-ld --gc-sections -Ttext `python3 $(PROJECT_PATH)/TlsrRetMemAddr.py -e $(ELF_FILE) -t $(TC32_PATH)tc32-elf-nm` -L $(TEL_PATH)/components/proj_lib -L $(OUT_PATH) -T $(LS_FLAGS) -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
+	@$(TC32_PATH)tc32-elf-ld --gc-sections -Ttext `python $(PROJECT_PATH)/TlsrRetMemAddr.py -e $(ELF_FILE) -t $(TC32_PATH)tc32-elf-nm` -L $(TEL_PATH)/components/proj_lib -L $(OUT_PATH) -T $(LS_FLAGS) -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -132,12 +132,12 @@ $(LST_FILE): $(ELF_FILE)
 $(BIN_FILE): $(ELF_FILE)
 	@echo 'Create Flash image (binary format)'
 	@$(TC32_PATH)tc32-elf-objcopy -v -O binary $(ELF_FILE)  $(BIN_FILE)
-	@python3 $(TL_Check) $(BIN_FILE)
+	@python $(TL_Check) $(BIN_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 sizedummy: $(ELF_FILE)
-	@python3 $(PROJECT_PATH)/TlsrMemInfo.py -t $(TC32_PATH)tc32-elf-nm $(ELF_FILE)
+	@python $(PROJECT_PATH)/TlsrMemInfo.py -t $(TC32_PATH)tc32-elf-nm $(ELF_FILE)
 
 clean:
 	-$(RM) $(FLASH_IMAGE) $(ELFS) $(OBJS) $(LST) $(SIZEDUMMY) $(ELF_FILE) $(BIN_FILE) $(LST_FILE)
