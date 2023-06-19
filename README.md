@@ -153,7 +153,7 @@ The download of the appropriate firmware for your device will be presented autom
 * [MHO-C122 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C122_v43.bin) ([2AWMOMHOC122](https://github.com/pvvx/ATC_MiThermometer/issues/339))
 * [MHO-C401 2020-2021 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v43.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
 * [MHO-C401 2022 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v43.bin) (manufacturer Xiaomi and [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114))
-* [CGG1-M 2020-2021 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v42.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGG1-M 2020-2021 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v43.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
 * [CGG1-M 2022 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v43.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
 * [CGDK2 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v43.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
@@ -210,7 +210,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.0 | Improved stability in connected mode. I2C bus CLK and PullUp correction.|
 |     4.1 | Changed "connection latency" for [stability in connected](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494).|
 |     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N) and [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC). Added function key: Connect |
-|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check HW: B1.5. Added MHO-C122 (2AWMOMHOC122) test support. |
+|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check LYWSD03MMC HW: B1.5. Added MHO-C122 (2AWMOMHOC122) test support. LCD display stabilization LYWSD03MMC HW:B1.9 |
 
 ## Applications
 

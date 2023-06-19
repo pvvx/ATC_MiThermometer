@@ -39,7 +39,7 @@ void update_lcd(void){
 		lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
 	}
 }
-#endif
+#endif // !USE_EPD
 
 _attribute_ram_code_
 uint8_t is_comfort(int16_t t, uint16_t h) {
@@ -97,7 +97,7 @@ void lcd(void) {
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 				show_smiley(0); // stage clock/blinking and blinking on
 #endif
-#endif
+#endif // USE_CLOCK
 			}
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 			else
@@ -156,7 +156,7 @@ void lcd(void) {
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 				show_smiley(0); // stage blinking and blinking on
 #endif
-#endif
+#endif // USE_CLOCK
 			} else {
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 				if (cfg.flg.comfort_smiley) { // comfort on

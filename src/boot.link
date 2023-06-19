@@ -94,6 +94,10 @@ SECTIONS
         *(.bss.*)
         }
     PROVIDE(_end_bss_ = .);
+/*
+    PROVIDE(hci_rx_fifo = .);
+    PROVIDE(hci_tx_fifo = .);
+*/    
 
     PROVIDE(_bin_size_ = _code_size_ + _end_data_ - _start_data_);
 }

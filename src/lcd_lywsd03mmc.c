@@ -158,9 +158,9 @@ void send_to_lcd(void){
 			gpio_setup_up_down_resistor(I2C_SCL, PM_PIN_PULLUP_10K);
 			gpio_setup_up_down_resistor(I2C_SDA, PM_PIN_PULLUP_10K);
 		}
-		reg_i2c_id = lcd_i2c_addr;
 		if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 			// B1.4, B1.7, B2.0
+			reg_i2c_id = lcd_i2c_addr;
 			reg_i2c_adr_dat = 0x4080;
 			reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
 			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
@@ -173,6 +173,36 @@ void send_to_lcd(void){
 			reg_i2c_ctrl = FLD_I2C_CMD_STOP;
 		} else { // (lcd_i2c_addr == (B19_I2C_ADDR << 1))
 			// B1.9 BU9792AFUV
+#if 1
+			for(buff_index = 0; buff_index < sizeof(display_buff); buff_index++)
+				utxb.data[buff_index] = reverse(*p++);
+			p = utxb.data;
+			reg_i2c_id = lcd_i2c_addr;
+			reg_i2c_adr = 0x04;	// addr: 4
+			reg_i2c_do = *p++;
+			reg_i2c_di = *p++;
+			reg_i2c_ctrl = FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO | FLD_I2C_CMD_DI | FLD_I2C_CMD_START;
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
+			reg_i2c_adr_dat = 0;
+			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
+			reg_i2c_adr = *p++;
+			reg_i2c_do = *p++;
+			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
+			reg_i2c_adr_dat = 0;
+			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
+			reg_i2c_adr = *p++;
+			reg_i2c_do = *p;
+			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO | FLD_I2C_CMD_STOP;
+			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
+			// LCD cmd: 0xc8 - Mode Set (MODE SET): Display ON, 1/3 Bias
+			reg_i2c_adr = 0xC8;
+			reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_STOP;
+
+#else
+			reg_i2c_id = lcd_i2c_addr;
 			reg_i2c_adr = 0x04;	// addr: 4
 			reg_i2c_do = reverse(*p++);
 			reg_i2c_di = reverse(*p++);
@@ -191,10 +221,11 @@ void send_to_lcd(void){
 			reg_i2c_adr = reverse(*p++);
 			reg_i2c_do = reverse(*p);
 			reg_i2c_ctrl = FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO | FLD_I2C_CMD_STOP;
+#endif
 		}
 		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	} else {
-		// B1.6 (UART LCD)
+		// B1.5, B1.6 (UART LCD)
 		utxb.data[5] = *p++;
 		utxb.data[4] = *p++;
 		utxb.data[3] = *p++;
