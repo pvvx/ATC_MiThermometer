@@ -66,7 +66,7 @@ void lcd(void) {
 		lcd_flg.update_next_measure = 0;
 	else
 		lcd_flg.update_next_measure = 1;
-	if (lcd_flg.chow_ext_ut == -1) {
+	if (lcd_flg.chow_ext_ut == 0xffffffff) {
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 			show_smiley(*((uint8_t *) &ext.flg));
 #endif

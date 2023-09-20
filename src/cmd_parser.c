@@ -277,8 +277,8 @@ void cmd_parser(void * p) {
 			if (--len > sizeof(ext)) len = sizeof(ext);
 			if (len) {
 				memcpy(&ext, &req->dat[1], len);
-				if(ext.vtime_sec == -1)
-					lcd_flg.chow_ext_ut = -1;
+				if(ext.vtime_sec == 0xffff)
+					lcd_flg.chow_ext_ut = 0xffffffff;
 				else
 					lcd_flg.chow_ext_ut = utc_time_sec + ext.vtime_sec;
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
