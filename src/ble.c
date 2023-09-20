@@ -294,7 +294,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 			//adv_set: Legacy
 			blc_ll_setExtAdvParam(ADV_HANDLE0,
 					ADV_EVT_PROP_LEGACY_CONNECTABLE_SCANNABLE_UNDIRECTED,
-					CONNECTABLE_ADV_INERVAL, CONNECTABLE_ADV_INERVAL + 10,
+					CONNECTABLE_ADV_INERVAL, CONNECTABLE_ADV_INERVAL + ADV_DELAY,
 					BLT_ENABLE_ADV_ALL, // primary advertising channel map
 					OWN_ADDRESS_PUBLIC, // own address type
 					BLE_ADDR_PUBLIC, // peer address type
@@ -310,7 +310,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 			//adv_set: Extended, Connectable_undirected
 			blc_ll_setExtAdvParam(ADV_HANDLE0,
 				ADV_EVT_PROP_EXTENDED_CONNECTABLE_UNDIRECTED,
-				adv_interval, adv_interval + 10,
+				adv_interval, adv_interval + ADV_DELAY,
 				BLT_ENABLE_ADV_ALL, // primary advertising channel map
 				OWN_ADDRESS_PUBLIC, // own address type
 				BLE_ADDR_PUBLIC, // peer address type
@@ -334,7 +334,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	} else
 #endif
 	{
-		bls_ll_setAdvParam(adv_interval, adv_interval + 10,
+		bls_ll_setAdvParam(adv_interval, adv_interval + ADV_DELAY,
 			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
 			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 		bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
