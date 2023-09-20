@@ -511,7 +511,7 @@ static void start_tst_battery(void) {
 
 #if USE_SECURITY_BEACON
 void bindkey_init(void) {
-#if	USE_MIHOME_BEACON
+#if	0 // USE_MIHOME_BEACON
 	uint32_t faddr = find_mi_keys(MI_KEYTBIND_ID, 1);
 	if (faddr) {
 		memcpy(bindkey, &keybuf.data[12], sizeof(bindkey));

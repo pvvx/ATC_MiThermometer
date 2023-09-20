@@ -211,7 +211,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.1 | Changed "connection latency" for [stability in connected](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494).|
 |     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N) and [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC). Added function key: Connect |
 |     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check LYWSD03MMC HW: B1.5. Added MHO-C122 (2AWMOMHOC122) test support. LCD display stabilization LYWSD03MMC HW:B1.9 |
-|     4.4 | Adding an [option to display only external data](https://github.com/pvvx/ATC_MiThermometer/issues/380#issuecomment-1727042304). |
+|     4.4 | Adding an [option to display only external data](https://github.com/pvvx/ATC_MiThermometer/issues/380#issuecomment-1727042304). Only the value from the "EEP BindKey" is now taken as the BindKey. |
 
 ## Applications
 

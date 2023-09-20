@@ -397,9 +397,9 @@ void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
 		} else if (cmd == CMD_ID_MI_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
-			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+//			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 		} else if (cmd == CMD_ID_MI_CLR) { // Delete all mi keys
-#if USE_SECURITY_BEACON
+#if 0 // USE_SECURITY_BEACON
 			if (erase_mikeys())
 				bindkey_init();
 #else
