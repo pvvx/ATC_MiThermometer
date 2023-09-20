@@ -511,27 +511,13 @@ static void start_tst_battery(void) {
 
 #if USE_SECURITY_BEACON
 void bindkey_init(void) {
-#if	0 // USE_MIHOME_BEACON
-	uint32_t faddr = find_mi_keys(MI_KEYTBIND_ID, 1);
-	if (faddr) {
-		memcpy(bindkey, &keybuf.data[12], sizeof(bindkey));
-		faddr = find_mi_keys(MI_KEYSEQNUM_ID, 1);
-		if (faddr)
-			memcpy(&adv_buf.send_count, keybuf.data, sizeof(adv_buf.send_count)); // BLE_GAP_AD_TYPE_FLAGS
-	} else {
-		if (flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey))
-				!= sizeof(bindkey)) {
-			generateRandomNum(sizeof(bindkey), (unsigned char *) &bindkey);
-			flash_write_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey));
-		}
-	}
-	mi_beacon_init();
-#else
 	if (flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey))
 			!= sizeof(bindkey)) {
 		generateRandomNum(sizeof(bindkey), (unsigned char *) &bindkey);
 		flash_write_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey));
 	}
+#if	USE_MIHOME_BEACON
+	mi_beacon_init();
 #endif // USE_MIHOME_BEACON
 #if USE_HA_BLE_BEACON
 	ha_ble_beacon_init();

@@ -399,12 +399,7 @@ void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
 //			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 		} else if (cmd == CMD_ID_MI_CLR) { // Delete all mi keys
-#if 0 // USE_SECURITY_BEACON
-			if (erase_mikeys())
-				bindkey_init();
-#else
 			erase_mikeys();
-#endif
 			olen = 2;
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
 			if (--len > sizeof(display_buff))
