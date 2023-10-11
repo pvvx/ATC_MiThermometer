@@ -1,5 +1,7 @@
 # Custom firmware for BLE thermometers on the Telink chipset.
 
+**Warning: Firmware LYWSD03MMC version 2.1.1_0159 is temporarily not supported!**
+
 _This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin) can be found here: [atc1441/ATC_MiThermometer](https://github.com/atc1441/ATC_MiThermometer).
