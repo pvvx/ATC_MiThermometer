@@ -145,7 +145,7 @@ void lcd(void) {
 			if (cfg.flg.show_batt_enabled
 #if	(DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
 #else
-				|| measured_data.battery_level <= 15
+				|| measured_data.battery_level <= 5
 #endif
 				) { // Battery
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
