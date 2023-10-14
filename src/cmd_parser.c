@@ -277,7 +277,10 @@ void cmd_parser(void * p) {
 			if (--len > sizeof(ext)) len = sizeof(ext);
 			if (len) {
 				memcpy(&ext, &req->dat[1], len);
-				lcd_flg.chow_ext_ut = utc_time_sec + ext.vtime_sec;
+				if(ext.vtime_sec == 0xffff)
+					lcd_flg.chow_ext_ut = 0xffffffff;
+				else
+					lcd_flg.chow_ext_ut = utc_time_sec + ext.vtime_sec;
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
 				SET_LCD_UPDATE();
 #else
@@ -394,14 +397,9 @@ void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
 		} else if (cmd == CMD_ID_MI_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
-			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+//			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 		} else if (cmd == CMD_ID_MI_CLR) { // Delete all mi keys
-#if USE_SECURITY_BEACON
-			if (erase_mikeys())
-				bindkey_init();
-#else
 			erase_mikeys();
-#endif
 			olen = 2;
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
 			if (--len > sizeof(display_buff))

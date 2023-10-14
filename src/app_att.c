@@ -153,28 +153,34 @@ static const u16 my_batServiceUUID        = SERVICE_UUID_BATTERY;
 static const u16 my_batCharUUID       	  = CHARACTERISTIC_UUID_BATTERY_LEVEL;
 RAM u16 batteryValueInCCC;
 
-//////////////////////// Temp /////////////////////////////////////////////////
+//////////////////////// Temp/Hum /////////////////////////////////////////////////
+#define CHARACTERISTIC_UUID_TEMPERATYRE 0x2A6E // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.temperature.xml
+#define CHARACTERISTIC_UUID_HUMIDITY 0x2A6F // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.humidity.xml
+
 static const u16 my_tempServiceUUID       = 0x181A;
-static const u16 my_tempCharUUID       	  = 0x2A1F; //
-static const u16 my_temp2CharUUID      	  = 0x2A6E; // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.temperature.xml
-static const u16 my_humiCharUUID       	  = 0x2A6F; // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.humidity.xml
+static const u16 my_tempCharUUID       	  = 0x2A1F;
+static const u16 my_temp2CharUUID      	  = CHARACTERISTIC_UUID_TEMPERATYRE;
+static const u16 my_humiCharUUID       	  = CHARACTERISTIC_UUID_HUMIDITY;
 RAM u16 tempValueInCCC;
 RAM u16 temp2ValueInCCC;
 RAM u16 humiValueInCCC;
 
-/////////////////////////////////////////////////////////
+///////////////////////// OTA ////////////////////////////////
 static const  u8 my_OtaUUID[16]					    = TELINK_SPP_DATA_OTA;
 static const  u8 my_OtaServiceUUID[16]				= TELINK_OTA_UUID_SERVICE;
 static u8 my_OtaData 						        = 0x00;
 static const u8  my_OtaName[] = {'O', 'T', 'A'};
 
-// RxTx Char
-static const  u16 my_RxTxUUID				= 0x1f1f;
-static const  u16 my_RxTx_ServiceUUID		= 0x1f10;
+/////////////// RxTx/CMD Char ///////////////
+#define  COMMAND_UUID16_SERVICE 0x1F10
+#define  COMMAND_UUID16_CHARACTERISTIC 0x1F1F
+
+static const  u16 my_RxTxUUID				= COMMAND_UUID16_CHARACTERISTIC;
+static const  u16 my_RxTx_ServiceUUID		= COMMAND_UUID16_SERVICE;
 RAM u8 my_RxTx_Data[sizeof(cfg) + 2];
 RAM u16 RxTxValueInCCC;
 
-//0x95FE
+// MI 0x95FE
 static const u16 mi_primary_service_uuid = 0xfe95;
 #if (!defined(USE_MIHOME) || USE_MIHOME == 0)
 static const u8  my_MiName[] = {'M', 'i'};
@@ -245,7 +251,7 @@ static const u8 my_OtaCharVal[19] = {
 static const u8 my_RxTxCharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_NOTIFY | CHAR_PROP_WRITE_WITHOUT_RSP,
 	U16_LO(RxTx_CMD_OUT_DP_H), U16_HI(RxTx_CMD_OUT_DP_H),
-	U16_LO(0x1f1f), U16_HI(0x1f1f)
+	U16_LO(COMMAND_UUID16_CHARACTERISTIC), U16_HI(COMMAND_UUID16_CHARACTERISTIC)
 };
 #if USE_MIHOME_SERVICE
 #define MAX_MI_ATT_NUM 20
