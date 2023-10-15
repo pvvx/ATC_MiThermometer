@@ -4,4 +4,3 @@
 
 from .atc_mi_construct import *
 from .atc_mi_adv_format import atc_mi_advertising_format
-from .atc_mi_config import atc_mi_configuration

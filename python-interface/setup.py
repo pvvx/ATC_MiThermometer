@@ -11,6 +11,10 @@ DESCRIPTION = (
     ' Thermometer custom firmware (ATC_MiThermometer)'
 )
 
+PACKAGE_NAME = "atc-mi-interface"
+
+VERSIONFILE = "atc_mi_interface/__version__.py"
+
 LONG_DESCRIPTION = '''
 # atc-mi-interface
 
@@ -45,9 +49,17 @@ Full information, installation notes, API reference and usage details at the
 
 ###########################################################################
 
+verstrline = open(VERSIONFILE, "rt").read()
+VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+mo = re.search(VSRE, verstrline, re.M)
+if mo:
+    verstr = mo.group(1)
+else:
+    raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+
 setup(
-    name="atc-mi-interface",
-    version="1.0.4",  # Format: A.B.C.postN
+    name=PACKAGE_NAME,
+    version=verstr,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
@@ -86,7 +98,7 @@ setup(
         ]
     },
     keywords=[
-        "atc-mi-interface",
+        PACKAGE_NAME,
         "Xiaomi",
         "Mijia",
         "Thermometer",

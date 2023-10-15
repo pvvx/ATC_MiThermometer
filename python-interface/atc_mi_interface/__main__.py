@@ -7,6 +7,7 @@ import sys
 from . import atc_mi_advertising
 from . import atc_mi_config
 from . import atc_mi_format_test
+from .__version__ import __version__
 
 def main():
     parser = argparse.ArgumentParser(
@@ -41,8 +42,17 @@ def main():
         dest='subhelp',
         action='store_true',
         help="Invoke the specific help of the selected tool")
+    parser.add_argument(
+        '-V',
+        "--version",
+        dest='version',
+        action='store_true',
+        help="Print version and exit")
 
     args, unknown = parser.parse_known_args()
+    if args.version:
+        print(f'atc_mi_interface version {__version__}')
+        sys.exit(0)
     if len(sys.argv) > 1:
         sys.argv.pop(1)
     if args.subhelp:

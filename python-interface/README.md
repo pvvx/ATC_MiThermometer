@@ -1,5 +1,10 @@
 # Python interfacing methods and data representation model
 
+[![PyPI](https://img.shields.io/pypi/v/atc-mi-interface.svg?maxAge=2592000)](https://pypi.org/project/atc-mi-interface)
+[![Python Versions](https://img.shields.io/pypi/pyversions/atc-mi-interface.svg)](https://pypi.org/project/atc-mi-interface/)
+[![PyPI download month](https://img.shields.io/pypi/dm/atc-mi-interface.svg)](https://pypi.python.org/pypi/atc-mi-interface/)
+[![GitHub license](https://img.shields.io/badge/license-Unlicense-blue.svg)](https://raw.githubusercontent.com/pvvx/ATC_MiThermometer/master/LICENSE)
+
 These programs and descriptions are provided by [Ircama](https://github.com/Ircama).
 
 This section describes the Python components (API and command-line tools, including some GUI) to represent the data model of the BLE advertisements produced by the custom firmware, as well as a documented interface and a testing tool to receive, decode, show and edit the BLE advertisements delivered via the custom firmware. Additional features allow browsing and editing the full configuration of the device.
@@ -42,7 +47,7 @@ All prerequisites are automatically installed and the package can be immediately
 The package also installs the following three entry-points, which can be run from the command-line: *atc_mi_advertising*, *atc_mi_config* and *atc_mi_format_test*. These entry-points are related to tools that can also be invoked through the `atc_mi_interface -a | -c | -t` global command-line options, as in the following usage:
 
 ```
-usage: atc_mi_interface [-h] (-a | -c | -t) [-H]
+usage: atc_mi_interface [-h] (-a | -c | -t) [-H] [-V]
 
 Subsequent options must follow, related to the selected tool. The first argument is the option which selects the tool
 (advertising, config, or test) and must be separated from the subsequent tool options, to be placed in other
@@ -54,6 +59,7 @@ optional arguments:
   -c, --config       Run the atc_mi_config tool
   -t, --test         Run the atc_mi_format_test tool
   -H, --help-option  Invoke the specific help of the selected tool
+  -V, --version      Print version and exit
 
 atc_mi_interface tools
 ```
@@ -457,6 +463,170 @@ Output:
 '16 16 1e 18 23 1b 90 11 7c cd e0 4b a1 73 26 5c 7d 03 00 68 8c 9b 84'
 ```
 
+## Reading and updating single values
+
+`Struct` collections defined in [atc_mi_construct.py](atc_mi_interface/atc_mi_construct.py) generally return a [`Container`](https://construct.readthedocs.io/en/latest/basics.html?highlight=dictionary#containers), that can be considered a regular Python dictionary. To read, set, update single values, the same dictionary statements can be used.
+
+As an example, we first setup a `construct` collection from `cfg`, named `cfg_constr`:
+
+```python
+from atc_mi_interface import cfg
+
+CFG_BYTES = '43 85 10 00 00 28 04 A9 31 31 04 B4'
+cfg_constr = cfg.parse(bytes.fromhex(CFG_BYTES))
+
+cfg_constr
+```
+
+Output:
+
+```python
+Container(version=1, firmware_version=Container(major=4, minor=3), flg=Container(lp_measures=True, tx_measures=False, show_batt_enabled=False, temp_F_or_C=uEnumIntegerString.new(0, 'temp_C'), blinking_time_smile=uEnumIntegerString.new(0, 'blinking_smile'), comfort_smiley=True, advertising_type=uEnumIntegerString.new(1, 'adv_type_custom')), flg2=Container(screen_off=False, longrange=False, bt5phy=False, adv_flags=True, adv_crypto=False, smiley=uEnumIntegerString.new(0, 'smiley_off')), temp_offset=0.0, temperature_unit=u'°C', humi_offset=0.0, humidity_unit=u'%', advertising_interval=2.5, adv_int_unit=u'sec.', measure_interval=4, rf_tx_power=uEnumIntegerString.new(169, 'RF_POWER_Positive_0p04_dBm'), connect_latency=1.0, connect_latency_unit=u'sec.', min_step_time_update_lcd=2.45, min_s_t_upd_lcd_unit=u'sec.', hw_cfg=Container(sensor=uEnumIntegerString.new(0, 'sensor_SHT4x'), reserved=0, hwver=uEnumIntegerString.new(4, 'hwver_LYWSD03MMC_B1_6')), averaging_measurements=180)
+```
+
+To pretty print its content:
+
+```python
+print(cfg_constr)
+# or pretty_output = str(cfg_constr)
+```
+
+Output:
+
+```
+Container:
+    version = 1
+    firmware_version = Container:
+        major = 4
+        minor = 3
+    flg = Container:
+        lp_measures = True
+        tx_measures = False
+        show_batt_enabled = False
+        temp_F_or_C = (enum) temp_C 0
+        blinking_time_smile = (enum) blinking_smile 0
+        comfort_smiley = True
+        advertising_type = (enum) adv_type_custom 1
+    flg2 = Container:
+        screen_off = False
+        longrange = False
+        bt5phy = False
+        adv_flags = True
+        adv_crypto = False
+        smiley = (enum) smiley_off 0
+    temp_offset = 0.0
+    temperature_unit = u'°C' (total 2)
+    humi_offset = 0.0
+    humidity_unit = u'%' (total 1)
+    advertising_interval = 2.5
+    adv_int_unit = u'sec.' (total 4)
+    measure_interval = 4
+    rf_tx_power = (enum) RF_POWER_Positive_0p04_dBm 169
+    connect_latency = 1.0
+    connect_latency_unit = u'sec.' (total 4)
+    min_step_time_update_lcd = 2.45
+    min_s_t_upd_lcd_unit = u'sec.' (total 4)
+    hw_cfg = Container:
+        sensor = (enum) sensor_SHT4x 0
+        reserved = 0
+        hwver = (enum) hwver_LYWSD03MMC_B1_6 4
+    averaging_measurements = 180
+```
+
+As an alternative pretty printing mode, we can also use [`black`](https://black.readthedocs.io/):
+
+```python
+from black import format_str, FileMode  # pip install black
+print(format_str(repr(cfg_constr), mode=FileMode()))
+```
+
+Output:
+
+```python
+Container(
+    version=1,
+    firmware_version=Container(major=4, minor=3),
+    flg=Container(
+        lp_measures=True,
+        tx_measures=False,
+        show_batt_enabled=False,
+        temp_F_or_C=uEnumIntegerString.new(0, "temp_C"),
+        blinking_time_smile=uEnumIntegerString.new(0, "blinking_smile"),
+        comfort_smiley=True,
+        advertising_type=uEnumIntegerString.new(1, "adv_type_custom"),
+    ),
+    flg2=Container(
+        screen_off=False,
+        longrange=False,
+        bt5phy=False,
+        adv_flags=True,
+        adv_crypto=False,
+        smiley=uEnumIntegerString.new(0, "smiley_off"),
+    ),
+    temp_offset=0.0,
+    temperature_unit="°C",
+    humi_offset=0.0,
+    humidity_unit="%",
+    advertising_interval=2.5,
+    adv_int_unit="sec.",
+    measure_interval=4,
+    rf_tx_power=uEnumIntegerString.new(169, "RF_POWER_Positive_0p04_dBm"),
+    connect_latency=1.0,
+    connect_latency_unit="sec.",
+    min_step_time_update_lcd=2.45,
+    min_s_t_upd_lcd_unit="sec.",
+    hw_cfg=Container(
+        sensor=uEnumIntegerString.new(0, "sensor_SHT4x"),
+        reserved=0,
+        hwver=uEnumIntegerString.new(4, "hwver_LYWSD03MMC_B1_6"),
+    ),
+    averaging_measurements=180,
+)
+```
+
+Reading values from `cfg_constr` (all are valid modes):
+
+```python
+print(cfg_constr.flg.tx_measures)
+print(cfg_constr["flg"]["tx_measures"])
+print(cfg_constr.flg.get("tx_measures"))
+```
+
+Assigning values to `cfg_constr` (all are valid modes):
+
+```python
+cfg_constr.flg.tx_measures = True
+cfg_constr["flg"]["tx_measures"] = True
+cfg_constr.flg.update({"tx_measures", True})
+```
+
+In addition, elements can also be searched:
+
+```python
+print(cfg_constr.search("tx_measures"))  # the first value is returned
+print(cfg_constr.search_all("tx_measures"))  # a list is returned with all found values
+```
+
+Full example to update a byte sequence, setting a single value:
+
+```python
+from atc_mi_interface import cfg
+
+CFG_BYTES = '43 85 10 00 00 28 04 A9 31 31 04 B4'  # initial byte sequence
+
+cfg_constr = cfg.parse(bytes.fromhex(CFG_BYTES))  # first we create its "construct"
+cfg_constr.flg.tx_measures = True  # then we update the value
+new_cfg_bytes = cfg.build(cfg_constr)  # subsequently, we build the new byte sequence
+
+print(new_cfg_bytes.hex(' ').upper())
+```
+
+Output:
+
+```
+43 C5 10 00 00 28 04 A9 31 31 04 B4
+```
+
 ## Processing BLE advertisements
 
 After performing the [installation](#Installation) procedure, the simplest program to process BLE advertisements produced by the thermometers is the following:
@@ -473,7 +643,7 @@ bindkey = {
     # ...
 }
 
-async def main():
+async def ble_coro():
     count = [0]
     stop_event = asyncio.Event()
 
@@ -485,7 +655,9 @@ async def main():
         atc_mi_data = general_format.parse(
             adv_data,
             mac_address=mac_address,
-            bindkey=bindkey[mac_address] if mac_address in bindkey else None
+            bindkey=(
+                bindkey[device.address] if device.address in bindkey else None
+            )
         )
         print(f"{count[0]}. {format_label} advertisement: {atc_mi_data}. "
             f"RSSI: {advertisement_data.rssi}")
@@ -500,7 +672,7 @@ async def main():
     print("Stopped")
 
 
-asyncio.run(main())
+asyncio.run(ble_coro())
 ```
 
 The program [runs on](https://github.com/hbldh/bleak#features) Windows, Linux, OS/X, Raspberry Pi, Android. It prints the first 5 parsed frames from available thermometers, regardless their configurations. It exploits the `atc_mi_advertising_format()` function, which adds headers to the BLE advertisements produced by the thermometers and discovered by `BleakScanner()` (from *bleak*), so that the resulting frame can be directly processed by the *construct* structures included in the package.
@@ -532,7 +704,7 @@ With a proper Python installation, the entry-point `atc_mi_advertising` should a
 Program command line options:
 
 ```
-usage: atc_mi_advertising [-h] [-s] [-m] [-l LOG_DATA_FILE [LOG_DATA_FILE ...]] [-i]
+usage: atc_mi_advertising [-h] [-s] [-m] [-l LOG_DATA_FILE [LOG_DATA_FILE ...]] [-i] [-V]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -540,7 +712,8 @@ optional arguments:
   -m, --maximized       display the frame maximized
   -l LOG_DATA_FILE [LOG_DATA_FILE ...], --load LOG_DATA_FILE [LOG_DATA_FILE ...]
                         log data file(s) to be automatically loaded at startup.
-  -i, --inspectable     enable Inspection
+  -i, --inspectable     enable Inspection (Ctrl-Alt-I)
+  -V, --version         Print version and exit
 
 Xiaomi Mijia Thermometer - BLE Advertisement Browser
 ```
@@ -706,27 +879,31 @@ With a proper Python installation, the entry-point `atc_mi_config` should also w
 ### General usage
 
 ```
-usage: atc_mi_config [-h] [-i] [-c] [-D] [-j DELTA] [-d] [-s STRING] [-R] [-g] [-b] -m ADDRESS [-a ATTEMPTS] [-E [EDIT_LIST ...]] [-e] [-v] [-t] [-x]
+usage: atc_mi_config [-h] (-V | -m ADDRESS) [-i] [-c] [-g] [-E [EDIT_LIST ...]] [-D] [-j DELTA] [-d] [-n CSV_STRING]
+                     [-s HEX_SEQUENCE] [-R] [-b] [-a ATTEMPTS] [-e] [-v] [-t] [-x]
 
 optional arguments:
   -h, --help            show this help message and exit
+  -V, --version         Print version and exit
+  -m ADDRESS, --mac ADDRESS
+                        Device MAC Address (required). Example: -m A4:C1:38:AA:BB:CC
   -i, --info            Show device information
   -c, --chars           Show characteristics (configuration)
+  -g, --gui             Edit the configuration using the GUI
+  -E [EDIT_LIST ...], --edit [EDIT_LIST ...]
+                        Edit one or multiple values; no value to dump editable parameters
   -D, --set_date        Set current device date with the host time
   -j DELTA, --adjust DELTA
                         Set the time delta adjustment (-32767..32767, in 1/16 usec. for 1 sec.)
   -d, --read_date       Show date and delta time adjustment at the end
-  -s STRING, --string STRING
-                        Set the hex string defined in the subsequent argument
+  -n CSV_STRING, --numbers CSV_STRING
+                        Send 6 digits to LCD in the form "1,2,3,_,4,5" or "0xf5,0x05,..."
+  -s HEX_SEQUENCE, --string HEX_SEQUENCE
+                        Send the hex byte sequence defined in the subsequent argument
   -R, --reset           Reset default configuration
-  -g, --gui             Edit the configuration using the GUI
   -b, --reboot          Set Reboot on disconnect
-  -m ADDRESS, --mac ADDRESS
-                        Device MAC Address (required). Example: -m A4:C1:38:AA:BB:CC
   -a ATTEMPTS, --attempts ATTEMPTS
                         Set the max number of attempts to connect the device (default=20)
-  -E [EDIT_LIST ...], --edit [EDIT_LIST ...]
-                        Edit one or multiple values; no value to dump editable parameters
   -e, --error           Show BLE error information
   -v, --verbosity       Show process information
   -t, --test            Show test GUI and test command-line editing
@@ -787,27 +964,64 @@ python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -E "Internal conf
 python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -E "Internal configuration|flg|advertising_type = 3"
 ```
 
+The `-n` option allows sending values to the LCD (only tested with the [LYWSD03MMC display](https://github.com/pvvx/ATC_MiThermometer/blob/master/src/lcd_lywsd03mmc.c#L10-L33)). It requires a string (CSV_STRING) as an argument, which shall include comma-separated values. Each value can be either a digit, that will be translated so that the corresponding number is shown with the LYWSD03MMC display, or a hex value in the form "0xNN", directly sent to the display without translation. The number of digits are generally 6 (depending on the specific display) and they are always sent in reverse order, so that the first one sets the first display character (display byte 5) and subsequent digits respectively set display bytes 4, 3, 2, 1, 0. Therefore, with the LYWSD03MMC display, the first three digits set the bigger number, the fourth digit maps display symbols (e.g., temerature unit and emoticons), the last two digits the smaller number. The fourth digit can be set to zero (null ",,", or unknown label like "_", or "0x00") to avoid showing symbols. In addition to digits from 0 to 9, the following ones are allowed: 10, 11, 12, A, P, M (10, 11 and 12 can only be used for the first value). Any incorrect value (like "_") is automatically converted to zero (not shown). If the argument string is set to the word "time" (instead of the comma-separated values), the current host time in 12-hour format is shown.
+
+Examples to show "12345", or "1234 AM", or "HELLO", or the current host time to the LYWSD03MMC display:
+
+```
+python3 -m atc_mi_interface -c -m A4:C1:38:AA:BB:CC -n "1,2,3,_,4,5"
+python3 -m atc_mi_interface -c -m A4:C1:38:AA:BB:CC -n "12,3,4,,A,M"
+python3 -m atc_mi_interface -c -m A4:C1:38:AA:BB:CC -n "0x67,0xf2,0xe0,_,0xe0,0xf5"
+python3 -m atc_mi_interface -c -m A4:C1:38:AA:BB:CC -n "time"
+```
+
+The `-s` option allows sending a generic configuration hex byte sequence (HEX_SEQUENCE) to the device, decoding or dumping the data returned by the device. The first byte of the sequence is the [CMD_ID_KEYS command](https://github.com/pvvx/ATC_MiThermometer/blob/master/src/cmd_parser.h#L3-L40) and the subsequent ones are configuration parameters related to the command. The hex byte sequence can be represented as a string in different formats, including the following ones:
+
+```
+1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
+"1 2 3 4 5 6 7 8 9 a b c d e f"
+60f5e000e0f267
+"60 f5 e0 00 e0 f2 67"
+60,f5,e0,00,e0,f2,67
+60.f5.e0.00.e0.f2.67
+60-f5-e0-00-e0-f2-67
+0x60,0xf5,0xe0,0x00,0xe0,0xf2,0x67
+```
+
+Example to show "HELLO" to the LYWSD03MMC display using the [0x60 CMD_ID_LCD_DUMP command](https://github.com/pvvx/ATC_MiThermometer/blob/master/src/cmd_parser.h#L30):
+
+```
+python3 -m atc_mi_interface -c -m A4:C1:38:AA:BB:CC -s "0x60,0xf5,0xe0,0x00,0xe0,0xf2,0x67"
+```
+
 Notice again that `atc_mi_config` can be used in place of `python3 python3 -m atc_mi_interface.atc_mi_config`.
 
 Using the GUI configuration, to enable editing a non-readonly parameter you need to tiple-click it, then, after completing the editing, close the GUI to store the new configuration to the device. To discard changes, without closing the GUI press Control-C on the Python application. Parameters notified as read-only, even if changed will not be uploaded to the device.
 
 The command-line configuration editor uses the `-E` option: without additional parameters, it dumps the editable strings so that they can be copied and reused with the same `-E` option followed by a list of configuration strings (`EDIT_LIST`). Each string is composed of configuration parameter and related assignment; when changing it, keep the same format for the configuration parameter (multiple words separated by "|") and the assignment symbol (" = " including spaces): just update the value (without heading and trailing spaces). Each element can be enclosed in quotes: e.g., `"Internal configuration|flg|advertising_type = 0"`. Multiple `-E` options can be used; besides, a `-E` option accepts one or multiple assignment arguments. If `-E` is used without parameters after a set of edited parameters defined though a previous `-E` option, the device is connected, but the edited configuration is not saved to the device (dry-run mode).
 
-Notice that "Comfort parameters" will not be reset with "-R".
+"Comfort parameters" will not be reset with "-R".
 
 ![atc_mi_config GUI Preview](images/atc_mi_config.gif)
 
 ### atc_mi_configuration() API interface
 
-The *atc_mi_interface* package exposes the `atc_mi_configuration(args: argparse.Namespace)` async API.
+The *atc_mi_interface* package exposes the `atc_mi_configuration(configuration: argparse.Namespace)` async API.
 
 Usage:
 
 ```python
-ret, data_out = asyncio.run(atc_mi_configuration(configuration))
+import asyncio
+import argparse
+from atc_mi_interface.atc_mi_config import atc_mi_configuration
+
+configuration = argparse.Namespace()  # all attributes need to be initialized
+...
+
+ret, data_dict, data_out = asyncio.run(atc_mi_configuration(configuration))
 ```
 
-This Python function requires a configuration argument that needs to be an initialized instance of `argparse.Namespace()`, with all attributes set, as in the following example. The returned data is a tuple where the first value is the return code and the second value is the payload.
+This Python function requires a configuration argument that needs to be an initialized instance of `argparse.Namespace()`, with all attributes set, as in the full example below. The returned data is a tuple where the first value is the return code, the second value is a dictionary of returned commands (the "binary" attribute is actually collecting the data that can be decoded with the "construct" attribute) and the third value is a list of key/values of comments that can be printed out.
 
 The return code (first value of the tuple) can be:
 
@@ -815,14 +1029,35 @@ The return code (first value of the tuple) can be:
 - `None`, in case of successful execution of a test,
 - `True`, in case of successful change of the configuration.
 
-The payload (second value of the tuple) is a list of dictionaries, where each dictionary has a single *key* string representing the value identifier (e.g., can be parsed to process related values with specific decoders) and the *value*, that is in turn a list of one or more values, which, e.g., can be printed with `print(*value)`.
+The second value of the tuple (`data_dict`) includes nested dictionaries, with returned command number as key and related value consisting of a dictionary where a relevant inner key is "binary": when available, it includes the bytes returned by the device in relation to an answered command. Specifically, a queried command can return a dictionalry of zero, one or multiple answered commands, each one with its own "binary" data. Another relevant inner key included in the nested dictionary is "construct": each "binary" data refers to a related "construct" structure to decode the bytes.
 
-Example:
+For example, the following code prints all returned commands and "binary" values, also decoding them:
+
+```python
+for key, item in data_dict.items():
+    if "binary" in item:
+        decoded_data = item["construct"].parse(item["binary"])
+        print("Command", hex(key), "=", item["binary"].hex(' ').upper())
+        print("Decoded data:", decoded_data)
+```
+
+The third value of the tuple (`data_out`) returns a list of zero, one or more printable descriptions and comments, which, e.g., can be printed with `print(*value)`, like in the following example:
+
+```python
+for item in data_out:
+    for key, value in item.items():
+        print("Entity name:", key, "- Value:", *value)
+```
+
+The `normalize_report()` function can be used to improve the printout (string conversion) of a parsed "construct" structure (`normalize_report(str(item["construct"].parse(item["binary"])))`).
+
+Full example program:
 
 ```python
 import asyncio
 import argparse
-from atc_mi_interface import atc_mi_configuration
+from atc_mi_interface.atc_mi_config import atc_mi_configuration
+from atc_mi_interface import normalize_report
 
 configuration = argparse.Namespace()  # all attributes need to be initialized
 
@@ -834,7 +1069,8 @@ configuration.edit_list = None  # set to [["config1", "config2", ...]] to edit o
 configuration.set_date = False  # True to set the current device date with the host time
 configuration.delta = None  # set to a relative number to configure the time delta adjustment (-32767..32767, in 1/16 usec. for 1 sec.)
 configuration.read_date = False  # True to return the date and the delta time adjustment (after previous actions)
-configuration.string = None  # set to a hex string to store it to the device
+configuration.send_digits = None # Set to a string of six digits to send the number to the LCD display
+configuration.string = None  # set to a hex string to be sent to the device
 configuration.reset = False  # True to reset the default configuration of the device
 configuration.reboot = False  # True to activate a device reboot on disconnect
 configuration.attempts = 20  # set the max number of attempts to connect the device
@@ -843,12 +1079,54 @@ configuration.verbosity = False  # True to print the process information. [It sh
 configuration.test = False  # True to activate the test GUI and the test command-line editing
 configuration.inspectable = False  # True to enable inspection in the GUI (Ctrl-Alt-I). [It should be set to False with API]
 
-ret, data_out = asyncio.run(atc_mi_configuration(configuration))
+ret, data_dict, data_out = asyncio.run(atc_mi_configuration(configuration))
 
 print("Return code (False, None, True):", ret)
+
+for key, item in data_dict.items():
+    if "binary" in item:
+        decoded_data = item["construct"].parse(item["binary"])
+        print("Command", hex(key), "=", item["binary"].hex(' ').upper())
+        print("Decoded data:", normalize_report(str(decoded_data)))
+        print()
+
 for item in data_out:
     for key, value in item.items():
         print("Entity name:", key, "- Value:", *value)
+```
+
+As mentioned, a queried command can return more byte sequences, like `configuration.string = "0x15"` in the above example (corresponding to ```python3 -m atc_mi_interface -c -m A4:C1:38:AA:BB:CC -s "0x15"```), which returns:
+
+```
+Command 0x10 = 08 CC BB AA 38 C1 A4 9D 52
+Decoded data: Container:
+    length = 8
+    MAC = 'A4:C1:38:AA:BB:CC' (total 17)
+    mac_vendor = 'Telink Semiconductor (Taipei) Co'... (truncated, total 38)
+    hex RandMAC digits = 21149
+
+Command 0x11 = 00 62 6C 74 2E 33 2E 31 32 39 76 4F 61 77 45 31 47 41 54 43
+Decoded data: Container:
+    null byte = b'\x00' (total 1)
+    name = 'blt.3.129vOawE1GATC' (total 19)
+
+Command 0x12 = 72 C9 2E 9E D6 21 3F 76 33 76 57 7F 2F 15 18 51 0D 8A 8D 43 3F C5 C6 32 51 16 C8 DA
+Decoded data: Container:
+    Token Mi key =     72C92E9ED6213F763376577F
+    Bind Mi key =     2F1518510D8A8D433FC5C6325116C8DA
+
+Command 0x13 = 13 04 00 00 00 00
+Decoded data: 0000   13 04 00 00 00 00                                 ......
+
+Command 0x14 = 14 00
+Decoded data: 0000   14 00                                             ..
+```
+
+On the other hand, `configuration.string = "0x60"` (corresponding to `python3 -m atc_mi_interface -c -m A4:C1:38:EE:BB:CC -s "0x60"`) returns:
+
+```
+Command 0x60 = 60 DB B6 B6 27 1D D3
+Decoded data: 0000   60 DB B6 B6 27 1D D3                              `...'..
 ```
 
 `configuration.edit_list`, when valued, requires a list of lists of strings, where each element is a `EDIT_LIST` string assignment, like described before. The sequence of `EDIT_LIST` assignments can be added in any format, regardless it is included in the outer list, or in the nested one, or in both. To assign a null list (i.e., `-E` option without arguments): `configuration.edit_list = [[]]`.
@@ -1014,9 +1292,7 @@ python3 -m atc_mi_interface -c -m A4:C1:38:AA:BB:CC -E "Internal configuration|t
 or also via this program, exploiting `atc_mi_configuration()`:
 
 ```python
-import asyncio
-import argparse
-from atc_mi_interface import atc_mi_configuration
+from atc_mi_interface.atc_mi_config import atc_mi_configuration
 
 configuration = argparse.Namespace()  # all attributes need to be initialized
 
@@ -1028,6 +1304,7 @@ configuration.gui = False  # True to edit the device configuration using the GUI
 configuration.set_date = False  # True to set the current device date with the host time
 configuration.delta = None  # set to a relative number to configure the time delta adjustment (-32767..32767, in 1/16 usec. for 1 sec.)
 configuration.read_date = False  # True to return the date and the delta time adjustment (after previous actions)
+configuration.send_digits = None # Set to a string of six digits to send the number to the LCD display
 configuration.string = None  # set to a hex string to store it to the device
 configuration.reset = False  # True to reset the default configuration of the device
 configuration.reboot = False  # True to activate a device reboot on disconnect
@@ -1037,9 +1314,12 @@ configuration.verbosity = False  # True to print the process information. [It sh
 configuration.test = False  # True to activate the test GUI and the test command-line editing
 configuration.inspectable = False  # True to enable inspection in the GUI (Ctrl-Alt-I). [It should be set to False with API]
 
-ret, data_out = asyncio.run(atc_mi_configuration(configuration))
+ret, data_dict, data_out = asyncio.run(atc_mi_configuration(configuration))
 
 print("Return code (False, None, True):", ret)
+for key, item in data_dict.items():
+    if "binary" in item:
+        print("Command", hex(key), "=", item["binary"].hex(' ').upper())
 for item in data_out:
     for key, value in item.items():
         print("Entity name:", key, "- Value:", *value)
