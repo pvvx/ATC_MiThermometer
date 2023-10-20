@@ -169,7 +169,7 @@ void bthome_event_beacon(uint8_t n) {
 	if (n == RDS_SWITCH) {
 		p->head.size = sizeof(adv_bthome_ns_ev1_t) - sizeof(p->head.size);
 		p->data.o_id = BtHomeID_opened;
-		p->data.opened = rds.count;
+		p->data.opened = trg.flg.rds_input;
 		p->data.c_id = BtHomeID_count32;
 		p->data.counter = rds.count;
 		adv_buf.data_size = sizeof(adv_bthome_ns_ev1_t);
