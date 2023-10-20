@@ -199,6 +199,56 @@ _attribute_ram_code_ void flash_unlock(void) {
 	irq_restore(r);
 }
 
+#if USE_FLASH_SERIAL_UID
+/**
+ * @brief	  flash ID.
+ * @param[in] buf - store MID of flash
+ * @return    none.
+ */
+_attribute_ram_code_ void flash_read_id(unsigned char *buf){
+	unsigned char j = 0;
+	unsigned char r = irq_disable();
+	flash_send_cmd(FLASH_GET_JEDEC_ID);
+	mspi_write(0x00);		/* dummy,  to issue clock */
+	mspi_wait();
+	mspi_ctrl_write(0x0a);	/* auto mode */
+	mspi_wait();
+
+	for(j = 0; j < 3; ++j){
+		*buf++ = mspi_get();
+		mspi_wait();
+	}
+	mspi_high();
+
+	irq_restore(r);
+}
+/**
+ * @brief	  Read UID.
+ * @param[in] buf   - store UID of flash
+ * @return    none.
+ */
+_attribute_ram_code_ void flash_read_uid(unsigned char *buf)
+{
+	unsigned char j = 0;
+	unsigned char r = irq_disable();
+	flash_send_cmd(FLASH_GD_PUYA_READ_UID_CMD);
+	flash_send_addr(0x00);
+	mspi_write(0x00);		/* dummy,  to issue clock */
+	mspi_wait();
+	mspi_write(0x00);			/* dummy,  to issue clock */
+	mspi_wait();
+	mspi_ctrl_write(0x0a);		/* auto mode */
+	mspi_wait();
+
+	for(j = 0; j < 16; ++j){
+		*buf++ = mspi_get();
+		mspi_wait();
+	}
+	mspi_high();
+	irq_restore(r);
+}
+#endif
+
 /* according to your appliaction */
 #if 0
 

@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x44	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x45	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
@@ -33,12 +33,14 @@ extern "C" {
 #define USE_RTC				0 // = 1 RTC enabled
 
 #define USE_SECURITY_BEACON 1 // = 1 support encryption beacon (bindkey)
-#define USE_HA_BLE_BEACON	1 // = 1 https://github.com/custom-components/ble_monitor/issues/548
 #define USE_MIHOME_BEACON	1 // = 1 Compatible with MiHome beacon
+#define USE_HA_BLE_BEACON	0 // = 1 BTHome v1 https://bthome.io/
+#define USE_BTHOME_BEACON	(!USE_HA_BLE_BEACON) // (not implemented) = 1 BTHome v2 https://bthome.io/
 
 #define USE_EXT_OTA			0 // = 1 Compatible BigOTA
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
+#define USE_FLASH_SERIAL_UID		0 // = 1 Set my_SerialStr "$SOC_ID_Rev-$FLASH_JEDEC-$FLASH_UID"
 
 /* Special DIY version - Voltage Logger:
  * Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, LYWSD03MMC pcb mark "B1"
@@ -324,6 +326,9 @@ extern "C" {
 #define PB6_FUNC			AS_GPIO
 #endif
 
+#undef USE_FLASH_SERIAL_UID
+#define USE_FLASH_SERIAL_UID	1
+
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 /* Original Flash markup:
   0x00000 Old Firmware bin
@@ -473,6 +478,9 @@ extern "C" {
 #define PB6_DATA_STRENGTH	0
 #define PB6_FUNC			AS_GPIO
 #endif
+
+#undef USE_FLASH_SERIAL_UID
+#define USE_FLASH_SERIAL_UID	1
 
 #elif DEVICE_TYPE == DEVICE_MJWSD05MMC
 /* Original Flash markup:

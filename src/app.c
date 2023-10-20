@@ -27,6 +27,9 @@
 #if USE_HA_BLE_BEACON
 #include "ha_ble_beacon.h"
 #endif
+#if USE_BTHOME_BEACON
+#include "bthome_beacon.h"
+#endif
 #include "ext_ota.h"
 
 void app_enter_ota_mode(void);
@@ -522,6 +525,9 @@ void bindkey_init(void) {
 #if USE_HA_BLE_BEACON
 	ha_ble_beacon_init();
 #endif
+#if USE_BTHOME_BEACON
+	bthome_beacon_init();
+#endif
 }
 #endif // USE_SECURITY_BEACON
 
@@ -619,8 +625,8 @@ void user_init_normal(void) {//this will get executed one time after power up
 		// RTC wakes up after powering on > 1 second.
 		go_sleep(1500*CLOCK_16M_SYS_TIMER_CLK_1MS);  // go deep-sleep 1.5 sec
 #endif // SHOW_REBOOT_SCREEN || (USE_RTC)
-#endif // POWERUP_SCREEN || (USE_RTC) || (BLE_EXT_ADV)
 	}
+#endif // POWERUP_SCREEN || (USE_RTC) || (BLE_EXT_ADV)
 	memcpy(&ext, &def_ext, sizeof(ext));
 	init_ble();
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);

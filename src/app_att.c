@@ -85,6 +85,9 @@ static const u8 my_ManCharVal[5] = {
 	U16_LO(CHARACTERISTIC_UUID_MANUFACTURER_NAME), U16_HI(CHARACTERISTIC_UUID_MANUFACTURER_NAME)
 };
 static const u8 my_FirmStr[] = {"github.com/pvvx"};
+#if USE_FLASH_SERIAL_UID
+RAM uint8_t my_SerialStr[21]; // "556202-C86013-0123456"
+#endif
 #if DEVICE_TYPE == DEVICE_MJWSD05MMC
 static const u8 my_ModelStr[] = {"MJWSD05MMC"};
 RAM u8 my_HardStr[4];// = {"V2.3"}
@@ -99,7 +102,9 @@ static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; //
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
 static const u8 my_ModelStr[] = {"MHO-C401N"};
+#if !USE_FLASH_SERIAL_UID
 static const u8 my_SerialStr[] = {"0000-0000-0000-0008"}; // "0000-0000-0000-00000"
+#endif
 static const u8 my_HardStr[] = {"2022"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0110"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
@@ -113,23 +118,31 @@ static const u8 my_ManStr[] = {"miaomiaoce.com"};
 static const u8 my_ModelStr[] = {"CGG1"};
 #if DEVICE_CGG1_ver == 2022
 static const u8 my_HardStr[] = {"2022"};
+#if !USE_FLASH_SERIAL_UID
 static const u8 my_SerialStr[] = {"0000-0000-0000-0007"}; // "0000-0000-0000-00000"
+#endif
 #else
 static const u8 my_HardStr[] = {"0001"};
+#if !USE_FLASH_SERIAL_UID
 static const u8 my_SerialStr[] = {"0000-0000-0000-0002"}; // "0000-0000-0000-00000"
+#endif
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 #elif DEVICE_TYPE == DEVICE_CGDK2
 static const u8 my_ModelStr[] = {"CGDK2"};
+#if !USE_FLASH_SERIAL_UID
 static const u8 my_SerialStr[] = {"0000-0000-0000-0006"}; // "0000-0000-0000-00000"
+#endif
 static const u8 my_HardStr[] = {"2.1.0"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
 #elif DEVICE_TYPE == DEVICE_MHO_C122
 static const u8 my_ModelStr[] = {"MHO-C122"};
 static const u8 my_HardStr[] = {"V1.1-202106"};
+#if !USE_FLASH_SERIAL_UID
 static const u8 my_SerialStr[] = {"2AWMOMHOC122"};
+#endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
 static const u8 my_ManStr[] = {"MiaoMiaoCe Technology (Beijing) Co., Ltd."};
 #else
@@ -460,6 +473,24 @@ RAM attribute_t my_Attributes[] = {
 };
 
 void my_att_init(void) {
+#if USE_FLASH_SERIAL_UID
+	uint8_t buf[16];
+	uint8_t *p = my_SerialStr;
+	// Read SoC ID, version
+	buf[0] = REG_ADDR8(0x7f);
+	buf[1] = REG_ADDR8(0x7e);
+	buf[2] = REG_ADDR8(0x7d);
+	p = str_bin2hex(p, buf, 3);
+	*p++ = '-';
+	// Read flash ID
+	flash_read_id(buf);
+	p = str_bin2hex(p, buf, 3);
+	*p++ = '-';
+	// Read flash UID
+	flash_read_uid(buf);
+	memcpy(p, buf, 7);
+	//ser_uid_txt(p, &buf[4], 7);
+#endif
 #if BLE_SECURITY_ENABLE
 	if (pincode) {
 		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;

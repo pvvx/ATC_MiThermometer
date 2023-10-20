@@ -31,7 +31,11 @@ enum {
 	ADV_TYPE_ATC = 0,
 	ADV_TYPE_PVVX, // (default)
 	ADV_TYPE_MI,
+#if USE_HA_BLE_BEACON
 	ADV_TYPE_HA_BLE
+#elif USE_BTHOME_BEACON
+	ADV_TYPE_BTHOME
+#endif
 } ADV_TYPE_ENUM;
 #define ADV_TYPE_DEFAULT	ADV_TYPE_PVVX
 
@@ -255,6 +259,8 @@ static inline uint8_t get_key2_pressed(void) {
 void ev_adv_timeout(u8 e, u8 *p, int n); // DURATION_TIMEOUT Event Callback
 void test_config(void); // Test config values
 void set_hw_version(void);
+
+uint8_t * str_bin2hex(uint8_t *d, uint8_t *s, int len);
 
 //---- blt_common.c
 void blc_newMacAddress(int flash_addr, u8 *mac_pub, u8 *mac_rand);

@@ -24,6 +24,9 @@
 #if USE_HA_BLE_BEACON
 #include "ha_ble_beacon.h"
 #endif
+#if USE_BTHOME_BEACON
+#include "bthome_beacon.h"
+#endif
 #include "stack/ble/service/ble_ll_ota.h"
 
 void bls_set_advertise_prepare(void *p); // add ll_adv.h
@@ -415,8 +418,17 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 }
 #endif
 
-extern attribute_t my_Attributes[ATT_END_H];
 static const char* hex_ascii = { "0123456789ABCDEF" };
+
+uint8_t * str_bin2hex(uint8_t *d, uint8_t *s, int len) {
+	while(len--) {
+		*d++ = hex_ascii[(*s >> 4) & 0xf];
+		*d++ = hex_ascii[(*s++ >> 0) & 0xf];
+	}
+	return d;
+}
+
+extern attribute_t my_Attributes[ATT_END_H];
 
 void ble_set_name(void) {
 	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, MAX_DEV_NAME_LEN));
@@ -448,20 +460,17 @@ void ble_set_name(void) {
 		ble_name[4] = 'C';
 		ble_name[5] = '_';
 #endif
-		ble_name[6] = hex_ascii[mac_public[2] >> 4];
-		ble_name[7] = hex_ascii[mac_public[2] & 0x0f];
-		ble_name[8] = hex_ascii[mac_public[1] >> 4];
-		ble_name[9] = hex_ascii[mac_public[1] & 0x0f];
-		ble_name[10] = hex_ascii[mac_public[0] >> 4];
-		ble_name[11] = hex_ascii[mac_public[0] & 0x0f];
-		my_Attributes[GenericAccess_DeviceName_DP_H].attrLen = 10;
-		ble_name[0] = 11;
-	} else {
-		my_Attributes[GenericAccess_DeviceName_DP_H].attrLen = len;
-		ble_name[0] = (uint8_t)(len + 1);
+		uint8_t *p = str_bin2hex(&ble_name[6], &mac_public[2], 1);
+		p = str_bin2hex(p, &mac_public[1], 1);
+		p = str_bin2hex(p, &mac_public[0], 1);
+		len = 10;
 	}
+	my_Attributes[GenericAccess_DeviceName_DP_H].attrLen = len;
+	ble_name[0] = (uint8_t)(len + 1);
 	ble_name[1] = GAP_ADTYPE_LOCAL_NAME_COMPLETE;
 }
+
+
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void load_adv_data(void) {
@@ -654,6 +663,10 @@ void set_adv_data(void) {
 #if USE_HA_BLE_BEACON
 		} else if (adv_type == ADV_TYPE_HA_BLE) { // adv_type == 3
 			ha_ble_data_beacon();
+#endif
+#if USE_BTHOME_BEACON
+		} else if (adv_type == ADV_TYPE_BTHOME) { // adv_type == 3
+			bthome_data_beacon();
 #endif
 		} else { // adv_type == 0 == ADV_TYPE_ATC
 			atc_data_beacon();

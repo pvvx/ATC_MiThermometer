@@ -28,7 +28,7 @@
 #include "drivers.h"
 #include "tl_common.h"
 
-#define  MAX_DEV_NAME_LEN 				18
+#define MAX_DEV_NAME_LEN 				18
 
 #ifndef DEV_NAME
 #define DEV_NAME                        "tModule"

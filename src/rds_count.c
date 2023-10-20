@@ -22,6 +22,9 @@
 #if USE_HA_BLE_BEACON
 #include "ha_ble_beacon.h"
 #endif
+#if USE_BTHOME_BEACON
+#include "bthome_beacon.h"
+#endif
 #include "rds_count.h"
 
 #if (BLE_EXT_ADV)
@@ -60,8 +63,12 @@ void set_rds_adv_data(void) {
 #if	USE_SECURITY_BEACON
 	if (cfg.flg2.adv_crypto) {
 		if (advertising_type == ADV_TYPE_PVVX) {
+#if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
 #if USE_HA_BLE_BEACON
 			ha_ble_encrypt_event_beacon(rds.type);
+#else
+			bthome_encrypt_event_beacon(rds.type);
+#endif
 #else
 			pvvx_encrypt_event_beacon(rds.type);
 #endif
@@ -69,13 +76,21 @@ void set_rds_adv_data(void) {
 		} else if (advertising_type == ADV_TYPE_HA_BLE) {
 			ha_ble_encrypt_event_beacon(rds.type);
 #endif
+#if USE_BTHOME_BEACON
+		} else if (advertising_type == ADV_TYPE_BTHOME) {
+			bthome_encrypt_event_beacon(rds.type);
+#endif
 #if USE_MIHOME_BEACON
 		} else if (advertising_type == ADV_TYPE_MI)  {
 			mi_encrypt_event_beacon(rds.type);
 #endif
 		} else {
+#if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
 #if USE_HA_BLE_BEACON
 			ha_ble_encrypt_event_beacon(rds.type);
+#else
+			bthome_encrypt_event_beacon(rds.type);
+#endif
 #else
 			atc_encrypt_event_beacon();
 #endif
@@ -84,8 +99,12 @@ void set_rds_adv_data(void) {
 #endif //	USE_SECURITY_BEACON
 	{
 		if (advertising_type == ADV_TYPE_PVVX) {
+#if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
 #if USE_HA_BLE_BEACON
 			ha_ble_event_beacon(rds.type);
+#else
+			bthome_event_beacon(rds.type);
+#endif
 #else
 			pvvx_event_beacon(rds.type);
 #endif
@@ -93,13 +112,21 @@ void set_rds_adv_data(void) {
 		} else if (advertising_type == ADV_TYPE_HA_BLE) {
 			ha_ble_event_beacon(rds.type);
 #endif
+#if USE_BTHOME_BEACON
+		} else if (advertising_type == ADV_TYPE_BTHOME) {
+			bthome_event_beacon(rds.type);
+#endif
 #if USE_MIHOME_BEACON
 		} else if (advertising_type == ADV_TYPE_MI)  {
 			mi_event_beacon(rds.type);
 #endif
 		} else {
+#if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
 #if USE_HA_BLE_BEACON
 			ha_ble_event_beacon(rds.type);
+#else
+			bthome_event_beacon(rds.type);
+#endif
 #else
 			atc_event_beacon();
 #endif

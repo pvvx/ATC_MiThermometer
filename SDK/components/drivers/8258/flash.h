@@ -101,6 +101,24 @@ _attribute_ram_code_ void flash_read_page(unsigned long addr, unsigned long len,
  */
 _attribute_ram_code_ void flash_unlock(void);
 
+#if USE_FLASH_SERIAL_UID
+
+/**
+ * @brief	  flash ID.
+ * @param[in] buf - store MID of flash
+ * @return    none.
+ */
+_attribute_ram_code_ void flash_read_id(unsigned char *buf);
+
+/**
+ * @brief	  Read UID.
+ * @param[in] buf   - store UID of flash
+ * @return    none.
+ */
+_attribute_ram_code_ void flash_read_uid(unsigned char *buf);
+
+#endif
+
 /* according to your appliaction */
 #if 0
 /**
