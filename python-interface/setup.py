@@ -4,7 +4,34 @@
 # atc_mi_interface module setup [name: atc-mi-interface]
 #############################################################################
 
+"""
+# Publishing instructions
+# =======================
+
+cd python-interface
+pip3 install pyyaml python-daemon setuptools wheel twine flake8
+python3 -m flake8 setup.py --count --select=E9,F63,F7,F72,F82 --show-source --statistics
+
+# Build a binary wheel and a source tarball
+python3 setup.py sdist bdist_wheel
+
+#python3 -m build --sdist --wheel --outdir dist/ .
+
+# This will publish the /dist directory
+python3 -m twine upload --repository testpypi dist/*
+python3 -m twine upload --repository pypi dist/*
+
+End user publishing page:
+
+https://test.pypi.org/project/atc-mi-interface/
+https://pypi.org/project/atc-mi-interface/
+
+Removing directories
+del /f/s/q build dist atc_mi_interface.egg-info
+"""
+
 from setuptools import setup
+import re
 
 DESCRIPTION = (
     'Python tools and API for the "atc1441" and "pvvx" Xiaomi Mijia'
