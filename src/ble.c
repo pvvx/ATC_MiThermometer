@@ -648,6 +648,10 @@ void set_adv_data(void) {
 		} else if (adv_type == ADV_TYPE_HA_BLE) { // adv_type == 3
 			ha_ble_encrypt_data_beacon();
 #endif
+#if USE_BTHOME_BEACON
+		} else if (adv_type == ADV_TYPE_BTHOME) { // adv_type == 3
+			bthome_encrypt_data_beacon();
+#endif
 		} else { // adv_type == 0 == ADV_TYPE_ATC
 			atc_encrypt_data_beacon();
 		}
