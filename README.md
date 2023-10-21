@@ -26,9 +26,22 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 Supported models:
 
+* Thermometers with display
+
 |[Xiaomi Mijia (LYWSD03MMC)](https://pvvx.github.io/ATC_MiThermometer) | [Xiaomi Miaomiaoce (MHO-C401)](https://pvvx.github.io/MHO_C401) | [Qingping Temp & RH Monitor (CGG1-Mijia)](https://pvvx.github.io/CGG1) | [CGDK2 Qingping Temp & RH Monitor Lite](https://pvvx.github.io/CGDK2) | [Xiaomi Mijia MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC) | [MHO-C122 (2AWMOMHOC122)](https://pvvx.github.io/MHO_C122) |
 |:--:|:--:|:--:|:--:|:--:|:--:|
 |  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |  <img src="https://pvvx.github.io/MHO_C401/img/MHO-C401.png" alt="Xiaomi Miaomiaoce (MHO-C401)" width="120"/> | <img src="https://pvvx.github.io/CGG1/img/CGG1-M.jpg" alt="E-ink CGG1 'Qingping Temp & RH Monitor', Xiaomi Mijia DevID: 0x0B48" width="120"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/CGDK2/img/CGDK2.jpg" alt="CGDK2 Qingping Temp & RH Monitor Lite" width="120"/> | <img src="https://pvvx.github.io/MJWSD05MMC/img/MJWSD05MMC.png" alt="Xiaomi Mijia (MJWSD05MMC)" width="120"/> | <img src="https://pvvx.github.io/MHO_C122/img/MHO-C122.png" alt="MHO-C122 (2AWMOMHOC122)" width="120"/> |
+|:--:|:--:|:--:|:--:|:--:|:--:|
+| OTA | OTA | OTA | OTA | OTA | Programmator |
+
+*Thermometers without display
+
+| [Tuya ZigBee TS0201](https://github.com/pvvx/BLE_THSensor) |
+|:--:|
+| <img src="https://pvvx.github.io/TS0201/img/ts0201.jpg" width="120"/> |
+|:--:|
+| Programmator |
+
 
 **Warnings**
 
