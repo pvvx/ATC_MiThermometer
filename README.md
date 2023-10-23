@@ -166,14 +166,14 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 
-* [LYWSD03MMC Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v43.bin) (HW: B1.4, B1.5, B1.6, B1.7, B1.9, B2.0)
-* [MJWSD05MMC Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/BTH_v43.bin) ([MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC))
-* [MHO-C122 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C122_v43.bin) ([2AWMOMHOC122](https://github.com/pvvx/ATC_MiThermometer/issues/339))
-* [MHO-C401 2020-2021 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v43.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [MHO-C401 2022 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v43.bin) (manufacturer Xiaomi and [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114))
-* [CGG1-M 2020-2021 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v43.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGG1-M 2022 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v43.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGDK2 Custom Firmware Version 4.3](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v43.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
+* [LYWSD03MMC Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v44.bin) (HW: B1.4, B1.5, B1.6, B1.7, B1.9, B2.0)
+* [MJWSD05MMC Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/BTH_v44.bin) ([MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC))
+* [MHO-C122 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C122_v44.bin) ([2AWMOMHOC122](https://github.com/pvvx/ATC_MiThermometer/issues/339))
+* [MHO-C401 2020-2021 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v44.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [MHO-C401 2022 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v44.bin) (manufacturer Xiaomi and [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114))
+* [CGG1-M 2020-2021 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v44.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGG1-M 2022 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v44.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v44.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 **Original Manufacturer Firmware Version**
 
