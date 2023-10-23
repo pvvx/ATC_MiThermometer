@@ -74,6 +74,9 @@ To disable only the 'Long Range' option, use the code 0xDD.
 
 The [Web Bluetooth API](https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md) in Chrome does not yet allow scanning for Bluetooh 5.0+ devices.
 
+5. On Linux, when installing large advertising integrals, change the file '/etc/bluetooth/main.conf', variables `LEScanIntervalAutoConnect=` `LEScanWindowAutoConnect=`. Value in ms.
+
+
 **Table of content**
 
 <!-- TOC depthFrom:2 depthTo:3 -->
