@@ -43,17 +43,21 @@ Supported models:
 
 **Warnings**
 
-If you have many BLE devices, the adapter must be able to receive BLE advertisements every 3 ms. UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format. Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the reception.
+1. Using the Home Assistant with Bluetooth leads to rapid wear of the data carrier due to constant database recording and overwriting of small Bluez files in '/var/lib/bluetooth/'.
 
-Do not use ESP32xxx - it cannot work with BLE at normal speed and drains the batteries of all BLE devices when connected!
+With a couple dozen BLE devices, a 256GB SSD is only enough for 2 years.
 
-ESPHome does not work with Bluetooth 5.0 and misses a lot of advertising packets from BLE devices.
+2. If you have many BLE devices, the adapter must be able to receive BLE advertisements every 3 ms.
 
-For reliable connection and refirmware on LYWSD03MMC, the battery level must be more than 40%. This is a design feature - a [cheaper version of the hardware from Xiaomi](https://user-images.githubusercontent.com/12629515/105704705-423fc600-5f20-11eb-88ca-a2db712d0222.png).
+UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format.
+
+Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the reception. Do not use ESP32xxx - it cannot work with BLE at normal speed and drains the batteries of all BLE devices when connected! ESPHome does not work with Bluetooth 5.0 and misses a lot of advertising packets from BLE devices.
+
+3. For reliable connection and refirmware on LYWSD03MMC, the battery level must be more than 40%. This is a design feature - a [cheaper version of the hardware from Xiaomi](https://user-images.githubusercontent.com/12629515/105704705-423fc600-5f20-11eb-88ca-a2db712d0222.png).
 
 [On devices with missing power capacities](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494), do not set 'Connect latency' to more than 1000 ms!
 
-Home Assistant in "Bluetooth" integration does not full support Bluetooth  5.0 and is not implied. 
+4. Home Assistant in "Bluetooth" integration does not full support Bluetooth  5.0 and is not implied. 
 
 [How to switch the USB-BT5.0+ adapter to work in LE Long Range in Home Assistant under Linux:](https://github.com/pvvx/ATC_MiThermometer/issues/297)
 
