@@ -16,7 +16,7 @@ import io
 
 __progname__ = 'TLSR82xx TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '27.01.23'
+__version__ = '20.04.23'
 
 DEFAULT_UART_BAUD = 230400
 
@@ -410,23 +410,41 @@ class TLSRPGM:
 	def ReadFlashStatus(self):
 		data = self.command(struct.pack('<BBH', self.CMD_FLASH_GET_STATUS, 0, 0), 7)
 		if data == None or self.wcnt != 1:
-			print('\rError get Flash status! (%d)' % self.err) 
+			print('\rError get Flash Status! (%d)' % self.err) 
 			return None
-		#print('Flash status 0x%02x' % data[4])
+		print('Flash Status Register: 0x%02x' % data[4])
 		return data[4]
 	# Waiting for Flash to be ready
 	def WaitingFlashReady(self, count = 300):
 		while count > 0:
 			data = self.command(struct.pack('<BBH', self.CMD_FLASH_GET_STATUS, 0, 0), 7)
 			if data == None or self.wcnt != 1:
-				print('\rError get Flash status! (%d)' % self.err) 
+				print('\rError get Flash Status! (%d)' % self.err) 
 				return False
 			if (data[4] & 0x01) == 0:
 				#print('Flash status 0x%02x, cnt %d' % (data[4], count))
 				return True
 			count -= 1
-		print('\rTimeout! Flash status 0x%02x!' % data[4]) 
+		print('\rTimeout! Flash Status 0x%02x!' % data[4]) 
 		return False
+	# Write Flash Status
+	def WriteFlashStatus(self, fstatus = 0):
+		data = self.command(struct.pack('<BBHHB', self.CMD_FLASH_WRRD, 0, 0, 0, 6), 6)
+		if data == None:
+			print('\rError Write Flash Status! (%d)' % self.err) 
+			return None
+		data = self.command(struct.pack('<BBHHBB', self.CMD_FLASH_WRRD, 0, 0, 0, 1, fstatus&0xff), 6)
+		if data == None:
+			print('\rError Write Flash Status! (%d)' % self.err) 
+			return None
+		if not self.WaitingFlashReady(5):
+			return None
+		#data = self.command(struct.pack('<BBHHB', self.CMD_FLASH_WRRD, 0, 0, 1, 5), 7)
+		#if data == None:
+		#	print('\rError get Flash Status! (%d)' % self.err) 
+		#	return None
+		#print('Flash Status Register 0x%02x' % data[4])
+		return True
 	# CPcpu Ext. Chip
 	def ReadPCcpu(self):
 		rdsize = 0x4
@@ -961,6 +979,13 @@ def main():
 	parser_erase_all_flash = subparsers.add_parser(
 			'ea',
 			help='Erase All Flash')
+	parser_read_fstatus = subparsers.add_parser(
+			'fsr',
+			help='Read Flash Status Register')
+	parser_write_fstatus = subparsers.add_parser(
+			'fsw',
+			help='Write Flash Status Register')
+	parser_write_fstatus.add_argument('fsreg', help='Register Value (byte)', type=arg_auto_int)
 
 	parser_read_flash = subparsers.add_parser(
 			'rs',
@@ -1175,10 +1200,27 @@ def main():
 		if not pgm.EraseAllFlash():
 			pgm.close()
 			sys.exit(1)
+	elif args.operation == 'fsr':
+		print('Read Flash Status Register...')
+		ret = pgm.ReadFlashStatus()
+		if ret == None:
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'fsw':
+		print('Write 0x%02x to Flash Status Register...' % args.fsreg)
+		ret = pgm.WriteFlashStatus(args.fsreg)
+		if ret == None:
+			pgm.close()
+			sys.exit(1)
+		ret = pgm.ReadFlashStatus()
+		if ret == None:
+			pgm.close()
+			sys.exit(1)
 	elif args.operation == 'i':
 		if not pgm.ReadChipID() \
 		or not pgm.ReadPCcpu() \
 		or not pgm.ReadFlashJEDECID() \
+		or pgm.ReadFlashStatus() == None \
 		or not pgm.DumpChipFlashUID() \
 		or not pgm.DumpChipFlash() \
 		or not pgm.DumpChipARegs() \

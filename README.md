@@ -207,7 +207,7 @@ In case you want to go back to the original firmware, you can download them here
 |     1.6 | Fix alternation of Advertising in mi mode |
 |     1.7 | Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled |
 |     1.8 | Time display (instead of a blinking smile) |
-|     1.9 | Recording measurements to flash memory (cyclic buffer for 19632 measurements) |
+|     1.9 | Recording measurements to flash memory (cyclic buffer for 20000 measurements) |
 |     2.0 | Recording measurements with averaging to flash memory |
 |     2.1 | Periodic display refresh for MHO-C401 <br> 'Erase mi-keys' option to return to original firmware |
 |     2.2 | Added parameter "Encrypted Mi Beacon" |
@@ -240,7 +240,7 @@ In case you want to go back to the original firmware, you can download them here
 
 [GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html)
 
-To record the measurement results, a cyclic buffer in the flash memory for 19632 measurements is used.
+To record the measurement results, a cyclic buffer in the flash memory for 20000 measurements is used.
 The recording step interval is set in the interface.
 With the default settings, the recording step is 10 minutes, which gives a recording depth of 4 and a half months.
 During the step period, the sensor data and battery voltage are averaged, time stamped, and written to flash memory.
