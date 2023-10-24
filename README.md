@@ -44,7 +44,7 @@ Supported models:
 
 **Warnings**
 
-1. Using the Home Assistant with Bluetooth leads to rapid wear of the data carrier due to constant database recording and [overwriting of small Bluez files](https://github.com/home-assistant/core/issues/76540#issuecomment-1303106780) in ['/var/lib/bluetooth/'](https://stackoverflow.com/questions/65957677/bluez-change-local-storage-directory).
+1. [Home Assistant SSD TBW](https://github.com/pvvx/ATC_MiThermometer/issues/394). Using the Home Assistant with Bluetooth leads to rapid wear of the data carrier due to constant database recording and [overwriting of small Bluez files](https://github.com/home-assistant/core/issues/76540#issuecomment-1303106780) in ['/var/lib/bluetooth/'](https://stackoverflow.com/questions/65957677/bluez-change-local-storage-directory).
 
 With a couple dozen BLE devices, a 256GB SSD is only enough for 2 years.
 
