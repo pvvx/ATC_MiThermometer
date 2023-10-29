@@ -199,7 +199,6 @@ _attribute_ram_code_ void flash_unlock(void) {
 	irq_restore(r);
 }
 
-#if USE_FLASH_SERIAL_UID
 /**
  * @brief	  flash ID.
  * @param[in] buf - store MID of flash
@@ -222,6 +221,8 @@ _attribute_ram_code_ void flash_read_id(unsigned char *buf){
 
 	irq_restore(r);
 }
+
+#if USE_FLASH_SERIAL_UID
 /**
  * @brief	  Read UID.
  * @param[in] buf   - store UID of flash

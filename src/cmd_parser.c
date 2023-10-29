@@ -263,15 +263,25 @@ void cmd_parser(void * p) {
 	if (len) {
 		uint8_t cmd = req->dat[0];
 		send_buf[0] = cmd;
-		send_buf[1] = 0; // no err?
+		send_buf[1] = 0; // no err
 		uint32_t olen = 0;
-		if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
+		if (cmd == CMD_ID_DEV_ID) { // Get DEV_ID
+			pdev_id_t p = (pdev_id_t) send_buf;
+			// p->pid = CMD_ID_DEV_ID;
+			// p->revision = 0;
+			p->hw_version = cfg.hw_cfg.hwver;
+			p->sw_version = VERSION;
+			p->dev_spec_data = 0;
+			p->services = 0;
+			olen = sizeof(dev_id_t);
+		} else if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
 			if(len >= 2)
 				tx_measures = req->dat[1];
 			else {
 				end_measure = 1;
 				tx_measures = 1;
 			}
+			send_buf[1] = tx_measures;
 			olen = 2;
 		} else if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
 			if (--len > sizeof(ext)) len = sizeof(ext);
@@ -288,7 +298,7 @@ void cmd_parser(void * p) {
 #endif
 			}
 			ble_send_ext();
-		} else if (cmd == CMD_ID_CFG || cmd == CMD_ID_CFG_NS) { // Get/set config
+		} else if (cmd == CMD_ID_CFG) { // Get/set config
 			u8 tmp = ((volatile u8 *)&cfg.flg2)[0];
 			if (--len > sizeof(cfg)) len = sizeof(cfg);
 			if (len) {
@@ -304,12 +314,10 @@ void cmd_parser(void * p) {
 			if(tmp & MASK_FLG2_SCR_OFF)
 				init_lcd();
 			ev_adv_timeout(0, 0, 0);
-			if (cmd != CMD_ID_CFG_NS) {	// Get/set config (not save to Flash)
-				if(tmp & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
-					ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
-				}
-				flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
+			if(tmp & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
+				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			}
+			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
 		} else if (cmd == CMD_ID_CFG_DEF) { // Set default config
 			u8 tmp = ((volatile u8 *)&cfg.flg2)[0];
@@ -327,7 +335,7 @@ void cmd_parser(void * p) {
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
 #if USE_TRIGGER_OUT
-		} else if (cmd == CMD_ID_TRG || cmd == CMD_ID_TRG_NS) { // Get/set trg data
+		} else if (cmd == CMD_ID_TRG) { // Get/set trg data
 			if (--len > sizeof(trg))	len = sizeof(trg);
 			if (len)
 				memcpy(&trg, &req->dat[1], len);
@@ -335,14 +343,12 @@ void cmd_parser(void * p) {
 			rds.type = trg.rds.type;
 			rds_init();
 #endif
+			flash_write_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG);
 			test_trg_on();
-			if (cmd != CMD_ID_TRG_NS) // Get/set trg data (not save to Flash)
-				flash_write_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG);
 			ble_send_trg();
 		} else if (cmd == CMD_ID_TRG_OUT) { // Set trg out
 			if (len > 1)
 				trg.flg.trg_output = req->dat[1] != 0;
-			test_trg_on();
 			ble_send_trg_flg();
 #endif // USE_TRIGGER_OUT
 		} else if (cmd == CMD_ID_DEV_MAC) { // Get/Set mac
@@ -568,9 +574,12 @@ void cmd_parser(void * p) {
 		} else if (cmd == CMD_ID_SEN_ID) { // Get sensor ID
 			memcpy(&send_buf[1], &sensor_id, sizeof(sensor_id));
 			olen = sizeof(sensor_id) + 1;
+		} else if (cmd == CMD_ID_FLASH_ID) { // Get Flash JEDEC ID
+			flash_read_id(&send_buf[1]); // Read flash UID
+			olen = 1 + 3;
 
+		// Debug commands (unsupported in different versions!):
 
-			// Debug commands (unsupported in different versions!):
 		} else if (cmd == CMD_ID_EEP_RW && len > 2) {
 			send_buf[1] = req->dat[1];
 			send_buf[2] = req->dat[2];

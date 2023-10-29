@@ -99,23 +99,23 @@ _attribute_ram_code_ void flash_read_page(unsigned long addr, unsigned long len,
  * @brief This function serves to protect data for flash.
  * @return none
  */
-_attribute_ram_code_ void flash_unlock(void);
-
-#if USE_FLASH_SERIAL_UID
+void flash_unlock(void);
 
 /**
  * @brief	  flash ID.
  * @param[in] buf - store MID of flash
  * @return    none.
  */
-_attribute_ram_code_ void flash_read_id(unsigned char *buf);
+void flash_read_id(unsigned char *buf);
+
+#if USE_FLASH_SERIAL_UID
 
 /**
  * @brief	  Read UID.
  * @param[in] buf   - store UID of flash
  * @return    none.
  */
-_attribute_ram_code_ void flash_read_uid(unsigned char *buf);
+void flash_read_uid(unsigned char *buf);
 
 #endif
 

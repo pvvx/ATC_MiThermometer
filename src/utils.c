@@ -6,6 +6,15 @@
 #include "common/utility.h"
 
 
+unsigned char * str_bin2hex(unsigned char *d, unsigned char *s, int len) {
+	static const char* hex_ascii = { "0123456789ABCDEF" };
+	while(len--) {
+		*d++ = hex_ascii[(*s >> 4) & 0xf];
+		*d++ = hex_ascii[(*s++ >> 0) & 0xf];
+	}
+	return d;
+}
+
 inline void bbcopy(register unsigned char * src, register unsigned char * dest, unsigned int len) {
 	if (dest < src)
 		while (len--)

@@ -5,6 +5,8 @@
 #include "app.h"
 #include "stack/ble/ble.h"
 
+#define BTHOME_UUID16 0xFCD2 // 16-bit UUID Service 0xFCD2 BTHOME
+
 extern uint8_t mac_public[6], mac_random_static[6];
 extern uint8_t ble_name[MAX_DEV_NAME_LEN + 2];
 

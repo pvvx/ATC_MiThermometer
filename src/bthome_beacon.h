@@ -8,7 +8,7 @@
 #ifndef BTHOME_BEACON_H_
 #define BTHOME_BEACON_H_
 
-#define ADV_BTHOME_UUID16 0xFCD2 // 16-bit UUID Service 0x181C BTHOME, no security
+#define ADV_BTHOME_UUID16 0xFCD2 // 16-bit UUID Service 0xFCD2 BTHOME
 
 #define BtHomeID_Info	0x40
 #define BtHomeID_Info_Encrypt	0x41

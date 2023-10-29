@@ -36,6 +36,7 @@ static const u16 my_appearance = 768; // value="Generic Thermometer"
 
 static const u16 my_gattServiceUUID = SERVICE_UUID_GENERIC_ATTRIBUTE; // 1801
 
+
 #if USE_DEVICE_INFO_CHR_UUID
 
 //#define CHARACTERISTIC_UUID_SYSTEM_ID			0x2A23 // System ID

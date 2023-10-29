@@ -418,16 +418,6 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 }
 #endif
 
-static const char* hex_ascii = { "0123456789ABCDEF" };
-
-uint8_t * str_bin2hex(uint8_t *d, uint8_t *s, int len) {
-	while(len--) {
-		*d++ = hex_ascii[(*s >> 4) & 0xf];
-		*d++ = hex_ascii[(*s++ >> 0) & 0xf];
-	}
-	return d;
-}
-
 extern attribute_t my_Attributes[ATT_END_H];
 
 void ble_set_name(void) {
@@ -724,6 +714,7 @@ void ble_send_trg(void) {
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(trg) + 1);
 }
 void ble_send_trg_flg(void) {
+	test_trg_on();
 	send_buf[0] = CMD_ID_TRG_OUT;
 	send_buf[1] = *((uint8_t *)(&trg.flg));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);

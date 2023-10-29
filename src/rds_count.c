@@ -10,6 +10,7 @@
 #if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
 #include "stack/ble/ble.h"
 #include "app.h"
+#include "ble.h"
 #include "drivers.h"
 #include "sensor.h"
 #include "trigger.h"
@@ -258,11 +259,17 @@ void rds_task(void) {
 		&& utc_time_sec - rds.report_tick > trg.rds_time_report) {
 				rds.event = rds.type;
 	}
-	if ((!ble_connected) && rds.event) {
-		rds.adv_counter++;
-		start_ext_adv();
-		rds.event = RDS_NONE;
-		rds.report_tick = utc_time_sec;
+	if (rds.event) {
+		if(ble_connected) {
+			if (rds.event == RDS_SWITCH) { // switch mode
+				ble_send_trg_flg();
+			}
+		} else {
+			rds.adv_counter++;
+			start_ext_adv();
+			rds.event = RDS_NONE;
+			rds.report_tick = utc_time_sec;
+		}
 	}
 }
 
