@@ -733,17 +733,10 @@ void show_data_s2(void) {
 		dl -= 10;
 		dh++;
 	}
-	if(cfg.flg.time_am_pm) {
-		lcd_set_digit(display_buff, mh, sb_s2[0]);
-		lcd_set_digit(display_buff, ml, sb_s2[1]);
-		lcd_set_digit(display_buff, dh, sb_s2[2]);
-		lcd_set_digit(display_buff, dl, sb_s2[3]);
-	} else {
-		lcd_set_digit(display_buff, dh, sb_s2[0]);
-		lcd_set_digit(display_buff, dl, sb_s2[1]);
-		lcd_set_digit(display_buff, mh, sb_s2[2]);
-		lcd_set_digit(display_buff, ml, sb_s2[3]);
-	}
+	lcd_set_digit(display_buff, mh, sb_s2[0]);
+	lcd_set_digit(display_buff, ml, sb_s2[1]);
+	lcd_set_digit(display_buff, dh, sb_s2[2]);
+	lcd_set_digit(display_buff, dl, sb_s2[3]);
 }
 
 void show_battery_s1(uint8_t level) {
