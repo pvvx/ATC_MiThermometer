@@ -449,7 +449,9 @@ Setting the "Connect" option has several functions:
 
 [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
 
-![webpgm.png](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/webpgm.png) 
+![webpgm.png](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/webpgm.png)
+
+In difficult cases, when an written unknown FW , it is necessary to use a chip reset or power supply during "activation". At the same time, take into account that the chip can be powered from the TX output. This is solved by connecting TX and +Vbat during "activation". 
 
 ![USBCOMFlashTxHtml](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif)
 
