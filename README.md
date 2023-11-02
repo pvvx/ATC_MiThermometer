@@ -449,6 +449,8 @@ Setting the "Connect" option has several functions:
 
 [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
 
+![webpgm.png](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/webpgm.png) 
+
 ![USBCOMFlashTxHtml](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif)
 
 
