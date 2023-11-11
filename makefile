@@ -8,7 +8,7 @@ PROJECT_NAME ?= ATC_Thermometer
 
 PROJECT_PATH := ./src
 OUT_PATH :=./out
-ZBO_PATH :=./zgbee_ota
+ZBO_PATH :=./zigbee_ota
 
 PGM_PORT?=COM4
 

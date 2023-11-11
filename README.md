@@ -178,7 +178,7 @@ The download of the appropriate firmware for your device will be presented autom
 * [CGG1-M 2022 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v44.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
 * [CGDK2 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v44.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
-* [Zigbee OTA firmware files for recovery in BLE](https://github.com/pvvx/ATC_MiThermometer/zgbee_ota)
+* [Zigbee OTA firmware files for recovery in BLE](https://github.com/pvvx/ATC_MiThermometer/tree/master/zgbee_ota)
 
 **Original Manufacturer Firmware Version**
 
