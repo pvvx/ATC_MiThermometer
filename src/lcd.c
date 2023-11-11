@@ -199,7 +199,7 @@ void lcd(void) {
 		}
 		if (cfg.flg.temp_F_or_C) {
 			show_temp_symbol(TMP_SYM_F); // "°F"
-			show_big_number_x10((((measured_data.temp / 5) * 9) + 3200) / 10); // convert C to F
+			show_big_number_x10(((int32_t)((int32_t)measured_data.temp * 9)/ 50) + 3200); // convert C to F
 		} else {
 			show_temp_symbol(TMP_SYM_C); // "°C"
 			show_big_number_x10(measured_data.temp_x01);

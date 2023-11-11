@@ -13,6 +13,7 @@
  *
  *******************************************************************************************************/
 
+ 
 #ifdef MCU_STARTUP_825X
 
 #define USE_SUSPEDND		1
@@ -38,8 +39,9 @@
 @********************************************************************************************************
 @                                           MACROS AND DEFINIITIONS
 @********************************************************************************************************
-@.include "version.in"
-	
+
+#include "zb_version.h"
+
 @********************************************************************************************************
 @                                            TC32 EXCEPTION VECTORS
 @********************************************************************************************************
@@ -58,8 +60,14 @@ __start:					@ MUST,  referenced by boot.link
 	.extern  _ictag_start_
 	.extern  _ictag_end_
 
+	.extern FILE_VERSION
+	.extern MANUFACTURER_CODE_TELINK
+	.extern IMAGE_TYPE
+
 	.org 0x0
 	tj	__reset
+
+	.word	(FILE_VERSION) @Zigbee ((APP_RELEASE << 24) | (APP_BUILD << 16) | (STACK_RELEASE << 8) | STACK_BUILD)
 
 	.org 0x8
 	.word	(0x544c4e4b)
@@ -72,6 +80,10 @@ __start:					@ MUST,  referenced by boot.link
 #else
 	tj	__reset
 #endif
+
+	.short  (MANUFACTURER_CODE_TELINK) @Zigbee 0x1141 Telink ID
+	.short  (IMAGE_TYPE)	@Zigbee ((CHIP_TYPE << 8) | DEVICE)
+
 	.org 0x18
 	.word	(_bin_size_+4)
 @********************************************************************************************************

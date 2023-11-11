@@ -8,14 +8,17 @@ PROJECT_NAME ?= ATC_Thermometer
 
 PROJECT_PATH := ./src
 OUT_PATH :=./out
+ZBO_PATH :=./zgbee_ota
 
-PGM_PORT?=COM11
+PGM_PORT?=COM4
 
 ifneq ($(TEL_PATH)/components/drivers/8258/gpio_8258.c, $(wildcard $(TEL_PATH)/components/drivers/8258/gpio_8258.c))
 $(error "Please check SDK Path and set TEL_PATH.")
 endif
 
+PYTHON ?= python3
 TL_Check = $(PROJECT_PATH)/../utils/tl_check_fw.py
+zb_OTA = $(PROJECT_PATH)/../utils/zigbee_ota.py
 
 COMPILEOS = $(shell uname -o)
 LINUX_OS = GNU/Linux
@@ -95,21 +98,21 @@ build: pre-build main-build
 
 
 flash: $(BIN_FILE)
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w we 0 $(BIN_FILE)
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w we 0 $(BIN_FILE)
 
 reset:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w i
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w i
 
 stop:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 i
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 i
 
 go:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -w -m
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -w -m
 
 TADDR?=0x844000
 TLEN?=128
 test_damp:
-	@python3 $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z10 -c -g ds $(TADDR) $(TLEN)
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z10 -c -g ds $(TADDR) $(TLEN)
 
 # Main-build Target
 main-build: $(ELF_FILE) secondary-outputs
@@ -132,12 +135,16 @@ $(LST_FILE): $(ELF_FILE)
 $(BIN_FILE): $(ELF_FILE)
 	@echo 'Create Flash image (binary format)'
 	@$(TC32_PATH)tc32-elf-objcopy -v -O binary $(ELF_FILE)  $(BIN_FILE)
-	@python3 $(TL_Check) $(BIN_FILE)
+	@$(PYTHON) $(TL_Check) $(BIN_FILE)
 	@echo 'Finished building: $@'
+	@echo ' '
+	@echo 'Create Zigbee OTA image'
+	@mkdir -p $(ZBO_PATH)
+	@$(PYTHON) $(zb_OTA) $(BIN_FILE) -p $(ZBO_PATH)
 	@echo ' '
 
 sizedummy: $(ELF_FILE)
-	@python3 $(PROJECT_PATH)/TlsrMemInfo.py -t $(TC32_PATH)tc32-elf-nm $(ELF_FILE)
+	@$(PYTHON) $(PROJECT_PATH)/TlsrMemInfo.py -t $(TC32_PATH)tc32-elf-nm $(ELF_FILE)
 
 clean:
 	-$(RM) $(FLASH_IMAGE) $(ELFS) $(OBJS) $(LST) $(SIZEDUMMY) $(ELF_FILE) $(BIN_FILE) $(LST_FILE)
