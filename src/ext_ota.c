@@ -21,11 +21,54 @@
 
 #define OTA1_FADDR 0x00000
 #define OTA2_FADDR 0x20000
+#define SIZE_LOW_OTA OTA2_FADDR
 #define OTA2_FADDR_ID (OTA2_FADDR + 8)
 #define BIG_OTA2_FADDR 0x40000 // Big OTA2
 #define BIG_OTA2_FADDR_ID (BIG_OTA2_FADDR + 8)
 #define MI_HW_SAVE_FADDR (CFG_ADR_MAC+0xfe0) // check flash_erase_mac_sector()
 
+/* Reformat Big OTA to Low OTA */
+void big_to_low_ota(void) {
+	// find the real FW flash address
+	uint32_t id = ID_BOOTABLE;
+	uint32_t size;
+	uint32_t faddrr = OTA1_FADDR;
+	uint32_t faddrw = OTA1_FADDR;
+	uint32_t buf_blk[64];
+	do {
+		flash_read_page(faddrr, 16, (unsigned char *) &buf_blk);
+		if(buf_blk[2] == id)
+			return;
+		faddrr += SIZE_LOW_OTA;
+	} while(faddrr < BIG_OTA2_FADDR);
+	// faddrr = BIG_OTA2_FADDR
+	flash_read_page(faddrr, sizeof(buf_blk), (unsigned char *) &buf_blk);
+	if(buf_blk[2] == id && buf_blk[6] > FLASH_SECTOR_SIZE && buf_blk[6] < SIZE_LOW_OTA) {
+		buf_blk[2] &= 0xffffffff; // clear id "bootable"
+		size = buf_blk[6];
+		size += FLASH_SECTOR_SIZE - 1;
+		size &= ~(FLASH_SECTOR_SIZE - 1);
+		flash_erase_sector(faddrw); // 45 ms, 4 mA
+		flash_write_page(faddrw, sizeof(buf_blk), (unsigned char *) &buf_blk);
+		faddrr += sizeof(buf_blk);
+		// size += faddrw;
+		faddrw += sizeof(buf_blk);
+		while(faddrw < size) {
+			if((faddrw & (FLASH_SECTOR_SIZE - 1)) == 0)
+				flash_erase_sector(faddrw); // 45 ms, 4 mA
+				// rd-wr 4kB - 20 ms, 4 mA
+				flash_read_page(faddrr, sizeof(buf_blk), (unsigned char *) &buf_blk);
+			faddrr += sizeof(buf_blk);
+			flash_write_page(faddrw, sizeof(buf_blk), (unsigned char *) &buf_blk);
+			faddrw += sizeof(buf_blk);
+		}
+		// set id "bootable" to new segment
+		flash_write_page(OTA1_FADDR+8, sizeof(id), (unsigned char *) &id);
+		// clear the "bootable" identifier on the current OTA segment?
+		while(1)
+			start_reboot();
+	}
+}
 
 // #if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C401)
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
@@ -103,67 +146,6 @@ void set_SerialStr(void) {
 #endif
 }
 #endif // defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
-
-
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-
-extern unsigned char *_icload_size_div_16_;
-extern unsigned char *_bin_size_;
-
-// Current OTA header:
-static const uint32_t head_id[4] = {
-			0x00008026, // asm("tj __reset")
-			0x025d0000, // id OTA ver
-			ID_BOOTABLE, // id "bootable" = "KNLT"
-			(uint32_t)(&_icload_size_div_16_ ) + 0x00880000 };
-/* Reformat Big OTA to Low OTA */
-void test_first_ota(void) {
-	// find the real FW flash address
-	uint32_t buf_blk[64], id, size, faddrw = OTA2_FADDR, faddrr = BIG_OTA2_FADDR;
-	flash_unlock();
-	flash_read_page(faddrr, 0x20, (unsigned char *) &buf_blk);
-#if USE_FLASH_MEMO
-	if(buf_blk[0] == MEMO_SEC_ID)
-		return;
-#endif
-	if(memcmp(&buf_blk, &head_id, sizeof(head_id)) == 0) {
-		// calculate size OTA
-		size = (uint32_t)(&_bin_size_);
-		size += 15;
-		size &= ~15;
-		size += 4;
-		if(buf_blk[6] == size) { // OTA bin size
-//			bls_ota_clearNewFwDataArea();
-			flash_erase_sector(faddrw); // 45 ms, 4 mA
-			flash_read_page(faddrr, sizeof(buf_blk), (unsigned char *) &buf_blk);
-			buf_blk[2] &= 0xffffffff; // clear id "bootable"
-			faddrr += sizeof(buf_blk);
-			flash_write_page(faddrw, sizeof(buf_blk), (unsigned char *) &buf_blk);
-			size += faddrw;
-			faddrw += sizeof(buf_blk);
-			while(faddrw < size) {
-				if((faddrw & (FLASH_SECTOR_SIZE - 1)) == 0)
-					flash_erase_sector(faddrw); // 45 ms, 4 mA
-				// rd-wr 4kB - 20 ms, 4 mA
-				flash_read_page(faddrr, sizeof(buf_blk), (unsigned char *) &buf_blk);
-				faddrr += sizeof(buf_blk);
-				flash_write_page(faddrw, sizeof(buf_blk), (unsigned char *) &buf_blk);
-				faddrw += sizeof(buf_blk);
-			}
-			// set id "bootable" to new segment
-			id = head_id[2]; // = "KNLT"
-			flash_write_page(OTA2_FADDR_ID, sizeof(id), (unsigned char *) &id);
-			// clear the "bootable" identifier on the current OTA segment
-			id = 0;
-			flash_write_page(BIG_OTA2_FADDR_ID, 1, (unsigned char *) &id);
-			//flash_erase_sector(CFG_ADR_BIND); // Pair & Security info
-			while(1)
-				start_reboot();
-		}
-	}
-}
-
-#endif // DEVICE_TYPE == DEVICE_MJWSD05MMC
 
 
 #if USE_EXT_OTA  // Compatible BigOTA

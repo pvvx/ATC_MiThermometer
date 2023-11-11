@@ -554,9 +554,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 	start_tst_battery();
 	flash_unlock();
 	random_generator_init(); //must
-#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
-	test_first_ota(); // MJWSD05MMC: Correct FW OTA address? Reformat Big OTA to Low OTA
-#endif // (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+	big_to_low_ota(); // Correct FW OTA address? Reformat Big OTA to Low OTA
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 	uint32_t hw_ver = get_mi_hw_version();
 #endif // (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)

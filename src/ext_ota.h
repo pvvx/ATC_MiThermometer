@@ -10,9 +10,7 @@
 
 #include "app_config.h"
 
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-void test_first_ota(void);
-#endif
+void big_to_low_ota(void);
 
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 uint32_t get_mi_hw_version(void);

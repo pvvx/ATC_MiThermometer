@@ -100,6 +100,15 @@ build: pre-build main-build
 flash: $(BIN_FILE)
 	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w we 0 $(BIN_FILE)
 
+flash_hi: $(BIN_FILE)
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -s we 0x40000 $(BIN_FILE)
+
+erase_fw:
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w es 0 0x40000
+
+erase:
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z11 -s ea
+
 reset:
 	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w i
 
