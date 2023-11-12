@@ -35,7 +35,7 @@ enum {
 #define DEVICE_CGG1_ver		   0 // =2022 - CGG1-M version 2022, or = 0 - CGG1-M version 2020,2021
 #endif
 
-#define DEVICE_LYWSD03MMC   10	// LCD display LYWSD03MMC
+#define DEVICE_LYWSD03MMC    3	// LCD display LYWSD03MMC
 #define DEVICE_MHO_C401   	 1	// E-Ink display MHO-C401 2020
 #define DEVICE_CGDK2 		 6  // LCD display "Qingping Temp & RH Monitor Lite"
 #define DEVICE_MHO_C401N   	 8	// E-Ink display MHO-C401 2022
