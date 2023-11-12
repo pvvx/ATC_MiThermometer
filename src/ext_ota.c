@@ -215,7 +215,7 @@ void clear_ota_area(void) {
 	if(bls_ll_requestConnBrxEventDisable() < 256 || ext_ota.check_addr == 0)
 		return;
 	if (ext_ota.check_addr >= ext_ota.start_addr + (ext_ota.ota_size << 10)) {
-#ifdef MI_HW_VER_FADDR //  (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_LYWSD03MMC)
+#if 0 // (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_LYWSD03MMC)
 			check_sector_clear(MI_HW_VER_FADDR);
 			flash_write_page(MI_HW_VER_FADDR, sizeof(my_HardStr), (unsigned char *)my_HardStr);
 			flash_write_page(MI_HW_VER_FADDR + sizeof(my_HardStr), sizeof(my_SerialStr), (unsigned char *)my_SerialStr);
