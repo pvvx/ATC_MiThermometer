@@ -38,7 +38,7 @@ Supported models:
 
 | [Tuya ZigBee TS0201](https://github.com/pvvx/BLE_THSensor) |
 |:--:|
-| <img src="https://pvvx.github.io/TS0201/img/ts0201.jpg" width="120"/> |
+| <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> |
 | Programmator |
 
 
@@ -169,14 +169,14 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 
-* [LYWSD03MMC Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v44.bin) (HW: B1.4, B1.5, B1.6, B1.7, B1.9, B2.0)
-* [MJWSD05MMC Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/BTH_v44.bin) ([MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC))
-* [MHO-C122 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C122_v44.bin) ([2AWMOMHOC122](https://github.com/pvvx/ATC_MiThermometer/issues/339))
-* [MHO-C401 2020-2021 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v44.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
-* [MHO-C401 2022 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v44.bin) (manufacturer Xiaomi and [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114))
-* [CGG1-M 2020-2021 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v44.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGG1-M 2022 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v44.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
-* [CGDK2 Custom Firmware Version 4.4](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v44.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
+* [LYWSD03MMC Custom Firmware Version 4.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/ATC_v45.bin) (HW: B1.4, B1.5, B1.6, B1.7, B1.9, B2.0)
+* [MJWSD05MMC Custom Firmware Version 4.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/BTH_v45.bin) ([MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC))
+* [MHO-C122 Custom Firmware Version 4.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C122_v45.bin) ([2AWMOMHOC122](https://github.com/pvvx/ATC_MiThermometer/issues/339))
+* [MHO-C401 2020-2021 Custom Firmware Version 4.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401_v45.bin) (manufacturer Xiaomi, not [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114)!)
+* [MHO-C401 2022 Custom Firmware Version 4.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/MHO_C401N_v45.bin) (manufacturer Xiaomi and [Azarton](https://github.com/pvvx/ATC_MiThermometer/issues/114))
+* [CGG1-M 2020-2021 Custom Firmware Version 4.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1_v45.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGG1-M 2022 Custom Firmware Version 4.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGG1M_v45.bin) ([CGG1-M](https://github.com/pvvx/ATC_MiThermometer/issues/41#issuecomment-812803456))
+* [CGDK2 Custom Firmware Version 4.5](https://github.com/pvvx/ATC_MiThermometer/raw/master/CGDK2_v45.bin) ([CGDK2](https://pvvx.github.io/CGDK2))
 
 * [Zigbee OTA firmware files for recovery in BLE](https://github.com/pvvx/ATC_MiThermometer/tree/master/zigbee_ota)
 
@@ -235,7 +235,8 @@ In case you want to go back to the original firmware, you can download them here
 |     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N) and [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC). Added function key: Connect |
 |     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check LYWSD03MMC HW: B1.5. Added MHO-C122 (2AWMOMHOC122) test support. LCD display stabilization LYWSD03MMC HW:B1.9 |
 |     4.4 | Adding an [option to display only external data](https://github.com/pvvx/ATC_MiThermometer/issues/380#issuecomment-1727042304). Only the value from the "EEP BindKey" [is now taken as the BindKey](https://github.com/pvvx/ATC_MiThermometer/issues/372). |
-|     4.5 | (Beta version) Replacing BTHome ver1 (HA_BLE) with [BTHome ver2](https://bthome.io/). |
+|     4.5 | Replacing BTHome ver1 (HA_BLE) with [BTHome ver2](https://bthome.io/). Moving firmware after recovery to BLE from Zigbee OTA. Fixed a bug where the date was not displayed correctly for MJWSD05MMC. |
+|     4.6 | All thermometers support BigOTA |
 ## Applications
 
 ### Reading Measurements from Flash

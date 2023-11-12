@@ -1,4 +1,4 @@
-@set SWVER=_v44
+@set SWVER=_v46
 @del /Q "ATC%SWVER%.bin"
 wsl make -s PROJECT_NAME=ATC%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_LYWSD03MMC"
 @if not exist "ATC%SWVER%.bin" goto :error

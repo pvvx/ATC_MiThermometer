@@ -215,12 +215,10 @@ void clear_ota_area(void) {
 	if(bls_ll_requestConnBrxEventDisable() < 256 || ext_ota.check_addr == 0)
 		return;
 	if (ext_ota.check_addr >= ext_ota.start_addr + (ext_ota.ota_size << 10)) {
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_LYWSD03MMC)
+#ifdef MI_HW_VER_FADDR //  (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_LYWSD03MMC)
 			check_sector_clear(MI_HW_VER_FADDR);
 			flash_write_page(MI_HW_VER_FADDR, sizeof(my_HardStr), (unsigned char *)my_HardStr);
 			flash_write_page(MI_HW_VER_FADDR + sizeof(my_HardStr), sizeof(my_SerialStr), (unsigned char *)my_SerialStr);
-#else
-#error "Define MI_HW_VER_FADDR & _mi_hw_vers!"
 #endif
 			ota_firmware_size_k = ext_ota.ota_size;
 			ota_program_offset = ext_ota.start_addr;

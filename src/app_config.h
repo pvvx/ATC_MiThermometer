@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x45	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x46	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
@@ -37,7 +37,7 @@ extern "C" {
 #define USE_HA_BLE_BEACON	0 // = 1 BTHome v1 https://bthome.io/
 #define USE_BTHOME_BEACON	(!USE_HA_BLE_BEACON) // (not implemented) = 1 BTHome v2 https://bthome.io/
 
-#define USE_EXT_OTA			0 // = 1 Compatible BigOTA
+#define USE_EXT_OTA			1 // = 1 Compatible BigOTA
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
 #define USE_FLASH_SERIAL_UID		0 // = 1 Set my_SerialStr "$SOC_ID_Rev-$FLASH_JEDEC-$FLASH_UID"
