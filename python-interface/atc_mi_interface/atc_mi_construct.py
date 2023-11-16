@@ -22,7 +22,7 @@ atc_flag = BitStruct(  # GPIO_TRG pin (marking "reset" on circuit board) flags:
 custom_format = Struct(
     "version" / Computed(1),
     "size" / Int8ul,  # 18 (0x12)
-    "uid" / Int8ul,  # 22 (0x16, 16-bit UUID)
+    "uid" / Int8ul,  # BLE classifier - Common Data Type; 0x16=22=Service Data, 16-bit UUID follows https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
     "UUID" / ByteSwapped(Const(b"\x18\x1a")),  # GATT Service 0x181A Environmental Sensing
     "MAC" / ReversedMacAddress,  # [0] - lo, .. [6] - hi digits
     "mac_vendor" / MacVendor,
@@ -44,21 +44,18 @@ custom_format = Struct(
 custom_enc_format = Struct(
     "version" / Computed(1),
     "size" / Int8ul,  # 14 (0x0e)
-    "uid" / Int8ul,  # 22 (0x16, 16-bit UUID)
+    "uid" / Int8ul,  # BLE classifier - Common Data Type; 0x16=22=Service Data, 16-bit UUID follows https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
     "UUID" / ByteSwapped(Const(b"\x18\x1a")),  # GATT Service 0x181A Environmental Sensing
     "codec" / AtcMiCodec(
-        Aligned(11,
-            Struct(
-                "temperature" / Int16sl_x100,
-                "temperature_unit" / Computed("°C"),
-                "humidity" / Int16ul_x100,
-                "humidity_unit" / Computed("%"),
-                "battery_level" / Int8ul,  # 0..100 %
-                "battery_level_unit" / Computed("%"),
-                "flags" / atc_flag
-            )
-        ),
-        size_payload=6,
+        Struct(
+            "temperature" / Int16sl_x100,
+            "temperature_unit" / Computed("°C"),
+            "humidity" / Int16ul_x100,
+            "humidity_unit" / Computed("%"),
+            "battery_level" / Int8ul,  # 0..100 %
+            "battery_level_unit" / Computed("%"),
+            "flags" / atc_flag
+        )
     ),
 )
 
@@ -70,7 +67,7 @@ custom_enc_format = Struct(
 atc1441_format = Struct(
     "version" / Computed(1),
     "size" / Int8ul,  # 18
-    "uid" / Int8ul,  # 0x16, 16-bit UUID
+    "uid" / Int8ul,  # BLE classifier - Common Data Type; 0x16=22=Service Data, 16-bit UUID follows https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
     "UUID" / ByteSwapped(Const(b"\x18\x1a")),  # GATT Service 0x181A Environmental Sensing
     "MAC" / MacAddress,  # [0] - hi, .. [6] - lo digits
     "mac_vendor" / MacVendor,
@@ -94,25 +91,22 @@ atc1441_format = Struct(
 atc1441_enc_format = Struct(
     "version" / Computed(1),
     "size" / Int8ul,  # 14 (0x0e)
-    "uid" / Int8ul,  # 22 (0x16, 16-bit UUID)
+    "uid" / Int8ul,  # BLE classifier - Common Data Type; 0x16=22=Service Data, 16-bit UUID follows https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
     "UUID" / ByteSwapped(Const(b"\x18\x1a")),  # GATT Service 0x181A Environmental Sensing
     "codec" / AtcMiCodec(
-        Aligned(8,
-            Struct(
-                "temperature" / ExprAdapter(Int8sl,  # -40...87 °C with half degree precision
-                    obj_ / 2 - 40, lambda obj, ctx: int((float(obj) + 40) * 2)),
-                "temperature_unit" / Computed("°C"),
-                "humidity" / ExprAdapter(Int8ul,  # half unit precision
-                    obj_ / 2, lambda obj, ctx: int(float(obj) * 2)),
-                "humidity_unit" / Computed("%"),
-                "batt_trg" / BitStruct(
-                    "out_gpio_trg_flag" / Flag,  # If this flag is set, the output GPIO_TRG pin is controlled according to the set parameters threshold temperature or humidity
-                    "battery_level" / BitsInteger(7),  # 0..100 %
-                    "battery_level_unit" / Computed("%"),
-                )
+        Struct(
+            "temperature" / ExprAdapter(Int8sl,  # -40...87 °C with half degree precision
+                obj_ / 2 - 40, lambda obj, ctx: int((float(obj) + 40) * 2)),
+            "temperature_unit" / Computed("°C"),
+            "humidity" / ExprAdapter(Int8ul,  # half unit precision
+                obj_ / 2, lambda obj, ctx: int(float(obj) * 2)),
+            "humidity_unit" / Computed("%"),
+            "batt_trg" / BitStruct(
+                "out_gpio_trg_flag" / Flag,  # If this flag is set, the output GPIO_TRG pin is controlled according to the set parameters threshold temperature or humidity
+                "battery_level" / BitsInteger(7),  # 0..100 %
+                "battery_level_unit" / Computed("%"),
             )
-        ),
-        size_payload=3,
+        )
     ),
 )
 
@@ -202,7 +196,7 @@ mi_like_data = Struct(  # https://github.com/pvvx/ATC_MiThermometer/blob/master/
 mi_like_format = Struct(
     "version" / Computed(2),
     "size" / Int8ul,  # e.g., 21
-    "uid" / Int8ul,  # 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
+    "uid" / Int8ul,  # BLE classifier - Common Data Type; 0x16=22=Service Data, 16-bit UUID follows https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
     "UUID" / ByteSwapped(Const(b"\xfe\x95")),  # 16-bit UUID for Members 0xFE95 Xiaomi Inc.
     "ctrl" / BitStruct(  # Frame Control (https://github.com/pvvx/ATC_MiThermometer/blob/master/src/mi_beacon.h#L104-L124)
         "Mesh" / Flag,  # 0: does not include Mesh; 1: includes Mesh. For standard BLE access products and high security level access, this item is mandatory to 0. This item is mandatory for Mesh access to 1. For more information about Mesh access, please refer to Mesh related documents
@@ -247,8 +241,7 @@ mi_like_format = Struct(
                 Struct(
                     "count_id" / Int24ul,
                     "payload" / GreedyRange(mi_like_data)
-                ),
-                size_payload=5,
+                )
             ),
             False: GreedyRange(mi_like_data)
         }
@@ -256,7 +249,7 @@ mi_like_format = Struct(
 )
 
 # -------------- bt_home_format ------------------------------------------------
-# "BTHome" advertising type, encrypted beacon unchecked
+# "BTHome" v1 advertising type, encrypted beacon unchecked. https://bthome.io/v1/
 
 bt_home_data = Struct(
     "bt_home_type" / Enum(Int16ub,
@@ -329,29 +322,230 @@ bt_home_data = Struct(
 
 # https://github.com/custom-components/ble_monitor/issues/548
 
-bt_home_format = Struct(  # Simplified formatting
+bt_home_format = Struct(  # V1 simplified formatting
     "version" / Computed(1),
     "size" / Int8ul,
-    "uid" / Int8ul,  # 0x16, 16-bit UUID
+    "uid" / Int8ul,  # BLE classifier - Common Data Type; 0x16=22=Service Data, 16-bit UUID follows https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
     "UUID" / ByteSwapped(Const(b"\x18\x1c")),  # BT_HOME_GATT, SERVICE_UUID_USER_DATA, HA_BLE, no security
     "bt_home_data" / GreedyRange(bt_home_data)
 )
 
-# -------------- bt_home_enc_format ------------------------------------------------
-# "BTHome" advertising type, encrypted beacon checked
+# -------------- bt_home_enc_format --------------------------------------------
+# "BTHome" v1 encrypted advertising type. https://bthome.io/v1/
 
 bt_home_enc_format = Struct(  # Simplified formatting
     "version" / Computed(1),
     "size" / Int8ul,
-    "uid" / Int8ul,  # 0x16, 16-bit UUID
+    "uid" / Int8ul,  # BLE classifier - Common Data Type; 0x16=22=Service Data, 16-bit UUID follows https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
     "UUID" / ByteSwapped(Const(b"\x18\x1e")),  # Bond Management Service
     "codec" / BtHomeCodec(
         Struct(
             "count_id" / Int32ul,  # https://github.com/custom-components/ble_monitor/issues/548#issuecomment-1059874327
             "payload" / GreedyRange(bt_home_data)
-        ),
-        size_payload=11,
+        )
     ),
+)
+
+# -------------- bt_home_v2_format ---------------------------------------------
+# BTHome v2 advertising type. Can be clear or encrypted: https://bthome.io/format/
+
+bt_home_v2_data = Struct(
+    "bt_home_v2_type" / Enum(Int8ul,
+        BtHomeID_PacketId = 0,            # 0x00, uint8
+        BtHomeID_battery = 0x01,          # 0x01, uint8, %
+        BtHomeID_temperature = 0x02,      # 0x02, sint16, 0.01 °C
+        BtHomeID_humidity = 0x03,         # 0x03, uint16, 0.01 %
+        BtHomeID_pressure = 0x04,         # 0x04, uint24, 0.01 hPa
+        BtHomeID_illuminance = 0x05,      # 0x05, uint24, 0.01 lux
+        BtHomeID_weight = 0x06,           # 0x06, uint16, 0.01 kg
+        BtHomeID_weight_lb = 0x07,        # 0x07, uint16, 0.01 lb
+        BtHomeID_dewpoint = 0x08,         # 0x08, sint16, 0.01 °C
+        BtHomeID_count8 = 0x09,           # 0x09, uint8
+        BtHomeID_energy24 = 0x0a,         # 0x0A, uint24, 0.001 kWh
+        BtHomeID_power24 = 0x0b,          # 0x0B, uint24, 0.01 W
+        BtHomeID_voltage = 0x0c,          # 0x0C, uint16, 0.001 V
+        BtHomeID_pm2x5 = 0x0d,            # 0x0D, uint16, kg/m3
+        BtHomeID_pm10 = 0x0e,             # 0x0E, uint16, kg/m3
+        BtHomeID_boolean = 0x0f,          # 0x0F, uint8, generic boolean
+        BtHomeID_switch = 0x10,           # 0x10, uint8, power on/off
+        BtHomeID_opened = 0x11,           # 0x11, uint8, opening =0 Closed, = 1 Open
+        BtHomeID_co2 = 0x12,              # 0x12, uint16
+        BtHomeID_tvoc = 0x13,             # 0x13, uint16
+        BtHomeID_moisture16 = 0x14,       # 0x14, uint16, 0.01
+        BtHomeID_low_battery = 0x15,      # 0x15, uint8, =1 low
+        BtHomeID_chg_battery = 0x16,      # 0x16, uint8, battery charging
+        BtHomeID_carbon_monoxide = 0x17,  # 0x17, uint8, carbon monoxide
+        BtHomeID_cold = 0x18,             # 0x18, uint8
+        BtHomeID_connectivity = 0x19,     # 0x19, uint8
+        BtHomeID_door = 0x1a,             # 0x1a, uint8, =0 Closed, =1 Open
+        BtHomeID_garage_door = 0x1b,      # 0x1b, uint8, =0 Closed, =1 Open
+        BtHomeID_gas = 0x1c,              # 0x1c, uint8, =1 Detected
+        BtHomeID_heat = 0x1d,             # 0x1d, uint8, =1 Hot
+        BtHomeID_light = 0x1e,            # 0x1e, uint8, =1 Light detected
+        BtHomeID_lock = 0x1f,             # 0x1f, uint8, =1 Unlocked
+        BtHomeID_moisture_b = 0x20,       # 0x20, uint8, =0 Dry, =1 Wet
+        BtHomeID_motion = 0x21,           # 0x21, uint8, =0 Clear, =1 Detected
+        BtHomeID_moving = 0x22,           # 0x22, uint8, =1 Moving
+        BtHomeID_occupancy = 0x23,        # 0x23, uint8, =1 Detected
+        BtHomeID_plug = 0x24,             # 0x24, uint8, =0 Unplugged, =1 Plugged in
+        BtHomeID_presence = 0x25,         # 0x25, uint8, =0 Away, =1 Home
+        BtHomeID_problem = 0x26,          # 0x26, uint8, =0 Ok, =1 Problem
+        BtHomeID_running = 0x27,          # 0x27, uint8, =0 Not Running, =1 Running
+        BtHomeID_safety = 0x28,           # 0x28, uint8, =0 Unsafe, =1 Safe
+        BtHomeID_smoke = 0x29,            # 0x29, uint8, =0 Clear, =1 Detected
+        BtHomeID_sound = 0x2a,            # 0x2a, uint8, =0 Clear, =1 Detected
+        BtHomeID_tamper = 0x2b,           # 0x2b, uint8, =0 Off, =1 On
+        BtHomeID_vibration = 0x2c,        # 0x2c, uint8, =0 Clear, =1 Detected
+        BtHomeID_window = 0x2d,           # 0x2d, uint8, =0 Closed, =1 Open
+        BtHomeID_humidity8 = 0x2e,        # 0x2e, uint8
+        BtHomeID_moisture8 = 0x2f,        # 0x2f, uint8
+        BtHomeID_0x30 = 0x30,             # 0x30, uint8
+        BtHomeID_0x31 = 0x31,             # 0x31, uint8
+        BtHomeID_0x32 = 0x32,             # 0x32, uint8
+        BtHomeID_0x33 = 0x33,             # 0x33, uint8
+        BtHomeID_0x34 = 0x34,             # 0x34, uint8
+        BtHomeID_0x35 = 0x35,             # 0x35, uint8
+        BtHomeID_0x36 = 0x36,             # 0x36, uint8
+        BtHomeID_0x37 = 0x37,             # 0x37, uint8
+        BtHomeID_0x38 = 0x38,             # 0x38, uint8
+        BtHomeID_0x39 = 0x39,             # 0x39, uint8
+        BtHomeID_button = 0x3a,           # 0x3a, uint8, =1 press, =2 double_press ... https:# bthome.io/format/
+        BtHomeID_0x3b = 0x3b,             # 0x3b, uint8
+        BtHomeID_dimmer = 0x3c,           # 0x3c, uint16 ?, =1 rotate left 3 steps, ... https:# bthome.io/format/
+        BtHomeID_count16 = 0x3d,          # 0x3d, uint16
+        BtHomeID_count32 = 0x3e,          # 0x3e, uint32
+        BtHomeID_rotation = 0x3f,         # 0x3f, sint16, 0.1
+        BtHomeID_distance_mm  = 0x40,     # 0x40, uint16, mm
+        BtHomeID_distance_m = 0x41,       # 0x41, uint16, m, 0.1
+        BtHomeID_duration = 0x42,         # 0x42, uint24, 0.01
+        BtHomeID_current = 0x43,          # 0x43, uint16, 0.001
+        BtHomeID_speed = 0x44,            # 0x44, uint16, 0.01
+        BtHomeID_temperature_01 = 0x45,   # 0x45, sint16, 0.1
+        BtHomeID_UV_index = 0x46,         # 0x46, uint8, 0.1
+        BtHomeID_volume16_01 = 0x47,      # 0x47, uint16, 0.1
+        BtHomeID_volume16 = 0x48,         # 0x48, uint16, 1
+        BtHomeID_Flow_Rate = 0x49,        # 0x49, uint16, 0.001
+        BtHomeID_voltage_01 = 0x4a,       # 0x4a, uint16, 0.1
+        BtHomeID_gas24 = 0x4b,            # 0x4b, uint24, 0.001
+        BtHomeID_gas32 = 0x4c,            # 0x4c, uint32, 0.001
+        BtHomeID_energy32 = 0x4d,         # 0x4d, uint32, 0.001
+        BtHomeID_volume32 = 0x4e,         # 0x4e, uint32, 0.001
+        BtHomeID_water32 = 0x4f,          # 0x4f, uint32, 0.001
+        BtHomeID_timestamp = 0x50,        # 0x50, uint48
+        BtHomeID_acceleration = 0x51,     # 0x51, uint16, 0.001
+        BtHomeID_gyroscope = 0x52,        # 0x52, uint16, 0.001
+        BtHomeID_text = 0x53,             # 0x53, size uint8, uint8[]
+        BtHomeID_raw = 0x54               # 0x54, size uint8, uint8[]
+    ),
+    "data" / Switch(this.bt_home_v2_type,
+        {
+            "BtHomeID_PacketId": Struct(
+                "packet_id" / Int8ul,  # integer (0..255)
+            ),
+            "BtHomeID_count8": Struct(
+                "counter8" / Int8ul,  # integer (0..255)
+            ),
+            "BtHomeID_count16": Struct(
+                "counter16" / Int16ul,  # integer (0..65535)
+            ),
+            "BtHomeID_count32": Struct(
+                "counter32" / Int32ul,  # integer (0..4294967295)
+            ),
+            "BtHomeID_boolean": BitStruct(
+                Padding(7),
+                "boolean" / Flag,  # boolean
+            ),
+            "BtHomeID_switch": BitStruct(
+                Padding(7),
+                "switch" / Flag,  # boolean
+            ),
+            "BtHomeID_opened": BitStruct(
+                Padding(7),
+                "opened" / Flag,  # boolean
+            ),
+            "BtHomeID_voltage": Struct(
+                "battery_v" / Int16ul_x1000,
+                "battery_v_unit" / Computed("V"),
+            ),
+            "BtHomeID_voltage_01": Struct(
+                "battery_v" / Int16ul_x100,
+                "battery_v_unit" / Computed("V"),
+            ),
+            "BtHomeID_temperature": Struct(
+                "temperature" / Int16sl_x100,
+                "temperature_unit" / Computed("°C"),
+            ),
+            "BtHomeID_temperature_01": Struct(
+                "temperature" / Int16sl_x10,
+                "temperature_unit" / Computed("°C"),
+            ),
+            "BtHomeID_humidity": Struct(
+                "humidity" / Int16ul_x100,
+                "humidity_unit" / Computed("%"),
+            ),
+            "BtHomeID_pressure": Struct(
+                "pressure" / Int24ul_x100,
+                "pressure_unit" / Computed("hPa"),
+            ),
+            "BtHomeID_illuminance": Struct(
+                "illuminance" / Int24ul_x100,
+                "illuminance_unit" / Computed("lux"),
+            ),
+            "BtHomeID_weight": Struct(
+                "weight" / Int16ul_x100,
+                "weight_unit" / Computed("kg"),
+            ),
+            "BtHomeID_weight_lb": Struct(
+                "weight_lb" / Int16ul_x100,
+                "weight_lb_unit" / Computed("lb"),
+            ),
+            "BtHomeID_dewpoint": Struct(
+                "dewpoint" / Int16sl_x100,
+                "dewpoint_unit" / Computed("°C"),
+            ),
+            "BtHomeID_humidity8": Struct(
+                "humidity" / Int16ul_x10,
+                "humidity_unit" / Computed("%"),
+            ),
+            "BtHomeID_battery": Struct(
+                "battery_level" / Int8ul,  # 0..100 %
+                "battery_level_unit" / Computed("%"),
+            ),
+            "BtHomeID_energy24": Struct(
+                "energy24" / Int24ul_x1000,  # 0..1000 %
+                "energy24_unit" / Computed("kWh"),
+            ),
+            "BtHomeID_power24": Struct(
+                "power24" / Int24ul_x100,  # 0..100 %
+                "power24_unit" / Computed("W"),
+            ),
+        }
+    )
+)
+
+bt_home_v2_format = Struct(  # https://bthome.io/format/
+    "version" / Computed(1),
+    "size" / Int8ul,  # examples: 0B or 0E
+    "uid" / Int8ul,  # 0x16
+    "UUID" / ByteSwapped(Const(b"\xfc\xd2")),  # BTHomeV2
+    "DevInfo" / BitStruct(
+        "Version" / BitsInteger(3),  # Version number (currently v2)
+        "Reserved2" / BitsInteger(2),
+        "Trigger" / Flag,  # 0: advertisements at a regular interval (bit 2 = 0), or when triggered (bit 2 = 1)
+        "Reserved1" / BitsInteger(1),
+        "Encryption" / Flag,  # non-encrypted data (bit 0 = 0), or encrypted data (bit 0 = 1)
+    ),
+    "data_point" / Switch(this.DevInfo.Encryption,
+        {
+            True: BtHomeV2Codec(
+                Struct(
+                    "count_id" / Int32ul,
+                    "payload" / GreedyRange(bt_home_v2_data),
+                )
+            ),
+            False: GreedyRange(bt_home_v2_data)
+        }
+    )
 )
 
 # -------------- general_format ------------------------------------------------
@@ -366,6 +560,7 @@ general_format = Struct(
     "mi_like_format" / GreedyRange(mi_like_format),
     "bt_home_format" / GreedyRange(bt_home_format),
     "bt_home_enc_format" / GreedyRange(bt_home_enc_format),
+    "bt_home_v2_format" / GreedyRange(bt_home_v2_format),
 )
 
 # -------------- LYWSD03MMC native structures ----------------------------------
@@ -392,7 +587,7 @@ native_comfort_values = Struct(
     "humidity_unit" / Computed("%"),
 )
 
-# -------------- App Cmd internal structures ----------------------------------
+# -------------- App Cmd internal structures -----------------------------------
 # Ref. Firmware Version >= 4.3
 
 # App cfg (version byte + 11 bytes)

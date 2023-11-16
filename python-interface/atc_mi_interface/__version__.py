@@ -1,1 +1,1 @@
-__version__ = "1.1.0"  # Format: A.B.C.postN
+__version__ = "2.0.0"  # Format: A.B.C.postN

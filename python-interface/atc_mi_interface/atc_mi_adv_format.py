@@ -33,6 +33,11 @@ gatt_dict = {
         "gatt": '0000181e-0000-1000-8000-00805f9b34fb',
         "length": None,
         "header": bytes.fromhex("161e18"),
+    },
+    "bt_home_v2": {
+        "gatt": '0000fcd2-0000-1000-8000-00805f9b34fb',
+        "length": None,
+        "header": bytes.fromhex("16d2fc"),
     }
 }
 

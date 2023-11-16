@@ -14,6 +14,7 @@ reload(atc_mi_construct)
 
 # Set custom adapters in construct_editor
 custom.add_custom_tunnel(atc_mi_construct.BtHomeCodec, "BtHomeCodec")
+custom.add_custom_tunnel(atc_mi_construct.BtHomeV2Codec, "BtHomeV2Codec")
 custom.add_custom_tunnel(atc_mi_construct.AtcMiCodec, "AtcMiCodec")
 custom.add_custom_tunnel(atc_mi_construct.MiLikeCodec, "MiLikeCodec")
 custom.add_custom_adapter(
@@ -54,5 +55,8 @@ gallery_descriptor = {
     ),
     "bt_home_enc_format": GalleryItem(
         construct=atc_mi_construct.bt_home_enc_format,
+    ),
+    "bt_home_v2_format": GalleryItem(
+        construct=atc_mi_construct.bt_home_v2_format,
     ),
 }

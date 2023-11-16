@@ -363,6 +363,7 @@ def gui_edit(editing_structure: dict, args: argparse.Namespace):
         sys.exit(2)
 
     custom.add_custom_tunnel(BtHomeCodec, "BtHomeCodec")
+    custom.add_custom_tunnel(BtHomeV2Codec, "BtHomeV2Codec")
     custom.add_custom_tunnel(AtcMiCodec, "AtcMiCodec")
     custom.add_custom_tunnel(MiLikeCodec, "MiLikeCodec")
     custom.add_custom_adapter(
