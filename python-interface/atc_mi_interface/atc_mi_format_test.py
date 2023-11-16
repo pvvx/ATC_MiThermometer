@@ -10,57 +10,16 @@ import construct_editor.core.custom as custom
 from collections import OrderedDict
 
 from . import atc_mi_construct
+from .construct_module import *  # It includes setting the gallery_descriptor dictionary.
 
-custom.add_custom_tunnel(atc_mi_construct.BtHomeCodec, "BtHomeCodec")
-custom.add_custom_tunnel(atc_mi_construct.AtcMiCodec, "AtcMiCodec")
-custom.add_custom_tunnel(atc_mi_construct.MiLikeCodec, "MiLikeCodec")
-custom.add_custom_adapter(
-    atc_mi_construct.ExprAdapter,
-    "ComputedValue",
-    custom.AdapterObjEditorType.String)
-custom.add_custom_adapter(
-    atc_mi_construct.ReversedMacAddress,
-    "ReversedMacAddress",
-    custom.AdapterObjEditorType.String)
-custom.add_custom_adapter(
-    atc_mi_construct.MacAddress,
-    "MacAddress",
-    custom.AdapterObjEditorType.String)
 
 def main():
     app = wx.App(False)
     frame = wx.Frame(None, title="ATC MI Formats", size=(1000, 500))
 
-    gallery_descriptor = {
-        "general_format": GalleryItem(
-            construct=atc_mi_construct.general_format,
-        ),
-        "custom_format": GalleryItem(
-            construct=atc_mi_construct.custom_format,
-        ),
-        "custom_enc_format": GalleryItem(
-            construct=atc_mi_construct.custom_enc_format,
-        ),
-        "mi_like_format": GalleryItem(
-            construct=atc_mi_construct.mi_like_format,
-        ),
-        "atc1441_format": GalleryItem(
-            construct=atc_mi_construct.atc1441_format,
-        ),
-        "atc1441_enc_format": GalleryItem(
-            construct=atc_mi_construct.atc1441_enc_format,
-        ),
-        "bt_home_format": GalleryItem(
-            construct=atc_mi_construct.bt_home_format,
-        ),
-        "bt_home_enc_format": GalleryItem(
-            construct=atc_mi_construct.bt_home_enc_format,
-        ),
-    }
-
     ordered_samples = OrderedDict(
     # ordered_samples OrderedDict for the overall data, independent of the
-    # previous gallery_descriptor. Notice that if a reference is used "mac_address",
+    # gallery_descriptor. Notice that if a reference is used "mac_address",
     # reference_label and key_label must be set in ConstructGallery
         [
             (
@@ -93,41 +52,6 @@ def main():
                 {
                     "binary": bytes.fromhex(
                         "0b 16 1a 18 bd e9 b7 5d b8 56 f3 03"),
-                    "mac_address": "A4:C1:38:AA:BB:CC",
-                },
-            ),
-            (
-                "bt_home (temp, humidity, batt%)",
-                {
-                    "binary": bytes.fromhex(
-                        "11 16 1c 18 02 00 56 23 02 6c 07 03 03 ff 13 02 01 "
-                        "4e"),
-                    "mac_address": "A4:C1:38:AA:BB:CC",
-                },
-            ),
-            (
-                "bt_home (batt v)",
-                {
-                    "binary": bytes.fromhex(
-                        "0d 16 1c 18 02 00 63 02 10 01 03 0c d9 0a"),
-                    "mac_address": "A4:C1:38:AA:BB:CC",
-                },
-            ),
-            (
-                "bt_home_enc (temp, humidity, batt%)",
-                {
-                    "binary": bytes.fromhex(
-                        "16 16 1e 18 83 93 db a2 55 4c d8 04 be ab 78 cf b3 00 "
-                        "00 7d 6a 1c d2"),
-                    "mac_address": "A4:C1:38:AA:BB:CC",
-                },
-            ),
-            (
-                "bt_home_enc (batt v)",
-                {
-                    "binary": bytes.fromhex(
-                        "12 16 1e 18 12 79 94 44 eb 3a 3f e4 b3 00 00 59 62 3a "
-                        "29"),
                     "mac_address": "A4:C1:38:AA:BB:CC",
                 },
             ),
@@ -176,6 +100,78 @@ def main():
                     "mac_address": "A4:C1:38:AA:BB:CC",
                 },
             ),
+            (
+                "bt_home v1 (temp, humidity, batt%)",
+                {
+                    "binary": bytes.fromhex(
+                        "11 16 1c 18 02 00 56 23 02 6c 07 03 03 ff 13 02 01 "
+                        "4e"),
+                    "mac_address": "A4:C1:38:AA:BB:CC",
+                },
+            ),
+            (
+                "bt_home v1 (batt v, switch)",
+                {
+                    "binary": bytes.fromhex(
+                        "0d 16 1c 18 02 00 63 02 10 01 03 0c d9 0a"),
+                    "mac_address": "A4:C1:38:AA:BB:CC",
+                },
+            ),
+            (
+                "bt_home_enc v1 (temp, humidity, batt%)",
+                {
+                    "binary": bytes.fromhex(
+                        "16 16 1e 18 83 93 db a2 55 4c d8 04 be ab 78 cf b3 00 "
+                        "00 7d 6a 1c d2"),
+                    "mac_address": "A4:C1:38:AA:BB:CC",
+                },
+            ),
+            (
+                "bt_home_enc v1 (batt v, switch)",
+                {
+                    "binary": bytes.fromhex(
+                        "12 16 1e 18 12 79 94 44 eb 3a 3f e4 b3 00 00 59 62 3a "
+                        "29"),
+                    "mac_address": "A4:C1:38:AA:BB:CC",
+                },
+            ),
+            (
+                "bt_home_v2 (temp, humidity, batt%)",
+                {
+                    "binary": bytes.fromhex(
+                        "0e 16 d2 fc 40 00 d6 01 50 02 80 07 03 8a 13"
+                    ),
+                    "mac_address": "A4:C1:38:AA:BB:CC",
+                },
+            ),
+            (
+                "bt_home_v2 (batt v, switch)",
+                {
+                    "binary": bytes.fromhex(
+                        "0b 16 d2 fc 40 00 d9 0c d1 0a 10 00"
+                    ),
+                    "mac_address": "A4:C1:38:AA:BB:CC",
+                },
+            ),
+            (
+                "bt_home_v2_enc (temp, humidity, batt%)",
+                {
+                    "binary": bytes.fromhex(
+                        "14 16 d2 fc 41 95 b0 ef da 78 9d d9 53 b0 26 00 00 "
+                        "93 41 62 6f"
+                    ),
+                    "mac_address": "A4:C1:38:AA:BB:CC",
+                },
+            ),
+            (
+                "bt_home_v2_enc (batt v, switch)",
+                {
+                    "binary": bytes.fromhex(
+                        "11 16 d2 fc 41 d4 6c c8 e7 74 b9 26 00 00 cb d8 4a 40"
+                    ),
+                    "mac_address": "A4:C1:38:AA:BB:CC",
+                },
+            ),
         ]
     )
 
@@ -184,7 +180,7 @@ def main():
     }
 
 
-    ConstructGallery(frame,
+    frame.main_panel = ConstructGallery(frame,
         gallery_descriptor=gallery_descriptor,
         ordered_samples=ordered_samples,
         ref_key_descriptor=ref_key_descriptor,
