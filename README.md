@@ -41,7 +41,7 @@ Supported models:
 |:--:|
 | <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> |
 | Programmator |
-| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
+| [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 
 **Warnings**
 
