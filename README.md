@@ -40,7 +40,7 @@ Supported models:
 | [Tuya ZigBee TS0201 TZ3000](https://github.com/pvvx/BLE_THSensor) |
 |:--:|
 | <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> |
-| Programmator |
+| Programmator, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 
 **Warnings**
