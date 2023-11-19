@@ -454,7 +454,7 @@ void show_s1_number_x100(int32_t number, uint8_t atr){
 			number = -number;
 			buf[0] = 1;
 		}
-		number = (number / 100) + ((number % 100) >= 50); // round(div 100)
+		number = (number + 50) / 100; // round(div 100)
 		if (number > 9999) buf[1] = 1; // "1" 10000..19999
 		if (number > 999) buf[2] = number / 1000 % 10;
 		if (number > 99) buf[3] = number / 100 % 10;
@@ -555,7 +555,7 @@ void show_s1_number_x10(int32_t number, uint8_t atr){
 				number = -number;
 				display_buff[3] |= BIT(2); // "-"
 			}
-			number = (number / 10) + ((number % 10) >= 5); // round(div 10)
+			number = (number + 5) / 10; // round(div 10)
 		} else { // show: -9.9..199.9
 			display_buff[13] |= BIT(0); // point
 			if (number < 0){
@@ -593,7 +593,7 @@ void show_s3_number_x10(int32_t number, uint8_t atr){
 				number = -number;
 				display_buff[8] |= BIT(2); // "-"
 			}
-			number = (number / 10) + ((number % 10) >= 5); // round(div 10)
+			number = (number + 5) / 10; // round(div 10)
 		} else { // show: -99.9..999.9
 			display_buff[11] |= BIT(0); // point
 			if (number < 0){
@@ -630,7 +630,7 @@ void show_s4_number_x10(int32_t number, uint8_t atr){
 				number = -number;
 				display_buff[12] |= BIT(2); // "-"
 			}
-			number = (number / 10) + ((number % 10) >= 5); // round(div 10)
+			number = (number + 5) / 10; // round(div 10)
 		} else { // show: -9.99..199.99
 			display_buff[14] |= BIT(0); // point
 			if (number < 0){

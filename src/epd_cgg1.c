@@ -236,7 +236,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
 				number = -number;
 				display_buff[9] |= BIT(3); // "-"
 			}
-			number = (number / 10) + ((number % 10) > 5); // round(div 10)
+			number = (number + 5) / 10; // round(div 10)
 		} else { // show: -9.9..199.9
 			display_buff[3] |= BIT(6); // point
 			if (number < 0){
@@ -294,7 +294,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10
 				number = -number;
 				display_buff[15] |= BIT(7); // "-"
 			}
-			number = (number / 10) + ((number % 10) > 5); // round(div 10)
+			number = (number + 5) / 10; // round(div 10)
 		} else { // show: -9.9..99.9
 			display_buff[0] |= BIT(2); // point
 			if (number < 0){

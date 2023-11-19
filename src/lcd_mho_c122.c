@@ -211,7 +211,7 @@ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 				number = -number;
 				display_buff[0] |= BIT(1); // "-"
 			}
-			number = (number / 10) + ((number % 10) > 5); // round(div 10)
+			number = (number + 5) / 10; // round(div 10)
 		} else { // show: -9.9..199.9
 			display_buff[2] = BIT(3); // point
 			if (number < 0){
