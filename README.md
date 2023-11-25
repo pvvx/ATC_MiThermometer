@@ -5,25 +5,26 @@
 _This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin) can be found here: [atc1441/ATC_MiThermometer](https://github.com/atc1441/ATC_MiThermometer).
-Custom firmware is not supported in MiHome. But it is possible to work LYWSD03MMC with 'Xiaomi Gateway 3' by first registering in MiHome on the official firmware, flashing to custom firmware with restoring the binding key from MiHome, replacing the device name with "LYWSD03MMC" and setting the advertising type to "MIJIA (MiHome)" marked "encrypted".
-There is an alternative firmware from [Ivan Belokobylskij](https://github.com/devbis) for [LYWSD03MMC to work in Zigbee 3.0 mode](https://github.com/devbis/z03mmc)._
+Custom firmware is not supported in MiHome. But it is possible to work LYWSD03MMC with 'Xiaomi Gateway 3' by first registering in MiHome on the official firmware, flashing to custom firmware with restoring the binding key from MiHome, replacing the device name with "LYWSD03MMC" and setting the advertising type to "MIJIA (MiHome)" marked "encrypted".<br>
+Support for Zigbee firmware is in the [ZigbeeTLc](https://github.com/pvvx/ZigbeeTLc) repository.<br>
+There is an alternative firmware from [Ivan Belokobylskij](https://github.com/devbis) for [LYWSD03MMC to work in Zigbee 3.0 mode](https://github.com/devbis/z03mmc). _
 
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time. OTA and configuration main page - [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
-
 
 **Key features**
 
 * Extended battery life (over a year)
 * Improved measurement accuracy and extended format in 0.01 units
-* Full support Home Assistant ['BTHome integration'](https://bthome.io/)
+* Full support Home Assistant ['BTHome integration'](https://bthome.io/), ['Passive BLE Monitor'](https://github.com/custom-components/ble_monitor) and other.
 * Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon
-* Supports Bluetooth v5.0+ **[LE Long Range](https://www.youtube.com/watch?v=2VkbGIEFn4g&t=80s)** (LE 1M/2M/Coded 500K/125K), CSA1/CSA2 (Channel Selection Algorithm), Advertising Extensions: primary and secondary Coded PHY S=8, Connectable
+* Supports Bluetooth v5.0+ **[LE Long Range](https://www.youtube.com/watch?v=2VkbGIEFn4g&t=80s)** (LE 1M/2M/Coded 500K/125K), CSA1/CSA2 (Channel Selection Algorithm), Advertising Extensions: primary and secondary Coded PHY S=8, Connectable. LE Long Range - distance of 1 km in a straight line at TX +0 dB.
 * **3 LCD Display Screens** (Looping): Temperature & Humidity & Comfort, Temperature & Battery Level, Clock
 * **Measurement values recording** & Charting. See [Reading Measurements from Flash](#reading-measurements-from-flash)
 * **Adjustable correction offsets** and **Comfort zones**
-* Support for 4 beacon formats: Xiaomi, ATC, Custom, BTHome and encrypted options.
-* Adjustable RF TX Power & Bluetooth advertising interval
+* Support for 4 beacon formats: Xiaomi, ATC, Custom, BTHome v2 and encrypted options. Legacy and  Extended Advertisements.
+* Adjustable RF TX Power (-20..+10dB) & Bluetooth advertising interval. +3..+10 dB require a more powerful power supply.
 * DIY improvements - relay control by temperature or humidity, transmission of the reed switch status - open / closed or pulse counter
+* Firmware download support for [Zigbee](https://github.com/pvvx/ZigbeeTLc)
 
 Supported models:
 
