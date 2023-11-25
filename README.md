@@ -25,6 +25,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Adjustable RF TX Power (-20..+10dB) & Bluetooth advertising interval. +3..+10 dB require a more powerful power supply.
 * DIY improvements - relay control by temperature or humidity, transmission of the reed switch status - open / closed or pulse counter
 * Firmware download support for [Zigbee](https://github.com/pvvx/ZigbeeTLc)
+* Flashing third party Zigbee OTA files.
 
 Supported models:
 
@@ -238,7 +239,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check LYWSD03MMC HW: B1.5. Added MHO-C122 (2AWMOMHOC122) test support. LCD display stabilization LYWSD03MMC HW:B1.9 |
 |     4.4 | Adding an [option to display only external data](https://github.com/pvvx/ATC_MiThermometer/issues/380#issuecomment-1727042304). Only the value from the "EEP BindKey" [is now taken as the BindKey](https://github.com/pvvx/ATC_MiThermometer/issues/372). |
 |     4.5 | Replacing BTHome ver1 (HA_BLE) with [BTHome ver2](https://bthome.io/). Moving firmware after recovery to BLE from Zigbee OTA. Fixed a bug where the date was not displayed correctly for MJWSD05MMC. |
-|     4.6 | All thermometers support BigOTA |
+|     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
 ## Applications
 
 ### Reading Measurements from Flash
