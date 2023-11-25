@@ -17,7 +17,7 @@ The base components used here are:
 
 The software in this section includes:
 
-- a [*construct* data model](atc_mi_interface/atc_mi_construct.py) representing the *custom*, *atc1441*, *mi_like* and *bt_home* formats, respectively in clear and encrypted structures, with a documented interface to decode, browse and build the structures of BLE advertisements;
+- a [*construct* data model](atc_mi_interface/atc_mi_construct.py) representing the *custom*, *atc1441*, *mi_like*, *bt_home* (version 1) and *bt_home_v2* (version 2) formats, respectively in clear and encrypted structures, with a documented interface to decode, browse and build the structures of BLE advertisements;
 - the [`atc_mi_advertising_format(advertisement_data)`](atc_mi_interface/atc_mi_adv_format.py) function, to easily process BLE advertisements;
 - an easy to use [BLE Advertisement Browser GUI](atc_mi_interface/atc_mi_advertising.py) based on the [wxPython](https://www.wxpython.org/) cross-platform desktop GUI toolkit, including controls on the BLE advertisements, map of MAC addresses, bindkeys, etc;
 - a [configuration tool](atc_mi_interface/atc_mi_config.py) allowing to browse and edit the configuration parameters of the latest releases of the "pvvx" firmware, with a command-line interface and optionally with a GUI, including the possibility to use this configuration feature as an API.
@@ -159,7 +159,7 @@ Parsing a [*custom* frame](https://github.com/pvvx/ATC_MiThermometer#custom-form
 ```python
 from atc_mi_interface import general_format
 print(general_format.parse(bytes.fromhex(
-    '12 16 1a 18 5c c8 ee 38 c1 a4 b0 08 c3 14 ca 0a 50 14 05')))
+    "12 16 1a 18 5c c8 ee 38 c1 a4 b0 08 c3 14 ca 0a 50 14 05")))
 ```
 
 Output:
@@ -173,17 +173,17 @@ Container:
             version = 1
             size = 18
             uid = 22
-            UUID = b'\x18\x1a' (total 2)
-            MAC = u'A4:C1:38:EE:C8:5C' (total 17)
-            mac_vendor = u'Telink Semiconductor' (total 20)
+            UUID = b"\x18\x1a" (total 2)
+            MAC = u"A4:C1:38:EE:C8:5C" (total 17)
+            mac_vendor = u"Telink Semiconductor" (total 20)
             temperature = 22.24
-            temperature_unit = u'°C' (total 2)
+            temperature_unit = u"°C" (total 2)
             humidity = 53.15
-            humidity_unit = u'%' (total 1)
+            humidity_unit = u"%" (total 1)
             battery_v = 2.762
-            battery_v_unit = u'V' (total 1)
+            battery_v_unit = u"V" (total 1)
             battery_level = 80
-            battery_level_unit = u'%' (total 1)
+            battery_level_unit = u"%" (total 1)
             counter = 20
             flags = Container:
                 humidity_trigger = False
@@ -196,14 +196,15 @@ Container:
     mi_like_format = ListContainer:
     bt_home_format = ListContainer:
     bt_home_enc_format = ListContainer:
+    bt_home_v2_format = ListContainer:
 ```
 
-The following example shows how to parse any type of format (*custom*, *atc1441*, *mi_like*, *bt_home*, either they are encrypted or not). The right format is automatically selected basing on the frame type:
+The following example shows how to parse any type of format (*custom*, *atc1441*, *mi_like*, *bt_home*, *bt_home_v2*, either they are encrypted or not). The right format is automatically selected basing on the frame type:
 
 ```python
 from atc_mi_interface import general_format
 
-frame1 = bytes.fromhex('12 16 1a 18 cc bb aa 38 c1 a4 77 07 88 13 ca 0a 50 01 07')
+frame1 = bytes.fromhex("12 16 1a 18 cc bb aa 38 c1 a4 77 07 88 13 ca 0a 50 01 07")
 
 atc_mi_data = general_format.parse(frame1)
 
@@ -214,9 +215,9 @@ print("battery_v:", atc_mi_data.search_all("^battery_v"))
 
 print()
 
-frame2 = bytes.fromhex('16 16 1e 18 ec 12 cf e5 00 00 3a f3 95 3c a0 5a 7d 03 00 2a ea f8 ea')
+frame2 = bytes.fromhex("16 16 1e 18 ec 12 cf e5 00 00 3a f3 95 3c a0 5a 7d 03 00 2a ea f8 ea")
 bindkey = bytes.fromhex("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-mac_address = bytes.fromhex("A4:C1:38:AA:BB:CC".replace(':', ''))
+mac_address = bytes.fromhex("A4:C1:38:AA:BB:CC".replace(":", ""))
 
 atc_mi_data = general_format.parse(frame2, bindkey=bindkey, mac_address=mac_address)
 
@@ -229,14 +230,14 @@ print("battery_v:", atc_mi_data.search_all("^battery_v"))
 Output:
 
 ```python
-temperature: [19.11, '°C']
-humidity: [50.0, '%', False]
-battery_level: [80, '%']
-battery_v: [2.762, 'V']
+temperature: [19.11, "°C"]
+humidity: [50.0, "%", False]
+battery_level: [80, "%"]
+battery_v: [2.762, "V"]
 
-temperature: [20.0, '°C']
-humidity: [50.0, '%']
-battery_level: [100, '%']
+temperature: [20.0, "°C"]
+humidity: [50.0, "%"]
+battery_level: [100, "%"]
 battery_v: []
 ```
 
@@ -266,18 +267,18 @@ custom_format.build(
             "input_gpio_value": True,
         },
     }
-).hex(' ')
+).hex(" ")
 ```
 
 Output:
 
 ```
-'12 16 1a 18 cc bb aa 38 c1 a4 77 07 88 13 ca 0a 50 01 07'
+"12 16 1a 18 cc bb aa 38 c1 a4 77 07 88 13 ca 0a 50 01 07"
 ```
 
 ## Encrypting and decrypting
 
-All encoded versions of the *construct* structures (*custom_enc_format*, *atc1441_enc_format*, *bt_home_enc_format*, *mi_like_format* with the "isEncrypted" flag) support the following additional parameters:
+All encoded versions of the *construct* structures (*custom_enc_format*, *atc1441_enc_format*, *bt_home_enc_format*, *mi_like_format* with the "isEncrypted" flag, *bt_home_v2_format* with the "Encryption" flag) support the following additional parameters:
 
 - `mac_address`: MAC address in bytes (e.g., `bytes.fromhex("A4:C1:38:AA:BB:CC".replace(":", ""))`)
 - `bindkey`: Bindkey in bytes (e.g., `bytes.fromhex("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")`)
@@ -287,12 +288,9 @@ Alternatively (but not suggested), if the same MAC address and key are needed fo
 ```python
 ...
     "codec" / AtcMiCodec(
-        Aligned(11,
-            Struct(
-                ...
-            )
+        Struct(
+            ...
         ),
-        size_payload=6,
         mac_address=bytes.fromhex("A4:C1:38:AA:BB:CC".replace(":", "")),
         bindkey=bytes.fromhex("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
     ),
@@ -323,14 +321,14 @@ Container:
             version = 1
             size = 14
             uid = 22
-            UUID = b'\x18\x1a' (total 2)
+            UUID = b"\x18\x1a" (total 2)
             codec = Container:
                 temperature = 19.11
-                temperature_unit = u'°C' (total 2)
+                temperature_unit = u"°C" (total 2)
                 humidity = 50.0
-                humidity_unit = u'%' (total 1)
+                humidity_unit = u"%" (total 1)
                 battery_level = 93
-                battery_level_unit = u'%' (total 1)
+                battery_level_unit = u"%" (total 1)
                 flags = Container:
                     humidity_trigger = False
                     temp_trigger = True
@@ -343,6 +341,7 @@ Container:
     mi_like_format = ListContainer:
     bt_home_format = ListContainer:
     bt_home_enc_format = ListContainer:
+    bt_home_v2_format = ListContainer:
 ```
 
 Building the frame with the reverse process:
@@ -371,25 +370,25 @@ custom_enc_format.build(
     },
     mac_address=bytes.fromhex("A4:C1:38:AA:BB:CC".replace(":", "")),
     bindkey=bytes.fromhex("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
-).hex(' ')
+).hex(" ")
 ```
 
 Output:
 
 ```
-'0e 16 1a 18 bd 9d c5 4e fa b8 08 56 6b e8 7f'
+"0e 16 1a 18 bd 9d c5 4e fa b8 08 56 6b e8 7f"
 ```
 
 For the build process, generally `Container` is mapped to a dictionary (`{ ... }`), `ListContainer` to a list (`[ ... ]`) and `(enum)` with a normal `key: value` inside a dictionary (with the strings in quotes).
 
-Another parsing example using as input an array of bytes encoded with `bt_home_enc_format`:
+Another parsing example using as input an array of bytes encoded with encrypted `bt_home_v2_format`:
 
 ```python
-from atc_mi_interface import bt_home_enc_format
+from atc_mi_interface import bt_home_v2_format
 
 print(
-    bt_home_enc_format.parse(
-        bytes.fromhex("16 16 1e 18 23 1b 90 11 7c cd e0 4b a1 73 26 5c 7d 03 00 68 8c 9b 84"),
+    bt_home_v2_format.parse(
+        bytes.fromhex("14 16 d2 fc 41 95 b0 ef da 78 9d d9 53 b0 26 00 00 93 41 62 6f"),
         mac_address=bytes.fromhex("A4:C1:38:AA:BB:CC".replace(":", "")),
         bindkey=bytes.fromhex("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
     )
@@ -401,54 +400,67 @@ Output:
 ```python
 Container:
     version = 1
-    size = 22
+    size = 20
     uid = 22
-    UUID = b'\x18\x1e' (total 2)
-    codec = Container:
-        count_id = 228700
+    UUID = b"\xfc\xd2" (total 2)
+    DevInfo = Container:
+        Version = 2
+        Reserved2 = 0
+        Trigger = False
+        Reserved1 = 0
+        Encryption = True
+    data_point = Container:
+        count_id = 9904
         payload = ListContainer:
             Container:
-                bt_home_type = (enum) BT_HOME_temperature 8962
-                data = Container:
-                    temperature = 19.11
-                    temperature_unit = u'°C' (total 2)
-            Container:
-                bt_home_type = (enum) BT_HOME_humidity 771
-                data = Container:
-                    humidity = 50.0
-                    humidity_unit = u'%' (total 1)
-            Container:
-                bt_home_type = (enum) BT_HOME_battery 513
+                bt_home_v2_type = (enum) BtHomeID_battery 1
                 data = Container:
                     battery_level = 80
-                    battery_level_unit = u'%' (total 1)
+                    battery_level_unit = u"%" (total 1)
+            Container:
+                bt_home_v2_type = (enum) BtHomeID_temperature 2
+                data = Container:
+                    temperature = 19.2
+                    temperature_unit = u"°C" (total 2)
+            Container:
+                bt_home_v2_type = (enum) BtHomeID_humidity 3
+                data = Container:
+                    humidity = 62.22
+                    humidity_unit = u"%" (total 1)
 ```
 
 Reverse process:
 
 ```python
-from atc_mi_interface import bt_home_enc_format
+from atc_mi_interface import bt_home_v2_format
 
-bt_home_enc_format.build(
+bt_home_v2_format.build(
     {
-        "size": 22,
+        "size": 20,
         "uid": 22,
-        "UUID": b"\x18\x1e",
-        "codec": {
-            "count_id": 228700,
+        "UUID": b"\xfc\xd2",
+        "DevInfo": {
+            "Encryption": True,
+            "Reserved1": 0,
+            "Reserved2": 0,
+            "Trigger": False,
+            "Version": 2,
+        },
+        "data_point": {
+            "count_id": 9904,
             "payload": [
                 {
-                    "bt_home_type": "BT_HOME_temperature",
-                    "data": {"temperature": 19.11},
+                    "bt_home_v2_type": "BtHomeID_battery",
+                    "data": {"battery_level": 80}
                 },
                 {
-                    "bt_home_type": "BT_HOME_humidity",
-                    "data": {"humidity": 50.0},
+                    "bt_home_v2_type": "BtHomeID_temperature",
+                    "data": {"temperature": 19.2}
                 },
                 {
-                    "bt_home_type": "BT_HOME_battery",
-                    "data": {"battery_level": 80},
-                }
+                    "bt_home_v2_type": "BtHomeID_humidity",
+                    "data": {"humidity": 62.22}
+                },
             ]
         }
     },
@@ -460,7 +472,7 @@ bt_home_enc_format.build(
 Output:
 
 ```
-'16 16 1e 18 23 1b 90 11 7c cd e0 4b a1 73 26 5c 7d 03 00 68 8c 9b 84'
+"14 16 d2 fc 41 95 b0 ef da 78 9d d9 53 b0 26 00 00 93 41 62 6f"
 ```
 
 ## Reading and updating single values
@@ -472,7 +484,7 @@ As an example, we first setup a `construct` collection from `cfg`, named `cfg_co
 ```python
 from atc_mi_interface import cfg
 
-CFG_BYTES = '43 85 10 00 00 28 04 A9 31 31 04 B4'
+CFG_BYTES = "43 85 10 00 00 28 04 A9 31 31 04 B4"
 cfg_constr = cfg.parse(bytes.fromhex(CFG_BYTES))
 
 cfg_constr
@@ -481,7 +493,7 @@ cfg_constr
 Output:
 
 ```python
-Container(version=1, firmware_version=Container(major=4, minor=3), flg=Container(lp_measures=True, tx_measures=False, show_batt_enabled=False, temp_F_or_C=uEnumIntegerString.new(0, 'temp_C'), blinking_time_smile=uEnumIntegerString.new(0, 'blinking_smile'), comfort_smiley=True, advertising_type=uEnumIntegerString.new(1, 'adv_type_custom')), flg2=Container(screen_off=False, longrange=False, bt5phy=False, adv_flags=True, adv_crypto=False, smiley=uEnumIntegerString.new(0, 'smiley_off')), temp_offset=0.0, temperature_unit=u'°C', humi_offset=0.0, humidity_unit=u'%', advertising_interval=2.5, adv_int_unit=u'sec.', measure_interval=4, rf_tx_power=uEnumIntegerString.new(169, 'RF_POWER_Positive_0p04_dBm'), connect_latency=1.0, connect_latency_unit=u'sec.', min_step_time_update_lcd=2.45, min_s_t_upd_lcd_unit=u'sec.', hw_cfg=Container(sensor=uEnumIntegerString.new(0, 'sensor_SHT4x'), reserved=0, hwver=uEnumIntegerString.new(4, 'hwver_LYWSD03MMC_B1_6')), averaging_measurements=180)
+Container(version=1, firmware_version=Container(major=4, minor=3), flg=Container(lp_measures=True, tx_measures=False, show_batt_enabled=False, temp_F_or_C=uEnumIntegerString.new(0, "temp_C"), blinking_time_smile=uEnumIntegerString.new(0, "blinking_smile"), comfort_smiley=True, advertising_type=uEnumIntegerString.new(1, "adv_type_custom")), flg2=Container(screen_off=False, longrange=False, bt5phy=False, adv_flags=True, adv_crypto=False, smiley=uEnumIntegerString.new(0, "smiley_off")), temp_offset=0.0, temperature_unit=u"°C", humi_offset=0.0, humidity_unit=u"%", advertising_interval=2.5, adv_int_unit=u"sec.", measure_interval=4, rf_tx_power=uEnumIntegerString.new(169, "RF_POWER_Positive_0p04_dBm"), connect_latency=1.0, connect_latency_unit=u"sec.", min_step_time_update_lcd=2.45, min_s_t_upd_lcd_unit=u"sec.", hw_cfg=Container(sensor=uEnumIntegerString.new(0, "sensor_SHT4x"), reserved=0, hwver=uEnumIntegerString.new(4, "hwver_LYWSD03MMC_B1_6")), averaging_measurements=180)
 ```
 
 To pretty print its content:
@@ -515,17 +527,17 @@ Container:
         adv_crypto = False
         smiley = (enum) smiley_off 0
     temp_offset = 0.0
-    temperature_unit = u'°C' (total 2)
+    temperature_unit = u"°C" (total 2)
     humi_offset = 0.0
-    humidity_unit = u'%' (total 1)
+    humidity_unit = u"%" (total 1)
     advertising_interval = 2.5
-    adv_int_unit = u'sec.' (total 4)
+    adv_int_unit = u"sec." (total 4)
     measure_interval = 4
     rf_tx_power = (enum) RF_POWER_Positive_0p04_dBm 169
     connect_latency = 1.0
-    connect_latency_unit = u'sec.' (total 4)
+    connect_latency_unit = u"sec." (total 4)
     min_step_time_update_lcd = 2.45
-    min_s_t_upd_lcd_unit = u'sec.' (total 4)
+    min_s_t_upd_lcd_unit = u"sec." (total 4)
     hw_cfg = Container:
         sensor = (enum) sensor_SHT4x 0
         reserved = 0
@@ -612,19 +624,52 @@ Full example to update a byte sequence, setting a single value:
 ```python
 from atc_mi_interface import cfg
 
-CFG_BYTES = '43 85 10 00 00 28 04 A9 31 31 04 B4'  # initial byte sequence
+CFG_BYTES = "43 85 10 00 00 28 04 A9 31 31 04 B4"  # initial byte sequence
 
 cfg_constr = cfg.parse(bytes.fromhex(CFG_BYTES))  # first we create its "construct"
 cfg_constr.flg.tx_measures = True  # then we update the value
 new_cfg_bytes = cfg.build(cfg_constr)  # subsequently, we build the new byte sequence
 
-print(new_cfg_bytes.hex(' ').upper())
+print(new_cfg_bytes.hex(" ").upper())
 ```
 
 Output:
 
 ```
 43 C5 10 00 00 28 04 A9 31 31 04 B4
+```
+
+## Running the Packet Log Inspector Shell
+
+Press the "Open Python Shell" button to run the Packet Log Inspector Shell.
+
+Accessing the parsed structure:
+
+```python
+cfg_data = frame.main_panel.construct_hex_editor.construct_editor._model.root_obj
+contextkw = frame.main_panel.construct_hex_editor.contextkw
+frame.main_panel.construct_hex_editor.binary
+```
+
+To read a specific value, use the following examples:
+
+```python
+cfg_data.custom_format[0].temperature
+cfg_data.bt_home_v2_format[0].data_point.payload[0].data.battery_level
+```
+
+Assign the variable to change it:
+
+```python
+cfg_data.custom_enc_format[0].codec.temperature = 18.5
+cfg_data.bt_home_v2_format[0].data_point.payload[1].data.temperature = 19.2
+```
+
+Build the new bytes and update the UI:
+
+```python
+from atc_mi_interface import bt_home_v2_format
+frame.main_panel.construct_hex_editor.binary = bt_home_v2_format.build(cfg_data.bt_home_v2_format[0], **contextkw)
 ```
 
 ## Processing BLE advertisements
@@ -792,7 +837,7 @@ async def main(address):
                     for char in service.characteristics:
                         name_bytes = await client.read_gatt_char(char)
                         if char.handle in valid_bytes_characteristics:
-                            print(char.handle, service.description, "-", char.description, "- Value:", name_bytes.hex(' '))
+                            print(char.handle, service.description, "-", char.description, "- Value:", name_bytes.hex(" "))
                         if char.handle in valid_string_characteristics:
                             print(char.handle, service.description, "-", char.description, ":", name_bytes.decode())
                         if char.handle == native_temp_hum_v_char:
@@ -825,11 +870,11 @@ With native LYWSD03MMC firmware, its output is:
 53 Temperature and Humidity : Container:
     version = 1
     temperature = 19.1
-    temperature_unit = u'°C' (total 2)
+    temperature_unit = u"°C" (total 2)
     humidity = 47
-    humidity_unit = u'%' (total 1)
+    humidity_unit = u"%" (total 1)
     battery_v = 2.983
-    battery_v_unit = u'V' (total 1)
+    battery_v_unit = u"V" (total 1)
 57 Unknown - Batt - Value: 64
 66 comfortable temp and humi : Container:
     version = 1
@@ -837,7 +882,7 @@ With native LYWSD03MMC firmware, its output is:
     temperature_low = 19.0
     humidity_high = 85
     humidity_low = 20
-    humidity_unit = u'%' (total 1)
+    humidity_unit = u"%" (total 1)
 95 Xiaomi Inc. - Version : 1.0.0_0130
 ```
 
@@ -933,7 +978,7 @@ python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -c
 # Printing the date as well as time delta adjustment
 python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -d
 
-# Setting the device date to the host system's date
+# Setting the device date to the host system"s date
 python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -Dd
 
 # Setting the time delta adjustment to DELTA = -30
@@ -960,7 +1005,7 @@ python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -E "Internal conf
 # Set advertising mode to "mi_like"
 python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -E "Internal configuration|flg|advertising_type = 2"
 
-# Set advertising mode to "bt_home"
+# Set advertising mode to "bt_home" (depending on the firmware release of the thermometer, it can be bt_home version 1 or, with v4.5 or higher, bt_home_v2)
 python3 -m atc_mi_interface.atc_mi_config -m A4:C1:38:AA:BB:CC -E "Internal configuration|flg|advertising_type = 3"
 ```
 
@@ -1037,7 +1082,7 @@ For example, the following code prints all returned commands and "binary" values
 for key, item in data_dict.items():
     if "binary" in item:
         decoded_data = item["construct"].parse(item["binary"])
-        print("Command", hex(key), "=", item["binary"].hex(' ').upper())
+        print("Command", hex(key), "=", item["binary"].hex(" ").upper())
         print("Decoded data:", decoded_data)
 ```
 
@@ -1061,7 +1106,7 @@ from atc_mi_interface import normalize_report
 
 configuration = argparse.Namespace()  # all attributes need to be initialized
 
-configuration.address = 'A4:C1:38:AA:BB:CC'  # Set to the actual MAC address of the device
+configuration.address = "A4:C1:38:AA:BB:CC"  # Set to the actual MAC address of the device
 configuration.info = False  # True to return the device information
 configuration.chars = False  # True to return the device characteristics (configuration)
 configuration.gui = False  # True to edit the device configuration using the GUI. [It should be set to False with API]
@@ -1086,7 +1131,7 @@ print("Return code (False, None, True):", ret)
 for key, item in data_dict.items():
     if "binary" in item:
         decoded_data = item["construct"].parse(item["binary"])
-        print("Command", hex(key), "=", item["binary"].hex(' ').upper())
+        print("Command", hex(key), "=", item["binary"].hex(" ").upper())
         print("Decoded data:", normalize_report(str(decoded_data)))
         print()
 
@@ -1101,14 +1146,14 @@ As mentioned, a queried command can return more byte sequences, like `configurat
 Command 0x10 = 08 CC BB AA 38 C1 A4 9D 52
 Decoded data: Container:
     length = 8
-    MAC = 'A4:C1:38:AA:BB:CC' (total 17)
-    mac_vendor = 'Telink Semiconductor (Taipei) Co'... (truncated, total 38)
+    MAC = "A4:C1:38:AA:BB:CC" (total 17)
+    mac_vendor = "Telink Semiconductor (Taipei) Co"... (truncated, total 38)
     hex RandMAC digits = 21149
 
 Command 0x11 = 00 62 6C 74 2E 33 2E 31 32 39 76 4F 61 77 45 31 47 41 54 43
 Decoded data: Container:
-    null byte = b'\x00' (total 1)
-    name = 'blt.3.129vOawE1GATC' (total 19)
+    null byte = b"\x00" (total 1)
+    name = "blt.3.129vOawE1GATC" (total 19)
 
 Command 0x12 = 72 C9 2E 9E D6 21 3F 76 33 76 57 7F 2F 15 18 51 0D 8A 8D 43 3F C5 C6 32 51 16 C8 DA
 Decoded data: Container:
@@ -1126,7 +1171,7 @@ On the other hand, `configuration.string = "0x60"` (corresponding to `python3 -m
 
 ```
 Command 0x60 = 60 DB B6 B6 27 1D D3
-Decoded data: 0000   60 DB B6 B6 27 1D D3                              `...'..
+Decoded data: 0000   60 DB B6 B6 27 1D D3                              `..."..
 ```
 
 `configuration.edit_list`, when valued, requires a list of lists of strings, where each element is a `EDIT_LIST` string assignment, like described before. The sequence of `EDIT_LIST` assignments can be added in any format, regardless it is included in the outer list, or in the nested one, or in both. To assign a null list (i.e., `-E` option without arguments): `configuration.edit_list = [[]]`.
@@ -1135,7 +1180,7 @@ Decoded data: 0000   60 DB B6 B6 27 1D D3                              `...'..
 
 Set `configuration.chars = True` in the previous program to print all the thermometer settings.
 
-Alternatively, the following program can be used to query the thermometer for command '0x55' (CMD_ID_CFG, Get/set custom firmware internal configuration):
+Alternatively, the following program can be used to query the thermometer for command "0x55" (CMD_ID_CFG, Get/set custom firmware internal configuration):
 
 ```python
 import asyncio
@@ -1143,12 +1188,12 @@ from bleak import BleakClient
 from atc_mi_interface import cfg, normalize_report
 
 characteristic_uuid = "00001f1f-0000-1000-8000-00805f9b34fb"  # Characteristic UUID 0x1F1F
-command_to_read = b'\x55'  # use 'cfg' to decode this command
+command_to_read = b"\x55"  # use "cfg" to decode this command
 mac_address = "A4:C1:38:AA:BB:CC"  # change this with the device MAC address
 
 async def main(address):
     def notification_handler(handle: int, data: bytes) -> None:
-        print(handle, data.hex(' ').upper())
+        print(handle, data.hex(" ").upper())
         if bytes([data[0]]) == command_to_read:
             print(normalize_report(str(cfg.parse(data[1:]))))
 
@@ -1195,17 +1240,17 @@ Container:
         adv_crypto = False
         smiley = (enum) smiley_off 0
     temp_offset = 0.0
-    temperature_unit = '°C' (total 2)
+    temperature_unit = "°C" (total 2)
     humi_offset = 0.0
-    humidity_unit = '%' (total 1)
+    humidity_unit = "%" (total 1)
     advertising_interval = 2.5
-    adv_int_unit = 'sec.' (total 4)
+    adv_int_unit = "sec." (total 4)
     measure_interval = 4
     rf_tx_power = (enum) RF_POWER_Positive_0p04_dBm 169
     connect_latency = 1.0
-    connect_latency_unit = 'sec.' (total 4)
+    connect_latency_unit = "sec." (total 4)
     min_step_time_update_lcd = 2.45
-    min_s_t_upd_lcd_unit = 'sec.' (total 4)
+    min_s_t_upd_lcd_unit = "sec." (total 4)
     hw_cfg:
         sensor = (enum) sensor_SHT4x 0
         reserved = 0
@@ -1213,11 +1258,11 @@ Container:
     averaging_measurements = 180
 ```
 
-Within the output, the obtained bytes '55 43 85 10 00 00 28 04 A9 31 31 04 B4 00' can be decoded with the following code:
+Within the output, the obtained bytes "55 43 85 10 00 00 28 04 A9 31 31 04 B4 00" can be decoded with the following code:
 
 ```python
 from atc_mi_interface import cfg, normalize_report
-data = '55 43 85 10 00 00 28 04 A9 31 31 04 B4 00'
+data = "55 43 85 10 00 00 28 04 A9 31 31 04 B4 00"
 print(normalize_report(str(cfg.parse(bytes.fromhex(data)[1:]))))
 ```
 
@@ -1226,13 +1271,13 @@ To only change some specific parameters from a predefined settings, first obtain
 ```python
 from atc_mi_interface import cfg, normalize_report
 
-data = '55 43 85 10 00 00 28 04 A9 31 31 04 B4 00'  # settings
+data = "55 43 85 10 00 00 28 04 A9 31 31 04 B4 00"  # settings
 
 cfg_data = cfg.parse(bytes.fromhex(data)[1:])  # obtain the *construct* form from the settings
 cfg_data.temp_offset = 1.2                     # perform the assignment
 new_data = cfg.build(cfg_data)                 # build the new settings
 
-print(new_data.hex(' '))
+print(new_data.hex(" "))
 print(normalize_report(str(cfg.parse(new_data))))
 ```
 
@@ -1244,7 +1289,7 @@ from bleak import BleakClient
 from atc_mi_interface import cfg
 
 characteristic_uuid = "00001f1f-0000-1000-8000-00805f9b34fb"  # Characteristic UUID 0x1F1F
-command_to_set = b'\x55'  # use 'cfg' to decode this command
+command_to_set = b"\x55"  # use "cfg" to decode this command
 mac_address = "A4:C1:38:AA:BB:CC"  # change this with the device MAC address
 temp_offset_value = 1.2
 
@@ -1252,7 +1297,7 @@ async def main(address):
     data_out = []
 
     def notification_handler(handle: int, data: bytes) -> None:
-        print("Notifying", handle, data.hex(' ').upper())
+        print("Notifying", handle, data.hex(" ").upper())
         data_out.append(data)  # store the parameter (settings)
 
     for times in range(20):
@@ -1268,11 +1313,11 @@ async def main(address):
                 await asyncio.sleep(0.1)  # data_out should include the initial settings
                 for data in data_out:
                     if bytes([data[0]]) == command_to_set:
-                        print("Initial settings:", data.hex(' '))
+                        print("Initial settings:", data.hex(" "))
                         cfg_data = cfg.parse(data[1:])  # obtain the *construct* form
                         cfg_data.temp_offset = temp_offset_value  # perform the assignment
                         new_char = command_to_set + cfg.build(cfg_data)[1:]  # build the new settings removing the initial byte (version ID) and adding the command (command_to_set)
-                        print("New settings:", new_char.hex(' '))
+                        print("New settings:", new_char.hex(" "))
                         await client.write_gatt_char(  # store the new settings
                             characteristic_uuid, new_char, response=True)
                         break
@@ -1297,7 +1342,7 @@ from atc_mi_interface.atc_mi_config import atc_mi_configuration
 configuration = argparse.Namespace()  # all attributes need to be initialized
 
 configuration.edit_list = [["Internal configuration|temp_offset = 1.2"]]  # actual setting
-configuration.address = 'A4:C1:38:AA:BB:CC'  # Set to the actual MAC address of the device
+configuration.address = "A4:C1:38:AA:BB:CC"  # Set to the actual MAC address of the device
 configuration.info = False  # True to return the device information
 configuration.chars = False  # True to return the device characteristics (configuration)
 configuration.gui = False  # True to edit the device configuration using the GUI. [It should be set to False with API]
@@ -1319,7 +1364,7 @@ ret, data_dict, data_out = asyncio.run(atc_mi_configuration(configuration))
 print("Return code (False, None, True):", ret)
 for key, item in data_dict.items():
     if "binary" in item:
-        print("Command", hex(key), "=", item["binary"].hex(' ').upper())
+        print("Command", hex(key), "=", item["binary"].hex(" ").upper())
 for item in data_out:
     for key, value in item.items():
         print("Entity name:", key, "- Value:", *value)
@@ -1336,10 +1381,11 @@ The [atc_mi_construct.py](atc_mi_interface/atc_mi_construct.py) module allows ma
 ```mermaid
 classDiagram
     BtHomeCodec --|> Tunnel
+    BtHomeV2Codec --|> BtHomeCodec
     MiLikeCodec --|> BtHomeCodec
     AtcMiCodec --|> BtHomeCodec
 
-    class AtcMiCodec{
+    class BtHomeV2Codec{
         _decode()
         _encode()
     }
@@ -1349,10 +1395,14 @@ classDiagram
         _encode()
     }
 
+    class AtcMiCodec{
+        _decode()
+        _encode()
+    }
+
     class BtHomeCodec{
         def_mac
         default_bindkey
-        size_payload
 
         __init__()
         _decode()

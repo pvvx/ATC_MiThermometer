@@ -3,3 +3,6 @@ __pycache__/
 .idea/
 # generated output
 out/*
+python-interface/atc_mi_interface.egg-info/*
+python-interface/build/*
+python-interface/dist/*
