@@ -2,12 +2,12 @@
 
 **Warning: [Firmware LYWSD03MMC version 2.1.1_0159 is temporarily not supported!](https://github.com/pvvx/ATC_MiThermometer/issues/378#issuecomment-1756740533)**
 
-_This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices.
-The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
-Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin) can be found here: [atc1441/ATC_MiThermometer](https://github.com/atc1441/ATC_MiThermometer).
-Custom firmware is not supported in MiHome. But it is possible to work LYWSD03MMC with 'Xiaomi Gateway 3' by first registering in MiHome on the official firmware, flashing to custom firmware with restoring the binding key from MiHome, replacing the device name with "LYWSD03MMC" and setting the advertising type to "MIJIA (MiHome)" marked "encrypted".<br>
-Support for Zigbee firmware is in the [ZigbeeTLc](https://github.com/pvvx/ZigbeeTLc) repository.<br>
-There is an alternative firmware from [Ivan Belokobylskij](https://github.com/devbis) for [LYWSD03MMC to work in Zigbee 3.0 mode](https://github.com/devbis/z03mmc). _
+_This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices._
+_The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required._
+_Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin) can be found here: [atc1441/ATC_MiThermometer](https://github.com/atc1441/ATC_MiThermometer)._
+_Custom firmware is not supported in MiHome. But it is possible to work LYWSD03MMC with 'Xiaomi Gateway 3' by first registering in MiHome on the official firmware, flashing to custom firmware with restoring the binding key from MiHome, replacing the device name with "LYWSD03MMC" and setting the advertising type to "MIJIA (MiHome)" marked "encrypted"._<br>
+_Support for Zigbee firmware is in the [ZigbeeTLc](https://github.com/pvvx/ZigbeeTLc) repository._<br>
+_There is an alternative firmware from [Ivan Belokobylskij](https://github.com/devbis) for [LYWSD03MMC to work in Zigbee 3.0 mode](https://github.com/devbis/z03mmc)._
 
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time. OTA and configuration main page - [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
