@@ -55,7 +55,7 @@ With a couple dozen BLE devices, a 256GB SSD is only enough for 2 years.
 
 UART speeds of 921600 baud and even USB1.1 are not enough to transfer information in binary form in the HCI format.
 
-Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the reception. Do not use ESP32xxx - it cannot work with BLE at normal speed and drains the batteries of all BLE devices when connected! ESPHome does not work with Bluetooth 5.0 and misses a lot of advertising packets from BLE devices.
+Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the reception. [Do not use ESP32xxx](https://github.com/pvvx/ATC_MiThermometer/discussions/328) - it cannot work with BLE at normal speed and drains the batteries of all BLE devices when connected! ESPHome does not work with Bluetooth 5.0 and misses a lot of advertising packets from BLE devices.
 
 3. For reliable connection and refirmware on LYWSD03MMC, the battery level must be more than 40%. This is a design feature - a [cheaper version of the hardware from Xiaomi](https://user-images.githubusercontent.com/12629515/105704705-423fc600-5f20-11eb-88ca-a2db712d0222.png).
 
@@ -129,7 +129,7 @@ To flash or update the firmware, use a Google Chrome, Microsoft Edge or Opera Br
 
  * Addition for CGG1-M: Press and hold the button on the back of CGG1-M for 2 seconds until the Bluetooth icon starts blinking on the e-ink display, and then click the 'Connect' and 'Do Activation' buttons on the [TelinkMiFlasherl](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
- * [Addition for MJWSD05MMC](https://github.com/pvvx/ATC_MiThermometer/issues/307): Press and hold both buttons for a few seconds until the screen blink (device resets). Next, briefly press the top side button, then briefly press the bottom button. The Bluetooth icon will start flashing.  Next 'Connect' and 'Do Activation' in [TelinkMiFlasherl](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
+ * [Addition for MJWSD05MMC](https://github.com/pvvx/ATC_MiThermometer/issues/307): Press and hold both buttons for a few seconds until the screen blink (device resets). Next, briefly press the top side button, then briefly press the bottom button. The Bluetooth icon will start flashing.  Next 'Connect' and 'Do Activation' in [TelinkMiFlasher](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
 ### Configuration
 After you have flashed the firmware, the device has changed it's bluetooth name to something like `ATC_F02AED`. Using the [`TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) you have various configuration options.
