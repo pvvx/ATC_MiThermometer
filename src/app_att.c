@@ -87,7 +87,7 @@ static const u8 my_ManCharVal[5] = {
 };
 static const u8 my_FirmStr[] = {"github.com/pvvx"};
 #if USE_FLASH_SERIAL_UID
-RAM uint8_t my_SerialStr[21]; // "556202-C86013-0123456"
+RAM uint8_t my_SerialStr[20]; // "556202-C86013-123456"
 #endif
 #if DEVICE_TYPE == DEVICE_MJWSD05MMC
 static const u8 my_ModelStr[] = {"MJWSD05MMC"};
@@ -489,7 +489,7 @@ void my_att_init(void) {
 	*p++ = '-';
 	// Read flash UID
 	flash_read_uid(buf);
-	memcpy(p, buf, 7);
+	memcpy(p, buf, 6);
 	//ser_uid_txt(p, &buf[4], 7);
 #endif
 #if BLE_SECURITY_ENABLE

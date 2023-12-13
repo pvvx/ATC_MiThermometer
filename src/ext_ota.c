@@ -179,6 +179,11 @@ void ota_result_cb(int result) {
 	}
 }
 
+/*
+ * Input:
+ *  ota_addr (0x40000)
+ *  ota_size in kB
+ */
 uint8_t check_ext_ota(uint32_t ota_addr, uint32_t ota_size) {
 	if(ota_is_working == OTA_EXTENDED)
 		return EXT_OTA_BUSY;

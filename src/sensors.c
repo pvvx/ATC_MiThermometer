@@ -215,7 +215,8 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int read_sensor_cb(void) {
 			}
 		}
 	} while (i--);
-	soft_reset_sensor();
+	check_sensor();
+	// Sleep command of the sensor = sensor_go_sleep();
 	sensor_go_sleep();
 	return 0;
 }
