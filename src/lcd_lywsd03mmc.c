@@ -111,6 +111,8 @@ static _attribute_ram_code_ uint8_t reverse(uint8_t revByte) {
 #define bwpc 9
 #endif
 
+extern uint8_t ota_is_working;
+
 _attribute_ram_code_
 void lcd_send_uart(void) {
 	// init uart
@@ -137,7 +139,10 @@ void lcd_send_uart(void) {
 	// start send DMA
 	reg_dma_tx_rdy0 |= FLD_DMA_CHN_UART_TX; // start tx
 	// wait send (3.35 ms), sleep?
-	pm_wait_us(3330); // 13 bytes * 10 bits / 38400 baud = 0.0033854 sec = 3.4 ms power ~3 mA
+	if(ota_is_working)
+		sleep_us(3330);
+	else
+		pm_wait_us(3330); // 13 bytes * 10 bits / 38400 baud = 0.0033854 sec = 3.4 ms power ~3 mA
 	//while (reg_dma_tx_rdy0 & FLD_DMA_CHN_UART_TX); ?
 	while (!(reg_uart_status1 & FLD_UART_TX_DONE));
 	// set low/off power UART
