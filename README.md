@@ -4,6 +4,8 @@
 
 Please post questions about using and setting up [Home Assistant](https://www.home-assistant.io/) integrations on the appropriate resources!
 
+Next year (2024), a transition to modern Bluetooth SIG standards is planned. Linux has not supported Bluetooth open-standards since 2014.
+
 _This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices._
 _The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required._
 _Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin) can be found here: [atc1441/ATC_MiThermometer](https://github.com/atc1441/ATC_MiThermometer)._
