@@ -345,7 +345,7 @@ Supports bindkey beacon encryption.
 
 
 #### atc1441 format:
-UUID 0x181A - size 16 (temperature in 0.1%, humidity in 1%): [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware)
+UUID 0x181A - size 16 (temperature in 0.1 °C, humidity in 1 %): [atc1441 format](https://github.com/atc1441/ATC_MiThermometer#advertising-format-of-the-custom-firmware)
 
 #### Custom format (all data little-endian):  
 UUID 0x181A - size 19: Custom extended format in 0.01 units (all data little-endian): 
