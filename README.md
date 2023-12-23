@@ -2,6 +2,8 @@
 
 **Warning: [Firmware LYWSD03MMC version 2.1.1_0159 is temporarily not supported!](https://github.com/pvvx/ATC_MiThermometer/issues/378#issuecomment-1756740533)**
 
+Please post questions about using and setting up [Home Assistant](https://www.home-assistant.io/) integrations on the appropriate resources!
+
 _This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices._
 _The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required._
 _Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin) can be found here: [atc1441/ATC_MiThermometer](https://github.com/atc1441/ATC_MiThermometer)._
