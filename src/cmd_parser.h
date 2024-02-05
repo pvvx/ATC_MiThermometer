@@ -5,7 +5,7 @@
 enum {
 	CMD_ID_DEV_ID 	= 0x00, // Get dev id, version, services
 	CMD_ID_DNAME    = 0x01, // Get/Set device name, "\0" - default: ATC_xxxx
-	CMD_ID_GDEVS 	= 0x02, // Get address devises
+	CMD_ID_GDEVS 	= 0x02, // Get address devices
 	CMD_ID_I2C_SCAN = 0x03, // I2C scan
 	CMD_ID_I2C_UTR	= 0x04, // Universal I2C/SMBUS read-write
 	CMD_ID_SEN_ID	= 0x05,	// Get sensor ID

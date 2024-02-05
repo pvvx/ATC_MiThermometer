@@ -28,8 +28,11 @@
 // 13..15 - number used for BLE firmware - https://github.com/pvvx/ATC_MiThermometer
 #define BOARD_TNK					16 // Water tank controller (not yet published at the moment)
 #define BOARD_TS0201_TZ3000			17
-#define BOARD_TS0202_TZ3000			18 // ?
-// 19.. not yet appointed
+#define BOARD_TS0202_TZ3000			18 
+#define BOARD_THB2					19
+#define BOARD_BTH01					20
+#define BOARD_TH05					21
+// 22.. not yet appointed
 */
 
 #ifdef DEVICE_CGG1_ver
