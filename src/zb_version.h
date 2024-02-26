@@ -26,16 +26,20 @@
 #define BOARD_LYWSD03MMC			10
 #define BOARD_MHO_C122				11
 // 13..15 - number used for BLE firmware - https://github.com/pvvx/ATC_MiThermometer
-#define BOARD_TNK					16 // Water tank controller (not yet published at the moment)
+#define BOARD_TB03F					16 // DIY TB-03F-Kit
 #define BOARD_TS0201_TZ3000			17
-#define BOARD_TS0202_TZ3000			18 
+#define BOARD_TNKS					18 // Water tank controller (not yet published at the moment)
 #define BOARD_THB2					19
 #define BOARD_BTH01					20
 #define BOARD_TH05					21
-// 22.. not yet appointed
+#define DEVICE_TH03Z   				22 // ZigBee TH03Z
+#define BOARD_THB1					23 // https://github.com/pvvx/THB2
+#define BOARD_TH05D					24 // TH05_V1.3 https://github.com/pvvx/THB2
+#define BOARD_TH05F					25 // TH05Y_V1.2 https://github.com/pvvx/THB2
+#define BOARD_THB3					26 // https://github.com/pvvx/THB2
 */
 
-#ifdef DEVICE_CGG1_ver
+#ifndef DEVICE_CGG1_ver
 #define DEVICE_CGG1_ver		   0 // =2022 - CGG1-M version 2022, or = 0 - CGG1-M version 2020,2021
 #endif
 

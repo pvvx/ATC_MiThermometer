@@ -5,7 +5,7 @@
 enum {
 	CMD_ID_DEV_ID 	= 0x00, // Get dev id, version, services
 	CMD_ID_DNAME    = 0x01, // Get/Set device name, "\0" - default: ATC_xxxx
-	CMD_ID_GDEVS 	= 0x02, // Get address devices
+	CMD_ID_GDEVS 	= 0x02, // Get address devises
 	CMD_ID_I2C_SCAN = 0x03, // I2C scan
 	CMD_ID_I2C_UTR	= 0x04, // Universal I2C/SMBUS read-write
 	CMD_ID_SEN_ID	= 0x05,	// Get sensor ID
@@ -52,15 +52,33 @@ enum {
 
 } CMD_ID_KEYS;
 
+// supported services by the device
+typedef struct _dev_services_t{
+	uint32_t ota: 			1;	//0 OTA
+	uint32_t ota_ext:		1;	//1 OTA extension
+	uint32_t pincode:		1;	//2 pin-code
+	uint32_t bindkey: 		1;	//3 bindkey
+	uint32_t history: 		1;	//4 history
+	uint32_t screen: 		1;	//5 screen
+	uint32_t long_range:	1;	//6 LE Long Range
+	uint32_t ths:			1;	//7 T & H sensor
+	uint32_t rds:			1;	//8 Reed switch sensor
+	uint32_t key:			1;	//9 key
+	uint32_t out_pins:		1;	//10 Output pins
+	uint32_t inp_pins:		1;	//11 Input pins
+	uint32_t reserved:		20;
+} dev_services_t;
+
+
 // CMD_ID_DEV_ID
-typedef struct {
-	uint8_t pid;			// packet identifier = CMD_ID_DEV_ID
+typedef struct _dev_id_t{
+	uint8_t pid;			// packet identifier = CMD_ID_DEVID
 	uint8_t revision;		// protocol version/revision
 	uint16_t hw_version;	// hardware version
 	uint16_t sw_version;	// software version (BCD)
 	uint16_t dev_spec_data;	// device-specific data
 	uint32_t services;		// supported services by the device
-}dev_id_t, * pdev_id_t;
+} dev_id_t, * pdev_id_t;
 
 #define MI_KEYTBIND_ID  0x10 // id token + bindkey
 #define MI_KEYSEQNUM_ID 0x04 // id mibeacon SEQNUM

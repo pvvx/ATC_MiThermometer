@@ -705,7 +705,7 @@ enum{
 #define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
 
 //#define CHG_CONN_PARAM	// test
-#define DEV_NAME "ble_th"
+#define DEV_NAME "pvvx_ble"
 
 #include "vendor/common/default_config.h"
 

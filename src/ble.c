@@ -78,11 +78,13 @@ void app_enter_ota_mode(void) {
 #if USE_EXT_OTA
 	if(ota_is_working != OTA_EXTENDED)
 #endif
+	{
 		ota_is_working = OTA_WORK;
+		SHOW_OTA_SCREEN();
+	}
 	ble_connected &= ~BIT(CONNECTED_FLG_PAR_UPDATE);
 	bls_pm_setManualLatency(0);
 	bls_ota_setTimeout(16 * 1000000); // set OTA timeout  16 seconds
-	SHOW_OTA_SCREEN();
 }
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
