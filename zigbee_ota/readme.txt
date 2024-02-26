@@ -1,0 +1,15 @@
+
+Zigbee to BLE
+
+|Image Type| Device, note |
+| -- | -- |
+| 0x0201 |  MHO-C401 (old version) |
+| 0x0202 |  CGG1 |
+| 0x0203 |  LYWSD03MMC ver https://github.com/devbis/z03mmc |
+| 0x0206 |  CGDK2 |
+| 0x0208 |  MHO-C401 (new version) |
+| 0x0209 |  MJWSD05MMC |
+| 0x020A |  LYWSD03MMC |
+| 0x020B |  MHO-C122 |
+| 0x0211 |  TS0201-TZ3000 |
+| 0x0216 |  TH03Z |
