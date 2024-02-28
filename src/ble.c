@@ -10,11 +10,11 @@
 #include "app.h"
 #include "flash_eep.h"
 #include "battery.h"
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
 #include "rds_count.h"
 #endif
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 #include "logger.h"
 #endif
 #include "custom_beacon.h"
@@ -33,7 +33,7 @@ void bls_set_advertise_prepare(void *p); // add ll_adv.h
 
 RAM uint8_t ble_connected; // BIT(CONNECTED_FLG_BITS): bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
 
-#if (BLE_EXT_ADV) // support extension advertise
+#if (DEV_SERVICES & SERVICE_LE_LR) // support extension advertise
 
 #define	APP_ADV_SETS_NUMBER						1			// Number of Supported Advertising Sets
 #define APP_MAX_LENGTH_ADV_DATA					64			// Maximum Advertising Data Length,   (if legacy ADV, max length 31 bytes is enough)
@@ -75,7 +75,7 @@ RAM adv_buf_t adv_buf;
 RAM uint8_t ota_is_working; // OTA_STAGES:  =1 ota enabled, =2 - ota wait, = 0xff flag ext.ota
 
 void app_enter_ota_mode(void) {
-#if USE_EXT_OTA
+#if (DEV_SERVICES & SERVICE_OTA_EXT)
 	if(ota_is_working != OTA_EXTENDED)
 #endif
 	{
@@ -95,16 +95,17 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	ota_is_working = OTA_NONE;
 	mi_key_stage = 0;
 	lcd_flg.all_flg = 0;
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 	rd_memo.cnt = 0;
 #endif
 	if (cfg.flg.tx_measures)
 		tx_measures = 0xff;
 	else
 		tx_measures = 0;
-#if	(BLE_EXT_ADV)
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_LE_LR)
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 	set_adv_con_time(1); // restore default adv. interval
+	bls_pm_setManualLatency(0);
 	if(adv_buf.ext_adv_init) {
 		// patch: restart ext_adv after 1 second
 		ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
@@ -123,8 +124,8 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	} else {
 		ev_adv_timeout(0,0,0);
 	}
-#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
-#endif // BLE_EXT_ADV
+#endif // #if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
+#endif // #if (DEV_SERVICES & SERVICE_LE_LR)
 	SHOW_CONNECTED_SYMBOL(false);
 }
 
@@ -141,7 +142,7 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	my_periConnParameters.timeout = connection_timeout;
 	bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, my_periConnParameters.latency, my_periConnParameters.timeout);
 	SHOW_CONNECTED_SYMBOL(true);
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 	ext_key.rest_adv_int_tad = 0;
 #endif
 	bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
@@ -189,7 +190,7 @@ int otaWritePre(void * p) {
 _attribute_ram_code_
 int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	(void) p;
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 	if (!blta.adv_duraton_en)
 #endif
 	{
@@ -200,7 +201,7 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 			adv_buf.update_count = 0;
 			set_adv_data();
 		} else {
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 			if (!adv_buf.data_size) // flag
 				adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
 #endif
@@ -215,9 +216,9 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 				SET_LCD_UPDATE(); // show "ble"
 #endif
 		}
-#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
+#endif // GPIO_KEY2 || (DEV_SERVICES & SERVICE_RDS)
 	}
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 	else {
 		// restore next adv. interval
 		blta.adv_interval = EXT_ADV_INTERVAL*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
@@ -226,9 +227,9 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	return 1;		// = 1 ready to send ADV packet, = 0 not send ADV
 }
 
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 _attribute_ram_code_ int _blt_ext_adv_proc (void) {
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 	if(adv_buf.ext_adv_init && blta.adv_duraton_en) {
 		blta.adv_duraton_en--;
 		if(blta.adv_duraton_en == 0) {
@@ -254,7 +255,7 @@ _attribute_ram_code_ void user_set_rf_power(u8 e, u8 *p, int n) {
 }
 */
 
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 /* cfg.rf_tx_power -> ext.advertising TX power */
 int ext_adv_tx_level(void) {
 	int txl = TX_POWER_0dBm;
@@ -285,13 +286,13 @@ int ext_adv_tx_level(void) {
 		txl = TX_POWER_3dBm;
 	return txl;
 }
-#endif // BLE_EXT_ADV
+#endif // #if (DEV_SERVICES & SERVICE_LE_LR)
 /*
  * bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
  * blt_event_callback_t(): */
 void ev_adv_timeout(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 	if (adv_buf.ext_adv_init) { // extension advertise
 		if(ble_connected)
 			return;
@@ -347,7 +348,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	}
 }
 
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 /**
  * @brief This function change adv. interval.
  * @param[in]  != 0 restore default adv. interval, = 0 connection adv. interval
@@ -362,7 +363,7 @@ void set_adv_con_time(int restore) {
 		ext_key.rest_adv_int_tad = -1; // start timer event restore adv.intervals
 	}
 	if(!ble_connected) {
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 		if (adv_buf.ext_adv_init) { // support extension advertise
 			if(restore)
 				adv_buf.ext_adv_init = 1; // LE long range
@@ -385,9 +386,9 @@ void set_adv_con_time(int restore) {
 			load_adv_data();
 	}
 }
-#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
+#endif // GPIO_KEY2 || (DEV_SERVICES & SERVICE_RDS)
 
-#if BLE_SECURITY_ENABLE
+#if (DEV_SERVICES & SERVICE_PINCODE)
 int app_host_event_callback(u32 h, u8 *para, int n) {
 	(void) para; (void) n;
 	uint8_t event = (uint8_t)h;
@@ -424,7 +425,7 @@ extern attribute_t my_Attributes[ATT_END_H];
 
 void ble_set_name(void) {
 	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, MAX_DEV_NAME_LEN));
-	if (len < 1) {
+	if (len < 1 || len > MAX_DEV_NAME_LEN) {
 		//Set the BLE Name to the last three MACs the first ones are always the same
 #if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N) || (DEVICE_TYPE == DEVICE_MHO_C122))
 		ble_name[2] = 'M';
@@ -468,7 +469,7 @@ __attribute__((optimize("-Os")))
 void load_adv_data(void) {
 	u8 size = adv_buf.data_size;
 	if((!size)
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 		|| adv_buf.ext_adv_init == 1 // extension advertise LE long Range ?
 #endif
 		) {
@@ -480,7 +481,7 @@ void load_adv_data(void) {
 		size += sizeof(adv_buf.flag);
 	else
 		p += sizeof(adv_buf.flag);
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 	if (adv_buf.ext_adv_init)  // support extension advertise
 		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, size, p);
 	else
@@ -511,7 +512,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_ll_initAdvertising_module(mac_public); // adv module: 		 must for BLE slave,
 	blc_ll_initConnection_module(); // connection module  must for BLE slave/master
 	blc_ll_initSlaveRole_module(); // slave module: 	 must for BLE slave,
-#if	(BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 	adv_buf.ext_adv_init = 0;
 #endif
 	if (cfg.flg2.bt5phy) { // 1M, 2M, Coded PHY
@@ -522,7 +523,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 		// set CSA2
 		blc_ll_initChannelSelectionAlgorithm_2_feature();
 		//bls_app_registerEventCallback (BLT_EV_FLAG_PHY_UPDATE, &callback_phy_update_complete_event);
-#if	(BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 		if(cfg.flg2.longrange) { // support extension advertise Coded PHY
 			// init buffers ext adv
 			// and ll_module_adv_cb = blt_ext_adv_proc; pFunc_ll_SetAdv_Enable = ll_setExtAdv_Enable;
@@ -548,7 +549,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	//Smp Initialization may involve flash write/erase(when one sector stores too much information,
 	//   is about to exceed the sector threshold, this sector must be erased, and all useful information
 	//   should re_stored) , so it must be done after battery check
-#if BLE_SECURITY_ENABLE
+#if (DEV_SERVICES & SERVICE_PINCODE)
 	if (pincode) {
 		//adv_buf.flag[2] = 0x04 | GAP_ADTYPE_LE_LIMITED_DISCOVERABLE_MODE_BIT; // Flags
 
@@ -617,7 +618,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 	bls_set_advertise_prepare(app_advertise_prepare_handler); // TODO: not work if EXTENDED_ADVERTISING
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 	bls_app_registerEventCallback(BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
 #endif
 	ev_adv_timeout(0,0,0);	// set advertise config
@@ -628,7 +629,7 @@ _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void set_adv_data(void) {
 	uint8_t adv_type = cfg.flg.advertising_type;
-#if	USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 	if (cfg.flg2.adv_crypto) {
 		if (adv_type == ADV_TYPE_PVVX) {
 			pvvx_encrypt_data_beacon();
@@ -648,7 +649,7 @@ void set_adv_data(void) {
 			atc_encrypt_data_beacon();
 		}
 	} else
-#endif // USE_SECURITY_BEACON
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 	{
 		if (adv_type == ADV_TYPE_PVVX) {
 			pvvx_data_beacon();
@@ -675,9 +676,9 @@ void set_adv_data(void) {
 _attribute_ram_code_ void ble_send_measures(void) {
 	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, MEASURED_MSG_SIZE);
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 	send_buf[MEASURED_MSG_SIZE+1] = trg.flg_byte;
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 	send_buf[MEASURED_MSG_SIZE+2] = rds.count_byte[0];
 	send_buf[MEASURED_MSG_SIZE+3] = rds.count_byte[1];
 	send_buf[MEASURED_MSG_SIZE+4] = rds.count_byte[2];
@@ -709,7 +710,7 @@ void ble_send_cmf(void) {
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(cmf) + 1);
 }
 
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 void ble_send_trg(void) {
 	send_buf[0] = CMD_ID_TRG;
 	memcpy(&send_buf[1], &trg, sizeof(trg));
@@ -723,7 +724,7 @@ void ble_send_trg_flg(void) {
 }
 #endif
 
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 __attribute__((optimize("-Os"))) void send_memo_blk(void) {
 	send_buf[0] = CMD_ID_LOGGER;
 	if (++rd_memo.cur > rd_memo.cnt || (!get_memo(rd_memo.cur, (pmemo_blk_t)&send_buf[3]))) {

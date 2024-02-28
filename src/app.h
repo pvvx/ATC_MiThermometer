@@ -107,8 +107,13 @@ typedef struct __attribute__((packed)) _cfg_t {
 		uint8_t longrange  	: 1;  	// advertising in LongRange mode (сбрасывается после отключения питания)
 		uint8_t screen_off	: 1;	// screen off, v4.3+
 	} flg2;
+#if	VERSION < 0x47
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)
+#else
+	int8_t x1;
+	int8_t x2;
+#endif
 	uint8_t advertising_interval; // multiply by 62.5 for value in ms (1..160,  62.5 ms .. 10 sec)
 	uint8_t measure_interval; // measure_interval = advertising_interval * x (2..25)
 	uint8_t rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm (130..191)
@@ -185,11 +190,11 @@ typedef struct __attribute__((packed)) _external_data_t {
 extern external_data_t ext;
 
 extern uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
-#if	USE_TIME_ADJUST
+#if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 extern uint32_t utc_time_tick_step; // adjust time clock (in 1/16 us for 1 sec)
 #endif
 
-#if BLE_SECURITY_ENABLE
+#if (DEV_SERVICES & SERVICE_PINCODE)
 extern uint32_t pincode; // pincode (if = 0 - not used)
 #endif
 
@@ -223,12 +228,12 @@ typedef struct _comfort_t {
 }scomfort_t, * pcomfort_t;
 extern scomfort_t cmf;
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 extern uint8_t bindkey[16];
 void bindkey_init(void);
 #endif
 
-#if BLE_SECURITY_ENABLE
+#if (DEV_SERVICES & SERVICE_PINCODE)
 extern uint32_t pincode;
 #endif
 
@@ -236,7 +241,7 @@ extern uint32_t adv_interval; // adv interval in 0.625 ms // = cfg.advertising_i
 extern uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = connection_latency_ms * 4 = 2000 * 4 = 8000 ms
 extern uint32_t measurement_step_time; // = adv_interval * measure_interval
 
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 // extension keys
 typedef struct {
 	int32_t rest_adv_int_tad;	// timer event restore adv.intervals (in adv count)
@@ -254,7 +259,7 @@ static inline uint8_t get_key2_pressed(void) {
 	return BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff);
 }
 #endif // GPIO_KEY2
-#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
+#endif // GPIO_KEY2 || (DEV_SERVICES & SERVICE_RDS)
 
 void ev_adv_timeout(u8 e, u8 *p, int n); // DURATION_TIMEOUT Event Callback
 void test_config(void); // Test config values

@@ -12,7 +12,7 @@
 #include "drivers/8258/gpio_8258.h"
 #include "app.h"
 #include "i2c.h"
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 #include "rtc.h"
 #endif
 #include "lcd.h"
@@ -56,7 +56,7 @@ void lcd(void) {
 		return;
 	bool set_small_number_and_bat = true;
 
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 	bool _ble_con =	ble_connected != 0 || (ext_key.rest_adv_int_tad & 2) != 0;
 #else
 #define _ble_con ble_connected

@@ -492,7 +492,7 @@ void my_att_init(void) {
 	memcpy(p, buf, 6);
 	//ser_uid_txt(p, &buf[4], 7);
 #endif
-#if BLE_SECURITY_ENABLE
+#if (DEV_SERVICES & SERVICE_PINCODE)
 	if (pincode) {
 		my_Attributes[RxTx_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;
 		my_Attributes[OTA_CMD_OUT_DP_H].perm = ATT_PERMISSIONS_SECURE_CONN_RDWR;

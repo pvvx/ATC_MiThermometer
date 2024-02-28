@@ -8,7 +8,7 @@
 #include "tl_common.h"
 #include "stack/ble/ble.h"
 #include "app.h"
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "drivers.h"
 #include "sensor.h"
 #include "trigger.h"
@@ -19,7 +19,7 @@ const trigger_t def_trg = {
 		.humi_threshold = 5000, // 50 %
 		.temp_hysteresis = -55, // enable, -0.55 °C
 		.humi_hysteresis = 0  // disable
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 		,.rds_time_report = 3600 // 1 hours
 #ifdef GPIO_KEY2
 		,.rds.type = RDS_SWITCH
@@ -95,4 +95,4 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void set_trigger_out(void)
 	test_trg_on();
 }
 
-#endif	// USE_TRIGGER_OUT
+#endif	// #if (DEV_SERVICES & SERVICE_TH_TRG)

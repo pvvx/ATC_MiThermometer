@@ -27,7 +27,7 @@ enum {
 extern uint8_t ble_connected; // BIT(CONNECTED_FLG_BITS): bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset device on disconnect
 
 //extern uint32_t adv_send_count;
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 #define ADV_BUFFER_SIZE		(62-3)
 extern u8	ext_adv_init; // flag ext_adv init
 #else
@@ -38,7 +38,7 @@ typedef struct _adv_buf_t {
 	uint16_t old_measured_count; // old measured_data.count
 	uint8_t update_count;	// refresh adv_buf.data in next set_adv_data()
 	uint8_t call_count; 	// count 1..cfg.measure_interval
-#if (BLE_EXT_ADV) // support extension advertise
+#if (DEV_SERVICES & SERVICE_LE_LR) // support extension advertise
 	uint8_t ext_adv_init; 	// flag ext_adv init
 #endif
 	uint8_t data_size;		// Advertise data size
@@ -217,14 +217,14 @@ void ble_send_measures(void);
 void ble_send_ext(void);
 void ble_send_lcd(void);
 void ble_send_cmf(void);
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 void ble_send_trg(void);
 void ble_send_trg_flg(void);
 #endif
 #if defined(GPIO_KEY2) || defined(GPIO_RDS)
 void set_adv_con_time(int restore);
 #endif
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 void send_memo_blk(void);
 #endif
 int otaWritePre(void * p);
@@ -237,7 +237,7 @@ void set_pvvx_adv_data(void);
 void set_atc_adv_data(void);
 void set_mi_adv_data(void);
 
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 void load_adv_data(void);
 #endif
 

@@ -23,6 +23,8 @@ enum {
 	CMD_ID_EXTDATA  = 0x22, // Get/Set show ext. data
 	CMD_ID_UTC_TIME = 0x23, // Get/Set utc time (if USE_CLOCK = 1)
 	CMD_ID_TADJUST  = 0x24, // Get/Set adjust time clock delta (in 1/16 us for 1 sec)
+	CMD_ID_CFS  	= 0x25, // Get/Set sensor config
+	CMD_ID_CFS_DEF 	= 0x26, // Get/Set default sensor config
 	CMD_ID_MEASURE  = 0x33, // Start/stop notify measures in connection mode
 	CMD_ID_LOGGER   = 0x35, // Read memory measures
 	CMD_ID_CLRLOG	= 0x36, // Clear memory measures
@@ -66,9 +68,11 @@ typedef struct _dev_services_t{
 	uint32_t key:			1;	//9 key
 	uint32_t out_pins:		1;	//10 Output pins
 	uint32_t inp_pins:		1;	//11 Input pins
-	uint32_t reserved:		20;
+	uint32_t time_adj:		1;	//12
+	uint32_t hadr_clock:	1;	//13
+	uint32_t th_trg:		1;	//14
+	uint32_t reserved:		18;
 } dev_services_t;
-
 
 // CMD_ID_DEV_ID
 typedef struct _dev_id_t{
@@ -94,7 +98,7 @@ typedef struct __attribute__((packed)) _blk_mi_keys_t {
 } blk_mi_keys_t, * pblk_mi_keys_t;
 extern blk_mi_keys_t keybuf;
 
-#if USE_EXT_OTA  // Compatible BigOTA
+#if (DEV_SERVICES & SERVICE_OTA_EXT)  // Compatible BigOTA
 	void clear_ota_area(void);
 #endif
 

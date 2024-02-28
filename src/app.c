@@ -11,14 +11,14 @@
 #include "sensor.h"
 #include "app.h"
 #include "i2c.h"
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 #include "rtc.h"
 #endif
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
 #include "rds_count.h"
 #endif
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 #include "logger.h"
 #endif
 #if USE_MIHOME_BEACON
@@ -48,20 +48,20 @@ RAM uint32_t measurement_step_time; // = adv_interval * measure_interval
 
 RAM uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
 RAM uint32_t utc_time_sec_tick; // clock counter in 1/16 us
-#if USE_TIME_ADJUST
+#if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 RAM uint32_t utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S; // adjust time clock (in 1/16 us for 1 sec)
 #else
 #define utc_time_tick_step CLOCK_16M_SYS_TIMER_CLK_1S
 #endif
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 RAM  ext_key_t ext_key; // extension keys
 #endif
 
-#if BLE_SECURITY_ENABLE
+#if (DEV_SERVICES & SERVICE_PINCODE)
 RAM uint32_t pincode;
 #endif
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 RAM uint8_t bindkey[16];
 #endif
 
@@ -83,7 +83,7 @@ const cfg_t def_cfg = {
 		.flg.comfort_smiley = true,
 		.measure_interval = 4, // * advertising_interval = 20 sec
 		.hw_cfg.hwver = HW_VER_MJWSD05MMC,
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
@@ -93,7 +93,7 @@ const cfg_t def_cfg = {
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = HW_VER_LYWSD03MMC_B14,
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 #elif DEVICE_TYPE == DEVICE_MHO_C401
@@ -103,7 +103,7 @@ const cfg_t def_cfg = {
 		.measure_interval = 8, // * advertising_interval = 20 sec
 		.min_step_time_update_lcd = 99, //x0.05 sec,   4.95 sec
 		.hw_cfg.hwver = HW_VER_MHO_C401,
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
@@ -113,7 +113,7 @@ const cfg_t def_cfg = {
 		.measure_interval = 8, // * advertising_interval = 20 sec
 		.min_step_time_update_lcd = 99, //x0.05 sec,   4.95 sec
 		.hw_cfg.hwver = HW_VER_MHO_C401_2022,
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
 #elif DEVICE_TYPE == DEVICE_CGG1
@@ -124,7 +124,7 @@ const cfg_t def_cfg = {
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = HW_VER_CGG1_2022,
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 #else
@@ -134,7 +134,7 @@ const cfg_t def_cfg = {
 		.measure_interval = 8, // * advertising_interval = 20 sec
 		.min_step_time_update_lcd = 99, //x0.05 sec,   4.95 sec
 		.hw_cfg.hwver = HW_VER_CGG1,
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
 #endif
@@ -145,7 +145,7 @@ const cfg_t def_cfg = {
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = HW_VER_CGDK2,
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 #elif DEVICE_TYPE == DEVICE_MHO_C122
@@ -155,7 +155,7 @@ const cfg_t def_cfg = {
 		.measure_interval = 4, // * advertising_interval = 10 sec
 		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
 		.hw_cfg.hwver = HW_VER_MHO_C122,
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 #endif
@@ -194,7 +194,7 @@ static const uint8_t id2hwver[8] = {
 
 void set_hw_version(void) {
 	cfg.hw_cfg.reserved = 0;
-	if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
+	if (thsensor_cfg.i2c_addr == (SHTC3_I2C_ADDR << 1))
 		cfg.hw_cfg.shtc3 = 1; // = 1 - sensor SHTC3
 	else
 		cfg.hw_cfg.shtc3 = 0; // = 0 - sensor SHT4x or ?
@@ -376,7 +376,7 @@ _attribute_ram_code_
 void WakeupLowPowerCb(int par) {
 	(void) par;
 	if (wrk_measure) {
-#if	USE_TRIGGER_OUT && defined(GPIO_RDS)
+#if (DEV_SERVICES & SERVICE_TH_TRG) && defined(GPIO_RDS)
 			rds_input_on();
 #endif
 #if (defined(CHL_ADC1) || defined(CHL_ADC1))
@@ -394,20 +394,20 @@ void WakeupLowPowerCb(int par) {
 			measured_data.temp_x01 = (measured_data.temp + 5)/ 10;
 			measured_data.humi_x01 = (measured_data.humi + 5)/ 10;
 			measured_data.humi_x1 = (measured_data.humi + 50)/ 100;
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 			set_trigger_out();
 #endif
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 			if (cfg.averaging_measurements)
 				write_memo();
 #endif
-#if	USE_MIHOME_BEACON && USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY) && USE_MIHOME_BEACON
 			if ((cfg.flg.advertising_type == ADV_TYPE_MI) && cfg.flg2.adv_crypto)
 				mi_beacon_summ();
 #endif
 		}
-#if USE_TRIGGER_OUT && defined(GPIO_RDS)
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_TH_TRG) && defined(GPIO_RDS)
+#if (DEV_SERVICES & SERVICE_RDS)
 		if (rds.type == 0)
 #endif
 		{
@@ -421,7 +421,7 @@ void WakeupLowPowerCb(int par) {
 		SET_LCD_UPDATE();
 #endif
 	}
-	timer_measure_cb = 0;
+	thsensor_cfg.time_measure = 0;
 	bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 }
 
@@ -431,11 +431,11 @@ static void suspend_exit_cb(u8 e, u8 *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 _attribute_ram_code_
 static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 	if (rds.type) // rds: switch or counter
 		rds_suspend();
 #endif
@@ -451,7 +451,7 @@ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	}
 #endif // GPIO_KEY2
 }
-#endif // GPIO_KEY2 || (USE_WK_RDS_COUNTER)
+#endif // GPIO_KEY2 || (DEV_SERVICES & SERVICE_RDS)
 
 //--- check battery
 #define BAT_AVERAGE_SHL		4 // 16*16 = 256 ( 256*10/60 = 42.7 min)
@@ -512,7 +512,7 @@ static void start_tst_battery(void) {
 }
 
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 void bindkey_init(void) {
 	if (flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey))
 			!= sizeof(bindkey)) {
@@ -529,9 +529,9 @@ void bindkey_init(void) {
 	bthome_beacon_init();
 #endif
 }
-#endif // USE_SECURITY_BEACON
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 void set_default_cfg(void) {
 	memcpy(&cfg, &def_cfg, sizeof(cfg));
 	test_config();
@@ -541,7 +541,7 @@ void set_default_cfg(void) {
 	SHOW_REBOOT_SCREEN();
 	go_sleep(2*CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 sec
 }
-#endif // GPIO_KEY2 || USE_WK_RDS_COUNTER
+#endif // GPIO_KEY2 || (DEV_SERVICES & SERVICE_RDS)
 
 //=========================================================
 //-------------------- user_init_normal -------------------
@@ -567,20 +567,25 @@ void user_init_normal(void) {//this will get executed one time after power up
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 		if (flash_read_cfg(&cmf, EEP_ID_CMF, sizeof(cmf)) != sizeof(cmf))
 			memcpy(&cmf, &def_cmf, sizeof(cmf));
-#if USE_TIME_ADJUST
+#if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 		if (flash_read_cfg(&utc_time_tick_step, EEP_ID_TIM,
 				sizeof(utc_time_tick_step)) != sizeof(utc_time_tick_step))
 			utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S;
 #endif
-#if BLE_SECURITY_ENABLE
+#if (DEV_SERVICES & SERVICE_PINCODE)
 		if (flash_read_cfg(&pincode, EEP_ID_PCD, sizeof(pincode))
 				!= sizeof(pincode))
 			pincode = 0;
 #endif
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 		if (flash_read_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG)
 				!= FEEP_SAVE_SIZE_TRG)
 			memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
+#endif
+#if (DEV_SERVICES & SERVICE_THS)
+		if (flash_read_cfg(&thsensor_cfg.coef, EEP_ID_CFS, sizeof(thsensor_cfg.coef))
+				!= sizeof(thsensor_cfg.coef))
+			memset(&thsensor_cfg.coef, 0, sizeof(thsensor_cfg.coef));
 #endif
 		// if version < 4.2 -> clear cfg.flg2.longrange
 		if (old_ver <= 0x41) {
@@ -588,12 +593,12 @@ void user_init_normal(void) {//this will get executed one time after power up
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 		}
 	} else {
-#if BLE_SECURITY_ENABLE
+#if (DEV_SERVICES & SERVICE_PINCODE)
 		pincode = 0;
 #endif
 		memcpy(&cfg, &def_cfg, sizeof(cfg));
 		memcpy(&cmf, &def_cmf, sizeof(cmf));
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 		memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #endif
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
@@ -601,42 +606,42 @@ void user_init_normal(void) {//this will get executed one time after power up
 			flash_write_cfg(&hw_ver, EEP_ID_HWV, sizeof(hw_ver));
 #endif
 	}
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 	rds.type = trg.rds.type;
 	rds_init();
 #endif
 	init_i2c();
 	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
 	test_config();
-#if (POWERUP_SCREEN) || (USE_RTC) || (BLE_EXT_ADV)
+#if (POWERUP_SCREEN) || (DEV_SERVICES & SERVICE_HARD_CLOCK) || (DEV_SERVICES & SERVICE_LE_LR)
 	if(analog_read(DEEP_ANA_REG0) != 0x55) {
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 		cfg.flg2.longrange = 0;
 		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
-#endif // BLE_EXT_ADV
+#endif // #if (DEV_SERVICES & SERVICE_LE_LR)
 		analog_write(DEEP_ANA_REG0, 0x55);
-#if (USE_RTC)
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 #if POWERUP_SCREEN
 		init_lcd();
 		SHOW_REBOOT_SCREEN();
 #endif // POWERUP_SCREEN
 		// RTC wakes up after powering on > 1 second.
 		go_sleep(1500*CLOCK_16M_SYS_TIMER_CLK_1MS);  // go deep-sleep 1.5 sec
-#endif // SHOW_REBOOT_SCREEN || (USE_RTC)
+#endif // SHOW_REBOOT_SCREEN || (DEV_SERVICES & SERVICE_HARD_CLOCK)
 	}
-#endif // POWERUP_SCREEN || (USE_RTC) || (BLE_EXT_ADV)
+#endif // POWERUP_SCREEN || (DEV_SERVICES & SERVICE_HARD_CLOCK) || (DEV_SERVICES & SERVICE_LE_LR)
 	memcpy(&ext, &def_ext, sizeof(ext));
 	init_ble();
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
 #endif
 	start_tst_battery();
 	init_sensor();
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 	memo_init();
 #endif
-#if	USE_RTC
+#if	(DEV_SERVICES & SERVICE_HARD_CLOCK)
 	init_rtc();
 #endif
 	init_lcd();
@@ -647,7 +652,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #else
 	start_measure_sensor_low_power();
 #endif
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 	bindkey_init();
 #endif
 	check_battery();
@@ -665,6 +670,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 	set_SerialStr();
 #endif
+	bls_pm_setManualLatency(0);
 	start_measure = 1;
 }
 
@@ -686,7 +692,7 @@ void main_loop(void) {
 	while (clock_time() -  utc_time_sec_tick > utc_time_tick_step) {
 		utc_time_sec_tick += utc_time_tick_step;
 		utc_time_sec++; // + 1 sec
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 		if(++rtc.seconds >= 60) {
 			rtc.seconds = 0;
 			if(++rtc.minutes >= 60) {
@@ -698,10 +704,10 @@ void main_loop(void) {
 #endif
 	}
 	// instability workaround bls_pm_setAppWakeupLowPower()
-	if(timer_measure_cb && clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT)
+	if(thsensor_cfg.time_measure && clock_time() - thsensor_cfg.time_measure > SENSOR_MEASURING_TIMEOUT)
 		WakeupLowPowerCb(0);
 	if (ota_is_working) {
-#if USE_EXT_OTA
+#if (DEV_SERVICES & SERVICE_OTA_EXT)
 		if(ota_is_working == OTA_EXTENDED) {
 			bls_pm_setManualLatency(3);
 			clear_ota_area();
@@ -713,7 +719,7 @@ void main_loop(void) {
 		}
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN);
 	} else {
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 		if (rds.type) // rds: switch or counter
 			rds_task();
 #endif
@@ -752,7 +758,7 @@ void main_loop(void) {
 			ext_key.key_pressed_tik2 = new;
 		}
 #endif // GPIO_KEY2
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 		if(ext_key.rest_adv_int_tad < -80) {
 			set_adv_con_time(1); // restore default adv.
 			SET_LCD_UPDATE();
@@ -760,7 +766,7 @@ void main_loop(void) {
 #endif
 		if (!wrk_measure) {
 			if (start_measure
-//				&& sensor_i2c_addr
+//				&& thsensor_cfg.i2c_addr
 				&&	bls_pm_getSystemWakeupTick() - new > SENSOR_MEASURING_TIMEOUT + 5*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 
 				bls_pm_setSuspendMask(SUSPEND_DISABLE);
@@ -787,11 +793,11 @@ void main_loop(void) {
 					start_measure_sensor_deep_sleep();
 					check_battery();
 					// Sleep transition instability workaround bls_pm_setAppWakeupLowPower()
-					if(clock_time() - timer_measure_cb > SENSOR_MEASURING_TIMEOUT - 3)
+					if(clock_time() - thsensor_cfg.time_measure > SENSOR_MEASURING_TIMEOUT - 3)
 						WakeupLowPowerCb(0);
 					else {
 						bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
-						bls_pm_setAppWakeupLowPower(timer_measure_cb + SENSOR_MEASURING_TIMEOUT, 1);
+						bls_pm_setAppWakeupLowPower(thsensor_cfg.time_measure + SENSOR_MEASURING_TIMEOUT, 1);
 					}
 				}
 #endif
@@ -816,7 +822,7 @@ void main_loop(void) {
 							ble_send_humi();
 					} else if (mi_key_stage) {
 						mi_key_stage = get_mi_keys(mi_key_stage);
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 					} else if (rd_memo.cnt) {
 						send_memo_blk();
 #endif
@@ -828,12 +834,12 @@ void main_loop(void) {
 						}
 					}
 				}
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 				else if(rtc_sync_utime) {
 					rtc_sync_utime = 0;
 					utc_time_sec = rtc_get_utime();
 				}
-#endif // USE_RTC
+#endif // (DEV_SERVICES & SERVICE_HARD_CLOCK)
 				if (new - tim_measure >= measurement_step_time) {
 					tim_measure = new;
 					start_measure = 1;

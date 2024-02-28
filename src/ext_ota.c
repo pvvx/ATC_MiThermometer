@@ -148,7 +148,7 @@ void set_SerialStr(void) {
 #endif // defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 
 
-#if USE_EXT_OTA  // Compatible BigOTA
+#if (DEV_SERVICES & SERVICE_OTA_EXT)  // Compatible BigOTA
 
 RAM ext_ota_t ext_ota;
 
@@ -246,5 +246,5 @@ void clear_ota_area(void) {
 			SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN); // MCU_STALL);
 }
 
-#endif // USE_EXT_OTA
+#endif // (DEV_SERVICES & SERVICE_OTA_EXT)
 

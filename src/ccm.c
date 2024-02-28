@@ -30,7 +30,7 @@
 //#include "ccm.h"
 #include <stdint.h>
 #include "tl_common.h"
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 #include "ccm.h"
 #include "drivers/8258/aes.h"
 #include "stack/ble/crypt/aes/aes_att.h"

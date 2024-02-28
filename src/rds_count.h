@@ -10,12 +10,12 @@
 
 #include "app_config.h"
 
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 #ifdef GPIO_RDS
 
 static inline uint8_t get_rds_input(void) {
 	uint8_t r = BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff)? 1 : 0;
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 	if(trg.rds.rs_invert)
 		r ^= 1;
 #endif
@@ -30,7 +30,7 @@ static inline void rds_input_on(void) {
 	gpio_setup_up_down_resistor(GPIO_RDS, PM_PIN_PULLUP_1M);
 }
 
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 #include "mi_beacon.h"
 
 #define EXT_ADV_INTERVAL ADV_INTERVAL_50MS
@@ -61,10 +61,10 @@ void rds_suspend(void);
 void rds_task(void);
 void set_rds_adv_data(void);
 
-#endif // USE_WK_RDS_COUNTER
+#endif // (DEV_SERVICES & SERVICE_RDS)
 
 #endif // defined GPIO_RDS
 
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #endif /* RDS_COUNT_H_ */

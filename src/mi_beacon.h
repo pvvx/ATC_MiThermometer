@@ -194,7 +194,7 @@ void mi_beacon_summ(void); // averaging measurements
 void mi_data_beacon(void);
 void mi_event_beacon(uint8_t n); // n = RDS_TYPES
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 
 typedef struct __attribute__((packed)) _adv_mi_cr_ev1_t {
 	adv_mi_head_t head;

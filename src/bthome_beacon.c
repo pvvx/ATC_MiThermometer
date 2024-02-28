@@ -12,7 +12,7 @@
 #include "ble.h"
 #include "battery.h"
 #include "app.h"
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
 #include "rds_count.h"
 #endif
@@ -21,7 +21,7 @@
 
 #define USE_OUT_AVERAGE_BATTERY 0
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 
 /* Encrypted bthome nonce */
 typedef struct __attribute__((packed)) _bthome_beacon_nonce_t{
@@ -92,7 +92,7 @@ void bthome_encrypt_data_beacon(void) {
 #else
 		p->battery_mv = measured_data.battery_mv; // x mV
 #endif
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 		p->s_id = BtHomeID_switch;
 		p->swtch = trg.flg.trg_output;
 #endif
@@ -100,7 +100,7 @@ void bthome_encrypt_data_beacon(void) {
 	}
 }
 
-#if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_TH_TRG) && (DEV_SERVICES & SERVICE_RDS)
 // n = RDS_TYPES
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void bthome_encrypt_event_beacon(uint8_t n) {
@@ -121,7 +121,7 @@ void bthome_encrypt_event_beacon(uint8_t n) {
 }
 #endif
 
-#endif // USE_SECURITY_BEACON
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void bthome_data_beacon(void) {
@@ -156,7 +156,7 @@ void bthome_data_beacon(void) {
 	}
 }
 
-#if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_TH_TRG) && (DEV_SERVICES & SERVICE_RDS)
 // n = RDS_TYPES
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void bthome_event_beacon(uint8_t n) {

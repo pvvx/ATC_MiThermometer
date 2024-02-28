@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 #include "app.h"
 #include "drivers.h"
 #include "flash_eep.h"
@@ -201,4 +201,4 @@ void write_memo(void) {
 	}
 }
 
-#endif // USE_FLASH_MEMO
+#endif // #if (DEV_SERVICES & SERVICE_HISTORY)

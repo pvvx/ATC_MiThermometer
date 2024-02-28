@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include "tl_common.h"
-#if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_TH_TRG) && (DEV_SERVICES & SERVICE_RDS)
 #include "stack/ble/ble.h"
 #include "app.h"
 #include "ble.h"
@@ -28,7 +28,7 @@
 #endif
 #include "rds_count.h"
 
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 extern u32 blt_advExpectTime;
 extern u8 app_adv_set_param[];
 #endif
@@ -61,7 +61,7 @@ __attribute__((optimize("-Os")))
 void set_rds_adv_data(void) {
 	adv_buf.send_count++;
 	int advertising_type = cfg.flg.advertising_type;
-#if	USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 	if (cfg.flg2.adv_crypto) {
 		if (advertising_type == ADV_TYPE_PVVX) {
 #if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
@@ -97,7 +97,7 @@ void set_rds_adv_data(void) {
 #endif
 		}
 	} else
-#endif //	USE_SECURITY_BEACON
+#endif //	#if (DEV_SERVICES & SERVICE_BINDKEY)
 	{
 		if (advertising_type == ADV_TYPE_PVVX) {
 #if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
@@ -139,7 +139,7 @@ void set_rds_adv_data(void) {
 
 //_attribute_ram_code_
 static void start_ext_adv(void) {
-#if (BLE_EXT_ADV)
+#if (DEV_SERVICES & SERVICE_LE_LR)
 	if (adv_buf.ext_adv_init) { // support extension advertise
 		set_rds_adv_data();
 		blta.adv_duraton_en = EXT_ADV_COUNT;
@@ -273,4 +273,4 @@ void rds_task(void) {
 	}
 }
 
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)

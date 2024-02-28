@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
-#if	USE_RTC
+#if	(DEV_SERVICES & SERVICE_HARD_CLOCK)
 #include "drivers.h"
 #include "drivers/8258/gpio_8258.h"
 #include "i2c.h"
@@ -171,4 +171,4 @@ uint32_t rtc_get_utime(void) {
 	return rtc_to_utime(&rtc);
 }
 
-#endif // USE_RTC
+#endif // (DEV_SERVICES & SERVICE_HARD_CLOCK)

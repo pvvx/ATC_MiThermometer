@@ -12,14 +12,14 @@
 #include "ble.h"
 #include "battery.h"
 #include "app.h"
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICE & SERVICE_TH_TRG)
 #include "trigger.h"
 #include "rds_count.h"
 #endif
 #include "ha_ble_beacon.h"
 #include "ccm.h"
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 
 /* Encrypted ha-ble nonce */
 typedef struct __attribute__((packed)) _ha_ble_beacon_nonce_t{
@@ -84,7 +84,7 @@ void ha_ble_encrypt_data_beacon(void) {
 		adv_buf.call_count = 1;
 		adv_buf.send_count++;
 		padv_ha_ble_data2_t p = (padv_ha_ble_data2_t)&buf;
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICE & SERVICE_TH_TRG)
 		p->s_st = HaBleType_uint + sizeof(p->s_id) + sizeof(p->swtch);
 		p->s_id = HaBleID_switch;
 		p->swtch = trg.flg.trg_output;
@@ -96,7 +96,7 @@ void ha_ble_encrypt_data_beacon(void) {
 	}
 }
 
-#if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
+#if (DEV_SERVICE & SERVICE_TH_TRG) && (DEV_SERVICE & SERVICE_RDS)
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void ha_ble_encrypt_event_beacon(uint8_t n) {
 	uint8_t buf[20];
@@ -117,9 +117,9 @@ void ha_ble_encrypt_event_beacon(uint8_t n) {
 		ha_ble_encrypt(buf, sizeof(adv_ha_ble_event2_t));
 	}
 }
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICE & SERVICE_TH_TRG)
 
-#endif // USE_SECURITY_BEACON
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void ha_ble_data_beacon(void) {
@@ -146,7 +146,7 @@ void ha_ble_data_beacon(void) {
 		adv_buf.call_count = 1;
 		adv_buf.send_count++;
 		p->pid = (uint8_t)adv_buf.send_count;
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICE & SERVICE_TH_TRG)
 		p->data.s_st = HaBleType_uint + sizeof(p->data.s_id) + sizeof(p->data.swtch);
 		p->data.s_id = HaBleID_switch;
 		p->data.swtch = trg.flg.trg_output;
@@ -157,7 +157,7 @@ void ha_ble_data_beacon(void) {
 	}
 }
 
-#if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
+#if (DEV_SERVICE & SERVICE_TH_TRG) && (DEV_SERVICE & SERVICE_RDS)
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void ha_ble_event_beacon(uint8_t n) {
 	padv_ha_ble_ns_ev1_t p = (padv_ha_ble_ns_ev1_t)&adv_buf.data;
@@ -184,6 +184,6 @@ void ha_ble_event_beacon(uint8_t n) {
 		adv_buf.data_size = sizeof(adv_ha_ble_ns_ev2_t);
 	}
 }
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICE & SERVICE_TH_TRG)
 
 #endif // USE_HA_BLE_BEACON

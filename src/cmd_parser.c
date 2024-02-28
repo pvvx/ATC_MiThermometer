@@ -3,7 +3,7 @@
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
 #include "ble.h"
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 #include "rtc.h"
 #endif
 #include "i2c.h"
@@ -11,18 +11,18 @@
 #include "sensor.h"
 #include "app.h"
 #include "flash_eep.h"
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
 #include "rds_count.h"
 #endif
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 #include "logger.h"
 #endif
 #if USE_MIHOME_BEACON
 #include "mi_beacon.h"
 #endif
 #include "cmd_parser.h"
-#if USE_EXT_OTA
+#if (DEV_SERVICES & SERVICE_OTA_EXT)
 #include "ext_ota.h"
 #endif
 
@@ -33,7 +33,7 @@
 #define FLASH_MIKEYS_ADDR 0x78000
 //#define FLASH_SECTOR_SIZE 0x1000 // in "flash_eep.h"
 
-#if USE_TIME_ADJUST
+#if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 RAM uint32_t utc_set_time_sec; // clock setting time for delta calculation
 #endif
 
@@ -272,7 +272,7 @@ void cmd_parser(void * p) {
 			p->hw_version = cfg.hw_cfg.hwver;
 			p->sw_version = VERSION;
 			p->dev_spec_data = 0;
-			p->services = 0x0fff;
+			p->services = DEV_SERVICES;
 			olen = sizeof(dev_id_t);
 		} else if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
 			if(len >= 2)
@@ -334,12 +334,12 @@ void cmd_parser(void * p) {
 			ev_adv_timeout(0, 0, 0);
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 		} else if (cmd == CMD_ID_TRG) { // Get/set trg data
 			if (--len > sizeof(trg))	len = sizeof(trg);
 			if (len)
 				memcpy(&trg, &req->dat[1], len);
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 			rds.type = trg.rds.type;
 			rds_init();
 #endif
@@ -350,7 +350,7 @@ void cmd_parser(void * p) {
 			if (len > 1)
 				trg.flg.trg_output = req->dat[1] != 0;
 			ble_send_trg_flg();
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 		} else if (cmd == CMD_ID_DEV_MAC) { // Get/Set mac
 			if (len == 2 && req->dat[1] == 0) { // default MAC
 				flash_erase_mac_sector(FLASH_MIMAC_ADDR);
@@ -384,7 +384,7 @@ void cmd_parser(void * p) {
 			}
 			get_mi_keys(MI_KEY_STAGE_MAC);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 		} else if (cmd == CMD_ID_BKEY) { // Get/set beacon bindkey
 			if (len == sizeof(bindkey) + 1) {
 				memcpy(bindkey, &req->dat[1], sizeof(bindkey));
@@ -424,7 +424,7 @@ void cmd_parser(void * p) {
 				 lcd_flg.all_flg = req->dat[1];
 			 send_buf[1] = lcd_flg.all_flg;
  			 olen = 2;
-#if BLE_SECURITY_ENABLE
+#if (DEV_SERVICES & SERVICE_PINCODE)
 		} else if (cmd == CMD_ID_PINCODE && len > 4) { // Set new pinCode 0..999999
 			uint32_t old_pincode = pincode;
 			uint32_t new_pincode = req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16) | (req->dat[4]<<24);
@@ -469,22 +469,22 @@ void cmd_parser(void * p) {
 			if (--len > sizeof(utc_time_sec)) len = sizeof(utc_time_sec);
 			if (len) {
 				memcpy(&utc_time_sec, &req->dat[1], len);
-#if USE_TIME_ADJUST
+#if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 				utc_set_time_sec = utc_time_sec;
 #endif
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 				rtc_set_utime(utc_time_sec);
 #endif
 				SET_LCD_UPDATE();
 			}
 			memcpy(&send_buf[1], &utc_time_sec, sizeof(utc_time_sec));
-#if USE_TIME_ADJUST
+#if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 			memcpy(&send_buf[sizeof(utc_time_sec) + 1], &utc_set_time_sec, sizeof(utc_set_time_sec));
 			olen = sizeof(utc_time_sec) + sizeof(utc_set_time_sec) + 1;
 #else
 			olen = sizeof(utc_time_sec) + 1;
 #endif
-#if USE_TIME_ADJUST
+#if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 		} else if (cmd == CMD_ID_TADJUST) { // Get/set adjust time clock delta (in 1/16 us for 1 sec)
 			if (len > 2) {
 				int16_t delta = req->dat[1] | (req->dat[2] << 8);
@@ -494,7 +494,7 @@ void cmd_parser(void * p) {
 			memcpy(&send_buf[1], &utc_time_tick_step, sizeof(utc_time_tick_step));
 			olen = sizeof(utc_time_tick_step) + 1;
 #endif
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		} else if (cmd == CMD_ID_LOGGER && len > 2) { // Read memory measures
 			rd_memo.cnt = req->dat[1] | (req->dat[2] << 8);
 			if (rd_memo.cnt) {
@@ -522,7 +522,7 @@ void cmd_parser(void * p) {
 			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			olen = 2;
 		} else if (cmd == CMD_ID_SET_OTA) { // Set OTA address and size
-#if USE_EXT_OTA  // Compatible BigOTA
+#if (DEV_SERVICES & SERVICE_OTA_EXT)  // Compatible BigOTA
 			uint32_t ota_addr, ota_size;
 			if (len > 8) {
 				memcpy(&ota_addr, &req->dat[1], 4);
@@ -534,7 +534,7 @@ void cmd_parser(void * p) {
 			memcpy(&send_buf[2+4], &ota_firmware_size_k, 4);
 			olen = 2 + 8;
 		} else if (cmd == CMD_ID_GDEVS) {   // Get address devises
-			send_buf[1] = sensor_i2c_addr;
+			send_buf[1] = thsensor_cfg.i2c_addr;
 #if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122))
 			send_buf[2] = lcd_i2c_addr;
 #else
@@ -571,9 +571,25 @@ void cmd_parser(void * p) {
 				send_buf[1] = 0xff; // Error cmd
 				olen = 2;
 			}
+#if (DEV_SERVICES & SERVICE_THS)
+		} else if (cmd == CMD_ID_CFS) {	// Get/Set sensor config
+			if (--len > sizeof(thsensor_cfg.coef))
+				len = sizeof(thsensor_cfg.coef);
+			if (len) {
+				memcpy(&thsensor_cfg.coef, &req->dat[1], len);
+				flash_write_cfg(&thsensor_cfg.coef, EEP_ID_CFS, sizeof(thsensor_cfg.coef));
+			}
+			memcpy(&send_buf[1], &thsensor_cfg, thsensor_cfg_send_size);
+			olen = thsensor_cfg_send_size + 1;
+		} else if (cmd == CMD_ID_CFS_DEF) {	// Get/Set default sensor config
+			memset(&thsensor_cfg, 0, thsensor_cfg_send_size);
+			init_sensor();
+			memcpy(&send_buf[1], &thsensor_cfg, thsensor_cfg_send_size);
+			olen = thsensor_cfg_send_size + 1;
 		} else if (cmd == CMD_ID_SEN_ID) { // Get sensor ID
-			memcpy(&send_buf[1], &sensor_id, sizeof(sensor_id));
-			olen = sizeof(sensor_id) + 1;
+			memcpy(&send_buf[1], &thsensor_cfg.id, sizeof(thsensor_cfg.id));
+			olen = sizeof(thsensor_cfg.id) + 1;
+#endif
 		} else if (cmd == CMD_ID_FLASH_ID) { // Get Flash JEDEC ID
 			flash_read_id(&send_buf[1]); // Read flash UID
 			olen = 1 + 3;

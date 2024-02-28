@@ -84,7 +84,7 @@ int send_i2c_buf(uint8_t i2c_addr, uint8_t * dataBuf, uint32_t dataLen) {
 	return err;
 }
 
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 _attribute_ram_code_
 #endif
 int read_i2c_byte_addr(uint8_t i2c_addr, uint8_t reg_addr, uint8_t * dataBuf, uint32_t dataLen) {

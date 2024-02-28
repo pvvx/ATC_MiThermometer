@@ -11,14 +11,14 @@
 #include "ble.h"
 #include "app.h"
 #include "battery.h"
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
 #include "rds_count.h"
 #endif
 #include "mi_beacon.h"
 #include "ccm.h"
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 
 /* Encrypted mi nonce */
 typedef struct __attribute__((packed)) _mi_beacon_nonce_t{
@@ -154,7 +154,7 @@ void mi_encrypt_data_beacon(void) {
 						   (uint8_t *)&p->data, // указатель куда писать результат
 						   pmic, 4); // указатель куда писать типа подпись-"контрольную сумму" шифра
 }
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 /* n - RDS_TYPES */
 void mi_encrypt_event_beacon(uint8_t n) {
 	padv_mi_cr_ev1_t p = (padv_mi_cr_ev1_t)&adv_buf.data;
@@ -202,8 +202,8 @@ void mi_encrypt_event_beacon(uint8_t n) {
 						   (uint8_t *)&p->data,
 						   pmic, 4);
 }
-#endif // USE_WK_RDS_COUNTER
-#endif // USE_SECURITY_BEACON
+#endif // (DEV_SERVICES & SERVICE_RDS)
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 /* Create mi beacon packet */
 _attribute_ram_code_ __attribute__((optimize("-Os")))
@@ -240,7 +240,7 @@ void mi_data_beacon(void) {
 	p->head.size = p->data.size + sizeof(p->head) - sizeof(p->head.size) + sizeof(p->MAC) + sizeof(p->data.id) + sizeof(p->data.size);
 }
 
-#if	USE_TRIGGER_OUT && USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_TH_TRG) && (DEV_SERVICES & SERVICE_RDS)
 /* Create mi event beacon packet */
 __attribute__((optimize("-Os")))
 void mi_event_beacon(uint8_t n){
@@ -275,6 +275,6 @@ void mi_event_beacon(uint8_t n){
 		adv_buf.data_size = sizeof(adv_mi_ev2_t);
 	}
 }
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #endif // USE_MIHOME_BEACON

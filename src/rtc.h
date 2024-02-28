@@ -8,7 +8,7 @@
 #ifndef RTC_H_
 #define RTC_H_
 
-#if	USE_RTC
+#if	(DEV_SERVICES & SERVICE_HARD_CLOCK)
 
 typedef struct {
   uint8_t hours;    // RTC Time Hours: 0-12 / 0-23 range if H12 (AM/PM)
@@ -59,6 +59,6 @@ uint8_t byte_to_bcd(uint8_t b);
 void rtc_to_regs(rtc_time_t *r);
 void rtc_regs(rtc_time_t *r);
 
-#endif // USE_RTC
+#endif // (DEV_SERVICES & SERVICE_HARD_CLOCK)
 
 #endif /* RTC_H_ */

@@ -9,7 +9,7 @@
 #define _LOGGER_H_
 #include "app_config.h"
 
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 
 #define MEMO_SEC_ID		0x55AAC0DE // sector head
 #define FLASH_ADDR_START_MEMO	0x40000
@@ -46,5 +46,5 @@ void clear_memo(void);
 unsigned get_memo(uint32_t bnum, pmemo_blk_t p);
 void write_memo(void);
 
-#endif // USE_FLASH_MEMO
+#endif // #if (DEV_SERVICES & SERVICE_HISTORY)
 #endif /* _LOGGER_H_ */

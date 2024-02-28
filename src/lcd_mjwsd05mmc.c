@@ -6,7 +6,7 @@
 #include "drivers/8258/gpio_8258.h"
 #include "app.h"
 #include "i2c.h"
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 #include "rtc.h"
 #endif
 #include "lcd.h"
@@ -648,7 +648,7 @@ void show_s4_number_x10(int32_t number, uint8_t atr){
 }
 
 void show_clock_s3(void) {
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 	uint8_t hrs = rtc.hours;
 	if(cfg.flg.time_am_pm) {
 		if(hrs > 12)
@@ -683,7 +683,7 @@ void show_weekday(void) {
 }
 
 void show_clock_s1(void) {
-#if USE_RTC
+#if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 	clear_s1();
 	display_buff[1] = BIT(0); // ":"
 	uint8_t hrs = rtc.hours;
@@ -792,7 +792,7 @@ void lcd(void) {
 	if(lcd_flg.chow_ext_ut >= utc_time_sec)
 		screen_type = SCR_TYPE_EXT;
 	show_ble_symbol(ble_connected
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
 		 || (ext_key.rest_adv_int_tad & 2)
 #endif
 	);

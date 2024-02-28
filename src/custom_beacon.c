@@ -9,14 +9,14 @@
 #include "app_config.h"
 #include "ble.h"
 #include "app.h"
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
 #include "rds_count.h"
 #endif
 #include "custom_beacon.h"
 #include "ccm.h"
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 
 /* Encrypted atc/custom nonce */
 typedef struct __attribute__((packed)) _enc_beacon_nonce_t{
@@ -41,7 +41,7 @@ void atc_encrypt_data_beacon(void) {
 	data.temp = (measured_data.temp + 25) / 50 + 4000 / 50;
 	data.humi = (measured_data.humi + 25) / 50;
 	data.bat = measured_data.battery_level
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 	| ((trg.flg.trigger_on)? 0x80 : 0)
 #endif
 	;
@@ -69,7 +69,7 @@ void pvvx_encrypt_data_beacon(void) {
 	data.temp = measured_data.temp;
 	data.humi = measured_data.humi;
 	data.bat = measured_data.battery_level;
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 	data.trg = trg.flg_byte;
 #else
 	data.trg = 0;
@@ -84,13 +84,13 @@ void pvvx_encrypt_data_beacon(void) {
 					   p->mic, 4);
 }
 
-#endif // USE_SECURITY_BEACON
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void pvvx_data_beacon(void) {
 	padv_custom_t p = (padv_custom_t)&adv_buf.data;
 	memcpy(p->MAC, mac_public, 6);
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 	p->size = sizeof(adv_custom_t) - 1;
 #else
 	p->size = sizeof(adv_custom_t) - 2;
@@ -102,7 +102,7 @@ void pvvx_data_beacon(void) {
 	p->battery_mv = measured_data.average_battery_mv; // x mV
 	p->battery_level = measured_data.battery_level; // x1 %
 	p->counter = (uint8_t)adv_buf.send_count;
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 	p->flags = trg.flg_byte;
 #endif
 }
@@ -133,7 +133,7 @@ void atc_data_beacon(void) {
 }
 
 
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 
 typedef struct __attribute__((packed)) _ext_adv_cnt_t {
 	uint8_t		size;	// = 6
@@ -154,7 +154,7 @@ typedef struct __attribute__((packed)) _adv_event_t {
 	ext_adv_cnt_t cnt;
 } adv_event_t, * padv_event_t;
 
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 void atc_event_beacon(void){
 	padv_event_t p = (padv_event_t)&adv_buf.data;
 	p->dig.size = sizeof(p->dig) - sizeof(p->dig.size);
@@ -178,7 +178,7 @@ void pvvx_event_beacon(uint8_t n){
 		atc_event_beacon();
 }
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 
 void pvvx_encrypt_event_beacon(uint8_t n){
 	if (n == RDS_SWITCH) {
@@ -190,6 +190,6 @@ void pvvx_encrypt_event_beacon(uint8_t n){
 void atc_encrypt_event_beacon(void){
 	atc_event_beacon();
 }
-#endif // USE_WK_RDS_COUNTER
-#endif // USE_SECURITY_BEACON
-#endif // USE_TRIGGER_OUT
+#endif // (DEV_SERVICES & SERVICE_RDS)
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)

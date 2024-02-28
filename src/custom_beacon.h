@@ -86,19 +86,19 @@ typedef struct __attribute__((packed)) _adv_atc_enc_t {
 
 void pvvx_data_beacon(void);
 void atc_data_beacon(void);
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 void pvvx_event_beacon(uint8_t n); // n = RDS_TYPES
 void atc_event_beacon(void);
 #endif
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 void pvvx_encrypt_data_beacon(void); // n = RDS_TYPES
 void atc_encrypt_data_beacon(void);
 
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 void pvvx_encrypt_event_beacon(uint8_t n); // n = RDS_TYPES
 void atc_encrypt_event_beacon(void); // n = RDS_TYPES
 #endif
-#endif // USE_SECURITY_BEACON
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 #endif /* CUSTOM_BEACON_H_ */

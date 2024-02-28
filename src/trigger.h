@@ -31,7 +31,7 @@ typedef struct __attribute__((packed)) _trigger_t {
 	int16_t humi_threshold; // x0.01%, Set humi threshold
 	int16_t temp_hysteresis; // Set temp hysteresis, -327.67..327.67 °
 	int16_t humi_hysteresis; // Set humi hysteresis, -327.67..327.67 %
-#if USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_RDS)
 	// version 3.6+
 	uint16_t rds_time_report; // Reed switch count report interval (sec)
 	rds_type_t rds;	  // flags Reed switch

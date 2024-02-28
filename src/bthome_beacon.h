@@ -8,6 +8,8 @@
 #ifndef BTHOME_BEACON_H_
 #define BTHOME_BEACON_H_
 
+#include "app_config.h"
+
 #define ADV_BTHOME_UUID16 0xFCD2 // 16-bit UUID Service 0xFCD2 BTHOME
 
 #define BtHomeID_Info	0x40
@@ -121,7 +123,7 @@ typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 typedef struct __attribute__((packed)) _adv_bthome_data2_t {
 	uint8_t		v_id;	// = BtHomeID_voltage
 	uint16_t	battery_mv; // mV
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 	uint8_t		s_id;	// = BtHomeID_opened / BtHomeID_switch ?
 	uint8_t		swtch;
 #endif
@@ -176,7 +178,7 @@ typedef struct __attribute__((packed)) _adv_bthome_ns_ev2_t {
 } adv_bthome_ns_ev2_t, * padv_bthome_ns_ev2_t;
 
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 
 // BTHOME data1, security
 typedef struct __attribute__((packed)) _adv_bthome_d1_t {
@@ -207,13 +209,13 @@ typedef struct __attribute__((packed)) _adv_bthome_ev1_t {
 
 void bthome_beacon_init(void);
 void bthome_encrypt_data_beacon(void);
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 void bthome_encrypt_event_beacon(uint8_t n); // n = RDS_TYPES
 #endif
-#endif // USE_SECURITY_BEACON
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 void bthome_data_beacon(void);
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 void bthome_event_beacon(uint8_t n); // n = RDS_TYPES
 #endif
 #endif /* BTHOME_BEACON_H_ */

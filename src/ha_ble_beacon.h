@@ -61,7 +61,7 @@ typedef struct __attribute__((packed)) _adv_ha_ble_data1_t {
 } adv_ha_ble_data1_t, * padv_ha_ble_data1_t;
 
 typedef struct __attribute__((packed)) _adv_ha_ble_data2_t {
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 	uint8_t		s_st;
 	uint8_t		s_id;	// = HaBleID_switch ?
 	uint8_t		swtch;
@@ -128,7 +128,7 @@ typedef struct __attribute__((packed)) _adv_ha_ble_ns_ev2_t {
 	adv_ha_ble_event2_t data;
 } adv_ha_ble_ns_ev2_t, * padv_ha_ble_ns_ev2_t;
 
-#if USE_SECURITY_BEACON
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 
 // HA_BLE data1, security
 typedef struct __attribute__((packed)) _adv_ha_ble_d1_t {
@@ -164,13 +164,13 @@ typedef struct __attribute__((packed)) _adv_ha_ble_ev2_t {
 
 void ha_ble_beacon_init(void);
 void ha_ble_encrypt_data_beacon(void);
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 void ha_ble_encrypt_event_beacon(uint8_t n); // n = RDS_TYPES
 #endif
-#endif // USE_SECURITY_BEACON
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 void ha_ble_data_beacon(void);
-#if	USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 void ha_ble_event_beacon(uint8_t n); // n = RDS_TYPES
 #endif
 #endif /* HA_BLE_BEACON_H_ */

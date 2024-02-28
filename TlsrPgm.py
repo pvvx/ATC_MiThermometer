@@ -16,7 +16,7 @@ import io
 
 __progname__ = 'TLSR82xx TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '20.04.23'
+__version__ = '31.10.23'
 
 DEFAULT_UART_BAUD = 230400
 
@@ -711,7 +711,7 @@ class TLSRPGM:
 		if data == None:
 			print('\rError Erase All Flash! (%d)' % self.err)
 			return False
-		return self.WaitingFlashReady(1000)
+		return self.WaitingFlashReady(3000)
 	# Write Blocks Flash from stream
 	def WriteBlockFlash(self, stream, offset = 0, size = 0, erase = True):
 		wrsize = 0x100
@@ -877,7 +877,15 @@ class TLSRPGM:
 				flgsleep = True
 		print()
 		return False
-
+	def FlashUnlock(self):
+		print('Write 0 to Flash Status Register...')
+		if self.WriteFlashStatus(0) == None:
+			return None
+		ret = self.ReadFlashStatus()
+		if ret == None or ret != 0:
+			print('\r\nError unlock Flash!') 
+			return None
+		return ret
 #============================= 
 # main()
 #============================= 
@@ -1173,6 +1181,9 @@ def main():
 			print('Write Swire register 0x%08x to 0x%08x...' % (offset, offset + size))
 			ret = pgm.WriteBlockRegs(stream, offset, size)
 		elif args.operation == 'wf' or args.operation == 'we':
+			if pgm.FlashUnlock() == None:
+				pgm.close()
+				sys.exit(1)
 			print('Write Flash data 0x%08x to 0x%08x...' % (offset, offset + size))
 			ret = pgm.WriteBlockFlash(stream, offset, size, bool(args.operation == 'we'))
 		elif args.operation == 'wa':
@@ -1188,6 +1199,9 @@ def main():
 			pgm.close()
 			sys.exit(1)
 	elif args.operation == 'es':
+		if pgm.FlashUnlock() == None:
+			pgm.close()
+			sys.exit(1)
 		count = int((args.size + FLASH_SECTOR_SIZE - 1) / FLASH_SECTOR_SIZE)
 		size = (count * FLASH_SECTOR_SIZE)
 		offset = args.address & (0xffffff^(FLASH_SECTOR_SIZE-1))
@@ -1196,6 +1210,9 @@ def main():
 			pgm.close()			
 			sys.exit(1)
 	elif args.operation == 'ea':
+		if pgm.FlashUnlock() == None:
+			pgm.close()
+			sys.exit(1)
 		print('Erase All Flash ...')
 		if not pgm.EraseAllFlash():
 			pgm.close()

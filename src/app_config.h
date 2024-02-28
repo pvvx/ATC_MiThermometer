@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x46	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x47	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 #define DEVICE_LYWSD03MMC   0x055B	// LCD display LYWSD03MMC
@@ -22,34 +22,25 @@ extern "C" {
 #define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC or DEVICE_MHO_C401 or DEVICE_CGG1 (+ set DEVICE_CGG1_ver) or DEVICE_CGDK2 or DEVICE_MHO_C401N or DEVICE_MJWSD05MMC or DEVICE_MHO_C122
 #endif
 
-#define BLE_SECURITY_ENABLE 1 // = 1 support pin-code
-#define BLE_EXT_ADV 		1 // = 1 support extension advertise (Test Only!)
-
-#define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
-#define USE_TIME_ADJUST		1 // = 1 time correction enabled
-#define USE_FLASH_MEMO		1 // = 1 flash logger enable
-#define USE_TRIGGER_OUT 	1 // = 1 use trigger out
-#define USE_WK_RDS_COUNTER	USE_TRIGGER_OUT // = 1 wake up when the reed switch is triggered + pulse counter
-#define USE_RTC				0 // = 1 RTC enabled
-
-#define USE_SECURITY_BEACON 1 // = 1 support encryption beacon (bindkey)
-#define USE_MIHOME_BEACON	1 // = 1 Compatible with MiHome beacon
-#define USE_HA_BLE_BEACON	0 // = 1 BTHome v1 https://bthome.io/
-#define USE_BTHOME_BEACON	(!USE_HA_BLE_BEACON) // (not implemented) = 1 BTHome v2 https://bthome.io/
-
-#define USE_EXT_OTA			1 // = 1 Compatible BigOTA
+// supported services by the device (bits)
+#define SERVICE_OTA			0x00000001	// OTA all enable!
+#define SERVICE_OTA_EXT		0x00000002	// Compatible BigOTA
+#define SERVICE_PINCODE 	0x00000004	// support pin-code
+#define SERVICE_BINDKEY 	0x00000008	// support encryption beacon (bindkey)
+#define SERVICE_HISTORY 	0x00000010	// flash logger enable
+#define SERVICE_SCREEN		0x00000020	// all enable
+#define SERVICE_LE_LR		0x00000040	// support extension advertise + LE Long Range
+#define SERVICE_THS			0x00000080	// all enable
+#define SERVICE_RDS			0x00000100	// wake up when the reed switch is triggered + pulse counter
+#define SERVICE_KEY			0x00000200	//
+#define SERVICE_OUTS		0x00000400	//
+#define SERVICE_INS			0x00000800	//
+#define SERVICE_TIME_ADJUST 0x00001000	// time correction enabled
+#define SERVICE_HARD_CLOCK	0x00002000	// RTC enabled
+#define SERVICE_TH_TRG		0x00004000	// use trigger out
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
 #define USE_FLASH_SERIAL_UID		0 // = 1 Set my_SerialStr "$SOC_ID_Rev-$FLASH_JEDEC-$FLASH_UID"
-
-/* Special DIY version - Voltage Logger:
- * Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, LYWSD03MMC pcb mark "B1"
- * Humidity 0..36.00 = ADC pin PC4 input 0..3.6V, LYWSD03MMC pcb mark "P9"
- * Set DIY_ADC_TO_TH 1 */
-#define DIY_ADC_TO_TH 	0
-
-#define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)
-#define UART_PRINT_DEBUG_ENABLE		0 // =1 use u_printf() (PA7/SWS), source: SDK/components/application/print/u_printf.c
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
 // TLSR8251F512ET24
@@ -63,6 +54,19 @@ extern "C" {
 // GPIO_PC4 - used EPD_SHD
 // GPIO_PD2 - used EPD_CSB
 // GPIO_PD7 - used EPD_SCL
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+)
 
 #define USE_EPD			(600/50 - 1) // min update time x50 ms
 #define MI_HW_VER_FADDR 0x55000 // Mi HW version
@@ -116,7 +120,7 @@ extern "C" {
 #define PD7_OUTPUT_ENABLE	1
 #define PD7_FUNC			AS_GPIO
 
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #define GPIO_TRG			GPIO_PA0	// none
 #define PA0_INPUT_ENABLE	1
@@ -132,7 +136,7 @@ extern "C" {
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_1M
 
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
 
@@ -147,6 +151,20 @@ extern "C" {
 // GPIO_PC4 - used EPD_SCL
 // GPIO_PD2 - used EPD_SDA
 // GPIO_PD7 - used EPD_RST
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+)
 
 #define USE_EPD			(600/50 - 1) // min update time ms
 
@@ -199,7 +217,7 @@ extern "C" {
 #define PC4_OUTPUT_ENABLE	1
 #define PC4_FUNC			AS_GPIO
 
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #define GPIO_TRG			GPIO_PA0	// none
 #define PA0_INPUT_ENABLE	1
@@ -215,7 +233,7 @@ extern "C" {
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_1M
 
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #elif DEVICE_TYPE == DEVICE_CGG1
 
@@ -237,6 +255,20 @@ extern "C" {
 // GPIO_PD3 - free (Reed Switch, input)
 // GPIO_PD4 - used EPD_BUSY
 // GPIO_PD7 - used EPD_SCL
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+)
 
 #define USE_EPD			(550/50 - 1) // min update time ms
 
@@ -293,7 +325,7 @@ extern "C" {
 #define GPIO_KEY			GPIO_PC4
 #define PC4_INPUT_ENABLE	1
 
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #define GPIO_TRG			GPIO_PC3
 #define PC3_INPUT_ENABLE	1
@@ -309,7 +341,7 @@ extern "C" {
 #define PC4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC4 PM_PIN_PULLUP_1M
 
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB5 input 0..3.6В
 #define CHL_ADC1 			6	// B5P
@@ -352,6 +384,20 @@ extern "C" {
 // GPIO_PC4 - free, pcb mark "P9" (ADC2)
 // GPIO_PD2 - CS/PWM, free
 // GPIO_PD7 - free [B1.4], UART TX LCD [B1.6], pcb mark "P7"
+
+#define DEV_SERVICES ( SERVICE_OTA \
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+)
+
 #define USE_EPD			0 // min update time ms
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
@@ -367,7 +413,7 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #define GPIO_TRG			GPIO_PA5	// Trigger, output, pcb mark "reset"
 #define PA5_INPUT_ENABLE	1
@@ -389,7 +435,7 @@ extern "C" {
 
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
 #define CHL_ADC1 			8	// B7P
@@ -427,6 +473,20 @@ extern "C" {
 // GPIO_PD4 - free
 // GPIO_PD7 - free
 
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+)
+
 #define USE_EPD			0 // min update time ms
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
@@ -446,7 +506,7 @@ extern "C" {
 #define GPIO_KEY			GPIO_PC4
 #define PC4_INPUT_ENABLE	1
 
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #define GPIO_TRG			GPIO_PB1
 #define PB1_INPUT_ENABLE	1
@@ -462,7 +522,7 @@ extern "C" {
 #define PC4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC4 PM_PIN_PULLUP_1M
 
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В
 #define CHL_ADC1 			8	// B7P
@@ -495,6 +555,21 @@ extern "C" {
   0x7E000 ? 5A 07 00 02 CE 0C 5A 07 00 02 CB 0C 5A 07 00 02 CD 0C
   0x80000 End Flash (FLASH_SIZE)
  */
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_HARD_CLOCK \
+		| SERVICE_TH_TRG \
+)
+
 #define MI_HW_VER_FADDR 0x7D000 // Mi HW version
 // ### TLSR8250F512ET32
 // GPIO_PA0 - UART_RX
@@ -544,15 +619,6 @@ extern "C" {
 //#define PB5_DATA_OUT		1
 //#define PB5_OUTPUT_ENABLE	1
 
-#undef USE_TIME_ADJUST
-#define USE_TIME_ADJUST 	0 // disabled -> used RTC + Quartz 32.768 kHz
-#undef USE_RTC
-#define USE_RTC				1
-#undef USE_EXT_OTA
-#define USE_EXT_OTA			1 // = 1 Compatible BigOTA
-//#undef USE_TRIGGER_OUT
-//#define USE_TRIGGER_OUT		1
-
 #define GPIO_TRG			GPIO_PA0	// none
 #define PA0_INPUT_ENABLE	1
 #define PA0_DATA_OUT		0
@@ -587,6 +653,21 @@ extern "C" {
 // GPIO_PC4 - free
 // GPIO_PD2 - CS/PWM, free
 // GPIO_PD7 - free
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+)
+
 #define USE_EPD			0 // min update time ms
 
 #define SHL_ADC_VBAT	1  // "B0P" in adc.h
@@ -602,7 +683,7 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
-#if USE_TRIGGER_OUT
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #define GPIO_TRG			GPIO_PA5	// Trigger, output, pcb mark "reset"
 #define PA5_INPUT_ENABLE	1
@@ -624,7 +705,7 @@ extern "C" {
 
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 
-#endif // USE_TRIGGER_OUT
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
 #define CHL_ADC1 			8	// B7P
@@ -645,6 +726,22 @@ extern "C" {
 #error ("DEVICE_TYPE = ?")
 #endif // DEVICE_TYPE == ?
 
+#define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
+
+#define USE_MIHOME_BEACON	1 // = 1 Compatible with MiHome beacon
+#define USE_HA_BLE_BEACON	0 // = 1 BTHome v1 https://bthome.io/
+#define USE_BTHOME_BEACON	(!USE_HA_BLE_BEACON) // (not implemented) = 1 BTHome v2 https://bthome.io/
+
+/* Special DIY version - Voltage Logger:
+ * Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, LYWSD03MMC pcb mark "B1"
+ * Humidity 0..36.00 = ADC pin PC4 input 0..3.6V, LYWSD03MMC pcb mark "P9"
+ * Set DIY_ADC_TO_TH 1 */
+#define DIY_ADC_TO_TH 	0
+
+#define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)
+#define UART_PRINT_DEBUG_ENABLE		0 // =1 use u_printf() (PA7/SWS), source: SDK/components/application/print/u_printf.c
+
+
 #if UART_PRINT_DEBUG_ENABLE
 #define PRINT_BAUD_RATE 1500000 // real ~1000000
 #define DEBUG_INFO_TX_PIN	GPIO_PA7 // SWS
@@ -654,17 +751,15 @@ extern "C" {
 #define PA7_FUNC		AS_GPIO
 #endif // UART_PRINT_DEBUG_ENABLE
 
-
-#if (USE_TRIGGER_OUT) && (!defined(GPIO_TRG))
+#if (DEV_SERVICES & SERVICE_TH_TRG) && (!defined(GPIO_TRG))
 #error "Set GPIO_TRG!"
 #endif
-#if (USE_WK_RDS_COUNTER) && (!defined(GPIO_RDS))
+#if (DEV_SERVICES & SERVICE_RDS) && (!defined(GPIO_RDS))
 #error "Set GPIO_RDS!"
 #endif
-#if (USE_WK_RDS_COUNTER) && (!USE_TRIGGER_OUT)
+#if (DEV_SERVICES & SERVICE_RDS) && ((DEV_SERVICES & SERVICE_TH_TRG) == 0)
 #error "Set USE_TRIGGER_OUT = 1!"
 #endif
-
 
 #define MODULE_WATCHDOG_ENABLE		0 //
 #define WATCHDOG_INIT_TIMEOUT		15000  //ms (min 5000 ms if pincode)
@@ -702,7 +797,13 @@ enum{
 /* flash sector address with binding information */
 #define		CFG_ADR_BIND	0x74000 //no master, slave device (blt_config.h)
 
-#define BLE_HOST_SMP_ENABLE BLE_SECURITY_ENABLE
+/*
+#if (DEV_SERVICES & SERVICE_PINCODE)
+#define BLE_HOST_SMP_ENABLE 1
+#else
+#define BLE_HOST_SMP_ENABLE 0
+#endif
+*/
 
 //#define CHG_CONN_PARAM	// test
 #define DEV_NAME "pvvx_ble"
