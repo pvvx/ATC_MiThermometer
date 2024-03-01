@@ -168,7 +168,7 @@ static int check_sensor(void) {
 		cfg.hw_cfg.shtc3 = 0; // = 0 - sensor SHT4x or ?
 		if(!thsensor_cfg.i2c_addr)
 			thsensor_cfg.i2c_addr = (uint8_t) scan_i2c_addr(SHT4xB_I2C_ADDR << 1);
-		if(!thsensor_cfg.i2c_addr)
+		if(thsensor_cfg.i2c_addr)
 			ptabinit = (uint8_t *)&def_thcoef_sht4x;
 	}
 	soft_reset_sensor();
