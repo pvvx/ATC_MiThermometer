@@ -246,7 +246,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.4 | Adding an [option to display only external data](https://github.com/pvvx/ATC_MiThermometer/issues/380#issuecomment-1727042304). Only the value from the "EEP BindKey" [is now taken as the BindKey](https://github.com/pvvx/ATC_MiThermometer/issues/372). |
 |     4.5 | Replacing BTHome ver1 (HA_BLE) with [BTHome ver2](https://bthome.io/). Moving firmware after recovery to BLE from Zigbee OTA. Fixed a bug where the date was not displayed correctly for MJWSD05MMC. |
 |     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
-|     4.7b | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
+|     4.7-beta | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
 
 ## Applications
 
