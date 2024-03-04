@@ -164,6 +164,8 @@ After you have flashed the firmware, the device has changed it's bluetooth name 
 | _Set time_ | sends the current time to the device
 | _Comfort, Show batt, Clock_ | Ticking the according boxes you can enable interval rotation between different LCD screens. See the example video below.
 
+* For SHTC3 in "lowPower" the accuracy is reduced.
+* For SHT4x in "lowPower" you get a delay for the polling period, but the accuracy remains.
 
 **Example of LCD display modes**
 
