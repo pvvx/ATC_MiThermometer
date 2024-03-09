@@ -47,7 +47,7 @@ Supported models:
 
 * Thermometers without display
 
-| [Tuya ZigBee TS0201 TZ3000](https://github.com/pvvx/BLE_THSensor) | [Tuya ZigBee TH03Z](https://github.com/pvvx/BLE_THSensor/issues/9) | 
+| [Tuya ZigBee TS0201 TZ3000](https://github.com/pvvx/BLE_THSensor) | [Tuya ZigBee TH03Z](https://github.com/pvvx/BLE_THSensor) | 
 |:--:|:--:|
 | <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TH03Z/img/TH03Z.jpg" width="120"/> |
 | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
