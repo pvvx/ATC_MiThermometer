@@ -24,9 +24,6 @@
 #if USE_MIHOME_BEACON
 #include "mi_beacon.h"
 #endif
-#if USE_HA_BLE_BEACON
-#include "ha_ble_beacon.h"
-#endif
 #if USE_BTHOME_BEACON
 #include "bthome_beacon.h"
 #endif
@@ -514,17 +511,14 @@ static void start_tst_battery(void) {
 
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 void bindkey_init(void) {
-	if (flash_read_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey))
+	if (flash_read_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey))
 			!= sizeof(bindkey)) {
-		generateRandomNum(sizeof(bindkey), (unsigned char *) &bindkey);
-		flash_write_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey));
+		generateRandomNum(sizeof(bindkey), bindkey);
+		flash_write_cfg(bindkey, EEP_ID_KEY, sizeof(bindkey));
 	}
 #if	USE_MIHOME_BEACON
 	mi_beacon_init();
 #endif // USE_MIHOME_BEACON
-#if USE_HA_BLE_BEACON
-	ha_ble_beacon_init();
-#endif
 #if USE_BTHOME_BEACON
 	bthome_beacon_init();
 #endif

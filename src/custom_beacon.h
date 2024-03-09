@@ -88,7 +88,7 @@ void pvvx_data_beacon(void);
 void atc_data_beacon(void);
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 void pvvx_event_beacon(uint8_t n); // n = RDS_TYPES
-void atc_event_beacon(void);
+void default_event_beacon(void);
 #endif
 
 #if (DEV_SERVICES & SERVICE_BINDKEY)
@@ -97,7 +97,6 @@ void atc_encrypt_data_beacon(void);
 
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 void pvvx_encrypt_event_beacon(uint8_t n); // n = RDS_TYPES
-void atc_encrypt_event_beacon(void); // n = RDS_TYPES
 #endif
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 

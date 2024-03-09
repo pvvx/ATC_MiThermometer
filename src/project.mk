@@ -29,7 +29,6 @@ $(OUT_PATH)/src/blt_common.o\
 $(OUT_PATH)/src/ccm.o \
 $(OUT_PATH)/src/custom_beacon.o \
 $(OUT_PATH)/src/mi_beacon.o \
-$(OUT_PATH)/src/ha_ble_beacon.o \
 $(OUT_PATH)/src/bthome_beacon.o \
 $(OUT_PATH)/src/main.o
 

@@ -155,7 +155,7 @@ typedef struct __attribute__((packed)) _adv_event_t {
 } adv_event_t, * padv_event_t;
 
 #if (DEV_SERVICES & SERVICE_RDS)
-void atc_event_beacon(void){
+void default_event_beacon(void){
 	padv_event_t p = (padv_event_t)&adv_buf.data;
 	p->dig.size = sizeof(p->dig) - sizeof(p->dig.size);
 	p->dig.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
@@ -175,7 +175,7 @@ void pvvx_event_beacon(uint8_t n){
 		pvvx_data_beacon();
 		adv_buf.data_size = adv_buf.data[0] + 1;
 	} else
-		atc_event_beacon();
+		default_event_beacon();
 }
 
 #if (DEV_SERVICES & SERVICE_BINDKEY)
@@ -185,11 +185,9 @@ void pvvx_encrypt_event_beacon(uint8_t n){
 		pvvx_encrypt_data_beacon();
 		adv_buf.data_size = adv_buf.data[0] + 1;
 	} else
-		atc_event_beacon();
+		default_event_beacon();
 }
-void atc_encrypt_event_beacon(void){
-	atc_event_beacon();
-}
+
 #endif // (DEV_SERVICES & SERVICE_RDS)
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 #endif // #if (DEV_SERVICES & SERVICE_TH_TRG)

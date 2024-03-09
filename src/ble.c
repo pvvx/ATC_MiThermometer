@@ -21,9 +21,6 @@
 #if USE_MIHOME_BEACON
 #include "mi_beacon.h"
 #endif
-#if USE_HA_BLE_BEACON
-#include "ha_ble_beacon.h"
-#endif
 #if USE_BTHOME_BEACON
 #include "bthome_beacon.h"
 #endif
@@ -637,10 +634,6 @@ void set_adv_data(void) {
 		} else if (adv_type == ADV_TYPE_MI) { // adv_type == 2
 			mi_encrypt_data_beacon();
 #endif
-#if USE_HA_BLE_BEACON
-		} else if (adv_type == ADV_TYPE_HA_BLE) { // adv_type == 3
-			ha_ble_encrypt_data_beacon();
-#endif
 #if USE_BTHOME_BEACON
 		} else if (adv_type == ADV_TYPE_BTHOME) { // adv_type == 3
 			bthome_encrypt_data_beacon();
@@ -656,10 +649,6 @@ void set_adv_data(void) {
 #if USE_MIHOME_BEACON
 		} else if (adv_type == ADV_TYPE_MI) { // adv_type == 2
 			mi_data_beacon();
-#endif
-#if USE_HA_BLE_BEACON
-		} else if (adv_type == ADV_TYPE_HA_BLE) { // adv_type == 3
-			ha_ble_data_beacon();
 #endif
 #if USE_BTHOME_BEACON
 		} else if (adv_type == ADV_TYPE_BTHOME) { // adv_type == 3

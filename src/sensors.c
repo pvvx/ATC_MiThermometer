@@ -62,16 +62,16 @@ const thsensor_coef_t def_thcoef_aht30 = {
 
 const thsensor_coef_t def_thcoef_shtc3 = {
 		.temp_k = 17500,
-		.humi_k = 10000,
 		.temp_z = -4500,
+		.humi_k = 10000,
 		.humi_z = 0
 };
 
 const thsensor_coef_t def_thcoef_sht4x = {
 		.temp_k = 17500,
+		.temp_z = -4500,
 		.humi_k = 12500,
-		.temp_z = -600,
-		.humi_z = 0
+		.humi_z = -600
 };
 
 static _attribute_ram_code_ void send_sensor_word(uint16_t cmd) {

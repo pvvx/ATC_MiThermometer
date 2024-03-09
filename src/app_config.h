@@ -729,8 +729,7 @@ extern "C" {
 #define USE_CLOCK 			1 // = 1 display clock, = 0 smile blinking
 
 #define USE_MIHOME_BEACON	1 // = 1 Compatible with MiHome beacon
-#define USE_HA_BLE_BEACON	0 // = 1 BTHome v1 https://bthome.io/
-#define USE_BTHOME_BEACON	(!USE_HA_BLE_BEACON) // (not implemented) = 1 BTHome v2 https://bthome.io/
+#define USE_BTHOME_BEACON	1 // (not implemented) = 1 BTHome v2 https://bthome.io/
 
 /* Special DIY version - Voltage Logger:
  * Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, LYWSD03MMC pcb mark "B1"

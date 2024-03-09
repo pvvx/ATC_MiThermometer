@@ -20,9 +20,6 @@
 #if USE_MIHOME_BEACON
 #include "mi_beacon.h"
 #endif
-#if USE_HA_BLE_BEACON
-#include "ha_ble_beacon.h"
-#endif
 #if USE_BTHOME_BEACON
 #include "bthome_beacon.h"
 #endif
@@ -63,75 +60,32 @@ void set_rds_adv_data(void) {
 	int advertising_type = cfg.flg.advertising_type;
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 	if (cfg.flg2.adv_crypto) {
-		if (advertising_type == ADV_TYPE_PVVX) {
-#if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
-#if USE_HA_BLE_BEACON
-			ha_ble_encrypt_event_beacon(rds.type);
-#else
-			bthome_encrypt_event_beacon(rds.type);
-#endif
-#else
-			pvvx_encrypt_event_beacon(rds.type);
-#endif
-#if USE_HA_BLE_BEACON
-		} else if (advertising_type == ADV_TYPE_HA_BLE) {
-			ha_ble_encrypt_event_beacon(rds.type);
-#endif
-#if USE_BTHOME_BEACON
-		} else if (advertising_type == ADV_TYPE_BTHOME) {
-			bthome_encrypt_event_beacon(rds.type);
-#endif
+		if (advertising_type == ADV_TYPE_ATC)
+			default_event_beacon();
 #if USE_MIHOME_BEACON
-		} else if (advertising_type == ADV_TYPE_MI)  {
+		else if (advertising_type == ADV_TYPE_MI)
 			mi_encrypt_event_beacon(rds.type);
 #endif
-		} else {
-#if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
-#if USE_HA_BLE_BEACON
-			ha_ble_encrypt_event_beacon(rds.type);
-#else
+#if USE_BTHOME_BEACON
+		else if (advertising_type == ADV_TYPE_BTHOME)
 			bthome_encrypt_event_beacon(rds.type);
 #endif
-#else
-			atc_encrypt_event_beacon();
-#endif
-		}
+		else
+			pvvx_encrypt_event_beacon(rds.type);
 	} else
 #endif //	#if (DEV_SERVICES & SERVICE_BINDKEY)
 	{
-		if (advertising_type == ADV_TYPE_PVVX) {
-#if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
-#if USE_HA_BLE_BEACON
-			ha_ble_event_beacon(rds.type);
-#else
-			bthome_event_beacon(rds.type);
-#endif
-#else
-			pvvx_event_beacon(rds.type);
-#endif
-#if USE_HA_BLE_BEACON
-		} else if (advertising_type == ADV_TYPE_HA_BLE) {
-			ha_ble_event_beacon(rds.type);
-#endif
-#if USE_BTHOME_BEACON
-		} else if (advertising_type == ADV_TYPE_BTHOME) {
-			bthome_event_beacon(rds.type);
-#endif
+		if (advertising_type == ADV_TYPE_ATC)
+			default_event_beacon();
 #if USE_MIHOME_BEACON
-		} else if (advertising_type == ADV_TYPE_MI)  {
+		else if (advertising_type == ADV_TYPE_MI)
 			mi_event_beacon(rds.type);
 #endif
-		} else {
-#if USE_HA_BLE_BEACON || USE_BTHOME_BEACON
-#if USE_HA_BLE_BEACON
-			ha_ble_event_beacon(rds.type);
-#else
+#if USE_BTHOME_BEACON
+		else if (advertising_type == ADV_TYPE_BTHOME)
 			bthome_event_beacon(rds.type);
 #endif
-#else
-			atc_event_beacon();
-#endif
-		}
+			pvvx_event_beacon(rds.type);
 	}
 	adv_buf.update_count = 0; // refresh adv_buf.data in next set_adv_data()
 	load_adv_data();
