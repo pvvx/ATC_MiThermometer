@@ -51,7 +51,7 @@ Supported models:
 |:--:|:--:|
 | <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TH03Z/img/TH03Z.jpg" width="120"/> |
 | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
-| [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | [BLE](https://github.com/pvvx/BLE_THSensor) |
+| [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 
 * Tuya devices
 
@@ -164,6 +164,8 @@ After you have flashed the firmware, the device has changed it's bluetooth name 
 | _Set time_ | sends the current time to the device
 | _Comfort, Show batt, Clock_ | Ticking the according boxes you can enable interval rotation between different LCD screens. See the example video below.
 
+* For SHTC3 in "lowPower" the accuracy is reduced.
+* For SHT4x in "lowPower" you get a delay for the polling period, but the accuracy remains.
 
 **Example of LCD display modes**
 
@@ -246,7 +248,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.4 | Adding an [option to display only external data](https://github.com/pvvx/ATC_MiThermometer/issues/380#issuecomment-1727042304). Only the value from the "EEP BindKey" [is now taken as the BindKey](https://github.com/pvvx/ATC_MiThermometer/issues/372). |
 |     4.5 | Replacing BTHome ver1 (HA_BLE) with [BTHome ver2](https://bthome.io/). Moving firmware after recovery to BLE from Zigbee OTA. Fixed a bug where the date was not displayed correctly for MJWSD05MMC. |
 |     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
-|     4.7b | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
+|     4.7-beta | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
 
 ## Applications
 
