@@ -1,23 +1,5 @@
-{"version": 70, "betaver": 71, "zbjson": "https://raw.githubusercontent.com/pvvx/ZigbeeTLc/master/firmware.json",
+{"version": 71, "betaver": 72, "zbjson": "https://raw.githubusercontent.com/pvvx/ZigbeeTLc/master/firmware.json",
 "custom":[
-"ATC_v46.bin",
-"MHO_C401_v46.bin",
-"CGG1_v46.bin",
-"ATC_v46.bin",
-"ATC_v46.bin",
-"ATC_v46.bin",
-"CGDK2_v46.bin",
-"CGG1M_v46.bin",
-"MHO_C401N_v46.bin",
-"BTH_v46.bin",
-"ATC_v46.bin",
-"MHO_C122_v46.bin",
-"?","?","?","?","?",
-"https://raw.githubusercontent.com/pvvx/BLE_THSensor/master/source/TS0201/bin/TS0201_v45.bin",
-"?","?","?","?",
-"https://raw.githubusercontent.com/pvvx/BLE_THSensor/master/source/TS0201/bin/TH03Z_v45.bin"
-],
-"betafw":[
 "ATC_v47.bin",
 "MHO_C401_v47.bin",
 "CGG1_v47.bin",
@@ -29,7 +11,11 @@
 "MHO_C401N_v47.bin",
 "BTH_v47.bin",
 "ATC_v47.bin",
-"MHO_C122_v47.bin"
+"MHO_C122_v47.bin",
+"?","?","?","?","?",
+"https://raw.githubusercontent.com/pvvx/BLE_THSensor/master/source/TS0201/bin/TS0201_v47.bin",
+"?","?","?","?",
+"https://raw.githubusercontent.com/pvvx/BLE_THSensor/master/source/TS0201/bin/TH03Z_v47.bin"
 ],
 "original":[
 "Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin",
