@@ -477,24 +477,23 @@ At the same time, take into account that the chip can be powered from the TX out
 > * SHTV3 sensor. Measurement range: Temperature -40°C to +125°C, Humidity 0 to 100 %RH. Power supply: 1.8V to 3.6V
 > * IST3055NA0 LCD controller 
 
-[LYWSD03MMC B1.4 BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
+[LYWSD03MMC B1.4 B1.5 BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
 
 ![TabPins](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout/TabPins.gif)
 
 For LYWSD03MMC, the HW version is determined by the display and sensor addresses on I2C:
 
-|HW | LCD I2C   addr | SHTxxx   I2C addr | Note
-|-- | -- | -- | --
-|B1.4 | 0x3C | 0x70   (SHTC3) |  
-|B1.5 | UART | 0x70   (SHTC3) |  
-|B1.6 | UART | 0x44   (SHT4x) |  
-|B1.7 | 0x3C | 0x44   (SHT4x) | Test   original string HW
-|B1.9 | 0x3E | 0x44   (SHT4x) |  
-|B2.0 | 0x3C | 0x44   (SHT4x) | Test   original string HW
+|HW | LCD I2C   addr | SHTxxx   I2C addr | Note |
+|-- | -- | -- | -- |
+|B1.4 | 0x3C | 0x70   (SHTC3) |  |
+|B1.5 | UART | 0x70   (SHTC3) |  |
+|B1.6 | UART | 0x44   (SHT4x) |  |
+|B1.7 | 0x3C | 0x44   (SHT4x) | Test   original string HW |
+|B1.9 | 0x3E | 0x44   (SHT4x) |  |
+|B2.0 | 0x3C | 0x44   (SHT4x) | Test   original string HW |
 
 Version 1.7 or 2.0 is determined at first run by reading the HW line written in Flash.
 Display matrices or controllers are different for all versions, except B1.7 = B2.0.
-
 
 #### Building the firmware
 
