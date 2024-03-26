@@ -36,7 +36,9 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * Flashing third party Zigbee OTA files.
 * Support Low cost [BLE Advertisements Repeater into Zigbee](https://github.com/pvvx/TLB2Z)
 
-Supported models:
+![b2z.gif](https://github.com/pvvx/TLB2Z/blob/master/web/b2z.gif)
+
+**Supported models:**
 
 * Thermometers with display
 
