@@ -460,9 +460,18 @@ Setting the "Connect" option has several functions:
 ![ShowData](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/ShowData.gif) 
 
 ### The USB-COM adapter writes the firmware in explorer. Web version.
->* Connect only TX-SWS and GND wires.
 
-[USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html)
+[USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html) - Uses a partial imitation of the `Telink 1-Wire` protocol on a USB-UART adapter, but only for transmission to the chip.
+
+For programming and debugging, the chip uses a special hardware protocol `Telink 1-Wire` (not even close to UART!).
+
+To match the frequencies of the Telink 1-Wite bus, no change in Baud-rate is required.
+
+While the chip is sleeping and when the SWS pin is reassigned, there is no access to programming.
+
+You can restore communication via “Telink 1-Wire” by rebooting the chip and sending a command to stop the CPU. This is called "Activation".
+
+The [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html) program does not have feedback - it does not receive data from the chip. This is a simplified version and only works if all connections are made correctly.
 
 ![USBCOMFlashTxHtml](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/USBCOMFlashTxHtml.gif)
 
@@ -474,6 +483,11 @@ In difficult cases, when the chip contains an unknown FW, it is necessary to use
 
 At the same time, take into account that the chip can be powered from the TX output. This is solved by connecting TX and +Vbat during "activation".
 
+Alternative programmers:
+
+1. [TLSR825xComFlasher.py](https://github.com/pvvx/TlsrComSwireWriter) - partial simulation of `Telink 1-Wire` on a USB-UART adapter.
+2. [TlsrComProg](https://github.com/pvvx/TlsrComProg825x) - uses a bootloader with the transition to working via the UART protocol.
+3. [TLSRPGM](https://github.com/pvvx/TLSRPGM) - full hardware option Telink 1-Wire up to 2 mbit/s
 
 #### Chipset LYWSD03MMC HW:B1.4
 > * TLSR8251F512ET24 (TLSR8258 in 24-pin TQFN). SoC: TC32 32-bit MCU 48Mhz, 64 KiB SRAM, 512 KiB Flash (GD25LE40C), Bluetooth 5.0: Mesh, 6LoWPAN, Zigbee, RF4CE, HomeKit, Long Range, Operating temperature: -40°C to +85°C, Power supply: 1.8V to 3.6V.
