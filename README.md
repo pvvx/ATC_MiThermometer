@@ -207,10 +207,10 @@ In case you want to go back to the original firmware, you can download them here
 * [Xiaomi SJWS01LM Original Firmware v1.1.1_0018](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_SJWS01LM_1.1.1_0018.bin)
 * [Qingping CGG1-M 2020-2021 Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1_v1.0.1_0093.bin)
 * [Qingping CGG1-M 2022 Original Firmware v2.2.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1M_v2.2.1.bin)
-* [Qingping CGPR1 Original Firmware v1.1.1_0228](https://pvvx.github.io/CGPR1/img/Original_OTA_CGPR1_v1.1.1_0228.bin)
-* [Qingping CGDK2 Original Firmware v1.1.1_0210](https://pvvx.github.io/CGPR1/img/Original_OTA_CGDK2_v1.1.1_0210.bin)
-* [Qingping CGDK2 Original Firmware v1.1.1_0217](https://pvvx.github.io/CGPR1/img/Original_OTA_CGDK2_v1.1.1_0217.bin)
-* [Qingping CGDK2 Original Firmware v1.1.1_0223](https://pvvx.github.io/CGPR1/img/Original_OTA_CGDK2_v1.1.1_0223.bin)
+* [Qingping CGPR1 Original Firmware v1.1.1_0228](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGPR1_v1.1.1_0228.bin)
+* [Qingping CGDK2 Original Firmware v1.1.1_0210](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGDK2_v1.1.1_0210.bin)
+* [Qingping CGDK2 Original Firmware v1.1.1_0217](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGDK2_v1.1.1_0217.bin)
+* [Qingping CGDK2 Original Firmware v1.1.1_0223](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGDK2_v1.1.1_0223.bin)
 
 ### Firmware version history
 
