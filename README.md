@@ -83,7 +83,7 @@ Requires BT adapter with USB2.0 HS. Otherwise, there will be many gaps in the re
 
 [How to switch the USB-BT5.0+ adapter to work in LE Long Range in Home Assistant under Linux:](https://github.com/pvvx/ATC_MiThermometer/issues/297)
 
-On thermometers with a button, if the button function is set to Connect, then a short application on the button for 80 seconds enables connection in BT4.0 mode.
+On thermometers with a button, if the button function is set to Connect, then a short application on the button for 8 seconds enables connection in BT4.0 mode.
 
 If you accidentally set the 'LE Long Range' on the thermometer, and your device does not support BT5.0, remove and insert the battery - the thermometer will switch to BT4.2 support mode.
 
@@ -444,7 +444,7 @@ The state of the reed switch or button is transferred to the advertising packet 
 
 Setting the "Connect" option has several functions:
 
-1. Short press for 80 seconds turns on the ability to connect with a device in BLE 4.2 format
+1. Short press for 8 seconds turns on the ability to connect with a device in BLE 4.2 format
 2. Long press toggles temperature display to C or F.
 3. Holding more than 20 seconds will reset the device settings to default. 
 
