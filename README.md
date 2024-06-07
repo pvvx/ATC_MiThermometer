@@ -50,13 +50,13 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 * Thermometers without display
 
-| [Tuya ZigBee TS0201 TZ3000](https://github.com/pvvx/BLE_THSensor) | [Tuya ZigBee TH03Z](https://github.com/pvvx/BLE_THSensor) | 
-|:--:|:--:|
-| <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TH03Z/img/TH03Z.jpg" width="120"/> |
-| Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
-| [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
+| [Tuya ZigBee TS0201 TZ3000](https://pvvx.github.io/TS0201_TZ3000) | [Tuya ZigBee TH03Z](https://pvvx.github.io/TH03Z) | [Tuya ZigBee ZTH01](https://pvvx.github.io/TS0601_TZE200_zth01) | [Tuya ZigBee ZTH02](https://pvvx.github.io/TS0601_TZE200_zth02) |
+|:--:|:--:|:--:|:--:|
+| <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TH03Z/img/TH03Z.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth01/img/ZTH01.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth02/img/zth02.jpg" width="120"/> |
+| Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
+| [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 
-* Tuya devices
+* Tuya devices (SOC PHY62x2)
 
 | Tuya devices on [SoC PHY62x2](https://github.com/pvvx/THB2) | 
 |:--:|
