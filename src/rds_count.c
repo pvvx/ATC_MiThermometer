@@ -85,6 +85,7 @@ void set_rds_adv_data(void) {
 		else if (advertising_type == ADV_TYPE_BTHOME)
 			bthome_event_beacon(rds.type);
 #endif
+		else
 			pvvx_event_beacon(rds.type);
 	}
 	adv_buf.update_count = 0; // refresh adv_buf.data in next set_adv_data()
