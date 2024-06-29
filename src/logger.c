@@ -14,9 +14,13 @@
 #include "logger.h"
 #include "ble.h"
 
-#define MEMO_SEC_COUNT		((FLASH_ADDR_END_MEMO - FLASH_ADDR_START_MEMO) / FLASH_SECTOR_SIZE) // 49 sectors
-#define MEMO_SEC_RECS		((FLASH_SECTOR_SIZE-sizeof(memo_head_t))/sizeof(memo_blk_t)) // -  sector: 409 records
-//#define MEMO_REC_COUNT		(MEMO_SEC_RECS*(MEMO_SEC_COUNT-1))// max 48*409 = 20041 records
+#define MEMO1M_SEC_COUNT	((FLASH1M_ADDR_END_MEMO - FLASH1M_ADDR_START_MEMO) / FLASH_SECTOR_SIZE) // 52 or 128 sectors
+#define MEMO1M_SEC_RECS		((FLASH_SECTOR_SIZE-sizeof(memo_head_t))/sizeof(memo_blk_t)) // 1 sector = 409 records
+//#define MEMO1M_REC_COUNT	(MEMO1M_SEC_RECS*(MEMO1M_SEC_COUNT-1))// max 51*409 = 20859 records or 127*409 = 51943 records
+
+#define MEMO_SEC_COUNT		((FLASH_ADDR_END_MEMO - FLASH_ADDR_START_MEMO) / FLASH_SECTOR_SIZE) // 52 or 128 sectors
+#define MEMO_SEC_RECS		((FLASH_SECTOR_SIZE-sizeof(memo_head_t))/sizeof(memo_blk_t)) // 1 sector = 409 records
+//#define MEMO_REC_COUNT		(MEMO_SEC_RECS*(MEMO_SEC_COUNT-1))// max 51*409 = 20859 records or 127*409 = 51943 records
 
 #define _flash_erase_sector(a) flash_erase_sector(FLASH_BASE_ADDR + a)
 #define _flash_write_dword(a,d) { unsigned int _dw = d; flash_write(FLASH_BASE_ADDR + a, 4, (unsigned char *)&_dw); }
@@ -34,12 +38,22 @@ RAM summ_data_t summ_data;
 RAM memo_inf_t memo;
 RAM memo_rd_t rd_memo;
 
+#if USE_MEMO_1M
+#define MEMO_SECTORS		memo.sectors
+#define MEMO_START_ADDR		memo.start_addr
+#define MEMO_END_ADDR		memo.end_addr
+#else
+#define MEMO_SECTORS		MEMO_SEC_RECS
+#define MEMO_START_ADDR		FLASH_ADDR_START_MEMO
+#define MEMO_END_ADDR		FLASH_ADDR_END_MEMO
+#endif
+
 static uint32_t test_next_memo_sec_addr(uint32_t faddr) {
 	uint32_t mfaddr = faddr;
-	if (mfaddr >= FLASH_ADDR_END_MEMO)
-		mfaddr = FLASH_ADDR_START_MEMO;
-	else if (mfaddr < FLASH_ADDR_START_MEMO)
-		mfaddr = FLASH_ADDR_END_MEMO - FLASH_SECTOR_SIZE;
+	if (mfaddr >= MEMO_END_ADDR)
+		mfaddr = MEMO_START_ADDR;
+	else if (mfaddr < MEMO_START_ADDR)
+		mfaddr = MEMO_END_ADDR - FLASH_SECTOR_SIZE;
 	return mfaddr;
 }
 
@@ -81,9 +95,23 @@ __attribute__((optimize("-Os")))
 void memo_init(void) {
 	memo_head_t mhs;
 	uint32_t tmp, fsec_end;
-	uint32_t faddr = FLASH_ADDR_START_MEMO;
+	uint32_t faddr;
+#if USE_MEMO_1M
+	uint8_t buf[4];
+	flash_read_id(buf);
+	if(buf[2] == 0x14) {
+		memo.start_addr = FLASH1M_ADDR_START_MEMO;
+		memo.end_addr = FLASH1M_ADDR_END_MEMO;
+		memo.sectors = MEMO1M_SEC_RECS;
+	} else {
+		memo.start_addr = FLASH_ADDR_START_MEMO;
+		memo.end_addr = FLASH_ADDR_END_MEMO;
+		memo.sectors = MEMO_SEC_RECS;
+	}
+#endif
 	memo.cnt_cur_sec = 0;
-	while (faddr < FLASH_ADDR_END_MEMO) {
+	faddr = MEMO_START_ADDR;
+	while (faddr < MEMO_END_ADDR) {
 		_flash_read(faddr, sizeof(mhs), &mhs);
 		if (mhs.id != MEMO_SEC_ID) {
 			memo_sec_init(faddr);
@@ -106,25 +134,25 @@ void memo_init(void) {
 		}
 		faddr += FLASH_SECTOR_SIZE;
 	}
-	memo_sec_init(FLASH_ADDR_START_MEMO);
+	memo_sec_init(MEMO_START_ADDR);
 	return;
 }
 
 void clear_memo(void) {
 	uint32_t tmp;
-	uint32_t faddr = FLASH_ADDR_START_MEMO + FLASH_SECTOR_SIZE;
+	uint32_t faddr = MEMO_START_ADDR + FLASH_SECTOR_SIZE;
 	memo.cnt_cur_sec = 0;
-	while (faddr < FLASH_ADDR_END_MEMO) {
+	while (faddr < MEMO_END_ADDR) {
 		_flash_read(faddr, sizeof(tmp), &tmp);
 		if (tmp == MEMO_SEC_ID)
 			_flash_erase_sector(faddr);
 		faddr += FLASH_SECTOR_SIZE;
 	}
-	memo_sec_init(FLASH_ADDR_START_MEMO);
+	memo_sec_init(MEMO_START_ADDR);
 	return;
 }
 
-_attribute_ram_code_
+//_attribute_ram_code_
 __attribute__((optimize("-Os")))
 unsigned get_memo(uint32_t bnum, pmemo_blk_t p) {
 	memo_head_t mhs;
@@ -133,15 +161,15 @@ unsigned get_memo(uint32_t bnum, pmemo_blk_t p) {
 	if (bnum > rd_memo.saved.cnt_cur_sec) {
 		bnum -= rd_memo.saved.cnt_cur_sec;
 		faddr -= FLASH_SECTOR_SIZE;
-		if (faddr < FLASH_ADDR_START_MEMO)
-			faddr = FLASH_ADDR_END_MEMO - FLASH_SECTOR_SIZE;
-		while (bnum > MEMO_SEC_RECS) {
-			bnum -= MEMO_SEC_RECS;
+		if (faddr < MEMO_START_ADDR)
+			faddr = MEMO_END_ADDR - FLASH_SECTOR_SIZE;
+		while (bnum > MEMO_SECTORS) {
+			bnum -= MEMO_SECTORS;
 			faddr -= FLASH_SECTOR_SIZE;
-			if (faddr < FLASH_ADDR_START_MEMO)
-				faddr = FLASH_ADDR_END_MEMO - FLASH_SECTOR_SIZE;
+			if (faddr < MEMO_START_ADDR)
+				faddr = MEMO_END_ADDR - FLASH_SECTOR_SIZE;
 		}
-		bnum = MEMO_SEC_RECS - bnum;
+		bnum = MEMO_SECTORS - bnum;
 		_flash_read(faddr, sizeof(mhs), &mhs);
 		if (mhs.id != MEMO_SEC_ID || mhs.flg != 0)
 			return 0;
@@ -192,7 +220,7 @@ void write_memo(void) {
 	_flash_write(faddr, sizeof(memo_blk_t), &mblk);
 	faddr += sizeof(memo_blk_t);
 	faddr &= (~(FLASH_SECTOR_SIZE-1));
-	if (memo.cnt_cur_sec >= MEMO_SEC_RECS - 1 ||
+	if (memo.cnt_cur_sec >= MEMO_SECTORS - 1 ||
 		(memo.faddr & (~(FLASH_SECTOR_SIZE-1))) != faddr) {
 		memo_sec_close(memo.faddr);
 	} else {

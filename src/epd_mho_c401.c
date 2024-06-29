@@ -455,7 +455,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int task_lcd(void) {
 	return stage_lcd;
 }
 
-#if	USE_CLOCK
+#if	USE_DISPLAY_CLOCK
 _attribute_ram_code_ void show_clock(void) {
 	uint32_t tmp = utc_time_sec / 60;
 	uint32_t min = tmp % 60;
@@ -466,6 +466,6 @@ _attribute_ram_code_ void show_clock(void) {
 	epd_set_digit(display_buff, hrs / 10 % 10, top_left);
 	epd_set_digit(display_buff, hrs % 10, top_middle);
 }
-#endif // USE_CLOCK
+#endif // USE_DISPLAY_CLOCK
 
 #endif // DEVICE_TYPE == DEVICE_MHO_C401

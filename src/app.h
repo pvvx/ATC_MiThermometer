@@ -22,9 +22,9 @@ enum {
 	HW_VER_MHO_C401_2022,	//8
 	HW_VER_MJWSD05MMC,		//9
 	HW_VER_LYWSD03MMC_B15,	//10
-	HW_VER_MHO_C122,		//11
-	HW_VER_UNKNOWN = 15
+	HW_VER_MHO_C122			//11
 } HW_VERSION_ID;
+#define HW_VER_EXTENDED  	15
 
 // Adv. types
 enum {
@@ -41,7 +41,7 @@ enum {
 
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
-		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - HA_BLE
+		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - BTHome
 		uint8_t comfort_smiley		: 1;
 #if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
 		uint8_t x100				: 1;
@@ -94,7 +94,6 @@ typedef struct __attribute__((packed)) _cfg_t {
 	 * */
 #if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
 		uint8_t screen_type	: 3;
-//		uint8_t reserved1	: 1;
 #else
 		uint8_t smiley 		: 3;	// 0..7
 #endif
@@ -115,20 +114,14 @@ typedef struct __attribute__((packed)) _cfg_t {
 	uint8_t measure_interval; // measure_interval = advertising_interval * x (2..25)
 	uint8_t rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm (130..191)
 	uint8_t connect_latency; // +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
-#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
-	uint8_t rezerved;
-#else
 	uint8_t min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
-#endif
-	struct __attribute__((packed)) {
-		uint8_t hwver		: 4; // 0 - LYWSD03MMC B1.4, 1 - MHO-C401, 2 - CGG1-M, 3 - LYWSD03MMC B1.9, 4 - LYWSD03MMC B1.6, 5 - LYWSD03MMC B1.7, 6 - CGDK2, 7 - CGG1-M-2022, 8 - MHO-C401-2022
-		uint8_t reserved	: 3; // reserved
-		uint8_t shtc3		: 1; // =1 - sensor SHTC3, = 0 - sensor SHT4x
-	} hw_cfg; // read only
+	uint8_t hw_ver; // read only
 	uint8_t averaging_measurements; // * measure_interval, 0 - off, 1..255 * measure_interval
 }cfg_t;
 extern cfg_t cfg;
 extern const cfg_t def_cfg;
+
+#if (DEV_SERVICES & SERVICE_SCREEN)
 /* Warning: MHO-C401 Symbols: "%", "°Г", "(  )", "." have one control bit! */
 typedef struct __attribute__((packed)) _external_data_t {
 #if(DEVICE_TYPE == DEVICE_MJWSD05MMC)
@@ -185,6 +178,7 @@ typedef struct __attribute__((packed)) _external_data_t {
 #endif
 } external_data_t, * pexternal_data_t;
 extern external_data_t ext;
+#endif
 
 extern uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
 #if (DEV_SERVICES & SERVICE_TIME_ADJUST)
@@ -215,8 +209,13 @@ extern measured_data_t measured_data;
 extern volatile uint8_t tx_measures; // measurement transfer counter, flag
 extern volatile uint8_t start_measure; // start measurements
 extern volatile uint8_t wrk_measure; // measurements in process
-extern uint8_t end_measure; // measurements completed
-
+extern uint8_t flg_measured; // bits-flags measurements completed
+// flags measurements completed
+enum {
+	FLG_SEND_MESSURE = 0,
+	FLG_UPDATE_LCD,
+	FLG_UPDATE_ADV
+};
 extern uint32_t tim_measure; // measurement timer
 
 typedef struct _comfort_t {

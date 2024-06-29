@@ -17,8 +17,6 @@
 #include "cmd_parser.h"
 #include "ext_ota.h"
 
-#define ID_BOOTABLE 0x544c4e4b
-
 #define OTA1_FADDR 0x00000
 #define OTA2_FADDR 0x20000
 #define SIZE_LOW_OTA OTA2_FADDR
@@ -26,6 +24,8 @@
 #define BIG_OTA2_FADDR 0x40000 // Big OTA2
 #define BIG_OTA2_FADDR_ID (BIG_OTA2_FADDR + 8)
 #define MI_HW_SAVE_FADDR (CFG_ADR_MAC+0xfe0) // check flash_erase_mac_sector()
+
+#if !ZIGBEE_TUYA_OTA
 
 /* Reformat Big OTA to Low OTA */
 void big_to_low_ota(void) {
@@ -69,6 +69,78 @@ void big_to_low_ota(void) {
 			start_reboot();
 	}
 }
+
+#else
+
+#define ZIGBEE_BOOT_OTA_FADDR	0x8000
+#define ZIGBEE_MAC_FADDR	0xff000
+
+_attribute_ram_code_
+void tuya_zigbee_ota(void) {
+	// find the real FW flash address
+	uint32_t id = ID_BOOTABLE;
+	uint32_t size;
+	uint32_t faddrr = OTA1_FADDR;
+	uint32_t faddrw = OTA2_FADDR;
+	uint32_t faddrs = OTA2_FADDR;
+	uint32_t buf_blk[64];
+	flash_unlock();
+	flash_read_page(faddrr, 16, (unsigned char *) &buf_blk);
+	if(buf_blk[2] == id) {
+		faddrr = ZIGBEE_BOOT_OTA_FADDR;
+		flash_read_page(faddrr, 16, (unsigned char *) &buf_blk);
+		if(buf_blk[2] != id)
+			return;
+	} else {
+		faddrr = BIG_OTA2_FADDR;
+		flash_read_page(faddrr, 16, (unsigned char *) &buf_blk);
+		if(buf_blk[2] != id)
+			return;
+		faddrw = OTA1_FADDR;
+	}
+	flash_read_page(faddrr, sizeof(buf_blk), (unsigned char *) &buf_blk);
+	if(buf_blk[2] == id && buf_blk[6] > FLASH_SECTOR_SIZE && buf_blk[6] < SIZE_LOW_OTA) {
+		faddrs = faddrw;
+		buf_blk[2] &= 0xffffffff; // clear id "bootable"
+		size = buf_blk[6];
+		size += FLASH_SECTOR_SIZE - 1;
+		size &= ~(FLASH_SECTOR_SIZE - 1);
+		size += faddrw;
+		flash_erase_sector(faddrw); // 45 ms, 4 mA
+		flash_write_page(faddrw, sizeof(buf_blk), (unsigned char *) &buf_blk);
+		faddrr += sizeof(buf_blk);
+		// size += faddrw;
+		faddrw += sizeof(buf_blk);
+		while(faddrw < size) {
+			if((faddrw & (FLASH_SECTOR_SIZE - 1)) == 0)
+				flash_erase_sector(faddrw); // 45 ms, 4 mA
+				// rd-wr 4kB - 20 ms, 4 mA
+				flash_read_page(faddrr, sizeof(buf_blk), (unsigned char *) &buf_blk);
+			faddrr += sizeof(buf_blk);
+			flash_write_page(faddrw, sizeof(buf_blk), (unsigned char *) &buf_blk);
+			faddrw += sizeof(buf_blk);
+		}
+		// set id "bootable" to new segment
+		flash_write_page(faddrs+8, sizeof(id), (unsigned char *) &id);
+		if(faddrs != OTA1_FADDR) { // clear the "bootable" identifier on the current OTA segment?
+			faddrw = CFG_ADR_MAC;
+			do {
+				flash_erase_sector(faddrw);
+				faddrw += FLASH_SECTOR_SIZE;
+			} while(faddrw < FMEMORY_SCFG_BASE_ADDR);
+			flash_read_page(ZIGBEE_MAC_FADDR, 8, (unsigned char *) &buf_blk);
+			uint16_t *p = (uint16_t *)buf_blk;
+			if(p[2] == 0xa4c1)
+				flash_write_page(CFG_ADR_MAC, 8, (unsigned char *) &buf_blk);
+			flash_erase_sector(OTA1_FADDR);
+			flash_erase_sector(ZIGBEE_BOOT_OTA_FADDR);
+		}
+		while(1)
+			reg_pwdn_ctrl = BIT(5);
+	}
+}
+
+#endif
 
 // #if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C401)
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)

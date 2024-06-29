@@ -10,7 +10,7 @@ PROJECT_PATH := ./src
 OUT_PATH :=./out
 ZBO_PATH :=./zigbee_ota
 
-PGM_PORT?=COM4
+PGM_PORT?=COM17
 
 ifneq ($(TEL_PATH)/components/drivers/8258/gpio_8258.c, $(wildcard $(TEL_PATH)/components/drivers/8258/gpio_8258.c))
 $(error "Please check SDK Path and set TEL_PATH.")
@@ -98,7 +98,7 @@ build: pre-build main-build
 
 
 flash: $(BIN_FILE)
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w we 0 $(BIN_FILE)
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t150 -a2750 -m -w we 0 $(BIN_FILE)
 
 # test restore from Zigbee
 flash_zbr: $(BIN_FILE)
@@ -153,7 +153,7 @@ $(BIN_FILE): $(ELF_FILE)
 	@echo ' '
 
 sizedummy: $(ELF_FILE)
-	@$(PYTHON) $(PROJECT_PATH)/TlsrMemInfo.py -t $(TC32_PATH)tc32-elf-nm $(ELF_FILE)
+	@$(PYTHON) $(PROJECT_PATH)/TlsrMemInfo.py -s 32768 -t $(TC32_PATH)tc32-elf-nm $(ELF_FILE)
 
 clean:
 	-$(RM) $(FLASH_IMAGE) $(ELFS) $(OBJS) $(LST) $(SIZEDUMMY) $(ELF_FILE) $(BIN_FILE) $(LST_FILE)

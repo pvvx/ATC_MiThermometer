@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
+#if (DEV_SERVICES & SERVICE_SCREEN)
 #if(DEVICE_TYPE != DEVICE_MJWSD05MMC)
 #include "drivers.h"
 #include "drivers/8258/gpio_8258.h"
@@ -104,7 +105,7 @@ void lcd(void) {
 #endif // (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
 				set_small_number_and_bat = false;
 			} else if (cfg.flg.show_time_smile) { // show clock
-#if	USE_CLOCK
+#if	USE_DISPLAY_CLOCK
 				show_clock(); // stage clock
 				show_ble_symbol(_ble_con);
 				return;
@@ -112,7 +113,7 @@ void lcd(void) {
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 				show_smiley(0); // stage clock/blinking and blinking on
 #endif
-#endif // USE_CLOCK
+#endif // USE_DISPLAY_CLOCK
 			}
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 			else
@@ -135,7 +136,7 @@ void lcd(void) {
 		show_big_number_x10(ext.big_number);
 	} else {
 		if (lcd_flg.show_stage & 1) { // stage clock/blinking or show battery
-#if	USE_CLOCK
+#if	USE_DISPLAY_CLOCK
 			if (cfg.flg.show_time_smile && (lcd_flg.show_stage & 2)) {
 				show_clock(); // stage clock
 				show_ble_symbol(_ble_con);
@@ -163,7 +164,7 @@ void lcd(void) {
 #endif // (DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
 				set_small_number_and_bat = false;
 			} else if (cfg.flg.show_time_smile) { // show clock
-#if	USE_CLOCK
+#if	USE_DISPLAY_CLOCK
 				show_clock(); // stage clock
 				show_ble_symbol(_ble_con);
 				return;
@@ -171,7 +172,7 @@ void lcd(void) {
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 				show_smiley(0); // stage blinking and blinking on
 #endif
-#endif // USE_CLOCK
+#endif // USE_DISPLAY_CLOCK
 			} else {
 #if	(DEVICE_TYPE != DEVICE_CGDK2)
 				if (cfg.flg.comfort_smiley) { // comfort on
@@ -209,3 +210,4 @@ void lcd(void) {
 }
 
 #endif // (DEVICE_TYPE != DEVICE_MJWSD05MMC)
+#endif // (DEV_SERVICES & SERVICE_SCREEN)

@@ -165,6 +165,7 @@ void send_to_lcd(void){
 		}
 		if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 			// B1.4, B1.7, B2.0
+			reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*700000)); // 700 kHz
 			reg_i2c_id = lcd_i2c_addr;
 			reg_i2c_adr_dat = 0x4080;
 			reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
@@ -395,7 +396,7 @@ void show_reboot_screen(void) {
 	send_to_lcd();
 }
 
-#if	USE_CLOCK
+#if	USE_DISPLAY_CLOCK
 _attribute_ram_code_
 void show_clock(void) {
 	uint32_t tmp = utc_time_sec / 60;
@@ -408,6 +409,6 @@ void show_clock(void) {
 	display_buff[4] = display_numbers[hrs / 10 % 10];
 	display_buff[5] = 0;
 }
-#endif // USE_CLOCK
+#endif // USE_DISPLAY_CLOCK
 
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC

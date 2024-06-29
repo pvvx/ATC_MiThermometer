@@ -86,7 +86,8 @@ void pvvx_encrypt_data_beacon(void) {
 
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
-_attribute_ram_code_ __attribute__((optimize("-Os")))
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
 void pvvx_data_beacon(void) {
 	padv_custom_t p = (padv_custom_t)&adv_buf.data;
 	memcpy(p->MAC, mac_public, 6);
@@ -107,7 +108,8 @@ void pvvx_data_beacon(void) {
 #endif
 }
 
-_attribute_ram_code_ __attribute__((optimize("-Os")))
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
 void atc_data_beacon(void) {
 	padv_atc1441_t p = (padv_atc1441_t)&adv_buf.data;
 	p->size = sizeof(adv_atc1441_t) - 1;

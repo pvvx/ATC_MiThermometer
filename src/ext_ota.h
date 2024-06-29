@@ -10,7 +10,13 @@
 
 #include "app_config.h"
 
+#define ID_BOOTABLE 0x544c4e4b
+
+#if ZIGBEE_TUYA_OTA
+void tuya_zigbee_ota(void);
+#else
 void big_to_low_ota(void);
+#endif
 
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 uint32_t get_mi_hw_version(void);

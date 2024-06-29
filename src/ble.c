@@ -54,7 +54,7 @@ RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
 RAM my_fifo_t blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b, };
 RAM uint8_t blt_txfifo_b[40 * 16] = { 0 };
 RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
-RAM uint8_t ble_name[MAX_DEV_NAME_LEN+2] = { 11, GAP_ADTYPE_LOCAL_NAME_COMPLETE,
+RAM uint8_t ble_name[MAX_DEV_NAME_LEN+2]; /* = { 11, GAP_ADTYPE_LOCAL_NAME_COMPLETE,
 #if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N)) || (DEVICE_TYPE == DEVICE_MHO_C122)
 		'M', 'H', 'O', '_', '0', '0', '0', '0',	'0', '0' };
 #elif DEVICE_TYPE == DEVICE_CGG1
@@ -66,6 +66,7 @@ RAM uint8_t ble_name[MAX_DEV_NAME_LEN+2] = { 11, GAP_ADTYPE_LOCAL_NAME_COMPLETE,
 #else
 		'A', 'T', 'C', '_', '0', '0', '0', '0',	'0', '0' };
 #endif
+*/
 
 RAM uint8_t mac_public[6], mac_random_static[6];
 RAM adv_buf_t adv_buf;
@@ -91,7 +92,9 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	ble_connected = 0;
 	ota_is_working = OTA_NONE;
 	mi_key_stage = 0;
+#if (DEV_SERVICES & SERVICE_SCREEN)
 	lcd_flg.all_flg = 0;
+#endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
 	rd_memo.cnt = 0;
 #endif
@@ -128,7 +131,9 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	(void) e; (void) p; (void) n;
+
 	ble_connected = BIT(CONNECTED_FLG_ENABLE);
+	tim_measure = clock_time();
 	if(cfg.connect_latency > DEF_CONNECT_LATENCY && measured_data.average_battery_mv < LOW_VBAT_MV)
 		cfg.connect_latency = DEF_CONNECT_LATENCY;
 	my_periConnParameters.latency = cfg.connect_latency;
@@ -191,8 +196,12 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	if (!blta.adv_duraton_en)
 #endif
 	{
-		if (adv_buf.old_measured_count != measured_data.count) { // new measured_data ?
-			adv_buf.old_measured_count = measured_data.count; // save measured count
+		if(++adv_buf.meas_count >= cfg.measure_interval) {
+			adv_buf.meas_count = 0;
+			start_measure = 1;
+		}
+		if (flg_measured & BIT(FLG_UPDATE_ADV)) { // new measured_data ?
+			flg_measured &= ~BIT(FLG_UPDATE_ADV);
 			adv_buf.call_count = 1; // count 1..cfg.measure_interval
 			adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
 			adv_buf.update_count = 0;
@@ -444,6 +453,26 @@ void ble_set_name(void) {
 		ble_name[3] = 'T';
 		ble_name[4] = 'H';
 		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_TS0201
+		ble_name[2] = 'T';
+		ble_name[3] = 'S';
+		ble_name[4] = '0';
+		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_TH03Z
+		ble_name[2] = 'T';
+		ble_name[3] = 'H';
+		ble_name[4] = '0';
+		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_ZTH01
+		ble_name[2] = 'Z';
+		ble_name[3] = 'T';
+		ble_name[4] = 'H';
+		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_ZTH02
+		ble_name[2] = 'Z';
+		ble_name[3] = 'T';
+		ble_name[4] = 'H';
+		ble_name[5] = '_';
 #else
 		ble_name[2] = 'A';
 		ble_name[3] = 'T';
@@ -681,6 +710,7 @@ _attribute_ram_code_ void ble_send_measures(void) {
 #endif
 }
 
+#if (DEV_SERVICES & SERVICE_SCREEN)
 void ble_send_ext(void) {
 	send_buf[0] = CMD_ID_EXTDATA;
 	memcpy(&send_buf[1], &ext, sizeof(ext));
@@ -698,6 +728,7 @@ void ble_send_cmf(void) {
 	memcpy(&send_buf[1], &cmf, sizeof(cmf));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(cmf) + 1);
 }
+#endif
 
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 void ble_send_trg(void) {
@@ -714,7 +745,8 @@ void ble_send_trg_flg(void) {
 #endif
 
 #if (DEV_SERVICES & SERVICE_HISTORY)
-__attribute__((optimize("-Os"))) void send_memo_blk(void) {
+__attribute__((optimize("-Os")))
+void send_memo_blk(void) {
 	send_buf[0] = CMD_ID_LOGGER;
 	if (++rd_memo.cur > rd_memo.cnt || (!get_memo(rd_memo.cur, (pmemo_blk_t)&send_buf[3]))) {
 		send_buf[1] = 0;

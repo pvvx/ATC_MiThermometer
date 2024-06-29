@@ -89,18 +89,21 @@ static const u8 my_FirmStr[] = {"github.com/pvvx"};
 #if USE_FLASH_SERIAL_UID
 RAM uint8_t my_SerialStr[20]; // "556202-C86013-123456"
 #endif
+
 #if DEVICE_TYPE == DEVICE_MJWSD05MMC
 static const u8 my_ModelStr[] = {"MJWSD05MMC"};
 RAM u8 my_HardStr[4];// = {"V2.3"}
 RAM u8 my_SerialStr[20]; // = {"F2.0-CFMK-LB-TMDZ---"}
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0026"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
+
 #elif DEVICE_TYPE == DEVICE_MHO_C401
 static const u8 my_ModelStr[] = {"MHO-C401"};
 RAM u8 my_HardStr[4]; // = {"2020"};
 RAM u8 my_SerialStr[20]; // "0000-0000-0000-00000"
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0110"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
+
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
 static const u8 my_ModelStr[] = {"MHO-C401N"};
 #if !USE_FLASH_SERIAL_UID
@@ -109,12 +112,14 @@ static const u8 my_SerialStr[] = {"0000-0000-0000-0008"}; // "0000-0000-0000-000
 static const u8 my_HardStr[] = {"2022"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0110"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
+
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 static const u8 my_ModelStr[] = {"LYWSD03MMC"};
 RAM u8 my_HardStr[4];// = {"B1.4"};
 RAM u8 my_SerialStr[20]; // = {"F1.0-CFMK-LB-ZCXTJ--"}; // B1.5 "F2.0-CFMK-LB-JHBD---", B1.9 "F1.0-CFMK-LB-FLD----"
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
+
 #elif DEVICE_TYPE == DEVICE_CGG1
 static const u8 my_ModelStr[] = {"CGG1"};
 #if DEVICE_CGG1_ver == 2022
@@ -130,6 +135,7 @@ static const u8 my_SerialStr[] = {"0000-0000-0000-0002"}; // "0000-0000-0000-000
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
+
 #elif DEVICE_TYPE == DEVICE_CGDK2
 static const u8 my_ModelStr[] = {"CGDK2"};
 #if !USE_FLASH_SERIAL_UID
@@ -138,6 +144,7 @@ static const u8 my_SerialStr[] = {"0000-0000-0000-0006"}; // "0000-0000-0000-000
 static const u8 my_HardStr[] = {"2.1.0"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
 static const u8 my_ManStr[] = {"Qingping Technology (Beijing) Co., Ltd."};
+
 #elif DEVICE_TYPE == DEVICE_MHO_C122
 static const u8 my_ModelStr[] = {"MHO-C122"};
 static const u8 my_HardStr[] = {"V1.1-202106"};
@@ -146,6 +153,43 @@ static const u8 my_SerialStr[] = {"2AWMOMHOC122"};
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)};
 static const u8 my_ManStr[] = {"MiaoMiaoCe Technology (Beijing) Co., Ltd."};
+
+#elif DEVICE_TYPE == DEVICE_TS0201
+static const u8 my_ModelStr[] = {"TS0201"};
+static const u8 my_HardStr[4] = {"V1.0"};// = {"V1.0"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-0001"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"DIY.home"};
+
+#elif DEVICE_TYPE == DEVICE_TH03Z
+static const u8 my_ModelStr[] = {"TH03Z"};
+static const u8 my_HardStr[4] = {"V1.0"};// = {"V1.0"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-0002"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"DIY.home"};
+
+#elif DEVICE_TYPE == DEVICE_ZTH01
+static const u8 my_ModelStr[] = {"ZTH01"};
+static const u8 my_HardStr[4] = {"V1.0"};// = {"V1.0"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-0003"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"DIY.home"};
+
+#elif DEVICE_TYPE == DEVICE_ZTH02
+static const u8 my_ModelStr[] = {"ZTH02"};
+static const u8 my_HardStr[4] = {"V1.0"};// = {"V1.0"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-0004"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"DIY.home"};
+
 #else
 #error "DEVICE_TYPE = ?"
 #endif

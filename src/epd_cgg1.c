@@ -448,7 +448,7 @@ _attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
 	return stage_lcd;
 }
 
-#if	USE_CLOCK
+#if	USE_DISPLAY_CLOCK
 _attribute_ram_code_ void show_clock(void) {
 	uint32_t tmp = utc_time_sec / 60;
 	uint32_t min = tmp % 60;

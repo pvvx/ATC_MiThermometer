@@ -37,6 +37,8 @@
 #define BOARD_TH05D					24 // TH05_V1.3 https://github.com/pvvx/THB2
 #define BOARD_TH05F					25 // TH05Y_V1.2 https://github.com/pvvx/THB2
 #define BOARD_THB3					26 // https://github.com/pvvx/THB2
+#define BOARD_ZTH01   				27 // ZigBee ZTH01
+#define BOARD_ZTH02   				28 // ZigBee ZTH02
 */
 
 #ifndef DEVICE_CGG1_ver
@@ -49,6 +51,11 @@
 #define DEVICE_MHO_C401N   	 8	// E-Ink display MHO-C401 2022
 #define DEVICE_MJWSD05MMC	 9  // LCD display MJWSD05MMC
 #define DEVICE_MHO_C122   	11	// LCD display MHO_C122
+#define DEVICE_TS0201   	17	// ZigBee TS0201, analog: IH-K009
+#define DEVICE_TH03Z   		22	// ZigBee TH03Z
+#define DEVICE_ZTH01   		27	// ZigBee ZTH01
+#define DEVICE_ZTH02   		28	// ZigBee ZTH02
+
 
 #if 0 // not used in this code!
 #define DEVICE_03MMC_DEVBIS	 3  // https://github.com/devbis/z03mmc

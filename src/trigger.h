@@ -17,6 +17,8 @@ typedef struct __attribute__((packed)) _trigger_flg_t {
 	uint8_t 	trigger_on	:	1; // Output GPIO_TRG pin is controlled according to the set parameters threshold temperature or humidity
 	uint8_t 	temp_out_on :	1; // Temperature trigger event
 	uint8_t 	humi_out_on :	1; // Humidity trigger event
+	uint8_t 	key 		:	1; // key2 pressed (Connect/Reset)
+//	uint8_t 	comfort 	:	1; // Comfort
 }trigger_flg_t;
 
 typedef struct __attribute__((packed)) _rds_type_t {

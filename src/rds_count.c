@@ -120,8 +120,9 @@ static void start_ext_adv(void) {
 }
 
 
-_attribute_ram_code_ void rds_suspend(void) {
-	if (!ble_connected) {
+_attribute_ram_code_
+void rds_suspend(void) {
+	if(1) { // (!ble_connected) {
 		/* TODO: if connection mode, gpio wakeup throws errors in sdk libs!
 		   Work options: bls_pm_setSuspendMask(SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN);
 		   No DEEPSLEEP_RETENTION_CONN */
@@ -213,18 +214,19 @@ void rds_task(void) {
 	if (trg.rds_time_report
 		&& utc_time_sec - rds.report_tick > trg.rds_time_report) {
 				rds.event = rds.type;
+				rds.report_tick = utc_time_sec;
 	}
 	if (rds.event) {
 		if(ble_connected) {
 			if (rds.event == RDS_SWITCH) { // switch mode
-				ble_send_trg_flg();
+				if(blc_ll_getTxFifoNumber() < 9)
+					ble_send_trg_flg();
 			}
 		} else {
 			rds.adv_counter++;
 			start_ext_adv();
-			rds.event = RDS_NONE;
-			rds.report_tick = utc_time_sec;
 		}
+		rds.event = RDS_NONE;
 	}
 }
 

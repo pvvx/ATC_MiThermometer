@@ -1,5 +1,5 @@
 @Path=E:\Telink\SDK;E:\Telink\SDK\jre\bin;E:\Telink\SDK\opt\tc32\tools;E:\Telink\SDK\opt\tc32\bin;E:\Telink\SDK\usr\bin;E:\Telink\SDK\bin;%PATH%
-@set SWVER=_v47
+@set SWVER=_v48
 @del /Q "ATC%SWVER%.bin"
 make -s -j PROJECT_NAME=ATC%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_LYWSD03MMC"
 @if not exist "ATC%SWVER%.bin" goto :error
@@ -26,6 +26,18 @@ make -s -j PROJECT_NAME=MHO_C401N%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MHO_C4
 @del /Q "MHO_C122%SWVER%.bin"
 make -s -j PROJECT_NAME=MHO_C122%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MHO_C122"
 @if not exist "MHO_C122%SWVER%.bin" goto :error
+@del /Q "TS0201%SWVER%.bin"
+make -s -j PROJECT_NAME=TS0201%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TS0201"
+@if not exist "TS0201%SWVER%.bin" goto :error
+@del /Q "TH03Z%SWVER%.bin"
+make -s -j PROJECT_NAME=TH03Z%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TH03Z"
+@if not exist "TH03Z%SWVER%.bin" goto :error
+@del /Q "ZTH01%SWVER%.bin"
+make -s -j PROJECT_NAME=ZTH01%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZTH01"
+@if not exist "ZTH01%SWVER%.bin" goto :error
+@del /Q "ZTH02%SWVER%.bin"
+make -s -j PROJECT_NAME=ZTH02%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZTH02"
+@if not exist "ZTH02%SWVER%.bin" goto :error
 @exit
 :error
 echo "Error!"

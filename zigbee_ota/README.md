@@ -14,6 +14,8 @@ Zigbee to BLE
 | 0x020B |  MHO-C122 |
 | 0x0211 |  TS0201-TZ3000 |
 | 0x0216 |  TH03Z |
+| 0x021b |  ZTH01 |
+| 0x021c |  ZTH02 |
 
 
 db15-0203-99993001-ATC_vxx.zigbee new version `devbis` 

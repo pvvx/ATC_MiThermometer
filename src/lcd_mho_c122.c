@@ -272,7 +272,7 @@ void show_reboot_screen(void) {
 	send_to_lcd();
 }
 
-#if	USE_CLOCK
+#if	USE_DISPLAY_CLOCK
 _attribute_ram_code_
 void show_clock(void) {
 	uint32_t tmp = utc_time_sec / 60;
@@ -293,6 +293,6 @@ void show_clock(void) {
 	display_buff[4] |= display_small_numbers[min % 10];
 	display_buff[5] |= display_small_numbers[min / 10 % 10];
 }
-#endif // USE_CLOCK
+#endif // USE_DISPLAY_CLOCK
 
 #endif // DEVICE_TYPE == DEVICE_MHO_C122

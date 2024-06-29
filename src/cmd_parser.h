@@ -80,7 +80,7 @@ typedef struct _dev_id_t{
 	uint8_t revision;		// protocol version/revision
 	uint16_t hw_version;	// hardware version
 	uint16_t sw_version;	// software version (BCD)
-	uint16_t dev_spec_data;	// device-specific data
+	uint16_t dev_spec_data;	// device-specific data (bit0..3: sensor_type)
 	uint32_t services;		// supported services by the device
 } dev_id_t, * pdev_id_t;
 

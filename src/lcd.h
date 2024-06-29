@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "app_config.h"
 
+#if (DEV_SERVICES & SERVICE_SCREEN)
+
 typedef struct _lcd_flg_t {
 	uint32_t chow_ext_ut; // count chow ext.vars validity time, in sec
 #if (DEVICE_TYPE != DEVICE_MJWSD05MMC)
@@ -85,7 +87,7 @@ void show_battery_symbol(bool state);
 void show_big_number_x10(int16_t number); // x0.1, (-995..19995), point auto: -99 .. -9.9 .. 199.9 .. 1999
 void show_ble_symbol(bool state);
 
-#if	USE_CLOCK
+#if	USE_DISPLAY_CLOCK
 void show_clock(void);
 #endif
 ////////// DEVICE_TYPE //////////
@@ -254,3 +256,15 @@ void show_low_bat(void);
 
 extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 
+#else
+
+#define POWERUP_SCREEN	0
+#define SET_LCD_UPDATE()
+#define SHOW_OTA_SCREEN()
+#define SHOW_REBOOT_SCREEN()
+#define SHOW_CONNECTED_SYMBOL(a)
+#define init_lcd()
+#define lcd()
+#define update_lcd()
+
+#endif // #if (DEV_SERVICES & SERVICE_SCREEN)

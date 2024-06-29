@@ -54,7 +54,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 |:--:|:--:|:--:|:--:|
 | <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TH03Z/img/TH03Z.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth01/img/ZTH01.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth02/img/zth02.jpg" width="120"/> |
 | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
-| [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | [BLE](https://github.com/pvvx/BLE_THSensor) and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
+| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 
 * Tuya devices (SOC PHY62x2)
 
@@ -252,6 +252,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.5 | Replacing BTHome ver1 (HA_BLE) with [BTHome ver2](https://bthome.io/). Moving firmware after recovery to BLE from Zigbee OTA. Fixed a bug where the date was not displayed correctly for MJWSD05MMC. |
 |     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
 |     4.7 | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
+|     beta 4.8 | Reorganization of program code. Combining code with "BLE_THSensor". |
 
 ## Applications
 

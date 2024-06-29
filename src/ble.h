@@ -35,9 +35,9 @@ extern u8	ext_adv_init; // flag ext_adv init
 #endif
 typedef struct _adv_buf_t {
 	uint32_t send_count; // count & id advertise, = beacon_nonce.cnt32
-	uint16_t old_measured_count; // old measured_data.count
+	uint8_t meas_count;
+	uint8_t call_count; 	// count 1..update_count
 	uint8_t update_count;	// refresh adv_buf.data in next set_adv_data()
-	uint8_t call_count; 	// count 1..cfg.measure_interval
 #if (DEV_SERVICES & SERVICE_LE_LR) // support extension advertise
 	uint8_t ext_adv_init; 	// flag ext_adv init
 #endif

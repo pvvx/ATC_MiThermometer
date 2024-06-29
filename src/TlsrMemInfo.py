@@ -15,7 +15,7 @@ import io
 
 __progname__ = "TLSR825x MemInfo"
 __filename__ = "TlsrMemInfo"
-__version__ = "12.11.20"
+__version__ = "26.06.24"
 
 SRAM_BASE_ADDR = 0x840000
 
@@ -89,9 +89,9 @@ def main():
 	parser = argparse.ArgumentParser(description='%s version %s' % (__progname__, __version__), prog=__filename__)
 	parser.add_argument(
 		"--size", "-s",
-		help="Chip SRAM Size (default: 65536)",
+		help="Chip Retention SRAM Size (default: 32768)",
 		type=arg_auto_int, 
-		default=65536)
+		default=32768)
 	parser.add_argument('-t','--tools', help='Path and name tc32-elf-nm', default = 'tc32-elf-nm');
 	parser.add_argument('elffname', help='Name of elf file')
 	args = parser.parse_args()
@@ -107,10 +107,11 @@ def main():
 	sec_size = []
 
 	e = ELFFile(args.elffname, args.tools);
+	chip_sram_size = e.get_symbol_addr(b"__RAM_SIZE_MAX");
 	if e.get_symbol_addr(b"_start_bss_") > 0:
-		chip_sram_size = e.get_symbol_addr(b"__RAM_SIZE_MAX");
+		chip_retram_size = e.get_symbol_addr(b"__RAM_RETENTION_SIZE");
 	else:
-		chip_sram_size = args.size;
+		chip_retram_size = args.size;
 	if e.get_symbol_addr(b"_start_bss_"):
 		sec_end_add[9] = e.get_symbol_addr(b"_start_bss_")
 	load_sram = e.get_symbol_addr(b"_icload_size_div_16_") << 4;
@@ -129,11 +130,18 @@ def main():
 	print("-------------------------------------------------------------------")
 
 	ram_used =  e.get_symbol_addr(b"_end_bss_") - SRAM_BASE_ADDR
+	retram_used = e.get_symbol_addr(b"_start_data_")  - SRAM_BASE_ADDR
 	print("{0} : {1:d} {2}{3:X}{4}".format("Start Load SRAM", load_sram, "(ICtag: 0x", ictag,")"))
+	print("{0} : {1:d} {2} {3}".format("Total Used RRAM", retram_used, "from", chip_retram_size))
 	print("{0} : {1:d} {2} {3}".format("Total Used SRAM", ram_used, "from", chip_sram_size))
 	print("{0} : {1:d}{2}{3}{4}{5}".format("Total Free SRAM", sec_size[4], " + stack[", sec_size[10], '] = ',  sec_size[4] + sec_size[10]))
 	if sec_size[10] < 256:
 		print("Warning! Stack is low!")
+		
+	if chip_retram_size < retram_used:
+		print()
+		print("Error: Retention SRAM Overflow (%i bytes)!" % (retram_used - chip_retram_size))
+		sys.exit(1);
 	sys.exit(0);
 	
 

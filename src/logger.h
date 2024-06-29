@@ -11,9 +11,16 @@
 
 #if (DEV_SERVICES & SERVICE_HISTORY)
 
+#ifndef USE_MEMO_1M
+#define USE_MEMO_1M		1
+#endif
+
 #define MEMO_SEC_ID		0x55AAC0DE // sector head
 #define FLASH_ADDR_START_MEMO	0x40000
 #define FLASH_ADDR_END_MEMO		0x74000 // 49 sectors
+
+#define FLASH1M_ADDR_START_MEMO	0x80000
+#define FLASH1M_ADDR_END_MEMO	0x100000 // 128 sectors
 
 typedef struct _memo_blk_t {
 	uint32_t time;  // time (UTC)
@@ -25,6 +32,11 @@ typedef struct _memo_blk_t {
 typedef struct _memo_inf_t {
 	uint32_t faddr;
 	uint32_t cnt_cur_sec;
+#if USE_MEMO_1M
+	uint32_t sectors;
+	uint32_t start_addr;
+	uint32_t end_addr;
+#endif
 }memo_inf_t;
 
 typedef struct _memo_rd_t {
