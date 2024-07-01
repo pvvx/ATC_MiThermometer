@@ -127,6 +127,10 @@ typedef struct __attribute__((packed)) _adv_bthome_data2_t {
 	uint8_t		s_id;	// = BtHomeID_opened / BtHomeID_switch ?
 	uint8_t		swtch;
 #endif
+#if (DEV_SERVICES & SERVICE_RDS)
+	uint8_t		o_id;	// = BtHomeID_opened ?
+	uint8_t		opened;
+#endif
 } adv_bthome_data2_t, * padv_bthome_data2_t;
 
 typedef struct __attribute__((packed)) _adv_bthome_event1_t {
@@ -209,13 +213,13 @@ typedef struct __attribute__((packed)) _adv_bthome_ev1_t {
 
 void bthome_beacon_init(void);
 void bthome_encrypt_data_beacon(void);
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_RDS)
 void bthome_encrypt_event_beacon(uint8_t n); // n = RDS_TYPES
 #endif
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 void bthome_data_beacon(void);
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_RDS)
 void bthome_event_beacon(uint8_t n); // n = RDS_TYPES
 #endif
 #endif /* BTHOME_BEACON_H_ */

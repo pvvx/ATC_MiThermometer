@@ -57,10 +57,10 @@ void lcd(void) {
 		return;
 	bool set_small_number_and_bat = true;
 
-#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
-	bool _ble_con =	ble_connected != 0 || (ext_key.rest_adv_int_tad & 2) != 0;
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
+	bool _ble_con =	wrk.ble_connected != 0 || (ext_key.rest_adv_int_tad & 2) != 0;
 #else
-#define _ble_con ble_connected
+#define _ble_con wrk.ble_connected
 #endif
 	bool show_ext = lcd_flg.chow_ext_ut >= utc_time_sec;
 	if(cfg.flg.show_time_smile || cfg.flg.show_batt_enabled || show_ext)

@@ -11,8 +11,8 @@
 #include "ble.h"
 #include "app.h"
 #include "battery.h"
-#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
+#if (DEV_SERVICES & SERVICE_RDS)
 #include "rds_count.h"
 #endif
 #include "mi_beacon.h"
@@ -67,7 +67,11 @@ void mi_beacon_summ(void) {
 	}
 	mib_summ_data.temp += measured_data.temp;
 	mib_summ_data.humi += measured_data.humi;
+#if USE_AVERAGE_BATTERY
 	mib_summ_data.batt += measured_data.average_battery_mv;
+#else
+	mib_summ_data.batt += measured_data.battery_mv;
+#endif
 	mib_summ_data.count++;
 }
 
@@ -178,7 +182,7 @@ void mi_encrypt_event_beacon(uint8_t n) {
 		p->head.size = sizeof(adv_mi_cr_ev1_t) - sizeof(p->head.size);
 		p->data.id = XIAOMI_DATA_ID_DoorSensor;
 		p->data.size = sizeof(p->data.value);
-		p->data.value = ! trg.flg.rds_input;
+		p->data.value = ! trg.flg.rds1_input;
 		adv_buf.data_size = sizeof(adv_mi_cr_ev1_t);
 		pmic = p->cnt;
 	} else {
@@ -240,7 +244,7 @@ void mi_data_beacon(void) {
 	p->head.size = p->data.size + sizeof(p->head) - sizeof(p->head.size) + sizeof(p->MAC) + sizeof(p->data.id) + sizeof(p->data.size);
 }
 
-#if (DEV_SERVICES & SERVICE_TH_TRG) && (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_RDS)
 /* Create mi event beacon packet */
 __attribute__((optimize("-Os")))
 void mi_event_beacon(uint8_t n){
@@ -264,7 +268,7 @@ void mi_event_beacon(uint8_t n){
 		p->head.size = sizeof(adv_mi_ev1_t) - sizeof(p->head.size);
 		p->data.id = XIAOMI_DATA_ID_DoorSensor;
 		p->data.size = sizeof(p->data.value);
-		p->data.value = ! trg.flg.rds_input;
+		p->data.value = ! trg.flg.rds1_input;
 		adv_buf.data_size = sizeof(adv_mi_ev1_t);
 	} else {
 		padv_mi_ev2_t p = (padv_mi_ev2_t)&adv_buf.data;
@@ -275,6 +279,6 @@ void mi_event_beacon(uint8_t n){
 		adv_buf.data_size = sizeof(adv_mi_ev2_t);
 	}
 }
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
+#endif // #if (DEV_SERVICES & SERVICE_RDS)
 
 #endif // USE_MIHOME_BEACON

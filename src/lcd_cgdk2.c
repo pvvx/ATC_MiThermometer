@@ -357,8 +357,13 @@ __attribute__((optimize("-Os"))) void show_small_number_x10(int16_t number, bool
 
 void show_batt_cgdk2(void) {
 	uint16_t battery_level = 0;
+#if USE_AVERAGE_BATTERY
 	if (measured_data.average_battery_mv > MIN_VBAT_MV) {
 		battery_level = ((measured_data.average_battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+#else
+	if (measured_data.battery_mv > MIN_VBAT_MV) {
+		battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+#endif
 		if (battery_level > 995)
 			battery_level = 995;
 	}

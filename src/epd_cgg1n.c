@@ -9,6 +9,7 @@
 #include "battery.h"
 #include "drivers/8258/pm.h"
 #include "drivers/8258/timer.h"
+#include "stack/ble/ll/ll_pm.h"
 
 #define LOW     0
 #define HIGH    1
@@ -382,6 +383,7 @@ void init_lcd(void) {
     epd_updated = 0;
     gpio_write(EPD_RST, HIGH);
 	display_buff[15] = 0;
+    bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
 
 _attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {

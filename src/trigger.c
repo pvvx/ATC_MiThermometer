@@ -8,30 +8,37 @@
 #include "tl_common.h"
 #include "stack/ble/ble.h"
 #include "app.h"
-#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "drivers.h"
 #include "sensor.h"
 #include "trigger.h"
 #include "rds_count.h"
 
+#if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
+
 const trigger_t def_trg = {
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 		.temp_threshold = 2100, // 21 °C
 		.humi_threshold = 5000, // 50 %
 		.temp_hysteresis = -55, // enable, -0.55 °C
-		.humi_hysteresis = 0  // disable
-#if (DEV_SERVICES & SERVICE_RDS)
-		,.rds_time_report = 3600 // 1 hours
-#ifdef GPIO_KEY2
-		,.rds.type = RDS_SWITCH
-#else
-		,.rds.type = RDS_CONNECT
+		.humi_hysteresis = 0,  // disable
 #endif
+#if (DEV_SERVICES & SERVICE_RDS)
+		.rds_time_report = 3600, // 1 hours
+#if (DEV_SERVICES & SERVICE_KEY)
+		.rds.type1 = RDS_SWITCH,
+#else
+		.rds.type1 = RDS_CONNECT,
+#endif
+		.rds.type2 = RDS_NONE
 #endif
 };
 
 RAM trigger_t trg;
 
-_attribute_ram_code_ void test_trg_on(void) {
+#if (DEV_SERVICES & SERVICE_TH_TRG)
+
+_attribute_ram_code_
+void test_trg_on(void) {
 	if (trg.temp_hysteresis || trg.humi_hysteresis) {
 		trg.flg.trigger_on = true;
 		trg.flg.trg_output = (trg.flg.humi_out_on || trg.flg.temp_out_on);
@@ -41,7 +48,9 @@ _attribute_ram_code_ void test_trg_on(void) {
 	gpio_setup_up_down_resistor(GPIO_TRG, trg.flg.trg_output ? PM_PIN_PULLUP_10K : PM_PIN_PULLDOWN_100K);
 }
 
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void set_trigger_out(void) {
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void set_trigger_out(void) {
 	if (trg.temp_hysteresis) {
 		if (trg.flg.temp_out_on) { // temp_out on
 			if (trg.temp_hysteresis < 0) {
@@ -96,3 +105,4 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void set_trigger_out(void)
 }
 
 #endif	// #if (DEV_SERVICES & SERVICE_TH_TRG)
+#endif  // (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)

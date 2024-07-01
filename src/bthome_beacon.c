@@ -12,8 +12,8 @@
 #include "ble.h"
 #include "battery.h"
 #include "app.h"
-#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
+#if (DEV_SERVICES & SERVICE_RDS)
 #include "rds_count.h"
 #endif
 #include "bthome_beacon.h"
@@ -96,11 +96,15 @@ void bthome_encrypt_data_beacon(void) {
 		p->s_id = BtHomeID_switch;
 		p->swtch = trg.flg.trg_output;
 #endif
+#if (DEV_SERVICES & SERVICE_RDS)
+		p->o_id = BtHomeID_opened;
+		p->opened = trg.flg.rds1_input;
+#endif
 		bthome_encrypt(buf, sizeof(adv_bthome_data2_t));
 	}
 }
 
-#if (DEV_SERVICES & SERVICE_TH_TRG) && (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_RDS)
 // n = RDS_TYPES
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void bthome_encrypt_event_beacon(uint8_t n) {
@@ -108,7 +112,7 @@ void bthome_encrypt_event_beacon(uint8_t n) {
 	if (n == RDS_SWITCH) {
 		padv_bthome_event1_t p = (padv_bthome_event1_t)&buf;
 		p->o_id = BtHomeID_opened;
-		p->opened = trg.flg.rds_input;
+		p->opened = trg.flg.rds1_input;
 		p->c_id = BtHomeID_count32;
 		p->counter = rds.count;
 		bthome_encrypt(buf, sizeof(adv_bthome_event1_t));
@@ -150,13 +154,19 @@ void bthome_data_beacon(void) {
 #else
 		p->data.battery_mv = measured_data.battery_mv; // x mV
 #endif
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 		p->data.s_id = BtHomeID_switch;
 		p->data.swtch = trg.flg.trg_output;
+#endif
+#if (DEV_SERVICES & SERVICE_RDS)
+		p->data.o_id = BtHomeID_opened;
+		p->data.opened = trg.flg.rds1_input;
+#endif
 		p->head.size = sizeof(adv_bthome_ns2_t) - sizeof(p->head.size);
 	}
 }
 
-#if (DEV_SERVICES & SERVICE_TH_TRG) && (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_RDS)
 // n = RDS_TYPES
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void bthome_event_beacon(uint8_t n) {
@@ -169,7 +179,7 @@ void bthome_event_beacon(uint8_t n) {
 	if (n == RDS_SWITCH) {
 		p->head.size = sizeof(adv_bthome_ns_ev1_t) - sizeof(p->head.size);
 		p->data.o_id = BtHomeID_opened;
-		p->data.opened = trg.flg.rds_input;
+		p->data.opened = trg.flg.rds1_input;
 		p->data.c_id = BtHomeID_count32;
 		p->data.counter = rds.count;
 		adv_buf.data_size = sizeof(adv_bthome_ns_ev1_t);

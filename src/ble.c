@@ -10,8 +10,8 @@
 #include "app.h"
 #include "flash_eep.h"
 #include "battery.h"
-#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
+#if (DEV_SERVICES & SERVICE_RDS)
 #include "rds_count.h"
 #endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
@@ -27,8 +27,6 @@
 #include "stack/ble/service/ble_ll_ota.h"
 
 void bls_set_advertise_prepare(void *p); // add ll_adv.h
-
-RAM uint8_t ble_connected; // BIT(CONNECTED_FLG_BITS): bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
 
 #if (DEV_SERVICES & SERVICE_LE_LR) // support extension advertise
 
@@ -70,27 +68,26 @@ RAM uint8_t ble_name[MAX_DEV_NAME_LEN+2]; /* = { 11, GAP_ADTYPE_LOCAL_NAME_COMPL
 
 RAM uint8_t mac_public[6], mac_random_static[6];
 RAM adv_buf_t adv_buf;
-RAM uint8_t ota_is_working; // OTA_STAGES:  =1 ota enabled, =2 - ota wait, = 0xff flag ext.ota
 
 void app_enter_ota_mode(void) {
 #if (DEV_SERVICES & SERVICE_OTA_EXT)
-	if(ota_is_working != OTA_EXTENDED)
+	if(wrk.ota_is_working != OTA_EXTENDED)
 #endif
 	{
-		ota_is_working = OTA_WORK;
+		wrk.ota_is_working = OTA_WORK;
 		SHOW_OTA_SCREEN();
 	}
-	ble_connected &= ~BIT(CONNECTED_FLG_PAR_UPDATE);
+	wrk.ble_connected &= ~BIT(CONNECTED_FLG_PAR_UPDATE);
 	bls_pm_setManualLatency(0);
 	bls_ota_setTimeout(16 * 1000000); // set OTA timeout  16 seconds
 }
 
 void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
-	if (ble_connected & BIT(CONNECTED_FLG_RESET_OF_DISCONNECT)) // reset device on disconnect?
+	if (wrk.ble_connected & BIT(CONNECTED_FLG_RESET_OF_DISCONNECT)) // reset device on disconnect?
 		start_reboot();
 
-	ble_connected = 0;
-	ota_is_working = OTA_NONE;
+	wrk.ble_connected = 0;
+	wrk.ota_is_working = OTA_NONE;
 	mi_key_stage = 0;
 #if (DEV_SERVICES & SERVICE_SCREEN)
 	lcd_flg.all_flg = 0;
@@ -99,11 +96,11 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	rd_memo.cnt = 0;
 #endif
 	if (cfg.flg.tx_measures)
-		tx_measures = 0xff;
+		wrk.tx_measures = 0xff;
 	else
-		tx_measures = 0;
+		wrk.tx_measures = 0;
 #if (DEV_SERVICES & SERVICE_LE_LR)
-#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 	set_adv_con_time(1); // restore default adv. interval
 	bls_pm_setManualLatency(0);
 	if(adv_buf.ext_adv_init) {
@@ -124,7 +121,7 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	} else {
 		ev_adv_timeout(0,0,0);
 	}
-#endif // #if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
+#endif // #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 #endif // #if (DEV_SERVICES & SERVICE_LE_LR)
 	SHOW_CONNECTED_SYMBOL(false);
 }
@@ -132,9 +129,14 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	(void) e; (void) p; (void) n;
 
-	ble_connected = BIT(CONNECTED_FLG_ENABLE);
-	tim_measure = clock_time();
-	if(cfg.connect_latency > DEF_CONNECT_LATENCY && measured_data.average_battery_mv < LOW_VBAT_MV)
+	wrk.ble_connected = BIT(CONNECTED_FLG_ENABLE);
+	wrk.tim_measure = clock_time();
+	if(cfg.connect_latency > DEF_CONNECT_LATENCY
+#if USE_AVERAGE_BATTERY
+			&& measured_data.average_battery_mv < LOW_VBAT_MV)
+#else
+			&& measured_data.battery_mv < LOW_VBAT_MV)
+#endif
 		cfg.connect_latency = DEF_CONNECT_LATENCY;
 	my_periConnParameters.latency = cfg.connect_latency;
 	if (cfg.connect_latency) {
@@ -144,7 +146,7 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 	my_periConnParameters.timeout = connection_timeout;
 	bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, my_periConnParameters.latency, my_periConnParameters.timeout);
 	SHOW_CONNECTED_SYMBOL(true);
-#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 	ext_key.rest_adv_int_tad = 0;
 #endif
 	bls_l2cap_setMinimalUpdateReqSendingTime_after_connCreate(1000);
@@ -172,7 +174,7 @@ int chgConnParameters(void * p) {
 
 int app_conn_param_update_response(u8 id, u16  result) {
 	if (result == CONN_PARAM_UPDATE_ACCEPT)
-		ble_connected |= BIT(CONNECTED_FLG_PAR_UPDATE);
+		wrk.ble_connected |= BIT(CONNECTED_FLG_PAR_UPDATE);
 	else if (result == CONN_PARAM_UPDATE_REJECT) {
 		// TODO: необходимо подбирать другие параметры соединения если внешний адаптер не согласен или плюнуть и послать,
 		// что является лучшим решением для OTA, т.к. использовать плохие и сверх медленные адаптеры типа ESP32 для OTA нет смысла.
@@ -198,10 +200,10 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	{
 		if(++adv_buf.meas_count >= cfg.measure_interval) {
 			adv_buf.meas_count = 0;
-			start_measure = 1;
+			wrk.start_measure = 1;
 		}
-		if (flg_measured & BIT(FLG_UPDATE_ADV)) { // new measured_data ?
-			flg_measured &= ~BIT(FLG_UPDATE_ADV);
+		if (wrk.msc.b.update_adv) { // new measured_data ?
+			wrk.msc.b.update_adv = 0;
 			adv_buf.call_count = 1; // count 1..cfg.measure_interval
 			adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
 			adv_buf.update_count = 0;
@@ -214,7 +216,7 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 			if (++adv_buf.call_count > adv_buf.update_count) // refresh adv_buf.data ?
 				set_adv_data();
 		}
-#if defined(GPIO_KEY2) || USE_WK_RDS_COUNTER
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 		if(ext_key.rest_adv_int_tad) {
 			ext_key.rest_adv_int_tad--;
 #if (!USE_EPD)
@@ -222,7 +224,7 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 				SET_LCD_UPDATE(); // show "ble"
 #endif
 		}
-#endif // GPIO_KEY2 || (DEV_SERVICES & SERVICE_RDS)
+#endif // (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 	}
 #if (DEV_SERVICES & SERVICE_RDS)
 	else {
@@ -235,7 +237,7 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 
 #if (DEV_SERVICES & SERVICE_LE_LR)
 _attribute_ram_code_ int _blt_ext_adv_proc (void) {
-#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 	if(adv_buf.ext_adv_init && blta.adv_duraton_en) {
 		blta.adv_duraton_en--;
 		if(blta.adv_duraton_en == 0) {
@@ -300,7 +302,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 #if (DEV_SERVICES & SERVICE_LE_LR)
 	if (adv_buf.ext_adv_init) { // extension advertise
-		if(ble_connected)
+		if(wrk.ble_connected)
 			return;
 		if(adv_buf.ext_adv_init == 3) {
 			//adv_set: Legacy
@@ -354,7 +356,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 	}
 }
 
-#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 /**
  * @brief This function change adv. interval.
  * @param[in]  != 0 restore default adv. interval, = 0 connection adv. interval
@@ -368,7 +370,7 @@ void set_adv_con_time(int restore) {
 		adv_interval = CONNECTABLE_ADV_INERVAL; // new adv.intervals = 1 sec
 		ext_key.rest_adv_int_tad = -1; // start timer event restore adv.intervals
 	}
-	if(!ble_connected) {
+	if(!wrk.ble_connected) {
 #if (DEV_SERVICES & SERVICE_LE_LR)
 		if (adv_buf.ext_adv_init) { // support extension advertise
 			if(restore)
@@ -407,7 +409,7 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 	} else if (event == GAP_EVT_SMP_PARING_SUCCESS) {
 		gap_smp_paringSuccessEvt_t* p = (gap_smp_paringSuccessEvt_t*)para;
 		if (p->bonding && p->bonding_result)  // paring success ?
-			ble_connected |= BIT(CONNECTED_FLG_BONDING);
+			wrk.ble_connected |= BIT(CONNECTED_FLG_BONDING);
 	} else if (event == GAP_EVT_SMP_PARING_FAIL) {
 		//gap_smp_paringFailEvt_t * p = (gap_smp_paringFailEvt_t *)para;
 	} else if (event == GAP_EVT_SMP_TK_REQUEST_PASSKEY) {
@@ -644,7 +646,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
 	blc_l2cap_registerConnUpdateRspCb(app_conn_param_update_response);
 	bls_set_advertise_prepare(app_advertise_prepare_handler); // TODO: not work if EXTENDED_ADVERTISING
-#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 	bls_app_registerEventCallback(BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
 #endif
 	ev_adv_timeout(0,0,0);	// set advertise config
@@ -694,7 +696,7 @@ void set_adv_data(void) {
 _attribute_ram_code_ void ble_send_measures(void) {
 	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, MEASURED_MSG_SIZE);
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
 	send_buf[MEASURED_MSG_SIZE+1] = trg.flg_byte;
 #if (DEV_SERVICES & SERVICE_RDS)
 	send_buf[MEASURED_MSG_SIZE+2] = rds.count_byte[0];
@@ -730,14 +732,16 @@ void ble_send_cmf(void) {
 }
 #endif
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
 void ble_send_trg(void) {
 	send_buf[0] = CMD_ID_TRG;
 	memcpy(&send_buf[1], &trg, sizeof(trg));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, sizeof(trg) + 1);
 }
 void ble_send_trg_flg(void) {
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 	test_trg_on();
+#endif
 	send_buf[0] = CMD_ID_TRG_OUT;
 	send_buf[1] = *((uint8_t *)(&trg.flg));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);

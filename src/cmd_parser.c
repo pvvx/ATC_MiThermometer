@@ -284,12 +284,12 @@ void cmd_parser(void * p) {
 			olen = sizeof(dev_id_t);
 		} else if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
 			if(len >= 2)
-				tx_measures = req->dat[1];
+				wrk.tx_measures = req->dat[1];
 			else {
-				flg_measured = BIT(FLG_SEND_MESSURE);
-				tx_measures = 1;
+				wrk.msc.b.send_measure = 1;
+				wrk.tx_measures = 1;
 			}
-			send_buf[1] = tx_measures;
+			send_buf[1] = wrk.tx_measures;
 			olen = 2;
 #if (DEV_SERVICES & SERVICE_SCREEN)
 		} else if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
@@ -329,7 +329,7 @@ void cmd_parser(void * p) {
 #endif // DEV_SERVICES & SERVICE_SCREEN
 			ev_adv_timeout(0, 0, 0);
 			if(tmp & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
-				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			}
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
@@ -337,25 +337,22 @@ void cmd_parser(void * p) {
 			u8 tmp = ((volatile u8 *)&cfg.flg2)[0];
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 			test_config();
-			//if (!cfg.hw_cfg.shtc3) // sensor SHT4x ?
-			if (thsensor_cfg.sensor_type != TH_SENSOR_SHTC3)
-				cfg.flg.lp_measures = 1;
 			tmp ^= ((volatile u8 *)&cfg.flg2)[0];
 			if(tmp & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
-				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			}
 			if(tmp & MASK_FLG2_SCR_OFF)
 				init_lcd();
 			ev_adv_timeout(0, 0, 0);
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
 		} else if (cmd == CMD_ID_TRG) { // Get/set trg data
 			if (--len > sizeof(trg))	len = sizeof(trg);
 			if (len)
 				memcpy(&trg, &req->dat[1], len);
 #if (DEV_SERVICES & SERVICE_RDS)
-			rds.type = trg.rds.type;
+			//rds.type = trg.rds.type;
 			rds_init();
 #endif
 			flash_write_cfg(&trg, EEP_ID_TRG, FEEP_SAVE_SIZE_TRG);
@@ -365,13 +362,13 @@ void cmd_parser(void * p) {
 			if (len > 1)
 				trg.flg.trg_output = req->dat[1] != 0;
 			ble_send_trg_flg();
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
+#endif // #if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
 #if (DEV_SERVICES & SERVICE_MI_KEYS)
 		} else if (cmd == CMD_ID_DEV_MAC) { // Get/Set mac
 			if (len == 2 && req->dat[1] == 0) { // default MAC
 				flash_erase_mac_sector(FLASH_MIMAC_ADDR);
 				blc_initMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
-				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			} else if (len == sizeof(mac_public)+2 && req->dat[1] == sizeof(mac_public)) {
 				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))) {
 					memcpy(mac_public, &req->dat[2], sizeof(mac_public));
@@ -381,7 +378,7 @@ void cmd_parser(void * p) {
 					generateRandomNum(2, &mac_random_static[3]);
 					mac_random_static[5] = 0xC0; 			//for random static
 					blc_newMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
-					ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+					wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
 			} else	if (len == sizeof(mac_public)+2+2 && req->dat[1] == sizeof(mac_public)+2) {
 				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))
@@ -395,7 +392,7 @@ void cmd_parser(void * p) {
 					mac_random_static[4] = req->dat[2+7];
 					mac_random_static[5] = 0xC0; 			//for random static
 					blc_newMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
-					ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+					wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
 			}
 			get_mi_keys(MI_KEY_STAGE_MAC);
@@ -405,7 +402,7 @@ void cmd_parser(void * p) {
 			if (len == 2 && req->dat[1] == 0) { // default MAC
 				flash_erase_mac_sector(CFG_ADR_MAC);
 				blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
-				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			} else if (len == sizeof(mac_public)+2 && req->dat[1] == sizeof(mac_public)) {
 				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))) {
 					memcpy(mac_public, &req->dat[2], sizeof(mac_public));
@@ -415,7 +412,7 @@ void cmd_parser(void * p) {
 					generateRandomNum(2, &mac_random_static[3]);
 					mac_random_static[5] = 0xC0; 			//for random static
 					blc_newMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
-					ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+					wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
 			} else	if (len == sizeof(mac_public)+2+2 && req->dat[1] == sizeof(mac_public)+2) {
 				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))
@@ -429,7 +426,7 @@ void cmd_parser(void * p) {
 					mac_random_static[4] = req->dat[2+7];
 					mac_random_static[5] = 0xC0; 			//for random static
 					blc_newMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
-					ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+					wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
 			}
 			send_buf[1] = 8;
@@ -457,7 +454,7 @@ void cmd_parser(void * p) {
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_GET_ALL);
 		} else if (cmd == CMD_ID_MI_REST) { // Restore prev mi token & bindkeys
 			mi_key_stage = get_mi_keys(MI_KEY_STAGE_RESTORE);
-//			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+//			wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 		} else if (cmd == CMD_ID_MI_CLR) { // Delete all mi keys
 			erase_mikeys();
 			olen = 2;
@@ -490,7 +487,7 @@ void cmd_parser(void * p) {
 				if (flash_write_cfg(&pincode, EEP_ID_PCD, sizeof(pincode))) {
 					if ((pincode != 0) ^ (old_pincode != 0)) {
 						bls_smp_eraseAllParingInformation();
-						ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+						wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 					}
 					send_buf[1] = 1;
 				} else	send_buf[1] = 3;
@@ -510,7 +507,7 @@ void cmd_parser(void * p) {
 			if (len) {
 				flash_write_cfg(&req->dat[1], EEP_ID_DVN, (req->dat[1] != 0)? len : 0);
 				ble_set_name();
-				ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			}
 			memcpy(&send_buf[1], &ble_name[2], ble_name[0] - 1);
 			olen = ble_name[0];
@@ -580,7 +577,7 @@ void cmd_parser(void * p) {
 				send_buf[1] = 0xff;
 			olen = 2;
 		} else if (cmd == CMD_ID_REBOOT) { // Set Reboot on disconnect
-			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+			wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			olen = 2;
 		} else if (cmd == CMD_ID_SET_OTA) { // Set OTA address and size
 #if (DEV_SERVICES & SERVICE_OTA_EXT)  // Compatible BigOTA
@@ -596,10 +593,14 @@ void cmd_parser(void * p) {
 			olen = 2 + 8;
 		} else if (cmd == CMD_ID_GDEVS) {   // Get address devises
 			send_buf[1] = thsensor_cfg.i2c_addr;
+#if (DEV_SERVICES & SERVICE_SCREEN)
 #if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122))
 			send_buf[2] = lcd_i2c_addr;
 #else
 			send_buf[2] = 1;	// SPI
+#endif
+#else
+			send_buf[2] = 0;	// none
 #endif
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
 			send_buf[3] = rtc_i2c_addr;
@@ -679,7 +680,7 @@ void cmd_parser(void * p) {
 			cfg.flg2.bt5phy = 0;
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
-			ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+			wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 
 		} else {
 			send_buf[1] = 0xff; // Error cmd

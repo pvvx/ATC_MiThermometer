@@ -9,8 +9,8 @@
 #include "app_config.h"
 #include "ble.h"
 #include "app.h"
-#if (DEV_SERVICES & SERVICE_TH_TRG)
 #include "trigger.h"
+#if (DEV_SERVICES & SERVICE_RDS)
 #include "rds_count.h"
 #endif
 #include "custom_beacon.h"
@@ -100,7 +100,11 @@ void pvvx_data_beacon(void) {
 	p->UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
 	p->temperature = measured_data.temp; // x0.01 C
 	p->humidity = measured_data.humi; // x0.01 %
+#if USE_AVERAGE_BATTERY
 	p->battery_mv = measured_data.average_battery_mv; // x mV
+#else
+	p->battery_mv = measured_data.battery_mv; // x mV
+#endif
 	p->battery_level = measured_data.battery_level; // x1 %
 	p->counter = (uint8_t)adv_buf.send_count;
 #if (DEV_SERVICES & SERVICE_TH_TRG)
@@ -129,13 +133,18 @@ void atc_data_beacon(void) {
 	p->temperature[1] = (uint8_t)measured_data.temp_x01; // x0.1 C
 	p->humidity = measured_data.humi_x1; // x1 %
 	p->battery_level = measured_data.battery_level; // x1 %
+#if USE_AVERAGE_BATTERY
 	p->battery_mv[0] = (uint8_t)(measured_data.average_battery_mv >> 8);
 	p->battery_mv[1] = (uint8_t)measured_data.average_battery_mv; // x1 mV
+#else
+	p->battery_mv[0] = (uint8_t)(measured_data.battery_mv >> 8);
+	p->battery_mv[1] = (uint8_t)measured_data.battery_mv; // x1 mV
+#endif
 	p->counter = (uint8_t)adv_buf.send_count;
 }
 
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_RDS)
 
 typedef struct __attribute__((packed)) _ext_adv_cnt_t {
 	uint8_t		size;	// = 6
@@ -156,7 +165,6 @@ typedef struct __attribute__((packed)) _adv_event_t {
 	ext_adv_cnt_t cnt;
 } adv_event_t, * padv_event_t;
 
-#if (DEV_SERVICES & SERVICE_RDS)
 void default_event_beacon(void){
 	padv_event_t p = (padv_event_t)&adv_buf.data;
 	p->dig.size = sizeof(p->dig) - sizeof(p->dig.size);
@@ -192,4 +200,3 @@ void pvvx_encrypt_event_beacon(uint8_t n){
 
 #endif // (DEV_SERVICES & SERVICE_RDS)
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)

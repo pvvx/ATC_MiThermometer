@@ -9,6 +9,7 @@
 #include "battery.h"
 #include "drivers/8258/pm.h"
 #include "drivers/8258/timer.h"
+#include "stack/ble/ll/ll_pm.h"
 
 #define DEF_EPD_SUMBOL_SIGMENTS	13
 #define DEF_EPD_REFRESH_CNT		32
@@ -319,13 +320,19 @@ void init_lcd(void) {
     epd_updated = 0;
     flg_lcd_init = 1;
     gpio_write(EPD_RST, HIGH);
+    bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
     // EPD_BUSY: Low 866 us
 }
 
 void show_batt_cgg1(void) {
 	uint16_t battery_level = 0;
+#if USE_AVERAGE_BATTERY
 	if (measured_data.average_battery_mv > MIN_VBAT_MV) {
 		battery_level = ((measured_data.average_battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+#else
+	if (measured_data.battery_mv > MIN_VBAT_MV) {
+			battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+#endif
 		if (battery_level > 995)
 			battery_level = 995;
 	}

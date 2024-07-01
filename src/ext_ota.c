@@ -257,9 +257,9 @@ void ota_result_cb(int result) {
  *  ota_size in kB
  */
 uint8_t check_ext_ota(uint32_t ota_addr, uint32_t ota_size) {
-	if(ota_is_working == OTA_EXTENDED)
+	if(wrk.ota_is_working == OTA_EXTENDED)
 		return EXT_OTA_BUSY;
-	if(ota_is_working)
+	if(wrk.ota_is_working)
 		return EXT_OTA_WORKS;
 	if(ota_addr < 0x40000 && ota_size <= ota_firmware_size_k)
 		return EXT_OTA_OK;
@@ -268,8 +268,8 @@ uint8_t check_ext_ota(uint32_t ota_addr, uint32_t ota_size) {
 		|| ota_addr & (FLASH_SECTOR_SIZE-1))
 		return EXT_OTA_ERR_PARM;
 	SHOW_OTA_SCREEN();
-	ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT);
-	ota_is_working = OTA_EXTENDED; // flag ext.ota
+	wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT);
+	wrk.ota_is_working = OTA_EXTENDED; // flag ext.ota
 	ext_ota.start_addr = ota_addr;
 	ext_ota.check_addr = ota_addr;
 	ext_ota.ota_size = (ota_size + 3) & 0xfffffc;
@@ -302,7 +302,7 @@ void clear_ota_area(void) {
 			buf.msg.id_ok = (EXT_OTA_READY << 8) + CMD_ID_SET_OTA;
 			buf.msg.start_addr = ext_ota.start_addr;
 			buf.msg.ota_size = ext_ota.ota_size;
-			ota_is_working = OTA_WAIT; // flag ext.ota wait
+			wrk.ota_is_working = OTA_WAIT; // flag ext.ota wait
 			ext_ota.check_addr = 0;
 	}
 	else  {

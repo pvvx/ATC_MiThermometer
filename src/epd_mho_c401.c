@@ -8,6 +8,7 @@
 #include "epd.h"
 #include "drivers/8258/pm.h"
 #include "drivers/8258/timer.h"
+#include "stack/ble/ll/ll_pm.h"
 
 #define DEF_EPD_REFRESH_CNT	32
 
@@ -308,6 +309,7 @@ void init_lcd(void) {
     epd_updated = 0;
     flg_lcd_init = 3;
     gpio_write(EPD_RST, HIGH);
+    bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
 
 _attribute_ram_code_ void update_lcd(void){

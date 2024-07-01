@@ -793,8 +793,8 @@ void lcd(void) {
 	uint8_t screen_type = cfg.flg2.screen_type;
 	if(lcd_flg.chow_ext_ut >= utc_time_sec)
 		screen_type = SCR_TYPE_EXT;
-	show_ble_symbol(ble_connected
-#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
+	show_ble_symbol(wrk.ble_connected
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 		 || (ext_key.rest_adv_int_tad & 2)
 #endif
 	);

@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include "tl_common.h"
-#if (DEV_SERVICES & SERVICE_TH_TRG) && (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_RDS)
 #include "stack/ble/ble.h"
 #include "app.h"
 #include "ble.h"
@@ -32,19 +32,49 @@ extern u8 app_adv_set_param[];
 
 RAM	rds_count_t rds;		// Reed switch pulse counter
 
-void rds_init(void) {
-	if (rds.type) {
-#ifndef GPIO_KEY2
-		if(rds.type == RDS_CONNECT)
-			trg.rds.rs_invert = 1;
-#else
-		if(rds.type == RDS_CONNECT) {
-			rds.type = RDS_SWITCH;
-			trg.rds.type = RDS_SWITCH;
-		}
-#endif
-		rds_input_on();
+_attribute_ram_code_
+void rds_input_off(void) {
+	if (trg.rds.type1 == RDS_NONE) {
+		trg.flg.rds1_input = get_rds1_input();
+		rds1_input_off();
 	}
+#ifdef GPIO_RDS2
+	if (trg.rds.type2 == RDS_NONE) {
+		trg.flg.rds2_input = get_rds2_input();
+		rds2_input_off();
+	}
+#endif
+}
+
+
+
+void rds_init(void) {
+	if (trg.rds.type1) {
+#if (DEV_SERVICES & SERVICE_KEY)  // defined GPIO_KEY2
+		if(trg.rds.type1 == RDS_CONNECT) {
+			trg.rds.type1 = RDS_SWITCH;
+		}
+#else
+		if(trg.rds.type1 == RDS_CONNECT)
+			trg.rds.rs1_invert = 1;
+#endif
+		rds1_input_on();
+	} else
+		cpu_set_gpio_wakeup(GPIO_RDS1, Level_Low, 0);  // pad wakeup deepsleep disable
+#ifdef GPIO_RDS2
+	if (trg.rds.type2) {
+#if (DEV_SERVICES & SERVICE_KEY)  // defined GPIO_KEY2
+		if(trg.rds.type2 == RDS_CONNECT) {
+			trg.rds.type2 = RDS_SWITCH;
+		}
+#else
+		if(trg.rds.type2 == RDS_CONNECT)
+			trg.rds.rs2_invert = 1;
+#endif
+		rds2_input_on();
+	} else
+		cpu_set_gpio_wakeup(GPIO_RDS2, Level_Low, 0);  // pad wakeup deepsleep disable
+#endif
 #if USE_WK_RDS_COUNTER32 // save 32 bits?
 	if ((flash_read_cfg(&rds.count_short[1], EEP_ID_RPC, sizeof(rds.count_short[1])) != sizeof(rds.count_short[1])) {
 		rds.count = 0;
@@ -55,7 +85,7 @@ void rds_init(void) {
 
 //_attribute_ram_code_
 __attribute__((optimize("-Os")))
-void set_rds_adv_data(void) {
+static void set_rds_adv_data(void) {
 	adv_buf.send_count++;
 	int advertising_type = cfg.flg.advertising_type;
 #if (DEV_SERVICES & SERVICE_BINDKEY)
@@ -64,14 +94,14 @@ void set_rds_adv_data(void) {
 			default_event_beacon();
 #if USE_MIHOME_BEACON
 		else if (advertising_type == ADV_TYPE_MI)
-			mi_encrypt_event_beacon(rds.type);
+			mi_encrypt_event_beacon(rds.event);
 #endif
 #if USE_BTHOME_BEACON
 		else if (advertising_type == ADV_TYPE_BTHOME)
-			bthome_encrypt_event_beacon(rds.type);
+			bthome_encrypt_event_beacon(rds.event);
 #endif
 		else
-			pvvx_encrypt_event_beacon(rds.type);
+			pvvx_encrypt_event_beacon(rds.event);
 	} else
 #endif //	#if (DEV_SERVICES & SERVICE_BINDKEY)
 	{
@@ -79,14 +109,14 @@ void set_rds_adv_data(void) {
 			default_event_beacon();
 #if USE_MIHOME_BEACON
 		else if (advertising_type == ADV_TYPE_MI)
-			mi_event_beacon(rds.type);
+			mi_event_beacon(rds.event);
 #endif
 #if USE_BTHOME_BEACON
 		else if (advertising_type == ADV_TYPE_BTHOME)
-			bthome_event_beacon(rds.type);
+			bthome_event_beacon(rds.event);
 #endif
 		else
-			pvvx_event_beacon(rds.type);
+			pvvx_event_beacon(rds.event);
 	}
 	adv_buf.update_count = 0; // refresh adv_buf.data in next set_adv_data()
 	load_adv_data();
@@ -119,35 +149,20 @@ static void start_ext_adv(void) {
 	}
 }
 
-
-_attribute_ram_code_
-void rds_suspend(void) {
-	if(1) { // (!ble_connected) {
-		/* TODO: if connection mode, gpio wakeup throws errors in sdk libs!
-		   Work options: bls_pm_setSuspendMask(SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN);
-		   No DEEPSLEEP_RETENTION_CONN */
-		cpu_set_gpio_wakeup(GPIO_RDS, BM_IS_SET(reg_gpio_in(GPIO_RDS), GPIO_RDS & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
-		bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
-	} else {
-		cpu_set_gpio_wakeup(GPIO_RDS, Level_Low, 0);  // pad wakeup suspend/deepsleep disable
-	}
-}
-
-/* if (rds.type) // rds.type: switch or counter */
-
+/* if (trg.rds.type1) //  switch or counter [or connect] */
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void rds_task(void) {
 //	rds_input_on(); // in "app_config.h" and WakeupLowPowerCb()
-	if (get_rds_input()) {
-		if (!trg.flg.rds_input) {
+	if (get_rds1_input()) { // key on
+		if (!trg.flg.rds1_input) {
 			// keypress event
-			trg.flg.rds_input = 1;
-			if (rds.type == RDS_SWITCH) { // switch mode
-				rds.event = rds.type;
+			trg.flg.rds1_input = 1;
+			if (trg.rds.type1 == RDS_SWITCH) { // switch mode
+				rds.event = trg.rds.type1;
 			}
-#ifndef GPIO_KEY2
-			else if (rds.type == RDS_CONNECT) { // connect mode
+#if !(DEV_SERVICES & SERVICE_KEY)
+			else if (trg.rds.type1 == RDS_CONNECT) { // connect mode
 				// connect keypress event
 				uint32_t new = clock_time();
 				ext_key.key_pressed_tik1 = new;
@@ -158,8 +173,8 @@ void rds_task(void) {
 			}
 #endif
 		}
-#ifndef GPIO_KEY2
-		else if (rds.type == RDS_CONNECT) { // connect mode
+#if !(DEV_SERVICES & SERVICE_KEY)
+		else if (trg.rds.type1 == RDS_CONNECT) { // connect mode
 			// connection key held
 			uint32_t new = clock_time();
 			if(new - ext_key.key_pressed_tik1 > 1750*CLOCK_16M_SYS_TIMER_CLK_1MS) {
@@ -177,26 +192,26 @@ void rds_task(void) {
 			return;
 		}
 #endif
-	} else {
-		if (trg.flg.rds_input) {
+	} else { // key off
+		if (trg.flg.rds1_input) {
 			// key released event
-			trg.flg.rds_input = 0;
+			trg.flg.rds1_input = 0;
 			rds.count++;
 #if USE_WK_RDS_COUNTER32 // save 32 bits?
 			if (rds.count_short[0] == 0) {
 				flash_write_cfg(&rds.count_short[1], EEP_ID_RPC, sizeof(rds.count_short[1]));
 			}
 #endif
-			if (rds.type == RDS_COUNTER) { // counter mode
+			if (trg.rds.type1 == RDS_COUNTER) { // counter mode
 				if ((rds.count & 0xffff) == 0) { // report 'overflow 16 bit count'
-					rds.event = rds.type;
+					rds.event = trg.rds.type1;
 				}
-			} else if (rds.type == RDS_SWITCH) { // switch mode
-				rds.event = rds.type;
+			} else if (trg.rds.type1 == RDS_SWITCH) { // switch mode
+				rds.event = trg.rds.type1;
 			}
 		}
-#ifndef GPIO_KEY2
-		if (rds.type == RDS_CONNECT) { // connect mode
+#if !(DEV_SERVICES & SERVICE_KEY)
+		if (trg.rds.type1 == RDS_CONNECT) { // connect mode
 				// connection key released
 				uint32_t new = clock_time();
 				ext_key.key_pressed_tik1 = new;
@@ -213,11 +228,11 @@ void rds_task(void) {
 	}
 	if (trg.rds_time_report
 		&& utc_time_sec - rds.report_tick > trg.rds_time_report) {
-				rds.event = rds.type;
-				rds.report_tick = utc_time_sec;
+		rds.event = trg.rds.type1;
+		rds.report_tick = utc_time_sec;
 	}
 	if (rds.event) {
-		if(ble_connected) {
+		if(wrk.ble_connected) {
 			if (rds.event == RDS_SWITCH) { // switch mode
 				if(blc_ll_getTxFifoNumber() < 9)
 					ble_send_trg_flg();
@@ -230,4 +245,4 @@ void rds_task(void) {
 	}
 }
 
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
+#endif // #if (DEV_SERVICES & SERVICE_RDS)

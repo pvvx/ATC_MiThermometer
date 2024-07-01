@@ -1,11 +1,6 @@
 #pragma once
 #include <stdint.h>
 
-//extern volatile uint32_t timer_measure_cb; // time start measure
-
-//#define SENSOR_MEASURING_TIMEOUT_ms  11 // SHTV3 11 ms, SHT4x max 8.2 ms
-//#define SENSOR_MEASURING_TIMEOUT  thsensor_cfg.measure_timeout // (SENSOR_MEASURING_TIMEOUT_ms * CLOCK_16M_SYS_TIMER_CLK_1MS) // clk tick
-
 #define AHT2x_I2C_ADDR			0x38
 #define CHT8305_I2C_ADDR		0x40
 #define CHT8305_I2C_ADDR_MAX	0x43
@@ -19,7 +14,7 @@
 #define USE_SENSOR_CHT8305 	0
 #endif
 #ifndef USE_SENSOR_AHT20_30
-#define USE_SENSOR_AHT20_30 	0
+#define USE_SENSOR_AHT20_30	0
 #endif
 #ifndef USE_SENSOR_SHT4X
 #define USE_SENSOR_SHT4X 	0

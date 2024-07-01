@@ -190,33 +190,56 @@ extern uint32_t pincode; // pincode (if = 0 - not used)
 #endif
 
 typedef struct _measured_data_t {
+// start send part (MEASURED_MSG_SIZE)
+#if USE_AVERAGE_BATTERY
 	uint16_t 	average_battery_mv; // mV
+#else
+	uint16_t	battery_mv; // mV
+#endif
 	int16_t		temp; // x 0.01 C
 	int16_t		humi; // x 0.01 %
 	uint16_t 	count;
-
+// end send part (MEASURED_MSG_SIZE)
+#if (DEV_SERVICES & SERVICE_PRESSURE)
+	int16_t		pressure;
+#endif
+#if USE_AVERAGE_BATTERY
 	uint16_t	battery_mv; // mV
-
+#endif
 	int16_t 	temp_x01; 		// x 0.1 C
 	int16_t		humi_x01; 		// x 0.1 %
 	uint8_t 	humi_x1; 		// x 1 %
 	uint8_t 	battery_level;	// 0..100% (average_battery_mv)
 } measured_data_t;
 #define  MEASURED_MSG_SIZE  8
-
 extern measured_data_t measured_data;
 
-extern volatile uint8_t tx_measures; // measurement transfer counter, flag
-extern volatile uint8_t start_measure; // start measurements
-extern volatile uint8_t wrk_measure; // measurements in process
-extern uint8_t flg_measured; // bits-flags measurements completed
-// flags measurements completed
-enum {
-	FLG_SEND_MESSURE = 0,
-	FLG_UPDATE_LCD,
-	FLG_UPDATE_ADV
-};
-extern uint32_t tim_measure; // measurement timer
+
+typedef union {
+	uint8_t all_flgs;
+	struct {
+		uint8_t send_measure: 1;
+		uint8_t update_lcd	: 1;
+		uint8_t update_adv	: 1;
+	} b;
+} flg_measured_t;
+
+typedef struct _work_flg_t {
+	uint32_t tim_measure; // measurement timer
+	uint8_t ble_connected; // BIT(CONNECTED_FLG_BITS): bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset of disconnect
+	uint8_t ota_is_working; // OTA_STAGES:  =1 ota enabled, =2 - ota wait, = 0xff flag ext.ota
+	volatile uint8_t start_measure; // start measurements
+	volatile uint8_t tx_measures; // measurement transfer counter, flag
+	union {
+		uint8_t all_flgs;
+		struct {
+			uint8_t send_measure: 1;
+			uint8_t update_lcd	: 1;
+			uint8_t update_adv	: 1;
+		} b; // bits-flags measurements completed
+	} msc; // flags measurements completed
+} work_flg_t;
+extern work_flg_t wrk;
 
 typedef struct _comfort_t {
 	int16_t  t[2];
@@ -237,25 +260,26 @@ extern uint32_t adv_interval; // adv interval in 0.625 ms // = cfg.advertising_i
 extern uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = connection_latency_ms * 4 = 2000 * 4 = 8000 ms
 extern uint32_t measurement_step_time; // = adv_interval * measure_interval
 
-#if defined(GPIO_KEY2) || (DEV_SERVICES & SERVICE_RDS)
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 // extension keys
 typedef struct {
 	int32_t rest_adv_int_tad;	// timer event restore adv.intervals (in adv count)
 	uint32_t key_pressed_tik1;   // timer1 key_pressed (in sys tik)
 	uint32_t key_pressed_tik2;	// timer2 key_pressed (in sys tik)
-#ifdef GPIO_KEY2
+#if (DEV_SERVICES & SERVICE_KEY)
 	uint8_t  key2pressed;
 #endif
 } ext_key_t;
 extern ext_key_t ext_key; // extension keys
 
 void set_default_cfg(void);
-#ifdef GPIO_KEY2
+
+#if (DEV_SERVICES & SERVICE_KEY)
 static inline uint8_t get_key2_pressed(void) {
 	return BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff);
 }
-#endif // GPIO_KEY2
-#endif // GPIO_KEY2 || (DEV_SERVICES & SERVICE_RDS)
+#endif // (DEV_SERVICES & SERVICE_KEY)
+#endif // (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 
 void ev_adv_timeout(u8 e, u8 *p, int n); // DURATION_TIMEOUT Event Callback
 void test_config(void); // Test config values

@@ -13,6 +13,7 @@
 #include "epd.h"
 #include "drivers/8258/pm.h"
 #include "drivers/8258/timer.h"
+#include "stack/ble/ll/ll_pm.h"
 
 /* MHO-C401-2022 LCD buffer:  byte.bit
 
@@ -348,6 +349,7 @@ void init_lcd(void) {
     epd_updated = 0;
     gpio_write(EPD_RST, HIGH);
 	display_buff[15] = 0;
+    bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
 
 
@@ -362,7 +364,7 @@ void update_lcd(void){
 			memcpy(display_cmp_buff, display_buff, sizeof(display_buff));
 			if (lcd_refresh_cnt)
 				lcd_refresh_cnt--;
-			else if(ble_connected == 0)
+			else if(wrk.ble_connected == 0)
 				init_lcd(); // pulse RST_N low for 110 microseconds
 			lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
 			stage_lcd = 1;

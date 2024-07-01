@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
-#if DEVICE_TYPE == DEVICE_LYWSD03MMC
+#if (DEV_SERVICES & SERVICE_SCREEN) && (DEVICE_TYPE == DEVICE_LYWSD03MMC)
 #include "drivers.h"
 #include "drivers/8258/gpio_8258.h"
 #include "app.h"
@@ -111,7 +111,7 @@ static _attribute_ram_code_ uint8_t reverse(uint8_t revByte) {
 #define bwpc 9
 #endif
 
-extern uint8_t ota_is_working;
+//extern uint8_t ota_is_working;
 
 _attribute_ram_code_
 void lcd_send_uart(void) {
@@ -139,7 +139,7 @@ void lcd_send_uart(void) {
 	// start send DMA
 	reg_dma_tx_rdy0 |= FLD_DMA_CHN_UART_TX; // start tx
 	// wait send (3.35 ms), sleep?
-	if(ota_is_working)
+	if(wrk.ota_is_working)
 		sleep_us(3330);
 	else
 		pm_wait_us(3330); // 13 bytes * 10 bits / 38400 baud = 0.0033854 sec = 3.4 ms power ~3 mA

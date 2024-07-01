@@ -217,11 +217,11 @@ void ble_send_measures(void);
 void ble_send_ext(void);
 void ble_send_lcd(void);
 void ble_send_cmf(void);
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_RDS) || (DEV_SERVICES & SERVICE_TH_TRG)
 void ble_send_trg(void);
 void ble_send_trg_flg(void);
 #endif
-#if defined(GPIO_KEY2) || defined(GPIO_RDS)
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 void set_adv_con_time(int restore);
 #endif
 #if (DEV_SERVICES & SERVICE_HISTORY)

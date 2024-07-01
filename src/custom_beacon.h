@@ -86,7 +86,7 @@ typedef struct __attribute__((packed)) _adv_atc_enc_t {
 
 void pvvx_data_beacon(void);
 void atc_data_beacon(void);
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_RDS)
 void pvvx_event_beacon(uint8_t n); // n = RDS_TYPES
 void default_event_beacon(void);
 #endif
@@ -95,7 +95,7 @@ void default_event_beacon(void);
 void pvvx_encrypt_data_beacon(void); // n = RDS_TYPES
 void atc_encrypt_data_beacon(void);
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_RDS)
 void pvvx_encrypt_event_beacon(uint8_t n); // n = RDS_TYPES
 #endif
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)

@@ -29,10 +29,9 @@ extern "C" {
 // HW_VER_LYWSD03MMC_B17 = 5
 // HW_VER_LYWSD03MMC_B15 = 10
 #define DEVICE_MHO_C122		11	// LCD display MHO_C122
-// Ext.devID:
 //#define BOARD_TB03F		16 // DIY TB-03F-Kit
 #define DEVICE_TS0201   	17	// ZigBee TS0201, analog: IH-K009
-//#define DEVICE_TNKS   	18	// DIY, PB-03F module, Water tank controller (not yet published at the moment)
+#define DEVICE_TNK01		18	// DIY, PB-03F module, Water tank controller
 //#define DEVICE_THB2		19	// PHY62x2 BLE https://github.com/pvvx/THB2
 //#define DEVICE_BTH01		20	// PHY62x2 BLE https://github.com/pvvx/THB2
 //#define DEVICE_TH05		21	// PHY62x2 BLE LCD https://github.com/pvvx/THB2
@@ -45,27 +44,33 @@ extern "C" {
 #define DEVICE_ZTH02   		28	// ZigBee ZTH02
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_MJWSD05MMC // DEVICE_ZTH02
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
 #define SERVICE_OTA			0x00000001	// OTA all enable!
-#define SERVICE_OTA_EXT		0x00000002	// Compatible BigOTA
+#define SERVICE_OTA_EXT		0x00000002	// Compatible BigOTA/ZigbeeOTA
 #define SERVICE_PINCODE 	0x00000004	// support pin-code
 #define SERVICE_BINDKEY 	0x00000008	// support encryption beacon (bindkey)
 #define SERVICE_HISTORY 	0x00000010	// flash logger enable
-#define SERVICE_SCREEN		0x00000020	//
+#define SERVICE_SCREEN		0x00000020	// screen
 #define SERVICE_LE_LR		0x00000040	// support extension advertise + LE Long Range
-#define SERVICE_THS			0x00000080	//
-#define SERVICE_RDS			0x00000100	// wake up when the reed switch is triggered + pulse counter
-#define SERVICE_KEY			0x00000200	//
-#define SERVICE_OUTS		0x00000400	//
-#define SERVICE_INS			0x00000800	//
+#define SERVICE_THS			0x00000080	// T & H sensor (always set!)
+#define SERVICE_RDS			0x00000100	// wake up when the reed switch + pulse counter
+#define SERVICE_KEY			0x00000200	// key "connect"
+#define SERVICE_OUTS		0x00000400	// GPIO output
+#define SERVICE_INS			0x00000800	// GPIO input
 #define SERVICE_TIME_ADJUST 0x00001000	// time correction enabled
 #define SERVICE_HARD_CLOCK	0x00002000	// RTC enabled
-#define SERVICE_TH_TRG		0x00004000	// use trigger out
+#define SERVICE_TH_TRG		0x00004000	// use TH trigger out
 #define SERVICE_LED			0x00008000	// use led
 #define SERVICE_MI_KEYS		0x00010000	// use mi keys
+#define SERVICE_PRESSURE	0x00020000	// pressure sensor (not complete)
+
+/* minimal DEV_SERVICES:
+#define DEV_SERVICES ( SERVICE_OTA \
+		| SERVICE_OTA_EXT \
+		| SERVICE_THS ) */
 
 #define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
 #define USE_FLASH_SERIAL_UID		0 // = 1 Set my_SerialStr "$SOC_ID_Rev-$FLASH_JEDEC-$FLASH_UID"
@@ -75,13 +80,14 @@ extern "C" {
 // GPIO_PA5 - used EPD_SHD
 // GPIO_PA6 - used EPD_RST
 // GPIO_PA7 - SWS, free, (debug TX)
-// GPIO_PB6 - used KEY, pcb mark "P5" (TRG)
+// GPIO_PB6 - used KEY, pcb mark "P5"
 // GPIO_PB7 - used EPD_SDA
 // GPIO_PC2 - SDA, used I2C
 // GPIO_PC3 - SCL, used I2C
 // GPIO_PC4 - used EPD_SHD
 // GPIO_PD2 - used EPD_CSB
 // GPIO_PD7 - used EPD_SCL
+
 #define DEV_SERVICES ( SERVICE_OTA\
 		| SERVICE_OTA_EXT \
 		| SERVICE_PINCODE \
@@ -91,7 +97,6 @@ extern "C" {
 		| SERVICE_LE_LR \
 		| SERVICE_THS \
 		| SERVICE_RDS \
-		| SERVICE_KEY \
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_TH_TRG \
 		| SERVICE_MI_KEYS \
@@ -156,8 +161,6 @@ extern "C" {
 #define PD7_OUTPUT_ENABLE	1
 #define PD7_FUNC			AS_GPIO
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-
 #define GPIO_TRG			GPIO_PA0	// none
 #define PA0_INPUT_ENABLE	1
 #define PA0_DATA_OUT		0
@@ -165,14 +168,16 @@ extern "C" {
 #define PA0_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PB6	// Reed Switch, input, pcb mark "P5"
+#if (DEV_SERVICES & SERVICE_KEY)
+#define GPIO_KEY2 			GPIO_PB6	// input, pcb mark "P5"
+#else
+#define GPIO_RDS1 			GPIO_PB6	// Reed Switch, input, pcb mark "P5"
+#endif
 #define PB6_INPUT_ENABLE	1
 #define PB6_DATA_OUT		0
 #define PB6_OUTPUT_ENABLE	0
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_1M
-
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
 
@@ -180,7 +185,7 @@ extern "C" {
 // GPIO_PA5 - used EPD_BUSY
 // GPIO_PA6 - used EPD_CSB
 // GPIO_PA7 - SWS, free, (debug TX)
-// GPIO_PB6 - used KEY, pcb mark "P5" (TRG)
+// GPIO_PB6 - used KEY, pcb mark "P5"
 // GPIO_PB7 - used EPD_RST2
 // GPIO_PC2 - SDA, used I2C
 // GPIO_PC3 - SCL, used I2C
@@ -197,7 +202,6 @@ extern "C" {
 		| SERVICE_LE_LR \
 		| SERVICE_THS \
 		| SERVICE_RDS \
-		| SERVICE_KEY \
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_TH_TRG \
 		| SERVICE_MI_KEYS \
@@ -261,8 +265,6 @@ extern "C" {
 #define PC4_OUTPUT_ENABLE	1
 #define PC4_FUNC			AS_GPIO
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-
 #define GPIO_TRG			GPIO_PA0	// none
 #define PA0_INPUT_ENABLE	1
 #define PA0_DATA_OUT		0
@@ -270,14 +272,16 @@ extern "C" {
 #define PA0_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PB6	// Reed Switch, input, pcb mark "P5"
+#if (DEV_SERVICES & SERVICE_KEY)
+#define GPIO_KEY2 			GPIO_PB6	// key "Connect", input, pcb mark "P5"
+#else
+#define GPIO_RDS1 			GPIO_PB6	// Reed Switch, input, pcb mark "P5"
+#endif
 #define PB6_INPUT_ENABLE	1
 #define PB6_DATA_OUT		0
 #define PB6_OUTPUT_ENABLE	0
 #define PB6_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_1M
-
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #elif DEVICE_TYPE == DEVICE_CGG1
 
@@ -292,11 +296,11 @@ extern "C" {
 // GPIO_PB7 - used EPD_SDA
 // GPIO_PC0 - SDA, used I2C
 // GPIO_PC1 - SCL, used I2C
-// GPIO_PC2 - TX, free
-// GPIO_PC3 - RX, free, (Trigger, Output)
-// GPIO_PC4 - used KEY (RDS)
+// GPIO_PC2 - TX, free, (Trigger, Output)
+// GPIO_PC3 - RX, free, (RDS)
+// GPIO_PC4 - used KEY
 // GPIO_PD2 - used EPD_CSB
-// GPIO_PD3 - free (Reed Switch, input)
+// GPIO_PD3 - free
 // GPIO_PD4 - used EPD_BUSY
 // GPIO_PD7 - used EPD_SCL
 
@@ -309,7 +313,6 @@ extern "C" {
 		| SERVICE_LE_LR \
 		| SERVICE_THS \
 		| SERVICE_RDS \
-		| SERVICE_KEY \
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_TH_TRG \
 		| SERVICE_MI_KEYS \
@@ -373,27 +376,40 @@ extern "C" {
 #define PD7_OUTPUT_ENABLE	1
 #define PD7_FUNC			AS_GPIO
 
+#if (DEV_SERVICES & SERVICE_KEY)
+
 // PC4 - key
-#define GPIO_KEY			GPIO_PC4
+#define GPIO_KEY2			GPIO_PC4
 #define PC4_INPUT_ENABLE	1
-
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-
-#define GPIO_TRG			GPIO_PC3
-#define PC3_INPUT_ENABLE	1
-#define PC3_DATA_OUT		0
-#define PC3_OUTPUT_ENABLE	0
-#define PC3_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLDOWN_100K
-
-#define GPIO_RDS 			GPIO_PC4	// Reed Switch, Input
-//#define PC4_INPUT_ENABLE	1
 #define PC4_DATA_OUT		0
 #define PC4_OUTPUT_ENABLE	0
 #define PC4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC4 PM_PIN_PULLUP_1M
 
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
+#define GPIO_RDS1 			GPIO_PC3	// Reed Switch, Input
+#define PC3_INPUT_ENABLE	1
+#define PC3_DATA_OUT		0
+#define PC3_OUTPUT_ENABLE	0
+#define PC3_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC3 PM_PIN_PULLUP_1M
+
+#else
+
+#define GPIO_RDS1 			GPIO_PC4	// Reed Switch, Input
+#define PC4_INPUT_ENABLE	1
+#define PC4_DATA_OUT		0
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC4 PM_PIN_PULLUP_1M
+
+#endif
+
+#define GPIO_TRG			GPIO_PC2
+#define PC2_INPUT_ENABLE	1
+#define PC2_DATA_OUT		0
+#define PC2_OUTPUT_ENABLE	0
+#define PC2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLDOWN_100K
 
 #if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB5 input 0..3.6В
 #define CHL_ADC1 			6	// B5P
@@ -423,7 +439,7 @@ extern "C" {
  */
 #define MI_HW_VER_FADDR 0x55000 // Mi HW version (DEVICE_LYWSD03MMC)
 // TLSR8251F512ET24
-// GPIO_PA5 - DM, free, pcb mark "reset" (TRG)
+// GPIO_PA5 - DM, free, pcb mark "reset" (KEY)
 // GPIO_PA6 - DP, free, pcb mark "P8" (RDS)
 // GPIO_PA7 - SWS, free, pcb mark "P14", (debug TX)
 // GPIO_PB6 - used LCD, set "1"
@@ -431,9 +447,8 @@ extern "C" {
 // GPIO_PC2 - SDA, used I2C, pcb mark "P12"
 // GPIO_PC3 - SCL, used I2C, pcb mark "P15"
 // GPIO_PC4 - free, pcb mark "P9" (ADC2)
-// GPIO_PD2 - CS/PWM, free
+// GPIO_PD2 - CS/PWM, free (TRG)
 // GPIO_PD7 - free [B1.4], UART TX LCD [B1.6], pcb mark "P7"
-
 #define DEV_SERVICES ( SERVICE_OTA \
 		| SERVICE_OTA_EXT \
 		| SERVICE_PINCODE \
@@ -442,6 +457,7 @@ extern "C" {
 		| SERVICE_SCREEN \
 		| SERVICE_LE_LR \
 		| SERVICE_THS \
+		| SERVICE_KEY \
 		| SERVICE_RDS \
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_TH_TRG \
@@ -470,16 +486,21 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#define GPIO_TRG			GPIO_PD2	// Trigger, output
+#define PD2_INPUT_ENABLE	1
+#define PD2_DATA_OUT		0
+#define PD2_OUTPUT_ENABLE	0
+#define PD2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD2	PM_PIN_PULLDOWN_100K
 
-#define GPIO_TRG			GPIO_PA5	// Trigger, output, pcb mark "reset"
+#define GPIO_KEY2			GPIO_PA5	// key "Connect", input, pcb mark "P8"
 #define PA5_INPUT_ENABLE	1
 #define PA5_DATA_OUT		0
 #define PA5_OUTPUT_ENABLE	0
 #define PA5_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PA5	PM_PIN_PULLDOWN_100K
+#define PULL_WAKEUP_SRC_PA5 PM_PIN_PULLUP_1M
 
-#define GPIO_RDS 			GPIO_PA6	// Reed Switch, input, pcb mark "P8"
+#define GPIO_RDS1			GPIO_PA6	// Reed Switch, input, pcb mark "P8"
 #define PA6_INPUT_ENABLE	1
 #define PA6_DATA_OUT		0
 #define PA6_OUTPUT_ENABLE	0
@@ -491,8 +512,6 @@ extern "C" {
 //#define PD7_FUNC			AS_UART
 
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
-
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
 #define CHL_ADC1 			8	// B7P
@@ -524,7 +543,7 @@ extern "C" {
 // GPIO_PC1 - SCL, used I2C
 // GPIO_PC2 - free
 // GPIO_PC3 - free
-// GPIO_PC4 - used KEY (RDS)
+// GPIO_PC4 - used KEY
 // GPIO_PD2 - free
 // GPIO_PD3 - free
 // GPIO_PD4 - free
@@ -539,7 +558,6 @@ extern "C" {
 		| SERVICE_LE_LR \
 		| SERVICE_THS \
 		| SERVICE_RDS \
-		| SERVICE_KEY \
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_TH_TRG \
 		| SERVICE_MI_KEYS \
@@ -567,12 +585,6 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
 
-// PC4 - key
-#define GPIO_KEY			GPIO_PC4
-#define PC4_INPUT_ENABLE	1
-
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-
 #define GPIO_TRG			GPIO_PB1
 #define PB1_INPUT_ENABLE	1
 #define PB1_DATA_OUT		0
@@ -580,14 +592,29 @@ extern "C" {
 #define PB1_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PC4	// Reed Switch, Input
-//#define PC4_INPUT_ENABLE	1
+#if (DEV_SERVICES & SERVICE_KEY)
+// PC4 - key
+#define GPIO_KEY2			GPIO_PC4	// key "Connect"
+#define PC4_INPUT_ENABLE	1
 #define PC4_DATA_OUT		0
 #define PC4_OUTPUT_ENABLE	0
 #define PC4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC4 PM_PIN_PULLUP_1M
 
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
+#define GPIO_RDS1 			GPIO_PA0	// Reed Switch, Input
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA0 PM_PIN_PULLUP_1M
+#else
+#define GPIO_RDS1 			GPIO_PC4	// Reed Switch, Input
+#define PC4_INPUT_ENABLE	1
+#define PC4_DATA_OUT		0
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC4 PM_PIN_PULLUP_1M
+#endif
 
 #if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В
 #define CHL_ADC1 			8	// B7P
@@ -696,7 +723,7 @@ extern "C" {
 #define PA0_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS			GPIO_PC4
+#define GPIO_RDS1			GPIO_PC4
 #define PC4_INPUT_ENABLE	1
 #define PC4_DATA_OUT		0
 #define PC4_OUTPUT_ENABLE	0
@@ -733,7 +760,6 @@ extern "C" {
 		| SERVICE_LE_LR \
 		| SERVICE_THS \
 		| SERVICE_RDS \
-		| SERVICE_KEY \
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_TH_TRG \
 		| SERVICE_MI_KEYS \
@@ -761,8 +787,6 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-
 #define GPIO_TRG			GPIO_PA5	// Trigger, output, pcb mark "reset"
 #define PA5_INPUT_ENABLE	1
 #define PA5_DATA_OUT		0
@@ -770,7 +794,7 @@ extern "C" {
 #define PA5_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA5	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PA6	// Reed Switch, input, pcb mark "P8"
+#define GPIO_RDS1 			GPIO_PA6	// Reed Switch, input, pcb mark "P8"
 #define PA6_INPUT_ENABLE	1
 #define PA6_DATA_OUT		0
 #define PA6_OUTPUT_ENABLE	0
@@ -782,8 +806,6 @@ extern "C" {
 //#define PD7_FUNC			AS_UART
 
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
-
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
 #define CHL_ADC1 			8	// B7P
@@ -862,9 +884,6 @@ extern "C" {
 #define PB4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLDOWN_100K
 
-
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-
 #define GPIO_TRG			GPIO_PB1	// mark "TX"
 #define PB1_INPUT_ENABLE	1
 #define PB1_DATA_OUT		0
@@ -872,14 +891,12 @@ extern "C" {
 #define PB1_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PB7	// mark "RX",  Reed Switch
+#define GPIO_RDS1 			GPIO_PB7	// mark "RX",  Reed Switch
 #define PB7_INPUT_ENABLE	1
 #define PB7_DATA_OUT		0
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB7 PM_PIN_PULLUP_1M
-
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #elif DEVICE_TYPE == DEVICE_TH03Z
 
@@ -942,8 +959,6 @@ extern "C" {
 #define PB4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLDOWN_100K
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-
 #define GPIO_TRG			GPIO_PB1	// mark "TX"
 #define PB1_INPUT_ENABLE	1
 #define PB1_DATA_OUT		0
@@ -951,14 +966,12 @@ extern "C" {
 #define PB1_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PB7	// mark "RX",  Reed Switch
+#define GPIO_RDS1 			GPIO_PB7	// mark "RX",  Reed Switch
 #define PB7_INPUT_ENABLE	1
 #define PB7_DATA_OUT		0
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB7 PM_PIN_PULLUP_1M
-
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #elif DEVICE_TYPE == DEVICE_ZTH01
 
@@ -1006,8 +1019,6 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
-#define USE_SENSOR_AHT20_30	1
-
 #define GPIO_KEY2			GPIO_PB4
 #define PB4_INPUT_ENABLE	1
 #define PB4_DATA_OUT		0
@@ -1022,8 +1033,6 @@ extern "C" {
 #define PB5_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB5	PM_PIN_PULLDOWN_100K
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-
 #define GPIO_TRG			GPIO_PB1	// mark "TX"
 #define PB1_INPUT_ENABLE	1
 #define PB1_DATA_OUT		0
@@ -1031,14 +1040,12 @@ extern "C" {
 #define PB1_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PB7	// mark "RX",  Reed Switch
+#define GPIO_RDS1 			GPIO_PB7	// mark "RX",  Reed Switch
 #define PB7_INPUT_ENABLE	1
 #define PB7_DATA_OUT		0
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB7 PM_PIN_PULLUP_1M
-
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
 
 #elif DEVICE_TYPE == DEVICE_ZTH02
 
@@ -1049,7 +1056,7 @@ extern "C" {
 // GPIO_PC2 - SDA
 // GPIO_PC3 - SCL
 
-#define DEV_SERVICES ( SERVICE_OTA\
+#define DEV_SERVICES ( SERVICE_OTA \
 		| SERVICE_OTA_EXT \
 		| SERVICE_PINCODE \
 		| SERVICE_BINDKEY \
@@ -1086,8 +1093,6 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
-#define USE_SENSOR_AHT20_30	1
-
 #define GPIO_KEY2			GPIO_PB4
 #define PB4_INPUT_ENABLE	1
 #define PB4_DATA_OUT		0
@@ -1102,9 +1107,6 @@ extern "C" {
 #define PB5_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB5	PM_PIN_PULLDOWN_100K
 
-
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-
 #define GPIO_TRG			GPIO_PB1	// mark "TX"
 #define PB1_INPUT_ENABLE	1
 #define PB1_DATA_OUT		0
@@ -1112,23 +1114,133 @@ extern "C" {
 #define PB1_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
 
-#define GPIO_RDS 			GPIO_PB7	// mark "RX",  Reed Switch
+#define GPIO_RDS1 			GPIO_PB7	// mark "RX",  Reed Switch
 #define PB7_INPUT_ENABLE	1
 #define PB7_DATA_OUT		0
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB7 PM_PIN_PULLUP_1M
 
-#endif // #if (DEV_SERVICES & SERVICE_TH_TRG)
+
+#elif DEVICE_TYPE == DEVICE_TNK01
+// TLSR8253F512ET32 (TB-03F module)
+// GPIO_PA0 - free
+// GPIO_PA1 - free (TRG?)
+// GPIO_PA7 - SWS, free, (debug TX)
+// GPIO_PB1 - free
+// GPIO_PB4 - free
+// GPIO_PB5 - free (ADC1)
+// GPIO_PB6 - free (ADC2)
+// GPIO_PB7 - free
+// GPIO_PC0 - SDA, used I2C AHT25
+// GPIO_PC1 - SCL, used I2C AHT25
+// GPIO_PC2 - OUT (HX710B)
+// GPIO_PC3 - SCK (HX710B)
+// GPIO_PC4 - free
+// GPIO_PD2 - free
+// GPIO_PD3 - Upper level sensor
+// GPIO_PD4 - Lower level sensor
+// GPIO_PD7 - free
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+		| SERVICE_PRESSURE \
+)
+
+#define USE_EPD			0 // min update time ms
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_AHT20_30		1
+#define USE_SENSOR_SHT4X		0
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		0
+
+#define SHL_ADC_VBAT	1  // "B0P" in adc.h
+#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define I2C_SCL 			GPIO_PC0
+#define I2C_SDA 			GPIO_PC1
+#define I2C_GROUP 			I2C_GPIO_GROUP_C0C1
+#define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
+
+#define GPIO_TRG			GPIO_PA1
+#define PA1_INPUT_ENABLE	1
+#define PA1_DATA_OUT		0
+#define PA1_OUTPUT_ENABLE	0
+#define PA1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA1	PM_PIN_PULLDOWN_100K
+
+#define USE_RDS_WAKEAP		0
+
+#define GPIO_RDS1			GPIO_PD3	// Reed Switch "Full", input
+#define PD3_INPUT_ENABLE	1
+#define PD3_DATA_OUT		0
+#define PD3_OUTPUT_ENABLE	0
+#define PD3_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD3	PM_PIN_PULLUP_10K
+
+#define GPIO_RDS2			GPIO_PD4	// Reed Switch "Low", input
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD4 PM_PIN_PULLUP_10K
+
+#define USE_SENSOR_HX71X	1
+
+#define USE_HX71X_WAKEAP	USE_HX71X
+
+#define GPIO_HX71X_SCK		GPIO_PC3
+#define PC3_INPUT_ENABLE	1
+#define PC3_DATA_OUT		0
+#define PC3_OUTPUT_ENABLE	0
+#define PC3_FUNC			AS_GPIO
+#if USE_HX71X_WAKEAP
+#define PULL_WAKEUP_SRC_PC3 PM_PIN_PULLUP_10K
+#else
+#define PULL_WAKEUP_SRC_PC3 PM_PIN_PULLDOWN_100K
+#endif
+
+
+#define GPIO_HX71X_DOUT  	GPIO_PC2
+#define PC2_INPUT_ENABLE	1
+#define PC2_DATA_OUT		0
+#define PC2_OUTPUT_ENABLE	0
+#define PC2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC2 PM_PIN_PULLUP_10K
 
 #else // DEVICE_TYPE
 #error ("DEVICE_TYPE = ?")
 #endif // DEVICE_TYPE == ?
 
+
+#ifndef USE_SENSOR_HX71X
+#define USE_SENSOR_HX71X	0
+#endif
+
+#ifndef USE_AVERAGE_BATTERY
+#define USE_AVERAGE_BATTERY	1
+#endif
+
 #define USE_DISPLAY_CLOCK 	1 // = 1 display clock, = 0 smile blinking
 
 #define USE_MIHOME_BEACON	1 // = 1 Compatible with MiHome beacon
-#define USE_BTHOME_BEACON	1 // (not implemented) = 1 BTHome v2 https://bthome.io/
+#define USE_BTHOME_BEACON	1 // = 1 BTHome v2 https://bthome.io/
 
 /* Special DIY version - Voltage Logger:
  * Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, LYWSD03MMC pcb mark "B1"
@@ -1137,8 +1249,8 @@ extern "C" {
 #define DIY_ADC_TO_TH 	0
 
 #define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)
-#define UART_PRINT_DEBUG_ENABLE		0 // =1 use u_printf() (PA7/SWS), source: SDK/components/application/print/u_printf.c
 
+#define UART_PRINT_DEBUG_ENABLE		0 // =1 use u_printf() (PA7/SWS), source: SDK/components/application/print/u_printf.c
 
 #if UART_PRINT_DEBUG_ENABLE
 #define PRINT_BAUD_RATE 1500000 // real ~1000000
@@ -1152,12 +1264,13 @@ extern "C" {
 #if (DEV_SERVICES & SERVICE_TH_TRG) && (!defined(GPIO_TRG))
 #error "Set GPIO_TRG!"
 #endif
-#if (DEV_SERVICES & SERVICE_RDS) && (!defined(GPIO_RDS))
-#error "Set GPIO_RDS!"
+#if (DEV_SERVICES & SERVICE_RDS) && (!defined(GPIO_RDS1))
+#error "Set GPIO_RDS1!"
 #endif
-#if (DEV_SERVICES & SERVICE_RDS) && ((DEV_SERVICES & SERVICE_TH_TRG) == 0)
-#error "Set USE_TRIGGER_OUT = 1!"
+#if !(DEV_SERVICES & SERVICE_THS)
+#error "Always set SERVICE_THS!"
 #endif
+
 
 #define MODULE_WATCHDOG_ENABLE		0 //
 #define WATCHDOG_INIT_TIMEOUT		15000  //ms (min 5000 ms if pincode)
@@ -1194,14 +1307,6 @@ enum{
  */
 /* flash sector address with binding information */
 #define		CFG_ADR_BIND	0x74000 //no master, slave device (blt_config.h)
-
-/*
-#if (DEV_SERVICES & SERVICE_PINCODE)
-#define BLE_HOST_SMP_ENABLE 1
-#else
-#define BLE_HOST_SMP_ENABLE 0
-#endif
-*/
 
 //#define CHG_CONN_PARAM	// test
 #define DEV_NAME "pvvx_ble"
