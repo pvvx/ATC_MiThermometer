@@ -19,8 +19,6 @@
 #include "bthome_beacon.h"
 #include "ccm.h"
 
-#define USE_OUT_AVERAGE_BATTERY 0
-
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 /* Encrypted bthome nonce */
@@ -91,7 +89,7 @@ void bthome_encrypt_data_beacon(void) {
 		adv_buf.send_count++;
 		padv_bthome_data2_t p = (padv_bthome_data2_t)&buf;
 		p->v_id = BtHomeID_voltage;
-#if USE_OUT_AVERAGE_BATTERY
+#if USE_AVERAGE_BATTERY
 		p->battery_mv = measured_data.average_battery_mv; // x mV
 #else
 		p->battery_mv = measured_data.battery_mv; // x mV
@@ -158,7 +156,7 @@ void bthome_data_beacon(void) {
 		adv_buf.send_count++;
 		p->pid = (uint8_t)adv_buf.send_count;
 		p->data.v_id = BtHomeID_voltage;
-#if USE_OUT_AVERAGE_BATTERY
+#if USE_AVERAGE_BATTERY
 		p->data.battery_mv = measured_data.average_battery_mv; // x mV
 #else
 		p->data.battery_mv = measured_data.battery_mv; // x mV
