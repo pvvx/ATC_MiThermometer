@@ -478,7 +478,7 @@ static void suspend_exit_cb(u8 e, u8 *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
-#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) || (USE_SENSOR_HX71X)
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) //  || (USE_SENSOR_HX71X)
 _attribute_ram_code_
 static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
@@ -489,7 +489,7 @@ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 //		cpu_set_gpio_wakeup(GPIO_RDS1, Level_Low, 0);  // pad wakeup deepsleep disable
 #ifdef GPIO_RDS2
 	if(trg.rds.type2 != RDS_NONE)
-		cpu_set_gpio_wakeup(GPIO_RDS2, BM_IS_SET(reg_gpio_in(GPIO_RDS2), GPIO_RDS1 & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
+		cpu_set_gpio_wakeup(GPIO_RDS2, BM_IS_SET(reg_gpio_in(GPIO_RDS2), GPIO_RDS2 & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
 //	else
 //		cpu_set_gpio_wakeup(GPIO_RDS2, Level_Low, 0);  // pad wakeup deepsleep disable
 #endif
@@ -497,10 +497,6 @@ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 #if (DEV_SERVICES & SERVICE_KEY)
 	cpu_set_gpio_wakeup(GPIO_KEY2, BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
 #endif // (DEV_SERVICES & SERVICE_KEY)
-#if USE_SENSOR_HX71X
-	//	hx71x_suspend();
-	//cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, 1);  // pad wakeup deepsleep enable
-#endif
 	bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
 #endif // (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
@@ -790,7 +786,9 @@ void main_loop(void) {
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN);
 	} else {
 #if (DEV_SERVICES & SERVICE_RDS)
+#ifndef GPIO_RDS2
 		if(trg.rds.type1 != RDS_NONE) // rds: switch or counter
+#endif
 			rds_task();
 #endif
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)

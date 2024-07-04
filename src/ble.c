@@ -475,6 +475,11 @@ void ble_set_name(void) {
 		ble_name[3] = 'T';
 		ble_name[4] = 'H';
 		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_TNK01
+		ble_name[2] = 'T';
+		ble_name[3] = 'N';
+		ble_name[4] = 'K';
+		ble_name[5] = '_';
 #else
 		ble_name[2] = 'A';
 		ble_name[3] = 'T';
@@ -656,60 +661,93 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void set_adv_data(void) {
+#if (USE_CUSTOM_BEACON + USE_BTHOME_BEACON + USE_MIHOME_BEACON + USE_ATC_BEACON) > 1
 	uint8_t adv_type = cfg.flg.advertising_type;
+#endif
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 	if (cfg.flg2.adv_crypto) {
+#if (USE_CUSTOM_BEACON + USE_BTHOME_BEACON + USE_MIHOME_BEACON + USE_ATC_BEACON) > 1
+#if USE_CUSTOM_BEACON
 		if (adv_type == ADV_TYPE_PVVX) {
 			pvvx_encrypt_data_beacon();
-#if USE_MIHOME_BEACON
-		} else if (adv_type == ADV_TYPE_MI) { // adv_type == 2
-			mi_encrypt_data_beacon();
+		} else
 #endif
 #if USE_BTHOME_BEACON
-		} else if (adv_type == ADV_TYPE_BTHOME) { // adv_type == 3
+		if (adv_type == ADV_TYPE_BTHOME) { // adv_type == 3
 			bthome_encrypt_data_beacon();
+		} else
 #endif
-		} else { // adv_type == 0 == ADV_TYPE_ATC
+#if USE_MIHOME_BEACON
+		if (adv_type == ADV_TYPE_MI) { // adv_type == 2
+			mi_encrypt_data_beacon();
+		} else
+#endif
+#if USE_ATC_BEACON
+		if (adv_type == ADV_TYPE_ATC) {
 			atc_encrypt_data_beacon();
-		}
+		} else
+#endif
+		{}
+#else
+		bthome_encrypt_data_beacon();
+#endif // (USE_CUSTOM_BEACON + USE_BTHOME_BEACON + USE_MIHOME_BEACON + USE_ATC_BEACON) > 1
 	} else
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 	{
+#if (USE_CUSTOM_BEACON + USE_BTHOME_BEACON + USE_MIHOME_BEACON + USE_ATC_BEACON) > 1
+#if USE_CUSTOM_BEACON
 		if (adv_type == ADV_TYPE_PVVX) {
 			pvvx_data_beacon();
-#if USE_MIHOME_BEACON
-		} else if (adv_type == ADV_TYPE_MI) { // adv_type == 2
-			mi_data_beacon();
+		} else
 #endif
 #if USE_BTHOME_BEACON
-		} else if (adv_type == ADV_TYPE_BTHOME) { // adv_type == 3
+		if (adv_type == ADV_TYPE_BTHOME) { // adv_type == 3
 			bthome_data_beacon();
+		} else
 #endif
-		} else { // adv_type == 0 == ADV_TYPE_ATC
+#if USE_MIHOME_BEACON
+		if (adv_type == ADV_TYPE_MI) { // adv_type == 2
+			mi_data_beacon();
+		} else
+#endif
+#if USE_ATC_BEACON
+		if (adv_type == ADV_TYPE_ATC) {
 			atc_data_beacon();
-		}
+		} else
+#endif
+		{}
+#else
+		bthome_data_beacon();
+#endif // (USE_CUSTOM_BEACON + USE_BTHOME_BEACON + USE_MIHOME_BEACON + USE_ATC_BEACON) > 1
 	}
 	adv_buf.data_size = adv_buf.data[0] + 1;
 	load_adv_data();
 }
 
-_attribute_ram_code_ void ble_send_measures(void) {
+void ble_send_measures(void) {
+	int len = MEASURED_MSG_SIZE + 1;
 	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, MEASURED_MSG_SIZE);
-#if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
-	send_buf[MEASURED_MSG_SIZE+1] = trg.flg_byte;
+#if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS) || (DEV_SERVICES & SERVICE_PRESSURE)
+	uint8_t * p = &send_buf[MEASURED_MSG_SIZE+1];
+#if (DEV_SERVICES & SERVICE_TH_TRG)
+	*p++ = trg.flg_byte;
+	len++;
+#endif
 #if (DEV_SERVICES & SERVICE_RDS)
-	send_buf[MEASURED_MSG_SIZE+2] = rds.count_byte[0];
-	send_buf[MEASURED_MSG_SIZE+3] = rds.count_byte[1];
-	send_buf[MEASURED_MSG_SIZE+4] = rds.count_byte[2];
-	send_buf[MEASURED_MSG_SIZE+5] = rds.count_byte[3];
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, MEASURED_MSG_SIZE + 6);
-#else
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, MEASURED_MSG_SIZE + 2);
+	*p++ = rds.count1_byte[0];
+	*p++ = rds.count1_byte[1];
+	*p++ = rds.count1_byte[2];
+	*p++ = rds.count1_byte[3];
+	len += 4;
 #endif
-#else
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, MEASURED_MSG_SIZE + 1);
+#if (DEV_SERVICES & SERVICE_PRESSURE)
+	*p++ = (uint8_t)measured_data.pressure;
+	*p++ = (uint8_t)(measured_data.pressure >> 8);
+	len += 2;
 #endif
+#endif
+	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, len);
 }
 
 #if (DEV_SERVICES & SERVICE_SCREEN)

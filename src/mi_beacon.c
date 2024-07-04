@@ -190,7 +190,7 @@ void mi_encrypt_event_beacon(uint8_t n) {
 		p->head.size = sizeof(adv_mi_cr_ev2_t) - sizeof(p->head.size);
 		p->data.id = XIAOMI_VATR_ID_Count;
 		p->data.size = sizeof(p->data.value);
-		p->data.value = rds.count;
+		p->data.value = rds.count1;
 		adv_buf.data_size = sizeof(adv_mi_cr_ev2_t);
 		pmic = p->cnt;
 	}
@@ -275,7 +275,7 @@ void mi_event_beacon(uint8_t n){
 		p->head.size = sizeof(adv_mi_ev2_t) - sizeof(p->head.size);
 		p->data.id = XIAOMI_VATR_ID_Count;
 		p->data.size = sizeof(p->data.value);
-		p->data.value = rds.count;
+		p->data.value = rds.count1;
 		adv_buf.data_size = sizeof(adv_mi_ev2_t);
 	}
 }

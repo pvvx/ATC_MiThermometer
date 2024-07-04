@@ -652,6 +652,16 @@ void cmd_parser(void * p) {
 			memcpy(&send_buf[1], &thsensor_cfg.id, sizeof(thsensor_cfg.id));
 			olen = sizeof(thsensor_cfg.id) + 1;
 #endif
+#if USE_HX71X
+		} else if (cmd == CMD_ID_HXC) { // Get/set HX71X config
+			if (--len > sizeof(hx71x.cfg))	len = sizeof(hx71x.cfg);
+			if (len) {
+				memcpy(&hx71x.cfg, &req->dat[1], len);
+				flash_write_cfg(&hx71x.cfg, EEP_ID_HXC, sizeof(hx71x.cfg));
+			}
+			memcpy(&send_buf[1], &hx71x, sizeof(hx71x.cfg) + 4);
+			olen = sizeof(hx71x.cfg) + 4 + 1;
+#endif
 		} else if (cmd == CMD_ID_FLASH_ID) { // Get Flash JEDEC ID
 			flash_read_id(&send_buf[1]); // Read flash UID
 			olen = 1 + 3;

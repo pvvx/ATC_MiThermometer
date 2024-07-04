@@ -119,9 +119,8 @@ void hx71x_task(void) {
 }
 
 void hx71x_init(void) {
-
-	cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, 1);  // pad wakeup deepsleep enable
-	bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
+//	cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, 1);  // pad wakeup deepsleep enable
+//	bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
 
 #endif // USE_SENSOR_HX71X

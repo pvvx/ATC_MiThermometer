@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
+#if (USE_CUSTOM_BEACON || USE_ATC_BEACON)
 #include "ble.h"
 #include "app.h"
 #include "trigger.h"
@@ -24,6 +25,7 @@ typedef struct __attribute__((packed)) _enc_beacon_nonce_t{
     adv_cust_head_t head;
 } enc_beacon_nonce_t;
 
+#if USE_ATC_BEACON
 /* Create encrypted custom beacon packet
  * https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-842846036 */
 
@@ -54,7 +56,9 @@ void atc_encrypt_data_beacon(void) {
 					   (uint8_t *)&p->data,
 					   p->mic, 4);
 }
+#endif
 
+#if USE_CUSTOM_BEACON
 __attribute__((optimize("-Os")))
 void pvvx_encrypt_data_beacon(void) {
 	padv_cust_enc_t p = (padv_cust_enc_t)&adv_buf.data;
@@ -84,8 +88,10 @@ void pvvx_encrypt_data_beacon(void) {
 					   p->mic, 4);
 }
 
+#endif
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
+#if USE_CUSTOM_BEACON
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void pvvx_data_beacon(void) {
@@ -111,7 +117,9 @@ void pvvx_data_beacon(void) {
 	p->flags = trg.flg_byte;
 #endif
 }
+#endif
 
+#if USE_ATC_BEACON
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void atc_data_beacon(void) {
@@ -142,7 +150,7 @@ void atc_data_beacon(void) {
 #endif
 	p->counter = (uint8_t)adv_buf.send_count;
 }
-
+#endif
 
 #if (DEV_SERVICES & SERVICE_RDS)
 
@@ -174,9 +182,9 @@ void default_event_beacon(void){
 	p->cnt.size = sizeof(p->cnt) - sizeof(p->cnt.size);
 	p->cnt.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 	p->cnt.UUID = ADV_UUID16_Count24bits;
-	p->cnt.cnt[0] = rds.count_byte[2];
-	p->cnt.cnt[1] = rds.count_byte[1];
-	p->cnt.cnt[2] = rds.count_byte[0];
+	p->cnt.cnt[0] = rds.count1_byte[2];
+	p->cnt.cnt[1] = rds.count1_byte[1];
+	p->cnt.cnt[2] = rds.count1_byte[0];
 	adv_buf.data_size = sizeof(adv_event_t);
 }
 
@@ -200,3 +208,4 @@ void pvvx_encrypt_event_beacon(uint8_t n){
 
 #endif // (DEV_SERVICES & SERVICE_RDS)
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
+#endif // (USE_CUSTOM_BEACON || USE_ATC_BEACON)

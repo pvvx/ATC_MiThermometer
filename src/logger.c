@@ -189,18 +189,26 @@ void write_memo(void) {
 	if (cfg.averaging_measurements == 1) {
 		mblk.temp = measured_data.temp;
 		mblk.humi = measured_data.humi;
+#if (DEV_SERVICES & SERVICE_PRESSURE)
+		mblk.vbat = measured_data.pressure;
+#else
 #if 0 // USE_AVERAGE_BATTERY
 		mblk.vbat = measured_data.average_battery_mv;
 #else
 		mblk.vbat = measured_data.battery_mv;
 #endif
+#endif
 	} else {
 		summ_data.temp += measured_data.temp;
 		summ_data.humi += measured_data.humi;
+#if (DEV_SERVICES & SERVICE_PRESSURE)
+		summ_data.battery_mv += measured_data.pressure;
+#else
 #if 0 // USE_AVERAGE_BATTERY
 		summ_data.battery_mv += measured_data.average_battery_mv;
 #else
 		summ_data.battery_mv += measured_data.battery_mv;
+#endif
 #endif
 		summ_data.count++;
 		if (cfg.averaging_measurements > summ_data.count)

@@ -17,6 +17,14 @@
 #define EXT_ADV_INTERVAL ADV_INTERVAL_50MS
 #define EXT_ADV_COUNT 6
 
+#ifndef RDS1_PULLUP
+#define RDS1_PULLUP PM_PIN_PULLUP_1M
+#endif
+
+#ifndef RDS2_PULLUP
+#define RDS2_PULLUP PM_PIN_PULLUP_1M
+#endif
+
 enum {
 	RDS_NONE = 0,
 	RDS_SWITCH,
@@ -26,13 +34,20 @@ enum {
 
 typedef struct _rds_count_t {
 	uint32_t report_tick; // timer reed switch count report interval (utc_time_sec)
-	uint32_t adv_counter;
-	union {				// rs counter pulses
-		uint8_t count_byte[4];
-		uint16_t count_short[2];
-		uint32_t count;
+	union {				// rs1 counter pulses
+		uint8_t count1_byte[4];
+		uint16_t count1_short[2];
+		uint32_t count1;
 	};
-//	uint8_t type;	// RDS_TYPES: 0 - none, 1 - switch, 2 - counter, (3 - connect)
+/*
+#ifdef GPIO_RDS2
+	union {				// rs2 counter pulses
+		uint8_t count2_byte[4];
+		uint16_t count2_short[2];
+		uint32_t count2;
+	};
+#endif
+*/
 	uint8_t event;  // Reed Switch event
 } rds_count_t;
 extern rds_count_t rds;		// Reed switch pulse counter
@@ -46,7 +61,7 @@ static inline uint8_t get_rds1_input(void) {
 }
 
 static inline void rds1_input_on(void) {
-	gpio_setup_up_down_resistor(GPIO_RDS1, PM_PIN_PULLUP_1M);
+	gpio_setup_up_down_resistor(GPIO_RDS1, RDS1_PULLUP);
 }
 
 static inline void rds1_input_off(void) {
@@ -64,21 +79,21 @@ static inline uint8_t get_rds2_input(void) {
 }
 
 static inline void rds2_input_off(void) {
-	gpio_setup_up_down_resistor(GPIO_RDS1, PM_PIN_UP_DOWN_FLOAT);
+	gpio_setup_up_down_resistor(GPIO_RDS2, PM_PIN_UP_DOWN_FLOAT);
 }
 
 static inline void rds2_input_on(void) {
-	gpio_setup_up_down_resistor(GPIO_RDS2, PM_PIN_PULLUP_1M);
+	gpio_setup_up_down_resistor(GPIO_RDS2, RDS2_PULLUP);
 }
 #endif
 
 
 static inline void rds_input_on(void) {
 #ifdef GPIO_RDS1
-	gpio_setup_up_down_resistor(GPIO_RDS1, PM_PIN_PULLUP_1M);
+	gpio_setup_up_down_resistor(GPIO_RDS1, RDS1_PULLUP);
 #endif
 #ifdef GPIO_RDS2
-	gpio_setup_up_down_resistor(GPIO_RDS2, PM_PIN_PULLUP_1M);
+	gpio_setup_up_down_resistor(GPIO_RDS2, RDS2_PULLUP);
 #endif
 }
 

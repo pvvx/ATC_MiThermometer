@@ -201,7 +201,7 @@ typedef struct _measured_data_t {
 	uint16_t 	count;
 // end send part (MEASURED_MSG_SIZE)
 #if (DEV_SERVICES & SERVICE_PRESSURE)
-	int16_t		pressure;
+	uint16_t	pressure;
 #endif
 #if USE_AVERAGE_BATTERY
 	uint16_t	battery_mv; // mV

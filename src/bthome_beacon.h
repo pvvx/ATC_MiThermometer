@@ -96,7 +96,7 @@ typedef enum {
 	BtHomeID_gas24 = 0x4b,			//0x4b, uint24, 0.001
 	BtHomeID_gas32 = 0x4c,			//0x4c, uint32, 0.001
 	BtHomeID_energy32 = 0x4d,		//0x4d, uint32, 0.001
-	BtHomeID_volume32 = 0x4e,		//0x4e, uint32, 0.001
+	BtHomeID_volume32 = 0x4e,		//0x4e, uint32, 0.001 L
 	BtHomeID_water32 = 0x4f,		//0x4f, uint32, 0.001
 	BtHomeID_timestamp = 0x50,		//0x50, uint48
 	BtHomeID_acceleration = 0x51,	//0x51, uint16, 0.001
@@ -118,7 +118,11 @@ typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 	int16_t		temperature; // x 0.01 degree
 	uint8_t		h_id;	// = BtHomeID_humidity
 	uint16_t	humidity; // x 0.01 %
-} adv_bthome_data1_t, * padv_bthome_data1_t;
+#if (DEV_SERVICES & SERVICE_PRESSURE)
+	uint8_t		l_id;	// = BtHomeID_volume16_01
+	uint32_t	volume; // x 0.001 l
+#endif
+} adv_bthome_data1_t, * padv_bthome_data1_t; // max 15 bytes!
 
 typedef struct __attribute__((packed)) _adv_bthome_data2_t {
 	uint8_t		v_id;	// = BtHomeID_voltage
@@ -128,22 +132,25 @@ typedef struct __attribute__((packed)) _adv_bthome_data2_t {
 	uint8_t		swtch;
 #endif
 #if (DEV_SERVICES & SERVICE_RDS)
-	uint8_t		o_id;	// = BtHomeID_opened ?
-	uint8_t		opened;
+	uint8_t		o1_id;	// = BtHomeID_opened ?
+	uint8_t		opened1;
+#ifdef GPIO_RDS2
+	uint8_t		o2_id;	// = BtHomeID_opened ?
+	uint8_t		opened2;
 #endif
-} adv_bthome_data2_t, * padv_bthome_data2_t;
+#endif
+} adv_bthome_data2_t, * padv_bthome_data2_t; // max 15 bytes!
 
 typedef struct __attribute__((packed)) _adv_bthome_event1_t {
-	uint8_t		o_id;	// = BtHomeID_opened ?
-	uint8_t		opened;
+	uint8_t		o1_id;	// = BtHomeID_opened ?
+	uint8_t		opened1;
+#ifdef GPIO_RDS2
+	uint8_t		o2_id;	// = BtHomeID_opened ?
+	uint8_t		opened2;
+#endif
 	uint8_t		c_id;	// = BtHomeID_count32
 	uint32_t	counter;
-} adv_bthome_event1_t, * padv_bthome_event1_t;
-
-typedef struct __attribute__((packed)) _adv_bthome_event2_t {
-	uint8_t		c_id;	// = BtHomeID_count32
-	uint32_t	counter;
-} adv_bthome_event2_t, * padv_bthome_event2_t;
+} adv_bthome_event1_t, * padv_bthome_event1_t; // max 15 bytes!
 
 // BTHOME data1, no security
 typedef struct __attribute__((packed)) _adv_bthome_ns1_t {
@@ -151,8 +158,8 @@ typedef struct __attribute__((packed)) _adv_bthome_ns1_t {
 	uint8_t		info;	// = 0x40 BtHomeID_Info
 	uint8_t		p_id;	// = BtHomeID_PacketId
 	uint8_t		pid;	// PacketId (measurement count)
-	adv_bthome_data1_t data;
-} adv_bthome_ns1_t, * padv_bthome_ns1_t;
+	adv_bthome_data1_t data; // max 28 - 7 = 21 bytes
+} adv_bthome_ns1_t, * padv_bthome_ns1_t; // max 31 - 3(BLE flags) = 28 bytes!
 
 // BTHOME data2, no security
 typedef struct __attribute__((packed)) _adv_bthome_ns2_t {
@@ -160,7 +167,7 @@ typedef struct __attribute__((packed)) _adv_bthome_ns2_t {
 	uint8_t		info;	// = 0x40 BtHomeID_Info
 	uint8_t		p_id;	// = BtHomeID_PacketId
 	uint8_t		pid;	// PacketId (measurement count)
-	adv_bthome_data2_t data;
+	adv_bthome_data2_t data; // max 28 - 13 = 15 bytes
 } adv_bthome_ns2_t, * padv_bthome_ns2_t;
 
 // BTHOME event1, no security
@@ -172,32 +179,22 @@ typedef struct __attribute__((packed)) _adv_bthome_ns_ev1_t {
 	adv_bthome_event1_t data;
 } adv_bthome_ns_ev1_t, * padv_bthome_ns_ev1_t;
 
-// BTHOME event2, no security
-typedef struct __attribute__((packed)) _adv_bthome_ns_ev2_t {
-	adv_head_bth_t head;
-	uint8_t		info;	// = 0x40 BtHomeID_Info
-	uint8_t		p_id;	// = BtHomeID_PacketId
-	uint8_t		pid;	// PacketId (!= measurement count)
-	adv_bthome_event2_t data;
-} adv_bthome_ns_ev2_t, * padv_bthome_ns_ev2_t;
-
-
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 // BTHOME data1, security
 typedef struct __attribute__((packed)) _adv_bthome_d1_t {
-	adv_head_bth_t head;
-	uint8_t		info;	// = 0x41 BtHomeID_Info_Encrypt
-	adv_bthome_data1_t data;
-	uint32_t	count_id;
-	uint8_t		mic[4];
-} adv_bthome_1_t, * padv_bthome_d1_t;
+	adv_head_bth_t head; // 4 bytes
+	uint8_t		info;	 // = 0x41 BtHomeID_Info_Encrypt
+	adv_bthome_data1_t data; // max 28 - 13 = 15 bytes
+	uint32_t	count_id; //  4 bytes
+	uint8_t		mic[4]; //  4 bytes
+} adv_bthome_1_t, * padv_bthome_d1_t; // max 31 - 3(BLE flags) = 28 bytes!
 
 // BTHOME data2, security
 typedef struct __attribute__((packed)) _adv_bthome_d2_t {
 	adv_head_bth_t head;
 	uint8_t		info;	// = 0x41 BtHomeID_Info_Encrypt
-	adv_bthome_data2_t data;
+	adv_bthome_data2_t data; // max 28 - 13 = 15 bytes
 	uint32_t	count_id;
 	uint8_t		mic[4];
 } adv_bthome_d2_t, * padv_bthome_d2_t;
