@@ -88,7 +88,7 @@ void bthome_encrypt_data_beacon(void) {
 		bthome_encrypt(buf, sizeof(adv_bthome_data1_t));
 	} else {
 		adv_buf.call_count = 1;
-		//adv_buf.send_count++;
+		adv_buf.send_count++;
 		padv_bthome_data2_t p = (padv_bthome_data2_t)&buf;
 		p->v_id = BtHomeID_voltage;
 #if USE_OUT_AVERAGE_BATTERY
@@ -155,7 +155,7 @@ void bthome_data_beacon(void) {
 	} else {
 		padv_bthome_ns2_t p = (padv_bthome_ns2_t)&adv_buf.data;
 		adv_buf.call_count = 1;
-		//adv_buf.send_count++;
+		adv_buf.send_count++;
 		p->pid = (uint8_t)adv_buf.send_count;
 		p->data.v_id = BtHomeID_voltage;
 #if USE_OUT_AVERAGE_BATTERY
