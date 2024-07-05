@@ -233,9 +233,10 @@ typedef struct _work_flg_t {
 	union {
 		uint8_t all_flgs;
 		struct {
-			uint8_t send_measure: 1;
-			uint8_t update_lcd	: 1;
-			uint8_t update_adv	: 1;
+			uint8_t send_measure	: 1;
+			uint8_t update_lcd		: 1;
+			uint8_t update_adv		: 1;
+			uint8_t th_sensor_read	: 1;
 		} b; // bits-flags measurements completed
 	} msc; // flags measurements completed
 } work_flg_t;

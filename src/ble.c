@@ -202,19 +202,24 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 			adv_buf.meas_count = 0;
 			wrk.start_measure = 1;
 		}
-		if (wrk.msc.b.update_adv) { // new measured_data ?
-			wrk.msc.b.update_adv = 0;
-			adv_buf.call_count = 1; // count 1..cfg.measure_interval
-			adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
-			adv_buf.update_count = 0;
-			set_adv_data();
-		} else {
-#if (DEV_SERVICES & SERVICE_RDS)
-			if (!adv_buf.data_size) // flag
+		if(wrk.msc.b.th_sensor_read) { // th sensor work
+			if (wrk.msc.b.update_adv) { // new measured_data ?
+				wrk.msc.b.update_adv = 0;
+				adv_buf.call_count = 1; // count 1..cfg.measure_interval
 				adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
-#endif
-			if (++adv_buf.call_count > adv_buf.update_count) // refresh adv_buf.data ?
+				adv_buf.update_count = 0;
 				set_adv_data();
+			} else {
+#if (DEV_SERVICES & SERVICE_RDS)
+				if (!adv_buf.data_size) // flag adv_buf.send_count++ over adv.event
+					adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
+#endif
+				if (++adv_buf.call_count > adv_buf.update_count) // refresh adv_buf.data ?
+					set_adv_data();
+			}
+		} else { // th sensor bad
+			adv_buf.data_size = 0;
+			load_adv_data();
 		}
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 		if(ext_key.rest_adv_int_tad) {

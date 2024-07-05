@@ -700,7 +700,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) || (USE_SENSOR_HX71X)
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
 #endif
-	start_tst_battery(); // step 2
+	// start_tst_battery(); // step 2
 	init_sensor();
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
 	hx711_gpio_wakeup();
