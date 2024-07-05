@@ -439,9 +439,11 @@ For CGG1, MHO_C401, CGDK2, MJWSD05MMC, a button on the case is used.
 
 It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P8" (GPIO PA6) and GND.
 
+![RS_LYWSD03MMC_1.jpg](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout/RS_LYWSD03MMC_1.jpg)
+
 The button on the body can turn the light on and off when creating a scenario in an external program...
 
-The state of the reed switch or button is transferred to the advertising packet and events are sent in the "Switch" and "Ccounter" modes.
+The state of the reed switch or button is transferred to the advertising packet and events are sent in the "Switch" and "Counter" modes.
 
 Setting the "Connect" option has several functions:
 
