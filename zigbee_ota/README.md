@@ -12,7 +12,9 @@ Zigbee to BLE
 | 0x0209 |  MJWSD05MMC |
 | 0x020A |  LYWSD03MMC |
 | 0x020B |  MHO-C122 |
+| 0x0210 |  TB-03F |
 | 0x0211 |  TS0201-TZ3000 |
+| 0x0211 |  TNK01 |
 | 0x0216 |  TH03Z |
 | 0x021b |  ZTH01 |
 | 0x021c |  ZTH02 |

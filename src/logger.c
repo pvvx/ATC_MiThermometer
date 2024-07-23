@@ -191,6 +191,10 @@ void write_memo(void) {
 		mblk.temp = measured_data.temp;
 		mblk.humi = measured_data.humi;
 #endif
+#if (DEV_SERVICES & SERVICE_IUS)
+		mblk.temp = measured_data.current;
+		mblk.humi = measured_data.voltage;
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 		mblk.vbat = measured_data.pressure;
 #else
@@ -204,6 +208,10 @@ void write_memo(void) {
 #if (DEV_SERVICES & SERVICE_THS)
 		summ_data.temp += measured_data.temp;
 		summ_data.humi += measured_data.humi;
+#endif
+#if (DEV_SERVICES & SERVICE_IUS)
+		mblk.temp += measured_data.current;
+		mblk.humi += measured_data.voltage;
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 		summ_data.battery_mv += measured_data.pressure;
