@@ -12,6 +12,7 @@
 #define USE_SENSOR_HX71X	0
 #endif // USE_SENSOR_HX71X
 
+#if USE_SENSOR_HX71X
 // Set X71X Output Data Rate 10 sps (pin RATE to "0")
 
 #define MAX_TANK_VOLUME_10ML 32768 // 327 liters
@@ -59,6 +60,6 @@ inline void hx711_gpio_wakeup(void) {
 	gpio_setup_up_down_resistor(GPIO_HX71X_SCK, PM_PIN_PULLDOWN_100K);
 }
 
-
+#endif // USE_SENSOR_HX71X
 
 #endif /* HX71X_H_ */

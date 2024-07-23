@@ -187,8 +187,10 @@ __attribute__((optimize("-Os")))
 void write_memo(void) {
 	memo_blk_t mblk;
 	if (cfg.averaging_measurements == 1) {
+#if (DEV_SERVICES & SERVICE_THS)
 		mblk.temp = measured_data.temp;
 		mblk.humi = measured_data.humi;
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 		mblk.vbat = measured_data.pressure;
 #else
@@ -199,8 +201,10 @@ void write_memo(void) {
 #endif
 #endif
 	} else {
+#if (DEV_SERVICES & SERVICE_THS)
 		summ_data.temp += measured_data.temp;
 		summ_data.humi += measured_data.humi;
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 		summ_data.battery_mv += measured_data.pressure;
 #else

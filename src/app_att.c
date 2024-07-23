@@ -199,6 +199,14 @@ static const u8 my_SerialStr[] = {"0000-0000-0000-0004"}; // "0000-0000-0000-000
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"DIY.home"};
 
+#elif DEVICE_TYPE == DEVICE_TB03F
+static const u8 my_ModelStr[] = {"TB-03F"};
+static const u8 my_HardStr[4] = {"V1.0"};// = {"V1.0"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-0004"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"DIY.home"};
 #else
 #error "DEVICE_TYPE = ?"
 #endif
@@ -222,15 +230,24 @@ RAM u16 batteryValueInCCC;
 
 //////////////////////// Temp/Hum /////////////////////////////////////////////////
 #define CHARACTERISTIC_UUID_TEMPERATYRE 0x2A6E // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.temperature.xml
+#define CHARACTERISTIC_UUID_TEMPERATYRE2 0x2A1F
 #define CHARACTERISTIC_UUID_HUMIDITY 0x2A6F // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.humidity.xml
 
-static const u16 my_tempServiceUUID       = 0x181A;
-static const u16 my_tempCharUUID       	  = 0x2A1F;
+const u16 my_envServiceUUID       = 0x181A; // environmental_sensing
+#if (DEV_SERVICES & SERVICE_THS)
+static const u16 my_tempCharUUID       	  = CHARACTERISTIC_UUID_TEMPERATYRE2;
 static const u16 my_temp2CharUUID      	  = CHARACTERISTIC_UUID_TEMPERATYRE;
 static const u16 my_humiCharUUID       	  = CHARACTERISTIC_UUID_HUMIDITY;
 RAM u16 tempValueInCCC;
 RAM u16 temp2ValueInCCC;
 RAM u16 humiValueInCCC;
+#endif
+
+#if (DEV_SERVICES & SERVICE_IUS)
+#define CHARACTERISTIC_UUID_ANALOG	0x2A58 // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.analog.xml
+const u16 my_anaCharUUID	= CHARACTERISTIC_UUID_ANALOG;
+RAM u16 anaValueInCCC;
+#endif
 
 ///////////////////////// OTA ////////////////////////////////
 static const  u8 my_OtaUUID[16]					    = TELINK_SPP_DATA_OTA;
@@ -287,24 +304,34 @@ static const u8 my_batCharVal[5] = {
 	U16_LO(CHARACTERISTIC_UUID_BATTERY_LEVEL), U16_HI(CHARACTERISTIC_UUID_BATTERY_LEVEL)
 };
 
+#if (DEV_SERVICES & SERVICE_THS)
 //// Temp attribute values
 static const u8 my_tempCharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
 	U16_LO(TEMP_LEVEL_INPUT_DP_H), U16_HI(TEMP_LEVEL_INPUT_DP_H),
-	U16_LO(0x2A1F), U16_HI(0x2A1F)
+	U16_LO(CHARACTERISTIC_UUID_TEMPERATYRE2), U16_HI(CHARACTERISTIC_UUID_TEMPERATYRE2)
 };
 static const u8 my_temp2CharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
 	U16_LO(TEMP_LEVEL_INPUT_DP_H), U16_HI(TEMP_LEVEL_INPUT_DP_H),
-	U16_LO(0x2A6E), U16_HI(0x2A6E)
+	U16_LO(CHARACTERISTIC_UUID_TEMPERATYRE), U16_HI(CHARACTERISTIC_UUID_TEMPERATYRE)
 };
 
 //// Humi attribute values
 static const u8 my_humiCharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
 	U16_LO(HUMI_LEVEL_INPUT_DP_H), U16_HI(HUMI_LEVEL_INPUT_DP_H),
-	U16_LO(0x2A6F), U16_HI(0x2A6F)
+	U16_LO(CHARACTERISTIC_UUID_HUMIDITY), U16_HI(CHARACTERISTIC_UUID_HUMIDITY)
 };
+#endif
+#if (DEV_SERVICES & SERVICE_IUS)
+//// Temp attribute values
+static const u8 my_anaCharVal[5] = {
+	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
+	U16_LO(ANA_VALUE_INPUT_DP_H), U16_HI(ANA_VALUE_INPUT_DP_H),
+	U16_LO(CHARACTERISTIC_UUID_ANALOG), U16_HI(CHARACTERISTIC_UUID_ANALOG)
+};
+#endif
 
 //// OTA attribute values
 #define TELINK_SPP_DATA_OTA1 				0x12,0x2B,0x0d,0x0c,0x0b,0x0a,0x09,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00
@@ -320,93 +347,6 @@ static const u8 my_RxTxCharVal[5] = {
 	U16_LO(RxTx_CMD_OUT_DP_H), U16_HI(RxTx_CMD_OUT_DP_H),
 	U16_LO(COMMAND_UUID16_CHARACTERISTIC), U16_HI(COMMAND_UUID16_CHARACTERISTIC)
 };
-#if USE_MIHOME_SERVICE
-#define MAX_MI_ATT_NUM 20
-//u8 mi_pri_service_perm = ATT_PERMISSIONS_READ_AUTHOR;
-
-//// Mi 0xFE95 service
-#define BLE_UUID_MI_TOKEN 		0x0001
-#define BLE_UUID_MI_PRODUCT_ID	0x0002
-#define BLE_UUID_MI_VERS     	0x0004                    /**< The UUID of the Mi Service Version Characteristic. */
-#define BLE_UUID_MI_WIFICONFIG	0x0005
-#define BLE_UUID_MI_CTRLP    	0x0010                    /**< The UUID of the Control Point Characteristic. */
-#define BLE_UUID_MI_DEVICE_ID	0x0013
-#define BLE_UUID_BEACON_KEY		0x0014
-#define BLE_UUID_DEVICE_LIST 	0x0015
-#define BLE_UUID_MI_SECURE   	0x0016                    /**< The UUID of the Secure Auth Characteristic. */
-#define BLE_UUID_MI_OTA_CTRL 	0x0017                    /**< The UUID of the OTA Control Point Characteristic. */
-#define BLE_UUID_MI_OTA_DATA 	0x0018                    /**< The UUID of the OTA Data Characteristic. */
-#define BLE_UUID_MI_STANDARD 	0x0019                    /**< The UUID of the Standard Auth Characteristic. */
-
-//// Mi-Home stdio service
-#define BLE_UUID_STDIO_SRV    {0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x00,0x01,0x00,0x00}
-#define BLE_UUID_STDIO_RX     {0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x01,0x01,0x00,0x00}
-#define BLE_UUID_STDIO_TX     {0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x02,0x01,0x00,0x00}
-
-//// Mi device service
-#define BLE_UUID_MIH_SRV        {0xeb,0xe0,0xcc,0xb0, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_Time       {0xeb,0xe0,0xcc,0xb7, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_DataCount  {0xeb,0xe0,0xcc,0xb9, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_Index      {0xeb,0xe0,0xcc,0xba, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_DataRead   {0xeb,0xe0,0xcc,0xbb, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_DataNotify {0xeb,0xe0,0xcc,0xbc, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_TempUnit   {0xeb,0xe0,0xcc,0xbe, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_TempHumi   {0xeb,0xe0,0xcc,0xc1, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_Batt       {0xeb,0xe0,0xcc,0xc4, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_ClearData  {0xeb,0xe0,0xcc,0xd1, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_Comfort    {0xeb,0xe0,0xcc,0xd7, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_ConIntr    {0xeb,0xe0,0xcc,0xd8, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-#define BLE_UUID_MIH_ParaValGet {0xeb,0xe0,0xcc,0xd9, 0x7a,0x0a, 0x4b,0x0c, 0x8a,0x1a, 0x6f,0xf2,0x99,0x7d,0xa3,0xa6}
-
-const u16 mi_version_uuid = BLE_UUID_MI_VERS; // 0004
-static const u8 mi_version_prop = CHAR_PROP_READ;
-static const u8 mi_version_buf[20] = {"1.0.0_0001"};
-const u8 mi_version_str[]="Version";
-
-const u16 mi_auth_uuid = BLE_UUID_MI_CTRLP;	// 0010
-static const u8 mi_auth_prop = CHAR_PROP_WRITE_WITHOUT_RSP|CHAR_PROP_NOTIFY;
-static u8 mi_auth_buf[4]; // = 0x24 [0x24,0,0,0]
-const u8 mi_auth_str[]="Authentication";
-RAM u8 mi_auth_ccc[2];
-
-const u16 mi_ota_ctrl_uuid = BLE_UUID_MI_OTA_CTRL; // 0017
-static const u8 mi_ota_ctrl_prop = CHAR_PROP_WRITE|CHAR_PROP_NOTIFY;
-static u8 mi_ota_ctrl_buf[20];
-const u8 mi_ota_ctrl_str[]="ota_ctrl";
-RAM u8 mi_ota_ctrl_ccc[2];
-
-const u16 mi_ota_data_uuid = BLE_UUID_MI_OTA_DATA; // 0018
-static const u8 mi_ota_data_prop = CHAR_PROP_WRITE_WITHOUT_RSP|CHAR_PROP_NOTIFY;
-static u8 mi_ota_data_buf[20];
-const u8 mi_ota_data_str[]="ota_data";
-RAM u8 mi_ota_data_ccc[2];
-
-const u16 mi_standard_uuid = BLE_UUID_MI_STANDARD; // 0019
-static const u8 mi_standard_prop = CHAR_PROP_WRITE_WITHOUT_RSP|CHAR_PROP_NOTIFY;
-static u8 mi_standard_buf[20];
-const u8 mi_standard_str[]="standard";
-RAM u8 mi_standard_ccc[2];
-
-#define MAX_MI_STDIO_NUM	9
-const u8 mi_primary_stdio_uuid[16] = BLE_UUID_STDIO_SRV;
-
-const u8 mi_stdio_rx_uuid[16] = BLE_UUID_STDIO_RX;
-static const u8 mi_stdio_rx_prop = CHAR_PROP_WRITE_WITHOUT_RSP;
-static u8 mi_stdio_rx_buf[20];
-const u8 mi_stdio_rx_str[]="STDIO_RX";
-RAM u8 mi_stdio_rx_ccc[2];
-
-const u8 mi_stdio_tx_uuid[16] = BLE_UUID_STDIO_TX;
-static const u8 mi_stdio_tx_prop = CHAR_PROP_NOTIFY;
-static u8 mi_stdio_tx_buf[20];
-const u8 mi_stdio_tx_str[]="STDIO_TX";
-RAM u8 mi_stdio_tx_ccc[2];
-
-//u8 generic_perm_rd = ATT_PERMISSIONS_READ;// this part will not change ,only the mi part will change
-//u8 generic_perm_wr = ATT_PERMISSIONS_RDWR;// this part will not change ,only the mi part will change
-//u8 generic_perm_au = ATT_PERMISSIONS_READ_AUTHOR;
-
-#endif // USE_MIHOME_SERVICE
 // TM : to modify
 //static const
 RAM attribute_t my_Attributes[] = {
@@ -456,9 +396,10 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_batCharVal),(u8*)(&my_characterUUID), (u8*)(my_batCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.battery_level),(u8*)(&my_batCharUUID),(u8*)(&measured_data.battery_level), 0},	//value
 		{0,ATT_PERMISSIONS_RDWR,2,sizeof(batteryValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&batteryValueInCCC), 0},	//value
-	////////////////////////////////////// Temp Service /////////////////////////////////////////////////////
+#if (DEV_SERVICES & SERVICE_THS)
+	////////////////////////////////////// TH Service /////////////////////////////////////////////////////
 	// 001D - 0026
-	{10,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_tempServiceUUID), 0},
+	{10,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_envServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempCharVal),(u8*)(&my_characterUUID),(u8*)(my_tempCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.temp_x01),(u8*)(&my_tempCharUUID),(u8*)(&measured_data.temp_x01), 0},	//value
 		{0,ATT_PERMISSIONS_RDWR,2,sizeof(tempValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&tempValueInCCC), 0},	//value
@@ -470,6 +411,12 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_humiCharVal),(u8*)(&my_characterUUID), (u8*)(my_humiCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.humi),(u8*)(&my_humiCharUUID),(u8*)(&measured_data.humi), 0},	//value
 		{0,ATT_PERMISSIONS_RDWR,2,sizeof(humiValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&humiValueInCCC), 0},	//value
+#elif (DEV_SERVICES & SERVICE_IUS)
+	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_envServiceUUID), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_anaCharVal),(u8*)(&my_characterUUID),(u8*)(my_anaCharVal), 0},				//prop
+		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.voltage),(u8*)(&my_anaCharUUID),(u8*)(&measured_data.voltage), 0},	//value
+		{0,ATT_PERMISSIONS_RDWR,2,sizeof(anaValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&anaValueInCCC), 0},	//value
+#endif
 	////////////////////////////////////// OTA /////////////////////////////////////////////////////
 	// 0027 - 002A
 	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID),(u8*)(&my_OtaServiceUUID), 0},
@@ -482,48 +429,9 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ, 2,sizeof(my_RxTxCharVal),(u8*)(&my_characterUUID),	(u8*)(my_RxTxCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_RDWR, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID), (u8*)&my_RxTx_Data, &RxTxWrite, 0},
 		{0,ATT_PERMISSIONS_RDWR, 2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(&RxTxValueInCCC), 0},	//value
-#if USE_MIHOME_SERVICE
-	///////////////////////////////////MI_SERVICE//////////////////////////////////////////////////
-	{20,ATT_PERMISSIONS_AUTHOR_READ, 2,2,(u8*)(&my_primaryServiceUUID),	(u8*)(&mi_primary_service_uuid), 0}, // 0xFE95 service uuid
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_version_prop), 0},				//prop
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_version_buf),(u8*)(&mi_version_uuid), (u8*)(mi_version_buf), 0, 0},	//value "1.0.0_0001"
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_version_str),(u8*)(&userdesc_UUID), (u8*)(mi_version_str), 0},    // Version
-
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_auth_prop), 0},				//prop
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_auth_buf),(u8*)(&mi_auth_uuid), (u8*)(mi_auth_buf), 0, 0},			//value
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_auth_str),(u8*)(&userdesc_UUID), (u8*)(mi_auth_str), 0},		// Authentication
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_auth_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(&mi_auth_ccc), 0}, //value
-
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_ota_ctrl_prop), 0},				//prop
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_ota_ctrl_buf),(u8*)(&mi_ota_ctrl_uuid), (u8*)(mi_ota_ctrl_buf), 0, 0},	//value
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_ota_ctrl_str),(u8*)(&userdesc_UUID), (u8*)(mi_ota_ctrl_str), 0},	// ota_ctrl
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_ota_ctrl_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_ota_ctrl_ccc), 0}, //value
-
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_ota_data_prop), 0},				//prop
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_ota_data_buf),(u8*)(&mi_ota_data_uuid), (mi_ota_data_buf), 0, 0},			//value
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_ota_data_str),(u8*)(&userdesc_UUID), (u8*)(mi_ota_data_str), 0},	// ota_data
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_ota_data_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_ota_data_ccc), 0}, //value
-
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_standard_prop), 0},				//prop
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_standard_buf),(u8*)(&mi_standard_uuid), (u8*)(mi_standard_buf), 0, 0},			//value
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_standard_str),(u8*)(&userdesc_UUID), (u8*)(mi_standard_str), 0},	// standard
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_standard_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_standard_ccc), 0}, //value
-	/////////////////////////////////// Mi STDIO Service ///////////////////////////////////
-	{9,ATT_PERMISSIONS_AUTHOR_READ, 2,16,(u8*)(&my_primaryServiceUUID), (u8*)(&mi_primary_stdio_uuid), 0}, // 0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x00,0x01,0x00,0x00
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_stdio_rx_prop), 0},				//prop
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 16,sizeof(mi_stdio_rx_buf),(u8*)(&mi_stdio_rx_uuid), (u8*)(mi_stdio_rx_buf), 0, 0}, //value 0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x01,0x01,0x00,0x00
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_stdio_rx_str),(u8*)(&userdesc_UUID), (u8*)(mi_stdio_rx_str), 0}, // STDIO_RX
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_stdio_rx_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_stdio_rx_ccc), 0}, //value
-
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, 1,(u8*)(&my_characterUUID), (u8*)(&mi_stdio_tx_prop), 0},				//prop
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 16, sizeof(mi_stdio_tx_buf),(u8*)(&mi_stdio_tx_uuid), (u8*)(mi_stdio_tx_buf), 0, 0}, //value 0x6D,0x69,0x2E,0x6D,0x69,0x6F,0x74,0x2E,0x62,0x6C,0x65,0x00,0x02,0x01,0x00,0x00
-		{0,ATT_PERMISSIONS_AUTHOR_READ, 2, sizeof(mi_stdio_tx_str),(u8*)(&userdesc_UUID), (u8*)(mi_stdio_tx_str), 0}, // STDIO_TX
-		{0,ATT_PERMISSIONS_AUTHOR_RDWR, 2, sizeof(mi_stdio_tx_ccc),(u8*)(&clientCharacterCfgUUID), (u8*)(mi_stdio_tx_ccc), 0}, //value
-#else // USE_MIHOME_SERVICE
 	//Mi 0x95FE
 	{2,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&mi_primary_service_uuid), 0},
 		{0,ATT_PERMISSIONS_READ, 2,sizeof (my_MiName),(u8*)(&userdesc_UUID),(u8*)(my_MiName), 0},
-#endif // USE_MIHOME_SERVICE
 };
 
 void my_att_init(void) {

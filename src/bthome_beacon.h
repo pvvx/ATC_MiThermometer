@@ -85,17 +85,17 @@ typedef enum {
 	BtHomeID_distance_mm  = 0x40,	//0x40, uint16, mm
 	BtHomeID_distance_m = 0x41,		//0x41, uint16, m, 0.1
 	BtHomeID_duration = 0x42,		//0x42, uint24, 0.01
-	BtHomeID_current = 0x43,		//0x43, uint16, 0.001
+	BtHomeID_current = 0x43,		//0x43, uint16, 0.001 A
 	BtHomeID_speed = 0x44,			//0x44, uint16, 0.01
 	BtHomeID_temperature_01 = 0x45,	//0x45, sint16, 0.1
 	BtHomeID_UV_index = 0x46,		//0x46, uint8, 0.1
-	BtHomeID_volume16_01 = 0x47,	//0x47, uint16, 0.1
-	BtHomeID_volume16 = 0x48,		//0x48, uint16, 1
+	BtHomeID_volume16_01 = 0x47,	//0x47, uint16, 0.1 L
+	BtHomeID_volume16 = 0x48,		//0x48, uint16, 1 L
 	BtHomeID_Flow_Rate = 0x49,		//0x49, uint16, 0.001
-	BtHomeID_voltage_01 = 0x4a,		//0x4a, uint16, 0.1
+	BtHomeID_voltage_01 = 0x4a,		//0x4a, uint16, 0.1 V
 	BtHomeID_gas24 = 0x4b,			//0x4b, uint24, 0.001
 	BtHomeID_gas32 = 0x4c,			//0x4c, uint32, 0.001
-	BtHomeID_energy32 = 0x4d,		//0x4d, uint32, 0.001
+	BtHomeID_energy32 = 0x4d,		//0x4d, uint32, 0.001 kWh
 	BtHomeID_volume32 = 0x4e,		//0x4e, uint32, 0.001 L
 	BtHomeID_water32 = 0x4f,		//0x4f, uint32, 0.001
 	BtHomeID_timestamp = 0x50,		//0x50, uint48
@@ -114,19 +114,32 @@ typedef struct __attribute__((packed)) _adv_head_bth_t {
 typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 	uint8_t		b_id;	// = BtHomeID_battery
 	uint8_t		battery_level; // 0..100 %
+#if (DEV_SERVICES & SERVICE_THS)
 	uint8_t		t_id;	// = BtHomeID_temperature
 	int16_t		temperature; // x 0.01 degree
 	uint8_t		h_id;	// = BtHomeID_humidity
 	uint16_t	humidity; // x 0.01 %
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 	uint8_t		l_id;	// = BtHomeID_volume16_01
 	uint32_t	volume; // x 0.001 l
 #endif
+#if (DEV_SERVICES & SERVICE_IUS)
+	uint8_t		u_id;	// BtHomeID_voltage
+	uint16_t	voltage; // x 0.001 V
+	uint8_t		i_id; 	// BtHomeID_current
+	uint16_t	current; // x 0.001 A
+#endif
 } adv_bthome_data1_t, * padv_bthome_data1_t; // max 15 bytes!
 
 typedef struct __attribute__((packed)) _adv_bthome_data2_t {
+#if (DEV_SERVICES & SERVICE_IUS)
+	uint8_t		e_id; // BtHomeID_energy32
+	uint32_t	energy; // x 0.001 W
+#else
 	uint8_t		v_id;	// = BtHomeID_voltage
 	uint16_t	battery_mv; // mV
+#endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 	uint8_t		s_id;	// = BtHomeID_opened / BtHomeID_switch ?
 	uint8_t		swtch;

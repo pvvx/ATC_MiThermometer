@@ -166,8 +166,16 @@ const cfg_t def_cfg = {
 		.advertising_interval = 24, // multiply by 62.5 ms = 1.5 sec
 		.measure_interval = 2, // * advertising_interval = 3 sec
 		.hw_ver = DEVICE_TYPE,
-#if USE_FLASH_MEMO
+#if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 200, // * measure_interval = 3 * 200 = 600 sec = 10 minutes
+#endif
+#elif (DEVICE_TYPE == DEVICE_TB03F)
+		.flg2.adv_flags = true,
+		.advertising_interval = 34, // multiply by 62.5 ms = 2.125 sec
+		.measure_interval = 4, // * advertising_interval = 8500 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 212, // * measure_interval = 8.5 * 212 = 1802 sec = 30 minutes
 #endif
 #elif (DEVICE_TYPE == DEVICE_TS0201) || (DEVICE_TYPE == DEVICE_TH03Z) || (DEVICE_TYPE == DEVICE_ZTH01) || (DEVICE_TYPE == DEVICE_ZTH02)
 		.flg2.adv_flags = true,
@@ -239,7 +247,7 @@ void set_hw_version(void) {
 	uint8_t hwver = 0;
 	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 //		if (cfg.hw_cfg.shtc3) { // sensor SHTC3 ?
-		if (thsensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
+		if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
 			hwver = HW_VER_LYWSD03MMC_B14; // HW:B1.4
 		} else { // sensor SHT4x or ?
 			hwver = HW_VER_LYWSD03MMC_B17; // HW:B1.7 or B2.0
@@ -260,7 +268,7 @@ void set_hw_version(void) {
 			hwver = HW_VER_LYWSD03MMC_B19; // HW:B1.9
 		else { // UART
 			// if(cfg.hw_cfg.shtc3)
-			if (thsensor_cfg.sensor_type == TH_SENSOR_SHTC3)
+			if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3)
 				hwver = HW_VER_LYWSD03MMC_B15; // HW:B1.5
 			else
 				hwver = HW_VER_LYWSD03MMC_B16; // HW:B1.6
@@ -418,10 +426,16 @@ void low_vbat(void) {
 	go_sleep(120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 }
 
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+#if SENSOR_SLEEP_MEASURE
 _attribute_ram_code_
 void WakeupLowPowerCb(int par) {
 	(void) par;
-	if (thsensor_cfg.time_measure) {
+	if (sensor_cfg.time_measure) {
+#else
+_attribute_ram_code_
+void read_sensors(void) {
+#endif
 #if (DEV_SERVICES & SERVICE_RDS)
 			rds_input_on();
 #endif
@@ -436,9 +450,11 @@ void WakeupLowPowerCb(int par) {
 #ifdef CHL_ADC2 // DIY version only!
 			measured_data.humi = get_adc_mv(CHL_ADC2);
 #endif
+#if (DEV_SERVICES & SERVICE_THS)
 			measured_data.temp_x01 = (measured_data.temp + 5)/ 10;
 			measured_data.humi_x01 = (measured_data.humi + 5)/ 10;
 			measured_data.humi_x1 = (measured_data.humi + 50)/ 100;
+#endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 			set_trigger_out();
 #endif
@@ -467,10 +483,13 @@ void WakeupLowPowerCb(int par) {
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
 		SET_LCD_UPDATE();
 #endif
-		thsensor_cfg.time_measure = 0;
+#if SENSOR_SLEEP_MEASURE
+		sensor_cfg.time_measure = 0;
 	}
 	bls_pm_setAppWakeupLowPower(0, 0); // clear callback
+#endif
 }
+#endif
 
 _attribute_ram_code_
 static void suspend_exit_cb(u8 e, u8 *p, int n) {
@@ -635,10 +654,10 @@ void user_init_normal(void) {//this will get executed one time after power up
 				!= FEEP_SAVE_SIZE_TRG)
 			memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #endif
-#if (DEV_SERVICES & SERVICE_THS)
-		if (flash_read_cfg(&thsensor_cfg.coef, EEP_ID_CFS, sizeof(thsensor_cfg.coef))
-				!= sizeof(thsensor_cfg.coef))
-			memset(&thsensor_cfg.coef, 0, sizeof(thsensor_cfg.coef));
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+		if (flash_read_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef))
+				!= sizeof(sensor_cfg.coef))
+			memset(&sensor_cfg.coef, 0, sizeof(sensor_cfg.coef));
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE) && USE_SENSOR_HX71X
 		if (flash_read_cfg(&hx71x.cfg, EEP_ID_HXC, sizeof(hx71x.cfg))
@@ -701,7 +720,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
 #endif
 	// start_tst_battery(); // step 2
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
 	init_sensor();
+#endif
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
 	hx711_gpio_wakeup();
 	hx71x_get_data(HX71XMODE_A128);
@@ -770,8 +791,10 @@ void main_loop(void) {
 		}
 #endif
 	}
-	if(thsensor_cfg.time_measure && clock_time() - thsensor_cfg.time_measure > thsensor_cfg.measure_timeout)
+#if SENSOR_SLEEP_MEASURE
+	if(sensor_cfg.time_measure && clock_time() - sensor_cfg.time_measure > sensor_cfg.measure_timeout)
 		WakeupLowPowerCb(0);
+#endif
 	if (wrk.ota_is_working) {
 #if (DEV_SERVICES & SERVICE_OTA_EXT)
 		if(wrk.ota_is_working == OTA_EXTENDED) {
@@ -861,9 +884,10 @@ void main_loop(void) {
 			SET_LCD_UPDATE();
 		}
 #endif
+#if SENSOR_SLEEP_MEASURE
 		if (wrk.start_measure
-			&& thsensor_cfg.time_measure == 0
-//			&& bls_pm_getSystemWakeupTick() - new > thsensor_cfg.measure_timeout + 5*CLOCK_16M_SYS_TIMER_CLK_1MS // есть время на замер ?
+			&& sensor_cfg.time_measure == 0
+//			&& bls_pm_getSystemWakeupTick() - new > sensor_cfg.measure_timeout + 5*CLOCK_16M_SYS_TIMER_CLK_1MS // есть время на замер ?
 			) {
 
 			wrk.start_measure = 0;
@@ -880,18 +904,29 @@ void main_loop(void) {
 #endif
 			if(cfg.flg.lp_measures == 0
 #if USE_SENSOR_SHTC3
-				|| thsensor_cfg.sensor_type == TH_SENSOR_SHTC3
+				|| sensor_cfg.sensor_type == TH_SENSOR_SHTC3
 #endif
 				) {
-				if(clock_time() - thsensor_cfg.time_measure > thsensor_cfg.measure_timeout - 3)
+				if(clock_time() - sensor_cfg.time_measure > sensor_cfg.measure_timeout - 3)
 					WakeupLowPowerCb(0);
 				else {
 					bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
-					bls_pm_setAppWakeupLowPower(thsensor_cfg.time_measure + thsensor_cfg.measure_timeout, 1);
+					bls_pm_setAppWakeupLowPower(sensor_cfg.time_measure + sensor_cfg.measure_timeout, 1);
 				}
 			}
 #endif
-		} else {
+		} else
+#else // ! SENSOR_SLEEP_MEASURE
+		if (wrk.start_measure) {
+			wrk.start_measure = 0;
+			check_battery();
+			read_sensors();
+#if (DEV_SERVICES & SERVICE_PRESSURE)
+			measured_data.pressure = hx71x_get_volume();
+#endif
+		} else
+#endif
+		{
 			if (wrk.ble_connected && blc_ll_getTxFifoNumber() < 9) {
 				// if ble_connected & TxFifo ready
 				if (wrk.msc.b.send_measure) {
@@ -903,12 +938,18 @@ void main_loop(void) {
 					}
 					if (batteryValueInCCC)
 						ble_send_battery();
+#if (DEV_SERVICES & SERVICE_THS)
 					if (tempValueInCCC)
 						ble_send_temp();
 					if (temp2ValueInCCC)
 						ble_send_temp2();
 					if (humiValueInCCC)
 						ble_send_humi();
+#endif
+#if (DEV_SERVICES & SERVICE_IUS)
+					if (anaValueInCCC)
+						ble_send_ana();
+#endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
 				} else if (rd_memo.cnt) {
 					send_memo_blk();
@@ -933,7 +974,11 @@ void main_loop(void) {
 				utc_time_sec = rtc_get_utime();
 			}
 #endif // (DEV_SERVICES & SERVICE_HARD_CLOCK)
-			if(thsensor_cfg.time_measure == 0) {
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+#if SENSOR_SLEEP_MEASURE
+			if(sensor_cfg.time_measure == 0)
+#endif
+			{
 				if(wrk.ble_connected) {
 					if (new - wrk.tim_measure >= measurement_step_time) {
 						wrk.tim_measure = new;
@@ -942,6 +987,7 @@ void main_loop(void) {
 					}
 				}
 			}
+#endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
 			if(!cfg.flg2.screen_off) {
 #if (USE_EPD)

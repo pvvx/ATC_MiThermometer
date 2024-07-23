@@ -29,7 +29,7 @@ extern "C" {
 // HW_VER_LYWSD03MMC_B17 = 5
 // HW_VER_LYWSD03MMC_B15 = 10
 #define DEVICE_MHO_C122		11	// LCD display MHO_C122
-//#define BOARD_TB03F		16 // DIY TB-03F-Kit
+#define DEVICE_TB03F  		16	// DIY, TB-03F-Kit module
 #define DEVICE_TS0201   	17	// ZigBee TS0201, analog: IH-K009
 #define DEVICE_TNK01		18	// DIY, PB-03F module, Water tank controller
 //#define DEVICE_THB2		19	// PHY62x2 BLE https://github.com/pvvx/THB2
@@ -55,7 +55,7 @@ extern "C" {
 #define SERVICE_HISTORY 	0x00000010	// flash logger enable
 #define SERVICE_SCREEN		0x00000020	// screen
 #define SERVICE_LE_LR		0x00000040	// support extension advertise + LE Long Range
-#define SERVICE_THS			0x00000080	// T & H sensor (always set!)
+#define SERVICE_THS			0x00000080	// T & H sensor
 #define SERVICE_RDS			0x00000100	// wake up when the reed switch + pulse counter
 #define SERVICE_KEY			0x00000200	// key "connect"
 #define SERVICE_OUTS		0x00000400	// GPIO output
@@ -65,15 +65,14 @@ extern "C" {
 #define SERVICE_TH_TRG		0x00004000	// use TH trigger out
 #define SERVICE_LED			0x00008000	// use led
 #define SERVICE_MI_KEYS		0x00010000	// use mi keys
-#define SERVICE_PRESSURE	0x00020000	// pressure sensor (not complete)
+#define SERVICE_PRESSURE	0x00020000	// pressure sensor
+#define SERVICE_IUS			0x00040000	// I and U sensor (INA226)
 
 /* minimal DEV_SERVICES:
-#define DEV_SERVICES ( SERVICE_OTA \
-		| SERVICE_OTA_EXT \
-		| SERVICE_THS ) */
-
-#define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
-#define USE_FLASH_SERIAL_UID		0 // = 1 Set my_SerialStr "$SOC_ID_Rev-$FLASH_JEDEC-$FLASH_UID"
+#define DEV_SERVICES ( SERVICE_OTA \ // OTA enable
+		| SERVICE_OTA_EXT \ // Compatible BigOTA/ZigbeeOTA
+		| SERVICE_THS )  // T & H sensor
+*/
 
 #if DEVICE_TYPE == DEVICE_MHO_C401
 // TLSR8251F512ET24
@@ -1136,10 +1135,10 @@ extern "C" {
 
 
 #elif DEVICE_TYPE == DEVICE_TNK01
-//#warning "Not completed, in the process of adding"
+
 // TLSR8253F512ET32 (TB-03F module)
 // GPIO_PA0 - free
-// GPIO_PA1 - free used TRG
+// GPIO_PA1 - free, used TRG
 // GPIO_PA7 - SWS, used KEY
 // GPIO_PB1 - free
 // GPIO_PB4 - LED E
@@ -1252,10 +1251,127 @@ extern "C" {
 #define PC2_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC2 PM_PIN_PULLUP_10K
 
+#elif DEVICE_TYPE == DEVICE_TB03F
+
+// TLSR8253F512ET32 (TB-03F module)
+// GPIO_PA0 - free
+// GPIO_PA1 - free, used TRG
+// GPIO_PA7 - SWS, used KEY
+// GPIO_PB1 - free
+// GPIO_PB4 - LED E
+// GPIO_PB5 - LED W
+// GPIO_PB6 - free
+// GPIO_PB7 - free
+// GPIO_PC0 - SDA, used I2C
+// GPIO_PC1 - SCL, used I2C
+// GPIO_PC2 - LED B
+// GPIO_PC3 - LED R
+// GPIO_PC4 - LED G
+// GPIO_PD2 - free
+// GPIO_PD3 - free, used RDS1 Upper level sensor
+// GPIO_PD4 - free, used RDS2 Lower level sensor
+// GPIO_PD7 - free
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_TH_TRG \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_LED \
+		| SERVICE_IUS \
+)
+//| SERVICE_TH_TRG
+// | SERVICE_THS
+
+#define USE_EPD			0 // min update time ms
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_AHT20_30		1
+#define USE_SENSOR_SHT4X		0
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		0
+
+#define USE_CUSTOM_BEACON	0
+#define USE_BTHOME_BEACON	1 	// = 1 BTHome v2 https://bthome.io/
+#define USE_MIHOME_BEACON	0 	// = 1 Compatible with MiHome beacon
+#define USE_ATC_BEACON		0
+
+#define SHL_ADC_VBAT	1  // "B0P" in adc.h
+#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define I2C_SCL 			GPIO_PC0
+#define I2C_SDA 			GPIO_PC1
+#define I2C_GROUP 			I2C_GPIO_GROUP_C0C1
+#define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
+
+#define GPIO_KEY2			GPIO_PA7
+#define PA7_INPUT_ENABLE	1
+#define PA7_DATA_OUT		0
+#define PA7_OUTPUT_ENABLE	0
+#define PA7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA7	PM_PIN_PULLUP_10K
+
+#define GPIO_LED			GPIO_PB4 // (LED E)
+#define PB4_INPUT_ENABLE	1
+#define PB4_DATA_OUT		1
+#define PB4_OUTPUT_ENABLE	0
+#define PB4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLDOWN_100K
+
+#define GPIO_TRG			GPIO_PA1
+#define PA1_INPUT_ENABLE	1
+#define PA1_DATA_OUT		0
+#define PA1_OUTPUT_ENABLE	0
+#define PA1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA1	PM_PIN_PULLDOWN_100K
+
+#define USE_RDS_WAKEAP		0
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_10K
+#define GPIO_RDS1			GPIO_PD3	// Reed Switch "Full", input
+#define PD3_INPUT_ENABLE	1
+#define PD3_DATA_OUT		0
+#define PD3_OUTPUT_ENABLE	0
+#define PD3_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD3	RDS1_PULLUP
+
+#define RDS2_PULLUP			PM_PIN_PULLUP_10K
+#define GPIO_RDS2			GPIO_PD4	// Reed Switch "Low", input
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD4 RDS2_PULLUP
+
+#define USE_SENSOR_INA216		1
+#define SENSOR_SLEEP_MEASURE 	0
+#define USE_FLASH_SERIAL_UID	1
+
 #else // DEVICE_TYPE
 #error ("DEVICE_TYPE = ?")
 #endif // DEVICE_TYPE == ?
 
+#ifndef USE_DEVICE_INFO_CHR_UUID
+#define USE_DEVICE_INFO_CHR_UUID 	1 // = 1 enable Device Information Characteristics
+#endif
+
+#ifndef USE_FLASH_SERIAL_UID
+#define USE_FLASH_SERIAL_UID		0 // = 1 Set my_SerialStr "$SOC_ID_Rev-$FLASH_JEDEC-$FLASH_UID"
+#endif
+
+#ifndef SENSOR_SLEEP_MEASURE
+#define SENSOR_SLEEP_MEASURE	1
+#endif
 
 #ifndef USE_SENSOR_HX71X
 #define USE_SENSOR_HX71X	0
@@ -1291,8 +1407,6 @@ extern "C" {
  * Set DIY_ADC_TO_TH 1 */
 #define DIY_ADC_TO_TH 	0
 
-#define USE_MIHOME_SERVICE			0 // = 1 MiHome service compatibility (missing in current version! Set = 0!)
-
 #define UART_PRINT_DEBUG_ENABLE		0 // =1 use u_printf() (PA7/SWS), source: SDK/components/application/print/u_printf.c
 
 #if UART_PRINT_DEBUG_ENABLE
@@ -1310,10 +1424,6 @@ extern "C" {
 #if (DEV_SERVICES & SERVICE_RDS) && (!defined(GPIO_RDS1))
 #error "Set GPIO_RDS1!"
 #endif
-#if !(DEV_SERVICES & SERVICE_THS)
-#error "Always set SERVICE_THS!"
-#endif
-
 
 #define MODULE_WATCHDOG_ENABLE		0 //
 #define WATCHDOG_INIT_TIMEOUT		15000  //ms (min 5000 ms if pincode)

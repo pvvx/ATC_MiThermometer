@@ -14,6 +14,7 @@ $(OUT_PATH)/src/epd_cgg1n.o \
 $(OUT_PATH)/src/epd_mho_c401.o \
 $(OUT_PATH)/src/epd_mho_c401n.o \
 $(OUT_PATH)/src/sensors.o \
+$(OUT_PATH)/src/ina226.o \
 $(OUT_PATH)/src/hx71x.o \
 $(OUT_PATH)/src/rtc_pcf85163.o \
 $(OUT_PATH)/src/trigger.o \

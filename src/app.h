@@ -196,9 +196,18 @@ typedef struct _measured_data_t {
 #else
 	uint16_t	battery_mv; // mV
 #endif
+#if (DEV_SERVICES & SERVICE_THS)
 	int16_t		temp; // x 0.01 C
 	int16_t		humi; // x 0.01 %
+#endif
+#if (DEV_SERVICES & SERVICE_IUS)
+	int16_t		current; // x 0.1 mA
+	uint16_t	voltage; // x 1 mV
+#endif
 	uint16_t 	count;
+#if (DEV_SERVICES & SERVICE_IUS)
+	uint32_t	energy; // x 0.1 uW
+#endif
 // end send part (MEASURED_MSG_SIZE)
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 	uint16_t	pressure;
@@ -206,14 +215,19 @@ typedef struct _measured_data_t {
 #if USE_AVERAGE_BATTERY
 	uint16_t	battery_mv; // mV
 #endif
+#if (DEV_SERVICES & SERVICE_THS)
 	int16_t 	temp_x01; 		// x 0.1 C
 	int16_t		humi_x01; 		// x 0.1 %
 	uint8_t 	humi_x1; 		// x 1 %
+#endif
 	uint8_t 	battery_level;	// 0..100% (average_battery_mv)
 } measured_data_t;
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
 #define  MEASURED_MSG_SIZE  8
+#else
+#define  MEASURED_MSG_SIZE  4
+#endif
 extern measured_data_t measured_data;
-
 
 typedef union {
 	uint8_t all_flgs;

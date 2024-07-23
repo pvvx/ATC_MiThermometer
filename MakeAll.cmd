@@ -26,6 +26,9 @@ make -s -j PROJECT_NAME=MHO_C401N%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MHO_C4
 @del /Q "MHO_C122%SWVER%.bin"
 make -s -j PROJECT_NAME=MHO_C122%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MHO_C122"
 @if not exist "MHO_C122%SWVER%.bin" goto :error
+@del /Q "TNK01%SWVER%.bin"
+make -s -j PROJECT_NAME=TNK01%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TNK01"
+@if not exist "TNK01%SWVER%.bin" goto :error
 @del /Q "TS0201%SWVER%.bin"
 make -s -j PROJECT_NAME=TS0201%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TS0201"
 @if not exist "TS0201%SWVER%.bin" goto :error
@@ -38,6 +41,9 @@ make -s -j PROJECT_NAME=ZTH01%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZTH01"
 @del /Q "ZTH02%SWVER%.bin"
 make -s -j PROJECT_NAME=ZTH02%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZTH02"
 @if not exist "ZTH02%SWVER%.bin" goto :error
+@del /Q "TB03F%SWVER%.bin"
+make -s -j PROJECT_NAME=TB03F%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TB03F"
+@if not exist "TB03F%SWVER%.bin" goto :error
 @exit
 :error
 echo "Error!"

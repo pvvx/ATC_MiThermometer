@@ -279,7 +279,14 @@ void cmd_parser(void * p) {
 			p->hw_version = DEVICE_TYPE;
 #endif
 			p->sw_version = VERSION;
-			p->dev_spec_data = thsensor_cfg.sensor_type;
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+			p->dev_spec_data = sensor_cfg.sensor_type;
+#else
+			p->dev_spec_data = TH_SENSOR_NONE;
+#endif
+#if USE_SENSOR_HX71X
+			p->dev_spec_data |= 0x100;
+#endif
 			p->services = DEV_SERVICES;
 			olen = sizeof(dev_id_t);
 		} else if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
@@ -592,7 +599,11 @@ void cmd_parser(void * p) {
 			memcpy(&send_buf[2+4], &ota_firmware_size_k, 4);
 			olen = 2 + 8;
 		} else if (cmd == CMD_ID_GDEVS) {   // Get address devises
-			send_buf[1] = thsensor_cfg.i2c_addr;
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+			send_buf[1] = sensor_cfg.i2c_addr;
+#else
+			send_buf[1] = 0;
+#endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
 #if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122))
 			send_buf[2] = lcd_i2c_addr;
@@ -633,24 +644,24 @@ void cmd_parser(void * p) {
 				send_buf[1] = 0xff; // Error cmd
 				olen = 2;
 			}
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
 		} else if (cmd == CMD_ID_CFS) {	// Get/Set sensor config
-			if (--len > sizeof(thsensor_cfg.coef))
-				len = sizeof(thsensor_cfg.coef);
+			if (--len > sizeof(sensor_cfg.coef))
+				len = sizeof(sensor_cfg.coef);
 			if (len) {
-				memcpy(&thsensor_cfg.coef, &req->dat[1], len);
-				flash_write_cfg(&thsensor_cfg.coef, EEP_ID_CFS, sizeof(thsensor_cfg.coef));
+				memcpy(&sensor_cfg.coef, &req->dat[1], len);
+				flash_write_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef));
 			}
-			memcpy(&send_buf[1], &thsensor_cfg, thsensor_cfg_send_size);
-			olen = thsensor_cfg_send_size + 1;
+			memcpy(&send_buf[1], &sensor_cfg, sensor_cfg_send_size);
+			olen = sensor_cfg_send_size + 1;
 		} else if (cmd == CMD_ID_CFS_DEF) {	// Get/Set default sensor config
-			memset(&thsensor_cfg, 0, thsensor_cfg_send_size);
+			memset(&sensor_cfg, 0, sensor_cfg_send_size);
 			init_sensor();
-			memcpy(&send_buf[1], &thsensor_cfg, thsensor_cfg_send_size);
-			olen = thsensor_cfg_send_size + 1;
+			memcpy(&send_buf[1], &sensor_cfg, sensor_cfg_send_size);
+			olen = sensor_cfg_send_size + 1;
 		} else if (cmd == CMD_ID_SEN_ID) { // Get sensor ID
-			memcpy(&send_buf[1], &thsensor_cfg.id, sizeof(thsensor_cfg.id));
-			olen = sizeof(thsensor_cfg.id) + 1;
+			memcpy(&send_buf[1], &sensor_cfg.id, sizeof(sensor_cfg.id));
+			olen = sizeof(sensor_cfg.id) + 1;
 #endif
 #if USE_HX71X
 		} else if (cmd == CMD_ID_HXC) { // Get/set HX71X config

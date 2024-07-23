@@ -16,7 +16,7 @@
 #if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
 
 const trigger_t def_trg = {
-#if (DEV_SERVICES & SERVICE_TH_TRG)
+#if (DEV_SERVICES & SERVICE_THS)
 		.temp_threshold = 2100, // 21 °C
 		.humi_threshold = 5000, // 50 %
 		.temp_hysteresis = -55, // enable, -0.55 °C
@@ -35,8 +35,8 @@ const trigger_t def_trg = {
 
 RAM trigger_t trg;
 
-#if (DEV_SERVICES & SERVICE_TH_TRG)
 
+#if (DEV_SERVICES & SERVICE_TH_TRG)
 _attribute_ram_code_
 void test_trg_on(void) {
 	if (trg.temp_hysteresis || trg.humi_hysteresis) {
@@ -47,6 +47,16 @@ void test_trg_on(void) {
 	}
 	gpio_setup_up_down_resistor(GPIO_TRG, trg.flg.trg_output ? PM_PIN_PULLUP_10K : PM_PIN_PULLDOWN_100K);
 }
+#endif
+
+
+#if (DEV_SERVICES & SERVICE_THS)
+#define measured_val1	measured_data.temp
+#define measured_val2	measured_data.humi
+#elif (DEV_SERVICES & SERVICE_IUS)
+#define measured_val1	measured_data.current
+#define measured_val2	measured_data.voltage
+#endif
 
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
@@ -54,21 +64,21 @@ void set_trigger_out(void) {
 	if (trg.temp_hysteresis) {
 		if (trg.flg.temp_out_on) { // temp_out on
 			if (trg.temp_hysteresis < 0) {
-				if (measured_data.temp > trg.temp_threshold - trg.temp_hysteresis) {
+				if (measured_val1 > trg.temp_threshold - trg.temp_hysteresis) {
 					trg.flg.temp_out_on = false;
 				}
 			} else {
-				if (measured_data.temp < trg.temp_threshold - trg.temp_hysteresis) {
+				if (measured_val1 < trg.temp_threshold - trg.temp_hysteresis) {
 					trg.flg.temp_out_on = false;
 				}
 			}
 		} else { // temp_out off
 			if (trg.temp_hysteresis < 0) {
-				if (measured_data.temp < trg.temp_threshold + trg.temp_hysteresis) {
+				if (measured_val1 < trg.temp_threshold + trg.temp_hysteresis) {
 					trg.flg.temp_out_on = true;
 				}
 			} else {
-				if (measured_data.temp > trg.temp_threshold + trg.temp_hysteresis) {
+				if (measured_val1 > trg.temp_threshold + trg.temp_hysteresis) {
 					trg.flg.temp_out_on = true;
 				}
 			}
@@ -77,32 +87,32 @@ void set_trigger_out(void) {
 	if (trg.humi_hysteresis) {
 		if (trg.flg.humi_out_on) { // humi_out on
 			if (trg.humi_hysteresis < 0) {
-				if (measured_data.humi > trg.humi_threshold - trg.humi_hysteresis) {
+				if (measured_val2 > trg.humi_threshold - trg.humi_hysteresis) {
 					// humi > threshold
 					trg.flg.humi_out_on = false;
 				}
 			} else { // hysteresis > 0
-				if (measured_data.humi < trg.humi_threshold - trg.humi_hysteresis) {
+				if (measured_val2 < trg.humi_threshold - trg.humi_hysteresis) {
 					// humi < threshold
 					trg.flg.humi_out_on = false;
 				}
 			}
 		} else { // humi_out off
 			if (trg.humi_hysteresis < 0) {
-				if (measured_data.humi < trg.humi_threshold + trg.humi_hysteresis) {
+				if (measured_val2 < trg.humi_threshold + trg.humi_hysteresis) {
 					// humi < threshold
 					trg.flg.humi_out_on = true;
 				}
 			} else { // hysteresis > 0
-				if (measured_data.humi > trg.humi_threshold + trg.humi_hysteresis) {
+				if (measured_val2 > trg.humi_threshold + trg.humi_hysteresis) {
 					// humi > threshold
 					trg.flg.humi_out_on = true;
 				}
 			}
 		}
 	} else trg.flg.humi_out_on = false;
+
 	test_trg_on();
 }
 
-#endif	// #if (DEV_SERVICES & SERVICE_TH_TRG)
 #endif  // (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)

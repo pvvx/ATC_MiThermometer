@@ -75,24 +75,37 @@ void bthome_encrypt_data_beacon(void) {
 		padv_bthome_data1_t p = (padv_bthome_data1_t)&buf;
 		p->b_id = BtHomeID_battery;
 		p->battery_level = measured_data.battery_level;
+#if (DEV_SERVICES & SERVICE_THS)
 		p->t_id = BtHomeID_temperature;
 		p->temperature = measured_data.temp; // x0.01 C
 		p->h_id = BtHomeID_humidity;
 		p->humidity = measured_data.humi; // x0.01 %
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 		p->l_id = BtHomeID_volume32;
 		p->volume = measured_data.pressure * 10UL; // 0.001 L
+#endif
+#if (DEV_SERVICES & SERVICE_IUS)
+		p->u_id = BtHomeID_voltage;
+		p->voltage = measured_data.voltage; // x mV
+		p->i_id = BtHomeID_current;
+		p->current = measured_data.current; // x mA
 #endif
 		bthome_encrypt(buf, sizeof(adv_bthome_data1_t));
 	} else {
 		adv_buf.call_count = 1;
 		adv_buf.send_count++;
 		padv_bthome_data2_t p = (padv_bthome_data2_t)&buf;
+#if (DEV_SERVICES & SERVICE_IUS)
+		p->e_id = BtHomeID_energy32;
+		p->energy = measured_data.energy; // x mW
+#else
 		p->v_id = BtHomeID_voltage;
 #if USE_AVERAGE_BATTERY
 		p->battery_mv = measured_data.average_battery_mv; // x mV
 #else
 		p->battery_mv = measured_data.battery_mv; // x mV
+#endif
 #endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 		p->s_id = BtHomeID_switch;
@@ -141,13 +154,21 @@ void bthome_data_beacon(void) {
 		p->pid = (uint8_t)adv_buf.send_count;
 		p->data.b_id = BtHomeID_battery;
 		p->data.battery_level = measured_data.battery_level;
+#if (DEV_SERVICES & SERVICE_THS)
 		p->data.t_id = BtHomeID_temperature;
 		p->data.temperature = measured_data.temp; // x0.01 C
 		p->data.h_id = BtHomeID_humidity;
 		p->data.humidity = measured_data.humi; // x0.01 %
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 		p->data.l_id = BtHomeID_volume32;
 		p->data.volume = measured_data.pressure * 10UL; // 0.001 L
+#endif
+#if (DEV_SERVICES & SERVICE_IUS)
+		p->data.u_id = BtHomeID_voltage;
+		p->data.voltage = measured_data.voltage; // x mV
+		p->data.i_id = BtHomeID_current;
+		p->data.current = measured_data.current; // x mA
 #endif
 		p->head.size = sizeof(adv_bthome_ns1_t) - sizeof(p->head.size);
 	} else {
@@ -155,11 +176,16 @@ void bthome_data_beacon(void) {
 		adv_buf.call_count = 1;
 		adv_buf.send_count++;
 		p->pid = (uint8_t)adv_buf.send_count;
+#if (DEV_SERVICES & SERVICE_IUS)
+		p->data.e_id = BtHomeID_energy32;
+		p->data.energy = measured_data.energy; // x mW
+#else
 		p->data.v_id = BtHomeID_voltage;
 #if USE_AVERAGE_BATTERY
 		p->data.battery_mv = measured_data.average_battery_mv; // x mV
 #else
 		p->data.battery_mv = measured_data.battery_mv; // x mV
+#endif
 #endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 		p->data.s_id = BtHomeID_switch;

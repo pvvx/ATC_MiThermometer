@@ -80,8 +80,8 @@ uint16_t hx71x_get_volume(void) { // in 10 milliliters
 	uint16_t value;
 	if(hx71x.count > 1) {
 		value = (uint16_t)((uint32_t)(hx71x.summator / hx71x.count));
-		hx71x.count = 0;
-		hx71x.summator = 0;
+		hx71x.count = 1;
+		hx71x.summator = value;
 	} else
 		value = (uint16_t)hx71x.summator;
 	return value;
