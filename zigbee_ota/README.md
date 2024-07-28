@@ -21,5 +21,6 @@ From [ZigbeeTLc](https://github.com/pvvx/ZigbeeTLc) firmware to BLE:
 
 From [devbis Zigbee](https://github.com/devbis/z03mmc) firmware to BLE:
 
-db15-0203-99993001-ATC_vxx.zigbee new version `devbis` 
+db15-0203-99993001-ATC_vxx.zigbee new version `devbis`
+
 1141-0203-99993001-ATC_vxx.zigbee old version `devbis`
