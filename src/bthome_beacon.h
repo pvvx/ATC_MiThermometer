@@ -114,6 +114,14 @@ typedef struct __attribute__((packed)) _adv_head_bth_t {
 typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 	uint8_t		b_id;	// = BtHomeID_battery
 	uint8_t		battery_level; // 0..100 %
+#if (DEV_SERVICES & SERVICE_18B20)
+	uint8_t		t1_id;	// = BtHomeID_temperature
+	int16_t		temperature1; // x 0.01 degree
+#if	(USE_SENSOR_MY18B20 == 2)
+	uint8_t		t2_id;	// = BtHomeID_temperature
+	int16_t		temperature2; // x 0.01 degree
+#endif
+#endif
 #if (DEV_SERVICES & SERVICE_THS)
 	uint8_t		t_id;	// = BtHomeID_temperature
 	int16_t		temperature; // x 0.01 degree

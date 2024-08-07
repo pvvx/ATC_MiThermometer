@@ -16,7 +16,7 @@
 #if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
 
 const trigger_t def_trg = {
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20))
 		.temp_threshold = 2100, // 21 °C
 		.humi_threshold = 5000, // 50 %
 		.temp_hysteresis = -55, // enable, -0.55 °C
@@ -50,9 +50,13 @@ void test_trg_on(void) {
 #endif
 
 
+
 #if (DEV_SERVICES & SERVICE_THS)
 #define measured_val1	measured_data.temp
 #define measured_val2	measured_data.humi
+#elif (DEV_SERVICES & SERVICE_18B20)
+#define measured_val1	measured_data.xtemp[0]
+#define measured_val2	measured_data.xtemp[1]
 #elif (DEV_SERVICES & SERVICE_IUS)
 #define measured_val1	measured_data.current
 #define measured_val2	measured_data.voltage

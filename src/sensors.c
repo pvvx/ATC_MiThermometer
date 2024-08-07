@@ -44,7 +44,9 @@ const sensor_def_cfg_t def_thcoef_shtc3 = {
 		.coef.val1_z = -4500, // temp_z
 		.coef.val2_k = 10000, // humi_k
 		.coef.val2_z = 0, // humi_z
+#if SENSOR_SLEEP_MEASURE
 		.measure_timeout = SHTC3_MEASURING_TIMEOUT,
+#endif
 		.sensor_type = TH_SENSOR_SHTC3
 };
 
@@ -75,7 +77,9 @@ const sensor_def_cfg_t def_thcoef_sht4x = {
 		.coef.val1_z = -4500, // temp_z
 		.coef.val2_k = 12500, // humi_k
 		.coef.val2_z = -600, // humi_z
+#if SENSOR_SLEEP_MEASURE
 		.measure_timeout = SHT4x_MEASURING_TIMEOUT,
+#endif
 		.sensor_type = TH_SENSOR_SHT4x
 };
 
@@ -106,7 +110,9 @@ const sensor_def_cfg_t def_thcoef_sht30 = { // = shtc3
 		.coef.val2_k = 10000, // humi_k
 		.coef.val1_z = -4500, // temp_z
 		.coef.val2_z = 0,	  // humi_z
+#if SENSOR_SLEEP_MEASURE
 		.measure_timeout = SHT30_MEASURING_TIMEOUT,
+#endif
 		.sensor_type = TH_SENSOR_SHT30
 };
 
@@ -144,7 +150,9 @@ const sensor_def_cfg_t def_thcoef_aht2x = {
 		.coef.val2_k = 625, // temp_z
 		.coef.val1_z = -5000, // humi_k
 		.coef.val2_z = 0, // humi_z
+#if SENSOR_SLEEP_MEASURE
 		.measure_timeout = AHT2x_MEASURING_TIMEOUT,
+#endif
 		.sensor_type = TH_SENSOR_AHT2x
 };
 
@@ -193,7 +201,9 @@ const sensor_def_cfg_t def_thcoef_cht8305 = {
 		.coef.val2_k = 10000, // humi_k
 		.coef.val1_z = -4000, // temp_z
 		.coef.val2_z = 0, // humi_z
+#if SENSOR_SLEEP_MEASURE
 		.measure_timeout = CHT8305_MEASURING_TIMEOUT,
+#endif
 		.sensor_type = TH_SENSOR_CHT8305
 };
 //===================================
@@ -252,10 +262,11 @@ static int read_sensor_aht2x(void) {
 			if (measured_data.humi < 0) measured_data.humi = 0;
 			else if (measured_data.humi > 9999) measured_data.humi = 9999;
 			measured_data.count++;
-//			if(!start_measure_aht2x()) // start measure T/H
+#if !SENSOR_SLEEP_MEASURE
+			if(!start_measure_aht2x()) // start measure T/H
+#endif
 				return 1;
 	}
-	//send_i2c_byte(sensor_cfg.i2c_addr, AHT2x_CMD_RST); // Soft reset command
 	sensor_cfg.i2c_addr = 0;
 	return 0;
 }
@@ -277,6 +288,9 @@ static int read_sensor_cht8305(void) {
 			if (measured_data.humi < 0) measured_data.humi = 0;
 			else if (measured_data.humi > 9999) measured_data.humi = 9999;
 			measured_data.count++;
+#if !SENSOR_SLEEP_MEASURE
+			send_i2c_byte(sensor_cfg.i2c_addr, CHT8305_REG_TMP); // start measure T/H
+#endif
 			return 1;
 		}
 	}
@@ -370,7 +384,19 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 #if USE_SENSOR_SHTC3
 				if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
 					send_i2c_word(sensor_cfg.i2c_addr, SHTC3_GO_SLEEP); // Sleep command of the sensor
+				} else
+#endif
+#if !SENSOR_SLEEP_MEASURE
+#if USE_SENSOR_SHT4X
+				if(sensor_cfg.sensor_type == TH_SENSOR_SHT4x) {
+					send_i2c_byte(sensor_cfg.i2c_addr, SHT4x_MEASURE_HI);
+				} else
+#endif // USE_SENSOR_SHT4X
+#if USE_SENSOR_SHT30
+				if(sensor_cfg.sensor_type == TH_SENSOR_SHT30) {
+					send_i2c_word(sensor_cfg.i2c_addr, SHT30_HIMEASURE); // start measure T/H
 				}
+#endif //USE_SENSOR_SHT30
 #endif
 				ret = 1;
 				break;
@@ -397,7 +423,9 @@ static int check_sensor(void) {
 	uint8_t buf[8];
 	sensor_def_cfg_t *ptabinit = NULL;
 	sensor_cfg.sensor_type = TH_SENSOR_NONE;
+#if SENSOR_SLEEP_MEASURE
 	sensor_cfg.measure_timeout = 16384*CLOCK_16M_SYS_TIMER_CLK_1US;
+#endif
 	sensor_cfg.id = 0;
 #if USE_SENSOR_SHTC3
 	// cfg.hw_cfg.shtc3 = 0;
@@ -527,7 +555,9 @@ static int check_sensor(void) {
 		if(sensor_cfg.coef.val1_k == 0) {
 			memcpy(&sensor_cfg.coef, ptabinit, sizeof(sensor_cfg.coef));
 		}
+#if SENSOR_SLEEP_MEASURE
 		sensor_cfg.measure_timeout = ptabinit->measure_timeout;
+#endif
 		sensor_cfg.sensor_type = ptabinit->sensor_type;
 	} else
 		sensor_cfg.i2c_addr = 0;
@@ -601,7 +631,9 @@ void start_measure_sensor_deep_sleep(void) {
 #endif //USE_SENSOR_SHT30
 		{};
 	}
+#if SENSOR_SLEEP_MEASURE
 	sensor_cfg.time_measure = clock_time() | 1;
+#endif
 	return;
 }
 

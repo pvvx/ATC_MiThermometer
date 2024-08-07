@@ -234,13 +234,15 @@ RAM u16 batteryValueInCCC;
 #define CHARACTERISTIC_UUID_HUMIDITY 0x2A6F // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.humidity.xml
 
 const u16 my_envServiceUUID       = 0x181A; // environmental_sensing
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20))
 static const u16 my_tempCharUUID       	  = CHARACTERISTIC_UUID_TEMPERATYRE2;
 static const u16 my_temp2CharUUID      	  = CHARACTERISTIC_UUID_TEMPERATYRE;
-static const u16 my_humiCharUUID       	  = CHARACTERISTIC_UUID_HUMIDITY;
 RAM u16 tempValueInCCC;
 RAM u16 temp2ValueInCCC;
+#if (DEV_SERVICES & SERVICE_THS)
+static const u16 my_humiCharUUID       	  = CHARACTERISTIC_UUID_HUMIDITY;
 RAM u16 humiValueInCCC;
+#endif
 #endif
 
 #if (DEV_SERVICES & SERVICE_IUS)
@@ -304,7 +306,7 @@ static const u8 my_batCharVal[5] = {
 	U16_LO(CHARACTERISTIC_UUID_BATTERY_LEVEL), U16_HI(CHARACTERISTIC_UUID_BATTERY_LEVEL)
 };
 
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20))
 //// Temp attribute values
 static const u8 my_tempCharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
@@ -316,7 +318,9 @@ static const u8 my_temp2CharVal[5] = {
 	U16_LO(TEMP_LEVEL_INPUT_DP_H), U16_HI(TEMP_LEVEL_INPUT_DP_H),
 	U16_LO(CHARACTERISTIC_UUID_TEMPERATYRE), U16_HI(CHARACTERISTIC_UUID_TEMPERATYRE)
 };
+#endif
 
+#if (DEV_SERVICES & SERVICE_THS)
 //// Humi attribute values
 static const u8 my_humiCharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
@@ -324,6 +328,7 @@ static const u8 my_humiCharVal[5] = {
 	U16_LO(CHARACTERISTIC_UUID_HUMIDITY), U16_HI(CHARACTERISTIC_UUID_HUMIDITY)
 };
 #endif
+
 #if (DEV_SERVICES & SERVICE_IUS)
 //// Temp attribute values
 static const u8 my_anaCharVal[5] = {
@@ -411,6 +416,16 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_humiCharVal),(u8*)(&my_characterUUID), (u8*)(my_humiCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.humi),(u8*)(&my_humiCharUUID),(u8*)(&measured_data.humi), 0},	//value
 		{0,ATT_PERMISSIONS_RDWR,2,sizeof(humiValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&humiValueInCCC), 0},	//value
+#elif (DEV_SERVICES & SERVICE_18B20)
+	////////////////////////////////////// T Service /////////////////////////////////////////////////////
+	// 001D - 0026
+	{7,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_envServiceUUID), 0},
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempCharVal),(u8*)(&my_characterUUID),(u8*)(my_tempCharVal), 0},				//prop
+		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.temp_x01),(u8*)(&my_tempCharUUID),(u8*)(&measured_data.temp_x01), 0},	//value
+		{0,ATT_PERMISSIONS_RDWR,2,sizeof(tempValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&tempValueInCCC), 0},	//value
+		{0,ATT_PERMISSIONS_READ,2,sizeof(my_temp2CharVal),(u8*)(&my_characterUUID),(u8*)(my_temp2CharVal), 0},				//prop
+		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.xtemp[0]),(u8*)(&my_temp2CharUUID),(u8*)(&measured_data.xtemp[0]), 0},	//value
+		{0,ATT_PERMISSIONS_RDWR,2,sizeof(temp2ValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&temp2ValueInCCC), 0},	//value
 #elif (DEV_SERVICES & SERVICE_IUS)
 	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_envServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_anaCharVal),(u8*)(&my_characterUUID),(u8*)(my_anaCharVal), 0},				//prop

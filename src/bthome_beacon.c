@@ -13,6 +13,9 @@
 #include "battery.h"
 #include "app.h"
 #include "trigger.h"
+#if (DEV_SERVICES & SERVICE_18B20)
+#include "my18b20.h"
+#endif
 #if (DEV_SERVICES & SERVICE_RDS)
 #include "rds_count.h"
 #endif
@@ -75,6 +78,14 @@ void bthome_encrypt_data_beacon(void) {
 		padv_bthome_data1_t p = (padv_bthome_data1_t)&buf;
 		p->b_id = BtHomeID_battery;
 		p->battery_level = measured_data.battery_level;
+#if (DEV_SERVICES & SERVICE_18B20)
+		p->t1_id = BtHomeID_temperature;
+		p->temperature1 = measured_data.xtemp[0]; // x0.01 C
+#if	(USE_SENSOR_MY18B20 == 2)
+		p->t2_id = BtHomeID_temperature;
+		p->temperature2 = measured_data.xtemp[1]; // x0.01 C
+#endif
+#endif
 #if (DEV_SERVICES & SERVICE_THS)
 		p->t_id = BtHomeID_temperature;
 		p->temperature = measured_data.temp; // x0.01 C
@@ -154,6 +165,14 @@ void bthome_data_beacon(void) {
 		p->pid = (uint8_t)adv_buf.send_count;
 		p->data.b_id = BtHomeID_battery;
 		p->data.battery_level = measured_data.battery_level;
+#if (DEV_SERVICES & SERVICE_18B20)
+		p->data.t1_id = BtHomeID_temperature;
+		p->data.temperature1 = measured_data.xtemp[0]; // x0.01 C
+#if	(USE_SENSOR_MY18B20 == 2)
+		p->data.t2_id = BtHomeID_temperature;
+		p->data.temperature2 = measured_data.xtemp[1]; // x0.01 C
+#endif
+#endif
 #if (DEV_SERVICES & SERVICE_THS)
 		p->data.t_id = BtHomeID_temperature;
 		p->data.temperature = measured_data.temp; // x0.01 C

@@ -11,7 +11,7 @@
 #include "vendor/common/user_config.h"
 #include "app_config.h"
 
-#if (DEV_SERVICES & SERVICE_IUS)
+#if (DEV_SERVICES & SERVICE_IUS) // && USE_SENSOR_INA226
 #include "drivers/8258/gpio_8258.h"
 #include "drivers/8258/pm.h"
 //#include "stack/ble/ll/ll_pm.h"

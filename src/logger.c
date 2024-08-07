@@ -27,10 +27,34 @@
 #define _flash_write(a,b,c) flash_write(FLASH_BASE_ADDR + a, b, (unsigned char *)c)
 #define _flash_read(a,b,c) flash_read_page(FLASH_BASE_ADDR + a, b, (u8 *)c)
 
+#if (DEV_SERVICES & SERVICE_PRESSURE)
+#define measured_val0	measured_data.pressure
+#else
+#define measured_val0	measured_data.battery_mv
+#endif
+
+#if (DEV_SERVICES & SERVICE_THS)
+#define measured_val1	measured_data.temp
+#define measured_val2	measured_data.humi
+#elif (DEV_SERVICES & SERVICE_18B20) && (USE_SENSOR_MY18B20 == 1)
+#define measured_val1	measured_data.xtemp[0]
+#define measured_val2	0
+#elif (DEV_SERVICES & SERVICE_18B20) && (USE_SENSOR_MY18B20 == 2)
+#define measured_val1	measured_data.xtemp[0]
+#define measured_val2	measured_data.xtemp[1]
+#elif (DEV_SERVICES & SERVICE_IUS)
+#define measured_val1	measured_data.current
+#define measured_val2	measured_data.voltage
+#endif
+
 typedef struct _summ_data_t {
-	uint32_t	battery_mv; // mV
-	int32_t		temp; // x 0.01 C
-	uint32_t	humi; // x 0.01 %
+	uint32_t	val0; // battery_mv; // mV
+	int32_t		val1; // temp, temp1, ; // x 0.01 C
+#if ((DEV_SERVICES & SERVICE_THS) == 0) && (DEV_SERVICES & SERVICE_18B20) && (USE_SENSOR_MY18B20 == 2)
+	int32_t		val2; // temp2, current; // x 0.01 C, x ? mA
+#else
+	uint32_t	val2; // humi, voltage; // x 0.01 %, x ? mV
+#endif
 	uint32_t 	count;
 } summ_data_t;
 RAM summ_data_t summ_data;
@@ -187,49 +211,25 @@ __attribute__((optimize("-Os")))
 void write_memo(void) {
 	memo_blk_t mblk;
 	if (cfg.averaging_measurements == 1) {
-#if (DEV_SERVICES & SERVICE_THS)
-		mblk.temp = measured_data.temp;
-		mblk.humi = measured_data.humi;
-#endif
-#if (DEV_SERVICES & SERVICE_IUS)
-		mblk.temp = measured_data.current;
-		mblk.humi = measured_data.voltage;
-#endif
-#if (DEV_SERVICES & SERVICE_PRESSURE)
-		mblk.vbat = measured_data.pressure;
-#else
-#if 0 // USE_AVERAGE_BATTERY
-		mblk.vbat = measured_data.average_battery_mv;
-#else
-		mblk.vbat = measured_data.battery_mv;
-#endif
-#endif
+		mblk.val0 = measured_val0;
+		mblk.val1 = measured_val1;
+		mblk.val2 = measured_val2;
 	} else {
-#if (DEV_SERVICES & SERVICE_THS)
-		summ_data.temp += measured_data.temp;
-		summ_data.humi += measured_data.humi;
-#endif
-#if (DEV_SERVICES & SERVICE_IUS)
-		mblk.temp += measured_data.current;
-		mblk.humi += measured_data.voltage;
-#endif
-#if (DEV_SERVICES & SERVICE_PRESSURE)
-		summ_data.battery_mv += measured_data.pressure;
-#else
-#if 0 // USE_AVERAGE_BATTERY
-		summ_data.battery_mv += measured_data.average_battery_mv;
-#else
-		summ_data.battery_mv += measured_data.battery_mv;
-#endif
-#endif
+		summ_data.val0 += measured_val0;
+		summ_data.val1 += measured_val1;
+		summ_data.val2 += measured_val2;
 		summ_data.count++;
 		if (cfg.averaging_measurements > summ_data.count)
 			return;
 		if(wrk.ble_connected && bls_pm_getSystemWakeupTick() - clock_time() < 125*CLOCK_16M_SYS_TIMER_CLK_1MS)
 			return;
-		mblk.temp = (int16_t)(summ_data.temp/(int32_t)summ_data.count);
-		mblk.humi = (uint16_t)(summ_data.humi/summ_data.count);
-		mblk.vbat = (uint16_t)(summ_data.battery_mv/summ_data.count);
+		mblk.val0 = (uint16_t)(summ_data.val0/summ_data.count);
+		mblk.val1 = (int16_t)(summ_data.val1/(int32_t)summ_data.count);
+#if ((DEV_SERVICES & SERVICE_THS) == 0) && (DEV_SERVICES & SERVICE_18B20) && (USE_SENSOR_MY18B20 == 2)
+		mblk.val2 = (int16_t)(summ_data.val2/summ_data.count);  // temperature
+#else
+		mblk.val2 = (uint16_t)(summ_data.val2/summ_data.count); // humidity
+#endif
 		memset(&summ_data, 0, sizeof(summ_data));
 	}
 	/* default c4: dcdc 1.8V  -> GD flash; 48M clock may error, need higher DCDC voltage

@@ -738,7 +738,7 @@ void ble_send_measures(void) {
 	int len = MEASURED_MSG_SIZE + 1;
 	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, MEASURED_MSG_SIZE);
-#if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS) || (DEV_SERVICES & SERVICE_PRESSURE)
+#if (DEV_SERVICES & (SERVICE_TH_TRG | SERVICE_RDS | SERVICE_PRESSURE | SERVICE_18B20))
 	uint8_t * p = &send_buf[MEASURED_MSG_SIZE+1];
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 	*p++ = trg.flg_byte;
@@ -755,6 +755,17 @@ void ble_send_measures(void) {
 	*p++ = (uint8_t)measured_data.pressure;
 	*p++ = (uint8_t)(measured_data.pressure >> 8);
 	len += 2;
+#endif
+#if (DEV_SERVICES & SERVICE_18B20)
+	*p++ = (uint8_t)measured_data.xtemp[0];
+	*p++ = (uint8_t)(measured_data.xtemp[0] >> 8);
+#if	USE_SENSOR_MY18B20 == 2
+	*p++ = (uint8_t)measured_data.xtemp[1];
+	*p++ = (uint8_t)(measured_data.xtemp[1] >> 8);
+	len += 4;
+#else
+	len += 2;
+#endif
 #endif
 #endif
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, len);

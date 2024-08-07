@@ -143,6 +143,17 @@ typedef enum
 	HUMI_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
 	HUMI_LEVEL_INPUT_DP_H,					//UUID: 2A6F 	VALUE: measured_data.humi
 	HUMI_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: humiValCCC
+#elif (DEV_SERVICES & SERVICE_18B20)
+	//// Temp service ////
+	/**********************************************************************************************/
+	TEMP_PS_H, 								//UUID: 2800, 	VALUE: uuid 181A
+	TEMP_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
+	TEMP_LEVEL_INPUT_DP_H,					//UUID: 2A1F 	VALUE: last_temp
+	TEMP_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: tempValCCC
+
+	TEMP2_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
+	TEMP2_LEVEL_INPUT_DP_H,					//UUID: 2A6E 	VALUE: measured_data.temp
+	TEMP2_LEVEL_INPUT_CCB_H,				//UUID: 2902, 	VALUE: temp2ValCCC
 #endif
 #if (DEV_SERVICES & SERVICE_IUS)
 	/**********************************************************************************************/
@@ -208,25 +219,30 @@ void set_mi_adv_data(void);
 void load_adv_data(void);
 #endif
 
-#if (DEV_SERVICES & SERVICE_THS)
-inline void ble_send_temp(void) {
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_18B20)
+inline void ble_send_temp01(void) {
 	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, (u8 *) &measured_data.temp_x01, 2);
 }
 
-inline void ble_send_temp2(void) {
+inline void ble_send_temp001(void) {
+#if (DEV_SERVICES & SERVICE_THS)
 	bls_att_pushNotifyData(TEMP2_LEVEL_INPUT_DP_H, (u8 *) &measured_data.temp, 2);
+#else
+	bls_att_pushNotifyData(TEMP2_LEVEL_INPUT_DP_H, (u8 *) &measured_data.xtemp[0], 2);
+#endif
 }
 
+#if (DEV_SERVICES & SERVICE_THS)
 inline void ble_send_humi(void) {
 	bls_att_pushNotifyData(HUMI_LEVEL_INPUT_DP_H, (u8 *) &measured_data.humi, 2);
 }
+#endif
 #endif
 #if (DEV_SERVICES & SERVICE_IUS)
 inline void ble_send_ana(void) {
 	bls_att_pushNotifyData(ANA_VALUE_INPUT_DP_H, (u8 *) &measured_data.voltage, 2);
 }
 #endif
-
 
 inline void ble_send_battery(void) {
 	bls_att_pushNotifyData(BATT_LEVEL_INPUT_DP_H, (u8 *) &measured_data.battery_level, 1);

@@ -29,7 +29,7 @@ extern "C" {
 // HW_VER_LYWSD03MMC_B17 = 5
 // HW_VER_LYWSD03MMC_B15 = 10
 #define DEVICE_MHO_C122		11	// LCD display MHO_C122
-#define DEVICE_TB03F  		16	// DIY, TB-03F-Kit module
+#define DEVICE_TB03F  		16	// DIY, TB-03F-Kit module + INA226 or MY18B20
 #define DEVICE_TS0201   	17	// ZigBee TS0201, analog: IH-K009
 #define DEVICE_TNK01		18	// DIY, PB-03F module, Water tank controller
 //#define DEVICE_THB2		19	// PHY62x2 BLE https://github.com/pvvx/THB2
@@ -66,7 +66,8 @@ extern "C" {
 #define SERVICE_LED			0x00008000	// use led
 #define SERVICE_MI_KEYS		0x00010000	// use mi keys
 #define SERVICE_PRESSURE	0x00020000	// pressure sensor
-#define SERVICE_IUS			0x00040000	// I and U sensor (INA226)
+#define SERVICE_18B20		0x00040000	// use sensor(s) MY18B20
+#define SERVICE_IUS			0x00080000	// use I and U sensor (INA226)
 
 /* minimal DEV_SERVICES:
 #define DEV_SERVICES ( SERVICE_OTA \ // OTA enable
@@ -1170,7 +1171,7 @@ extern "C" {
 		| SERVICE_PRESSURE \
 )
 
-#define USE_EPD			0 // min update time ms
+#define USE_EPD					0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
 #define USE_SENSOR_AHT20_30		1
@@ -1183,8 +1184,8 @@ extern "C" {
 #define USE_MIHOME_BEACON	0 	// = 1 Compatible with MiHome beacon
 #define USE_ATC_BEACON		0
 
-#define SHL_ADC_VBAT	1  // "B0P" in adc.h
-#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
 #define PB0_OUTPUT_ENABLE	1
@@ -1260,8 +1261,8 @@ extern "C" {
 // GPIO_PB1 - free
 // GPIO_PB4 - LED E
 // GPIO_PB5 - LED W
-// GPIO_PB6 - free
-// GPIO_PB7 - free
+// GPIO_PB6 - free, 1-wire "1" MY18B20
+// GPIO_PB7 - free, 1-wire "2" MY18B20
 // GPIO_PC0 - SDA, used I2C
 // GPIO_PC1 - SCL, used I2C
 // GPIO_PC2 - LED B
@@ -1272,6 +1273,25 @@ extern "C" {
 // GPIO_PD4 - free, used RDS2 Lower level sensor
 // GPIO_PD7 - free
 
+#define USE_SENSOR_MY18B20		2 // 0 - Off, 1 - 1 sensor, 2 - 2 sensors
+
+#if USE_SENSOR_MY18B20
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_TH_TRG \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_LED \
+		| SERVICE_18B20 \
+)
+#else
+#define USE_SENSOR_INA226		1
 #define DEV_SERVICES ( SERVICE_OTA\
 		| SERVICE_OTA_EXT \
 		| SERVICE_PINCODE \
@@ -1287,12 +1307,14 @@ extern "C" {
 )
 //| SERVICE_TH_TRG
 // | SERVICE_THS
+#endif
 
-#define USE_EPD			0 // min update time ms
+
+#define USE_EPD					0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
-#define USE_SENSOR_AHT20_30		1
-#define USE_SENSOR_SHT4X		0
+#define USE_SENSOR_AHT20_30		0
+#define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 
@@ -1301,8 +1323,8 @@ extern "C" {
 #define USE_MIHOME_BEACON	0 	// = 1 Compatible with MiHome beacon
 #define USE_ATC_BEACON		0
 
-#define SHL_ADC_VBAT	1  // "B0P" in adc.h
-#define GPIO_VBAT	GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
 #define PB0_OUTPUT_ENABLE	1
@@ -1353,8 +1375,27 @@ extern "C" {
 #define PD4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PD4 RDS2_PULLUP
 
-#define USE_SENSOR_INA216		1
-#define SENSOR_SLEEP_MEASURE 	0
+#if USE_SENSOR_MY18B20
+
+#define GPIO_ONEWIRE1		GPIO_PB6
+#define PB6_INPUT_ENABLE	1
+#define PB6_DATA_OUT		0
+#define PB6_OUTPUT_ENABLE	0
+#define PB6_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB6	PM_PIN_PULLDOWN_100K
+
+#if USE_SENSOR_MY18B20 == 2
+#define GPIO_ONEWIRE2		GPIO_PB7
+#define PB7_INPUT_ENABLE	1
+#define PB7_DATA_OUT		0
+#define PB7_OUTPUT_ENABLE	0
+#define PB7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB7	PM_PIN_PULLDOWN_100K
+#endif
+
+#endif // USE_SENSOR_MY18B20
+
+//#define SENSOR_SLEEP_MEASURE 	0
 #define USE_FLASH_SERIAL_UID	1
 
 #else // DEVICE_TYPE

@@ -9,6 +9,9 @@
 #include "i2c.h"
 #include "lcd.h"
 #include "sensor.h"
+#if (DEV_SERVICES & SERVICE_18B20)
+#include "my18b20.h"
+#endif
 #include "app.h"
 #include "flash_eep.h"
 #if (DEV_SERVICES & SERVICE_TH_TRG)
@@ -25,6 +28,7 @@
 #if (DEV_SERVICES & SERVICE_OTA_EXT)
 #include "ext_ota.h"
 #endif
+#include "rh.h"
 
 #define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (uint32_t)faddr, len, (uint8_t *)pbuf)
 
@@ -285,7 +289,13 @@ void cmd_parser(void * p) {
 			p->dev_spec_data = TH_SENSOR_NONE;
 #endif
 #if USE_SENSOR_HX71X
-			p->dev_spec_data |= 0x100;
+			p->dev_spec_data |= IU_SENSOR_HX71X << 8;
+#elif (DEV_SERVICES & SERVICE_18B20)
+#if USE_SENSOR_MY18B20 == 2
+			p->dev_spec_data |= IU_SENSOR_MY18B20x2 << 8;
+#else
+			p->dev_spec_data |= IU_SENSOR_MY18B20 << 8;
+#endif
 #endif
 			p->services = DEV_SERVICES;
 			olen = sizeof(dev_id_t);
@@ -663,6 +673,23 @@ void cmd_parser(void * p) {
 			memcpy(&send_buf[1], &sensor_cfg.id, sizeof(sensor_cfg.id));
 			olen = sizeof(sensor_cfg.id) + 1;
 #endif
+#if (DEV_SERVICES & SERVICE_18B20)
+		} else if (cmd == CMD_ID_CFB20) {	// Get/Set sensor MY18B20 config
+			if (--len > sizeof(my18b20.coef))
+				len = sizeof(my18b20.coef);
+			if (len) {
+				memcpy(&my18b20.coef, &req->dat[1], len);
+				flash_write_cfg(&my18b20.coef, EEP_ID_CMY, sizeof(my18b20.coef));
+			}
+			memcpy(&send_buf[1], &my18b20, my18b20_send_size);
+			send_buf[my18b20_send_size + 1] =
+			olen = my18b20_send_size + 2;
+		} else if (cmd == CMD_ID_CFB20_DEF) {	// Get/Set default sensor MY18B20 config
+			memset(&my18b20.coef, 0, my18b20_send_size);
+			init_my18b20();
+			memcpy(&send_buf[1], &my18b20.coef, my18b20_send_size);
+			olen = my18b20_send_size + 1;
+#endif
 #if USE_HX71X
 		} else if (cmd == CMD_ID_HXC) { // Get/set HX71X config
 			if (--len > sizeof(hx71x.cfg))	len = sizeof(hx71x.cfg);
@@ -702,7 +729,16 @@ void cmd_parser(void * p) {
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
 			wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
-
+#if USE_RH_SENSOR
+		} else if (cmd == 0xDF) {
+			if(len > 1) {
+				get_adc_rh_mv();
+			} else {
+				calibrate_rh();
+			}
+			memcpy(&send_buf[1], &rh, sizeof(rh));
+			olen = sizeof(rh) + 1;
+#endif
 		} else {
 			send_buf[1] = 0xff; // Error cmd
 			olen = 2;

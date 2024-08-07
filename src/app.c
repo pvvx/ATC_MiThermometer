@@ -17,6 +17,9 @@
 #if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 #include "rtc.h"
 #endif
+#if (DEV_SERVICES & SERVICE_18B20)
+#include "my18b20.h"
+#endif
 #include "trigger.h"
 #if (DEV_SERVICES & SERVICE_RDS)
 #include "rds_count.h"
@@ -426,7 +429,7 @@ void low_vbat(void) {
 	go_sleep(120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 }
 
-#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20))
 #if SENSOR_SLEEP_MEASURE
 _attribute_ram_code_
 void WakeupLowPowerCb(int par) {
@@ -440,10 +443,19 @@ void read_sensors(void) {
 			rds_input_on();
 #endif
 #if (defined(CHL_ADC1) || defined(CHL_ADC1))
-		if (1) {
+		if (1)
 #else
-		if (read_sensor_cb()) {
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
+#if (DEV_SERVICES & SERVICE_18B20)
+		if (read_sensor_cb() && my18b20.rd_ok)
+#else
+		if (read_sensor_cb())
 #endif
+#elif (DEV_SERVICES & SERVICE_18B20)
+		if (my18b20.rd_ok)
+#endif
+#endif
+		{
 #ifdef CHL_ADC1 // DIY version only!
 			measured_data.temp = get_adc_mv(CHL_ADC1);
 #endif
@@ -454,6 +466,11 @@ void read_sensors(void) {
 			measured_data.temp_x01 = (measured_data.temp + 5)/ 10;
 			measured_data.humi_x01 = (measured_data.humi + 5)/ 10;
 			measured_data.humi_x1 = (measured_data.humi + 50)/ 100;
+#elif (DEV_SERVICES & SERVICE_18B20)
+			measured_data.temp_x01 = (measured_data.xtemp[0] + 5)/ 10;
+#if (USE_SENSOR_MY18B20 == 2)
+			// TODO: measured_data.humi_x1 = (measured_data.xtemp[1] + 50)/ 100;
+#endif
 #endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 			set_trigger_out();
@@ -659,6 +676,11 @@ void user_init_normal(void) {//this will get executed one time after power up
 				!= sizeof(sensor_cfg.coef))
 			memset(&sensor_cfg.coef, 0, sizeof(sensor_cfg.coef));
 #endif
+#if (DEV_SERVICES & SERVICE_18B20)
+		if (flash_read_cfg(&my18b20.coef, EEP_ID_CMY, sizeof(my18b20.coef))
+				!= sizeof(my18b20.coef))
+			memset(&my18b20.coef, 0, sizeof(my18b20.coef));
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE) && USE_SENSOR_HX71X
 		if (flash_read_cfg(&hx71x.cfg, EEP_ID_HXC, sizeof(hx71x.cfg))
 				!= sizeof(hx71x.cfg))
@@ -690,6 +712,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	}
 #if (DEV_SERVICES & SERVICE_RDS)
 	rds_init();
+#endif
+#if (DEV_SERVICES & SERVICE_18B20)
+	init_my18b20();
 #endif
 	init_i2c();
 	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
@@ -759,6 +784,10 @@ void user_init_normal(void) {//this will get executed one time after power up
 
 	wrk.start_measure = 1;
 
+#if (DEV_SERVICES & SERVICE_18B20)
+	task_my18b20();
+#endif
+
 	bls_pm_setManualLatency(0);
 }
 
@@ -816,6 +845,9 @@ void main_loop(void) {
 #endif
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
 		hx71x_task();
+#endif
+#if (DEV_SERVICES & SERVICE_18B20)
+		task_my18b20();
 #endif
 		uint32_t new = clock_time();
 #if (DEV_SERVICES & SERVICE_KEY)
@@ -917,10 +949,16 @@ void main_loop(void) {
 #endif
 		} else
 #else // ! SENSOR_SLEEP_MEASURE
+#if USE_SENSOR_SHTC3
+#error "SHTC3: set SENSOR_SLEEP_MEASURE!"
+#endif
 		if (wrk.start_measure) {
 			wrk.start_measure = 0;
 			check_battery();
 			read_sensors();
+#if (DEV_SERVICES & SERVICE_TH_THS) && (!USE_SENSOR_SHTC3)
+			start_measure_sensor_deep_sleep();
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 			measured_data.pressure = hx71x_get_volume();
 #endif
@@ -938,11 +976,13 @@ void main_loop(void) {
 					}
 					if (batteryValueInCCC)
 						ble_send_battery();
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_18B20)
 					if (tempValueInCCC)
-						ble_send_temp();
+						ble_send_temp01();
 					if (temp2ValueInCCC)
-						ble_send_temp2();
+						ble_send_temp001();
+#endif
+#if (DEV_SERVICES & SERVICE_THS)
 					if (humiValueInCCC)
 						ble_send_humi();
 #endif
@@ -974,7 +1014,7 @@ void main_loop(void) {
 				utc_time_sec = rtc_get_utime();
 			}
 #endif // (DEV_SERVICES & SERVICE_HARD_CLOCK)
-#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+#if (DEV_SERVICES & (SERVICE_THS |SERVICE_IUS | SERVICE_18B20))
 #if SENSOR_SLEEP_MEASURE
 			if(sensor_cfg.time_measure == 0)
 #endif

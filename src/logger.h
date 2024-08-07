@@ -24,9 +24,9 @@
 
 typedef struct _memo_blk_t {
 	uint32_t time;  // time (UTC)
-	int16_t temp;	// x0.01 C
-	uint16_t humi;  // x0.01 %
-	uint16_t vbat;  // mV
+	int16_t val1; // temp;	// x0.01 C
+	uint16_t val2; // humi;  // x0.01 %
+	uint16_t val0; // vbat;  // mV
 }memo_blk_t, * pmemo_blk_t;
 
 typedef struct _memo_inf_t {
