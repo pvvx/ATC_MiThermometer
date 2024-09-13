@@ -629,6 +629,7 @@ void cmd_parser(void * p) {
 #else
 			olen = 2 + 1;
 #endif
+#ifdef I2C_GROUP
 		} else if (cmd == CMD_ID_I2C_SCAN) {   // Universal I2C/SMBUS read-write
 			len = 0;
 			olen = 1;
@@ -654,6 +655,7 @@ void cmd_parser(void * p) {
 				send_buf[1] = 0xff; // Error cmd
 				olen = 2;
 			}
+#endif
 #if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
 		} else if (cmd == CMD_ID_CFS) {	// Get/Set sensor config
 			if (--len > sizeof(sensor_cfg.coef))
@@ -699,6 +701,15 @@ void cmd_parser(void * p) {
 			}
 			memcpy(&send_buf[1], &hx71x, sizeof(hx71x.cfg) + 4);
 			olen = sizeof(hx71x.cfg) + 4 + 1;
+#endif
+#if (DEV_SERVICES & SERVICE_PLM)
+		} else if (cmd == CMD_ID_RH) { // Get/Set sensor RH config
+			memcpy(&send_buf[1], &rh, sizeof(rh) + 4);
+			olen = sizeof(rh) + 1;
+		} else if (cmd == CMD_ID_RH_CAL) { // Calibrate sensor RH
+			calibrate_rh();
+			memcpy(&send_buf[1], &rh, sizeof(rh) + 4);
+			olen = sizeof(rh) + 1;
 #endif
 		} else if (cmd == CMD_ID_FLASH_ID) { // Get Flash JEDEC ID
 			flash_read_id(&send_buf[1]); // Read flash UID

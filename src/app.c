@@ -27,6 +27,9 @@
 #if (DEV_SERVICES & SERVICE_HISTORY)
 #include "logger.h"
 #endif
+#if (DEV_SERVICES & SERVICE_PLM)
+#include "rh.h"
+#endif
 #if USE_MIHOME_BEACON
 #include "mi_beacon.h"
 #endif
@@ -189,6 +192,17 @@ const cfg_t def_cfg = {
 #if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
+#elif (DEVICE_TYPE == DEVICE_PLM1)
+		.flg2.adv_flags = true,
+		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
+		.flg.comfort_smiley = true,
+		.measure_interval = 4, // * advertising_interval = 10 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
+#endif
+#else
+#error "DEVICE_TYPE = ?"
 #endif
 		};
 RAM cfg_t cfg;
@@ -429,7 +443,7 @@ void low_vbat(void) {
 	go_sleep(120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 }
 
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20))
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20 | SERVICE_PLM))
 #if SENSOR_SLEEP_MEASURE
 _attribute_ram_code_
 void WakeupLowPowerCb(int par) {
@@ -445,7 +459,7 @@ void read_sensors(void) {
 #if (defined(CHL_ADC1) || defined(CHL_ADC1))
 		if (1)
 #else
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 #if (DEV_SERVICES & SERVICE_18B20)
 		if (read_sensor_cb() && my18b20.rd_ok)
 #else
@@ -462,7 +476,7 @@ void read_sensors(void) {
 #ifdef CHL_ADC2 // DIY version only!
 			measured_data.humi = get_adc_mv(CHL_ADC2);
 #endif
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 			measured_data.temp_x01 = (measured_data.temp + 5)/ 10;
 			measured_data.humi_x01 = (measured_data.humi + 5)/ 10;
 			measured_data.humi_x1 = (measured_data.humi + 50)/ 100;
@@ -671,7 +685,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 				!= FEEP_SAVE_SIZE_TRG)
 			memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #endif
-#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
 		if (flash_read_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef))
 				!= sizeof(sensor_cfg.coef))
 			memset(&sensor_cfg.coef, 0, sizeof(sensor_cfg.coef));
@@ -716,8 +730,10 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if (DEV_SERVICES & SERVICE_18B20)
 	init_my18b20();
 #endif
+#ifdef I2C_GROUP
 	init_i2c();
 	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
+#endif
 	test_config();
 #if (POWERUP_SCREEN) || (DEV_SERVICES & SERVICE_HARD_CLOCK) || (DEV_SERVICES & SERVICE_LE_LR)
 	if(analog_read(DEEP_ANA_REG0) != 0x55) {
@@ -745,12 +761,15 @@ void user_init_normal(void) {//this will get executed one time after power up
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
 #endif
 	// start_tst_battery(); // step 2
-#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
 	init_sensor();
 #endif
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
 	hx711_gpio_wakeup();
 	hx71x_get_data(HX71XMODE_A128);
+#endif
+#if (DEV_SERVICES & SERVICE_PLM)
+	calibrate_rh();
 #endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
 	memo_init();
@@ -821,7 +840,7 @@ void main_loop(void) {
 #endif
 	}
 #if SENSOR_SLEEP_MEASURE
-	if(sensor_cfg.time_measure && clock_time() - sensor_cfg.time_measure > sensor_cfg.measure_timeout)
+	if(sensor_cfg.time_measure && (clock_time() - sensor_cfg.time_measure > sensor_cfg.measure_timeout))
 		WakeupLowPowerCb(0);
 #endif
 	if (wrk.ota_is_working) {
@@ -863,7 +882,13 @@ void main_loop(void) {
 				trg.flg.key_pressed = 1;
 #endif
 #if (DEV_SERVICES & SERVICE_LED)
+				// led on
+				gpio_is_output_en(GPIO_LED);
+#if LED_ON
 				gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLUP_10K);
+#else
+				gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLDOWN_100K);
+#endif
 #endif
 			}
 			else {
@@ -881,7 +906,12 @@ void main_loop(void) {
 					}
 					SET_LCD_UPDATE();
 #if (DEV_SERVICES & SERVICE_LED)
+					// led off
+#if LED_ON
 					gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLDOWN_100K);
+#else
+					gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLUP_1M);
+#endif
 #endif
 				}
 #ifdef GPIO_KEY1
@@ -895,7 +925,13 @@ void main_loop(void) {
 					trg.flg.key_pressed = 0;
 #endif
 #if (DEV_SERVICES & SERVICE_LED)
+					// led on
+					gpio_is_output_en(GPIO_LED);
+#if LED_ON
 					gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLUP_10K);
+#else
+					gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLDOWN_100K);
+#endif
 #endif
 				}
 			}
@@ -906,7 +942,12 @@ void main_loop(void) {
 			ext_key.key_pressed_tik1 = new;
 			ext_key.key_pressed_tik2 = new;
 #if (DEV_SERVICES & SERVICE_LED)
+			// led off
+#if LED_ON
 			gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLDOWN_100K);
+#else
+			gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLUP_1M);
+#endif
 #endif
 		}
 #endif // (DEV_SERVICES & SERVICE_KEY)
@@ -931,6 +972,7 @@ void main_loop(void) {
 #else
 			check_battery();
 			start_measure_sensor_deep_sleep();
+			sensor_cfg.time_measure = clock_time() | 1;
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 			measured_data.pressure = hx71x_get_volume();
 #endif
@@ -976,13 +1018,13 @@ void main_loop(void) {
 					}
 					if (batteryValueInCCC)
 						ble_send_battery();
-#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_18B20)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20 | SERVICE_PLM))
 					if (tempValueInCCC)
 						ble_send_temp01();
 					if (temp2ValueInCCC)
 						ble_send_temp001();
 #endif
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 					if (humiValueInCCC)
 						ble_send_humi();
 #endif
@@ -1014,7 +1056,7 @@ void main_loop(void) {
 				utc_time_sec = rtc_get_utime();
 			}
 #endif // (DEV_SERVICES & SERVICE_HARD_CLOCK)
-#if (DEV_SERVICES & (SERVICE_THS |SERVICE_IUS | SERVICE_18B20))
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20 | SERVICE_PLM))
 #if SENSOR_SLEEP_MEASURE
 			if(sensor_cfg.time_measure == 0)
 #endif

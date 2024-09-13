@@ -490,6 +490,11 @@ void ble_set_name(void) {
 		ble_name[3] = 'I';
 		ble_name[4] = 'Y';
 		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_PLM1
+		ble_name[2] = 'P';
+		ble_name[3] = 'L';
+		ble_name[4] = 'M';
+		ble_name[5] = '_';
 #else
 		ble_name[2] = 'A';
 		ble_name[3] = 'T';

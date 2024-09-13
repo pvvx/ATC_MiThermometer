@@ -60,6 +60,9 @@ void test_trg_on(void) {
 #elif (DEV_SERVICES & SERVICE_IUS)
 #define measured_val1	measured_data.current
 #define measured_val2	measured_data.voltage
+#elif (DEV_SERVICES & SERVICE_PLM)
+#define measured_val1	measured_data.temp
+#define measured_val2	measured_data.humi
 #endif
 
 _attribute_ram_code_

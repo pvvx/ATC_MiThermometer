@@ -24,9 +24,11 @@ enum {
 	CMD_ID_UTC_TIME = 0x23, // Get/Set utc time (if USE_CLOCK = 1)
 	CMD_ID_TADJUST  = 0x24, // Get/Set adjust time clock delta (in 1/16 us for 1 sec)
 	CMD_ID_CFS  	= 0x25, // Get/Set sensor config
-	CMD_ID_CFS_DEF 	= 0x26, // Get/Set default sensor config
+	CMD_ID_CFS_DEF 	= 0x26, // Set default sensor config
 	CMD_ID_CFB20  	= 0x27, // Get/Set sensor MY18B20 config
-	CMD_ID_CFB20_DEF = 0x28, // Get/Set default sensor MY18B20 config
+	CMD_ID_CFB20_DEF = 0x28, // Set default sensor MY18B20 config
+	CMD_ID_RH		= 0x29, // Get/Set sensor RH config
+	CMD_ID_RH_CAL	= 0x2A, // Calibrate sensor RH
 	CMD_ID_MEASURE  = 0x33, // Start/stop notify measures in connection mode
 	CMD_ID_LOGGER   = 0x35, // Read memory measures
 	CMD_ID_CLRLOG	= 0x36, // Clear memory measures

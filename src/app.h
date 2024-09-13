@@ -196,7 +196,7 @@ typedef struct _measured_data_t {
 #else
 	uint16_t	battery_mv; // mV
 #endif
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 	int16_t		temp; // x 0.01 C
 	int16_t		humi; // x 0.01 %
 #elif (DEV_SERVICES & SERVICE_IUS)
@@ -214,10 +214,10 @@ typedef struct _measured_data_t {
 #if USE_AVERAGE_BATTERY
 	uint16_t	battery_mv; // mV
 #endif
-#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_18B20)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20 | SERVICE_PLM))
 	int16_t 	temp_x01; 		// x 0.1 C
 #endif
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 	int16_t		humi_x01; 		// x 0.1 %
 	uint8_t 	humi_x1; 		// x 1 %
 #endif

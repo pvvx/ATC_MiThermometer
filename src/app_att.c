@@ -207,6 +207,15 @@ static const u8 my_SerialStr[] = {"0000-0000-0000-0004"}; // "0000-0000-0000-000
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"DIY.home"};
+
+#elif DEVICE_TYPE == DEVICE_PLM1
+static const u8 my_ModelStr[] = {"PLM-1"};
+static const u8 my_HardStr[4] = {"V1.3"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-0004"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"Tuya"};
 #else
 #error "DEVICE_TYPE = ?"
 #endif
@@ -234,12 +243,12 @@ RAM u16 batteryValueInCCC;
 #define CHARACTERISTIC_UUID_HUMIDITY 0x2A6F // https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.humidity.xml
 
 const u16 my_envServiceUUID       = 0x181A; // environmental_sensing
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20))
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20 | SERVICE_PLM))
 static const u16 my_tempCharUUID       	  = CHARACTERISTIC_UUID_TEMPERATYRE2;
 static const u16 my_temp2CharUUID      	  = CHARACTERISTIC_UUID_TEMPERATYRE;
 RAM u16 tempValueInCCC;
 RAM u16 temp2ValueInCCC;
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 static const u16 my_humiCharUUID       	  = CHARACTERISTIC_UUID_HUMIDITY;
 RAM u16 humiValueInCCC;
 #endif
@@ -306,7 +315,7 @@ static const u8 my_batCharVal[5] = {
 	U16_LO(CHARACTERISTIC_UUID_BATTERY_LEVEL), U16_HI(CHARACTERISTIC_UUID_BATTERY_LEVEL)
 };
 
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20))
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20 | SERVICE_PLM))
 //// Temp attribute values
 static const u8 my_tempCharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
@@ -320,7 +329,7 @@ static const u8 my_temp2CharVal[5] = {
 };
 #endif
 
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 //// Humi attribute values
 static const u8 my_humiCharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
@@ -401,7 +410,7 @@ RAM attribute_t my_Attributes[] = {
 		{0,ATT_PERMISSIONS_READ,2,sizeof(my_batCharVal),(u8*)(&my_characterUUID), (u8*)(my_batCharVal), 0},				//prop
 		{0,ATT_PERMISSIONS_READ,2,sizeof(measured_data.battery_level),(u8*)(&my_batCharUUID),(u8*)(&measured_data.battery_level), 0},	//value
 		{0,ATT_PERMISSIONS_RDWR,2,sizeof(batteryValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&batteryValueInCCC), 0},	//value
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 	////////////////////////////////////// TH Service /////////////////////////////////////////////////////
 	// 001D - 0026
 	{10,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_envServiceUUID), 0},

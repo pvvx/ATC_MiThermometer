@@ -128,7 +128,7 @@ typedef enum
 	BATT_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
 	BATT_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: batVal
 	BATT_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: batValCCC
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 	//// Temp/Humi service ////
 	/**********************************************************************************************/
 	TEMP_PS_H, 								//UUID: 2800, 	VALUE: uuid 181A
@@ -219,20 +219,20 @@ void set_mi_adv_data(void);
 void load_adv_data(void);
 #endif
 
-#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_18B20)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20 | SERVICE_PLM))
 inline void ble_send_temp01(void) {
 	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, (u8 *) &measured_data.temp_x01, 2);
 }
 
 inline void ble_send_temp001(void) {
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 	bls_att_pushNotifyData(TEMP2_LEVEL_INPUT_DP_H, (u8 *) &measured_data.temp, 2);
 #else
 	bls_att_pushNotifyData(TEMP2_LEVEL_INPUT_DP_H, (u8 *) &measured_data.xtemp[0], 2);
 #endif
 }
 
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 inline void ble_send_humi(void) {
 	bls_att_pushNotifyData(HUMI_LEVEL_INPUT_DP_H, (u8 *) &measured_data.humi, 2);
 }

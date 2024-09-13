@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "tl_common.h"
+#ifdef I2C_GROUP
 #include "drivers.h"
 #include "vendor/common/user_config.h"
 #include "app_config.h"
@@ -205,3 +206,4 @@ int I2CBusUtr(void * outdata, i2c_utr_t * tr, unsigned int wrlen) {
 	return ret;
 }
 
+#endif // def I2C_GROUP

@@ -42,9 +42,10 @@ extern "C" {
 //#define BOARD_THB3		26 // https://github.com/pvvx/THB2
 #define DEVICE_ZTH01   		27	// ZigBee ZTH01
 #define DEVICE_ZTH02   		28	// ZigBee ZTH02
+#define DEVICE_PLM1 		29  // Tuya BLE Plant monitor ECF-SGS01-A rev1.3 (BT3L Tuya module)
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_TS0201
 #endif
 
 // supported services by the device (bits)
@@ -68,6 +69,7 @@ extern "C" {
 #define SERVICE_PRESSURE	0x00020000	// pressure sensor
 #define SERVICE_18B20		0x00040000	// use sensor(s) MY18B20
 #define SERVICE_IUS			0x00080000	// use I and U sensor (INA226)
+#define SERVICE_PLM			0x00100000	// use PWM-RH and NTC
 
 /* minimal DEV_SERVICES:
 #define DEV_SERVICES ( SERVICE_OTA \ // OTA enable
@@ -834,13 +836,15 @@ extern "C" {
 
 #elif DEVICE_TYPE == DEVICE_TS0201
 
+// TLSR825x 1M Flash (ZTU)
+// GPIO_PA7 - SWS, free, (debug TX)
 // GPIO_PB1 - TX
-// GPIO_PB4 - LED
+// GPIO_PB4 - LED (to GND)
 // GPIO_PB7 - RX
-// GPIO_PC0 - KEY
-// GPIO_PC2 - SDA
-// GPIO_PC3 - SCL
-// GPIO_PD7 - Alert
+// GPIO_PC0 - KEY (to GND)
+// GPIO_PC2 - SDA, used I2C
+// GPIO_PC3 - SCL, used I2C
+// GPIO_PD7 - ALERT (CHT8305)
 
 #define DEV_SERVICES ( SERVICE_OTA\
 		| SERVICE_OTA_EXT \
@@ -1252,6 +1256,99 @@ extern "C" {
 #define PC2_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC2 PM_PIN_PULLUP_10K
 
+#elif DEVICE_TYPE == DEVICE_PLM1
+
+// TLSR8250F512ET32 (BT3L Tuya module ECF-SGS01-A rev1.3)
+
+// GPIO_PB1 - NTC_OFF
+// GPIO_PB4 - PWM
+// GPIO_PB5 - RH_IN
+// GPIO_PB7 - NTC_IN
+// GPIO_PA0 - KEY
+// GPIO_PC0 - LED
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+		| SERVICE_PLM \
+)
+
+#define USE_EPD				0 // min update time ms
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_AHT20_30		0
+#define USE_SENSOR_SHT4X		0
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		0
+
+#define SENSOR_SLEEP_MEASURE	0
+
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define GPIO_KEY2			GPIO_PA0
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLUP_10K
+
+#define GPIO_LED			GPIO_PC0
+#define LED_ON				0
+#define PC0_INPUT_ENABLE	1
+#define PC0_DATA_OUT		1
+#define PC0_OUTPUT_ENABLE	0
+#define PC0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_1M
+
+#define GPIO_TRG			GPIO_PD2
+#define PD2_INPUT_ENABLE	1
+#define PD2_DATA_OUT		0
+#define PD2_OUTPUT_ENABLE	0
+#define PD2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD2	PM_PIN_PULLDOWN_100K
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_10K
+#define GPIO_RDS1 			GPIO_PD7
+#define PD7_INPUT_ENABLE	1
+#define PD7_DATA_OUT		0
+#define PD7_OUTPUT_ENABLE	0
+#define PD7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD7 RDS1_PULLUP
+
+#define USE_SENSOR_PWMRH	1
+// PWM
+#define PWM_PIN			GPIO_PB4
+#define AS_PWMx			AS_PWM4
+#define PWM_ID			PWM4_ID
+// ADC
+#define GPIO_RHI		GPIO_PB5
+#define CHNL_RHI		6 //B5P
+
+#define USE_SENSOR_NTC	1
+
+#define GPIO_NTC_IN		GPIO_PB7
+#define CHNL_NTC		8 //B7P
+#define GPIO_NTC_OFF	GPIO_PB1
+#define PB1_INPUT_ENABLE	1
+#define PB1_DATA_OUT		0
+#define PB1_OUTPUT_ENABLE	0
+#define PB1_FUNC			AS_GPIO
+
+#define USE_AVERAGE_BATTERY 0
+
 #elif DEVICE_TYPE == DEVICE_TB03F
 
 // TLSR8253F512ET32 (TB-03F module)
@@ -1416,6 +1513,10 @@ extern "C" {
 
 #ifndef USE_SENSOR_HX71X
 #define USE_SENSOR_HX71X	0
+#endif
+
+#ifndef LED_ON
+#define LED_ON				1
 #endif
 
 #ifndef USE_AVERAGE_BATTERY

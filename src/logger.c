@@ -33,7 +33,7 @@
 #define measured_val0	measured_data.battery_mv
 #endif
 
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 #define measured_val1	measured_data.temp
 #define measured_val2	measured_data.humi
 #elif (DEV_SERVICES & SERVICE_18B20) && (USE_SENSOR_MY18B20 == 1)

@@ -86,7 +86,7 @@ void bthome_encrypt_data_beacon(void) {
 		p->temperature2 = measured_data.xtemp[1]; // x0.01 C
 #endif
 #endif
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 		p->t_id = BtHomeID_temperature;
 		p->temperature = measured_data.temp; // x0.01 C
 		p->h_id = BtHomeID_humidity;
@@ -173,7 +173,7 @@ void bthome_data_beacon(void) {
 		p->data.temperature2 = measured_data.xtemp[1]; // x0.01 C
 #endif
 #endif
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 		p->data.t_id = BtHomeID_temperature;
 		p->data.temperature = measured_data.temp; // x0.01 C
 		p->data.h_id = BtHomeID_humidity;
