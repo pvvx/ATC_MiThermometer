@@ -45,7 +45,7 @@ extern "C" {
 #define DEVICE_PLM1 		29  // Tuya BLE Plant monitor ECF-SGS01-A rev1.3 (BT3L Tuya module)
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_TS0201
+#define DEVICE_TYPE			DEVICE_CGDK2
 #endif
 
 // supported services by the device (bits)

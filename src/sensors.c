@@ -314,10 +314,10 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*I2C_MAX_SPEED)); // 700 kHz
 #endif
 #if (DEVICE_TYPE == DEVICE_CGDK2) // SHTC3
-	if(sensor_cfg.sensor_type == TH_SENSOR_SHTC3 && sensor_cfg.id)
-		reg_i2c_id = sensor_cfg.i2c_addr | FLD_I2C_WRITE_READ_BIT;
-	else
+	if(sensor_cfg.id == 0xBDC3)
 		reg_i2c_id = FLD_I2C_WRITE_READ_BIT;
+	else
+		reg_i2c_id = sensor_cfg.i2c_addr | FLD_I2C_WRITE_READ_BIT;
 #else
 	reg_i2c_id = sensor_cfg.i2c_addr | FLD_I2C_WRITE_READ_BIT;
 #endif
@@ -395,9 +395,10 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 #if USE_SENSOR_SHT30
 				if(sensor_cfg.sensor_type == TH_SENSOR_SHT30) {
 					send_i2c_word(sensor_cfg.i2c_addr, SHT30_HIMEASURE); // start measure T/H
-				}
+				} else
 #endif //USE_SENSOR_SHT30
 #endif
+				{}
 				ret = 1;
 				break;
 			}
@@ -439,12 +440,9 @@ static int check_sensor(void) {
 			&& !read_i2c_buf(sensor_cfg.i2c_addr, buf, 3)
 			&& buf[2] == sensor_crc(buf[1] ^ sensor_crc(buf[0] ^ 0xff))) { // = 0x5b
 				sensor_cfg.id = (0x00C3<<16) | (buf[0] << 8) | buf[1]; // = 0x8708
-			} else
+			} else {
 				// DEVICE_CGDK2 and bad sensor
-				if(!send_i2c_word(0, SHTC3_GET_ID) // Get ID
-				&& !read_i2c_buf(0, buf, 3)
-				&& buf[2] == sensor_crc(buf[1] ^ sensor_crc(buf[0] ^ 0xff))) { // = 0x5b
-					sensor_cfg.id = (0x00C3 << 16) | (buf[0] << 8) | buf[1]; // = 0x8708 ?
+				sensor_cfg.id = 0xBDC3;
 			}
 			cfg.flg.lp_measures = 0;
 			ptabinit = (sensor_def_cfg_t *)&def_thcoef_shtc3;
@@ -576,21 +574,23 @@ _attribute_ram_code_ __attribute__((optimize("-Os")))
 int read_sensor_cb(void) {
 	if (sensor_cfg.i2c_addr != 0) {
 #if USE_SENSOR_CHT8305
-		if(sensor_cfg.sensor_type == TH_SENSOR_CHT8305)
+		if(sensor_cfg.sensor_type == TH_SENSOR_CHT8305) {
 			if (read_sensor_cht8305()) return 1;
+		} else
 #endif
 #if USE_SENSOR_AHT20_30
-		if(sensor_cfg.sensor_type == TH_SENSOR_AHT2x)
+		if(sensor_cfg.sensor_type == TH_SENSOR_AHT2x) {
 			if (read_sensor_aht2x()) return 1;
+		} else
 #endif
 #if (USE_SENSOR_SHT4X || USE_SENSOR_SHTC3 || USE_SENSOR_SHT30)
-		if(sensor_cfg.sensor_type != TH_SENSOR_NONE)
+		if(sensor_cfg.sensor_type != TH_SENSOR_NONE) {
 			if (read_sensor_sht30_shtc3_sht4x()) return 1;
+		} else
 #endif
-	} else {
-		check_sensor();
-		start_measure_sensor_deep_sleep();
+		{}
 	}
+	check_sensor();
 	return 0;
 }
 
