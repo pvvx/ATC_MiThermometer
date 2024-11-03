@@ -45,7 +45,7 @@ extern "C" {
 #define DEVICE_PLM1 		29  // Tuya BLE Plant monitor ECF-SGS01-A rev1.3 (BT3L Tuya module)
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_CGDK2
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
@@ -836,6 +836,10 @@ extern "C" {
 
 #elif DEVICE_TYPE == DEVICE_TS0201
 
+#ifndef USE_SENSOR_MY18B20
+#define USE_SENSOR_MY18B20	0
+#endif
+
 // TLSR825x 1M Flash (ZTU)
 // GPIO_PA7 - SWS, free, (debug TX)
 // GPIO_PB1 - TX
@@ -844,8 +848,25 @@ extern "C" {
 // GPIO_PC0 - KEY (to GND)
 // GPIO_PC2 - SDA, used I2C
 // GPIO_PC3 - SCL, used I2C
+// GPIO_PD2 - * MY18B20 1
+// GPIO_PD4 - * MY18B20 2
 // GPIO_PD7 - ALERT (CHT8305)
-
+#if USE_SENSOR_MY18B20
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+		| SERVICE_18B20 \
+)
+#else
 #define DEV_SERVICES ( SERVICE_OTA\
 		| SERVICE_OTA_EXT \
 		| SERVICE_PINCODE \
@@ -859,6 +880,7 @@ extern "C" {
 		| SERVICE_TH_TRG \
 		| SERVICE_LED \
 )
+#endif
 
 #define ZIGBEE_TUYA_OTA 	1
 #define USE_EPD				0 // min update time ms
@@ -911,6 +933,25 @@ extern "C" {
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB7 RDS1_PULLUP
+
+#if USE_SENSOR_MY18B20
+
+#define GPIO_ONEWIRE1		GPIO_PD2
+#define PD2_INPUT_ENABLE	1
+#define PD2_DATA_OUT		0
+#define PD2_OUTPUT_ENABLE	0
+#define PD2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PDD2	PM_PIN_PULLDOWN_100K
+
+#if USE_SENSOR_MY18B20 == 2
+#define GPIO_ONEWIRE2		GPIO_PD4
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD4	PM_PIN_PULLDOWN_100K
+#endif
+#endif
 
 #elif DEVICE_TYPE == DEVICE_TH03Z
 
@@ -1410,8 +1451,8 @@ extern "C" {
 #define USE_EPD					0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
-#define USE_SENSOR_AHT20_30		0
-#define USE_SENSOR_SHT4X		1
+#define USE_SENSOR_AHT20_30		1
+#define USE_SENSOR_SHT4X		0 //1
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 

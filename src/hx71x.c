@@ -92,8 +92,13 @@ void hx71x_calibration(void) {
 	if(hx71x.cfg.volume_10ml) {
 		uint32_t coef = hx71x.value / hx71x.cfg.volume_10ml;
 		uint32_t delta = hx71x.cfg.coef >> 4; // div 16 -> 6.25%
-		if(coef < hx71x.cfg.coef + delta && coef > hx71x.cfg.coef - delta)
-			hx71x.cfg.coef = coef;
+		if(coef < hx71x.cfg.coef + delta && coef > hx71x.cfg.coef - delta) {
+			if(!hx71x.calcoef)
+				hx71x.calcoef = coef;
+			hx71x.calcoef += coef;
+			hx71x.calcoef >>= 1;
+			hx71x.cfg.coef = hx71x.calcoef;
+		}
 	}
 }
 
@@ -108,7 +113,7 @@ void hx71x_task(void) {
 			hx71x.value = value;
 			value /= hx71x.cfg.coef; // in 10 milliliters
 			if(value > MAX_TANK_VOLUME_10ML)
-				value = 0;
+				value = MAX_TANK_VOLUME_10ML-1;
 		} else {
 			value = 0;
 //			hx71x.value = value;

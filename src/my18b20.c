@@ -58,13 +58,20 @@ static inline void onewire_pin_hi(void) {
 }
 
 static inline unsigned int onewire_pin_read(void) {
-#if USE_SENSOR_MY18B20 == 2
 	unsigned int ret = 0;
+#if USE_SENSOR_MY18B20 == 2
+#if	((GPIO_ONEWIRE1 & 0xf0) == (GPIO_ONEWIRE2 & 0xf0))
 	unsigned char x = BM_IS_SET(reg_gpio_in(GPIO_ONEWIRE1), (GPIO_ONEWIRE1 | GPIO_ONEWIRE2) & 0xff);
 	if(x & (GPIO_ONEWIRE1 & 0xff))
-			ret |= 1;
+			ret = 1;
 	if(x & (GPIO_ONEWIRE2 & 0xff))
 			ret |= 2;
+#else
+	if(gpio_read(GPIO_ONEWIRE1))
+		ret = 1;
+	if(gpio_read(GPIO_ONEWIRE2))
+		ret |= 2;
+#endif
 #else
 	if(gpio_read(GPIO_ONEWIRE1))
 		ret = 1;

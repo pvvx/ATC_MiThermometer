@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#define MAX_VBAT_MV		2950 // 3100 mV - > battery = 100% no load, 2950 at load (during measurement)
+#define MAX_VBAT_MV		3000 // 3100 mV - > battery = 100% no load, 2950 at load (during measurement)
 #define MIN_VBAT_MV		2200 // 2200 mV - > battery = 0%
 
 #define LOW_VBAT_MV		2800 // level set LOW_CONNECT_LATENCY

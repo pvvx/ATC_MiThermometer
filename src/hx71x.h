@@ -29,6 +29,7 @@ typedef struct _hx71x_t {
 	uint32_t value;
 	uint32_t summator;
 	uint32_t count;
+	uint32_t calcoef;
 } hx71x_t;
 
 
