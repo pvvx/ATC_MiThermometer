@@ -252,9 +252,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.5 | Replacing BTHome ver1 (HA_BLE) with [BTHome ver2](https://bthome.io/). Moving firmware after recovery to BLE from Zigbee OTA. Fixed a bug where the date was not displayed correctly for MJWSD05MMC. |
 |     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
 |     4.7 | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
-|     beta 4.8 | Reorganization of program code. Combining code with "BLE_THSensor". Option added: One MY18B20 on PD2 TS0201S1, ZTH01S1; Two MY18B20 on PD2 and PD4 TS0201S2, ZTH01S2. |
-
-Temperature from MY18B20 is transmitted in BTHome format. |
+|     beta 4.8 | Reorganization of program code. Combining code with "BLE_THSensor". Option added: One MY18B20 on PD2 TS0201S1, ZTH01S1; Two MY18B20 on PD2 and PD4 TS0201S2, ZTH01S2. Temperature from MY18B20 is transmitted in BTHome format. |
 
 ## Applications
 
