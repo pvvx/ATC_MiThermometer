@@ -413,7 +413,10 @@ void test_config(void) {
 }
 
 void low_vbat(void) {
-#if	 (DEV_SERVICES & RDS)
+#if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
+	hx711_go_sleep();
+#endif
+#if	(DEV_SERVICES & RDS)
 	rds1_input_off();
 #endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
@@ -454,7 +457,7 @@ _attribute_ram_code_
 void read_sensors(void) {
 #endif
 #if (DEV_SERVICES & SERVICE_RDS)
-			rds_input_on();
+		rds_input_on();
 #endif
 #if (defined(CHL_ADC1) || defined(CHL_ADC1))
 		if (1)
@@ -528,7 +531,7 @@ static void suspend_exit_cb(u8 e, u8 *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
-#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) //  || (USE_SENSOR_HX71X)
+#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)   || (USE_SENSOR_HX71X && SENSOR_HX71X_WAKEAP)
 _attribute_ram_code_
 static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
@@ -543,6 +546,9 @@ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 //	else
 //		cpu_set_gpio_wakeup(GPIO_RDS2, Level_Low, 0);  // pad wakeup deepsleep disable
 #endif
+#endif
+#if (USE_SENSOR_HX71X && SENSOR_HX71X_WAKEAP)
+	cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, 1);  // pad wakeup deepsleep enable
 #endif
 #if (DEV_SERVICES & SERVICE_KEY)
 	cpu_set_gpio_wakeup(GPIO_KEY2, BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
@@ -595,6 +601,9 @@ static void start_tst_battery(void) {
 	uint16_t avr_mv = get_battery_mv();
 	measured_data.battery_mv = avr_mv;
 	if (avr_mv < MIN_VBAT_MV) { // 2.2V
+#if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
+		hx711_go_sleep();
+#endif
 #if USE_SENSOR_SHTC3
 		send_i2c_word(0x70 << 1, 0x98b0); // SHTC3 go SLEEP: Sleep command of the sensor
 #endif // USE_SENSOR_SHTC3
@@ -659,6 +668,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 	uint32_t hw_ver = get_mi_hw_version();
 #endif // (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
+	hx711_gpio_wakeup();
+#endif
 	// Read config
 	if(flash_read_cfg(&old_ver, EEP_ID_VER, sizeof(old_ver)) != sizeof(old_ver))
 		old_ver = 0;
@@ -765,8 +777,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 	init_sensor();
 #endif
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
-	hx711_gpio_wakeup();
-	hx71x_get_data(HX71XMODE_A128);
+	hx71x_get_data(HX71XMODE_A128); // Start measure
 #endif
 #if (DEV_SERVICES & SERVICE_PLM)
 	calibrate_rh();

@@ -34,7 +34,7 @@ int hx71x_get_data(hx71x_mode_t mode) {
 
 		u8 r = irq_disable();
 
-		write_reg8(pcClkReg, read_reg8(pcClkReg) & (~tmp_s));
+		write_reg8(pcClkReg, read_reg8(pcClkReg) & (~tmp_s)); // preset PD_SCK output 0
 
 		reg_gpio_oen(GPIO_HX71X_SCK) &= ~tmp_s; // Enable PD_SCK output
 
@@ -43,21 +43,32 @@ int hx71x_get_data(hx71x_mode_t mode) {
 
 		u32 pcRxReg = (0x580+((GPIO_HX71X_DOUT>>8)<<3)); // reg_gpio_in() register GPIO input
 
-		u32 dout = 256; // HX71XMODE_A128 - Period: 94 ms, Pulse (1): 81.5 us
 
 //		sleep_us(1);
 
-		while((read_reg8(pcRxReg) & tmp_d) != 0	&& dout-- != 0);
+		// HX71x выдает сигнал занятости при каждом авто-измерении 10 или 40Hz.
+		// Пока идет измерение - считываемые данные не верны!
+		// Решение только одно - читать сразу по фронту готовности (set SENSOR_HX71X_WAKEAP = 1), пока идет пауза до следующего измерения
+		// Иначе будут сбои в показаниях, которые не отследить
+
+		u32 dout = 256; // HX71XMODE_A128 - Period: 94 ms, Pulse (1): 81.5 us
+		while(dout-- != 0) {
+			if((read_reg8(pcRxReg) & tmp_d) == 0) {
+				break;
+			} else {
+				x |= 1;
+			}
+		}
 
 		dout = 0;
 		while(i--) {
 			sleep_us(1);
-			write_reg8(pcClkReg, read_reg8(pcClkReg) | tmp_s);
+			write_reg8(pcClkReg, read_reg8(pcClkReg) | tmp_s);	// PD_SCK set "1"
 			sleep_us(1);
 			dout <<= 1;
 			if(read_reg8(pcRxReg) & tmp_d)
 				dout |= x;
-			write_reg8(pcClkReg, read_reg8(pcClkReg) & (~tmp_s));
+			write_reg8(pcClkReg, read_reg8(pcClkReg) & (~tmp_s)); // PD_SCK set "0"
 		}
 		reg_gpio_oen(GPIO_HX71X_SCK) |= tmp_s; // Disable PD_SCK output
 //		reg_gpio_ie(GPIO_HX71X_DOUT) &= ~tmp_d; // Disable PD_DOUT input
@@ -67,13 +78,6 @@ int hx71x_get_data(hx71x_mode_t mode) {
 		return dout;
 }
 
-/*
-_attribute_ram_code_
-void hx71x_suspend(void) {
-	cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, 1);  // pad wakeup deepsleep enable
-	bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
-}
-*/
 
 _attribute_ram_code_
 uint16_t hx71x_get_volume(void) { // in 10 milliliters
@@ -89,7 +93,7 @@ uint16_t hx71x_get_volume(void) { // in 10 milliliters
 
 // volume in the tank when the overflow sensor is triggered (in 10 milliliters)
 void hx71x_calibration(void) {
-	if(hx71x.cfg.volume_10ml) {
+	if(hx71x.cfg.volume_10ml && hx71x.value) {
 		uint32_t coef = hx71x.value / hx71x.cfg.volume_10ml;
 		uint32_t delta = hx71x.cfg.coef >> 4; // div 16 -> 6.25%
 		if(coef < hx71x.cfg.coef + delta && coef > hx71x.cfg.coef - delta) {
@@ -106,27 +110,34 @@ _attribute_ram_code_
 void hx71x_task(void) {
 	uint32_t value;
 	if(BM_IS_SET(reg_gpio_in(GPIO_HX71X_DOUT), GPIO_HX71X_DOUT & 0xff) == 0) {
-		value = hx71x_get_data(HX71XMODE_A128) + 0x80000000;
-		hx71x.adc = value;
-		if(value > hx71x.cfg.zero) {
-			value -= hx71x.cfg.zero;
-			hx71x.value = value;
-			value /= hx71x.cfg.coef; // in 10 milliliters
-			if(value > MAX_TANK_VOLUME_10ML)
-				value = MAX_TANK_VOLUME_10ML-1;
-		} else {
-			value = 0;
-//			hx71x.value = value;
+		// HX71X_DOUT = "0"
+		value = hx71x_get_data(HX71XMODE_A128);
+		if((value & 1) == 0) {
+			value += 0x80000000;
+			hx71x.adc = value;
+			if(value > hx71x.cfg.zero) {
+				value -= hx71x.cfg.zero;
+				hx71x.value = value;
+				value /= hx71x.cfg.coef; // in 10 milliliters
+				if(value > MAX_TANK_VOLUME_10ML)
+					value = MAX_TANK_VOLUME_10ML-1;
+			} else {
+				value = 0;
+				hx71x.value = value;
+			}
+			hx71x.summator += value;
+			hx71x.count++;
 		}
-		hx71x.summator += value;
-		hx71x.count++;
 	}
 }
 
-void hx71x_init(void) {
-//	cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, 1);  // pad wakeup deepsleep enable
-//	bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
+/*
+_attribute_ram_code_
+void hx71x_suspend(void) {
+	cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, 1);  // pad wakeup deepsleep enable
+	bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
+*/
 
 #endif // USE_SENSOR_HX71X
 

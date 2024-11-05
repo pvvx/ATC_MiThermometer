@@ -17,6 +17,12 @@
 
 #define MAX_TANK_VOLUME_10ML 32768 // 327 liters
 
+#define SENSOR_HX71X_WAKEAP		1 // =0 - wakeap  HX71X disable (LOW POWER), =1 - wakeap enable (HX71X read measure: 10 Hz)
+		// HX71x выдает сигнал занятости при каждом авто-измерении 10 или 40Hz.
+		// Пока идет измерение - считываемые данные не верны!
+		// Решение только одно - читать сразу по фронту готовности (set SENSOR_HX71X_WAKEAP = 1), пока идет пауза до следующего измерения
+		// Иначе будут сбои в показаниях, которые не отследить
+
 typedef struct _hx71x_cfg_t {
 	uint32_t zero;
 	uint32_t coef;
@@ -50,7 +56,7 @@ extern hx71x_cfg_t def_hx71x_cfg;
 int hx71x_get_data(hx71x_mode_t mode);
 void hx71x_calibration(void);
 uint16_t hx71x_get_volume(void); // in 10 milliliters
-//void hx71x_suspend(void);
+// void hx71x_suspend(void);
 void hx71x_task(void);
 
 inline void hx711_go_sleep(void) {
