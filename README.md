@@ -573,9 +573,13 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 | 0x02 | Get address of internal devices               |
 | 0x03 | I2C scan                           		   |
 | 0x04 | I2C Universal TRansaction (UTR)               |
+| 0x05 | Get sensor ID                                 |
+| 0x06 | Get Flash JEDEC ID                            |
 | 0x10 | Get/Set MAC                                   |
 | 0x11 | Get/Set Mi key: DevNameID                     |
 | 0x12 | Get/Set Mi keys: Token & Bind                 |
+| 0x13 | Mi cfg data, [size][data]                     |
+| 0x14 | Mi marked as deleted keys, [size][data]       |
 | 0x15 | Get all Mi keys                               |
 | 0x16 | Restore prev mi token & bindkeys              |
 | 0x17 | Delete all Mi keys                            |
@@ -584,24 +588,27 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 | 0x22 | Get/Set show LCD ext.data                     |
 | 0x23 | Get/Set Time                                  |
 | 0x24 | Get/set adjust time clock delta               |
+| 0x25 | Get/Set TH sensor config                      |
+| 0x26 | Set default TH sensor config                  |
+| 0x26 | Get/Set sensor MY18B20 config                 |
+| 0x27 | Set default sensor MY18B20 config             |
+| 0x28 | Get/Set sensor RH config                      |
+| 0x29 | Calibrate sensor RH                           |
 | 0x33 | Start/Stop notify measures in connection mode |
 | 0x35 | Read memory measures                          |
 | 0x36 | Clear memory measures                         |
 | 0x44 | Get/Set TRG config                            |
 | 0x45 | Set TRG output pin                            |
-| 0x4A | Get/Set TRG data (not save to Flash)          |
+| 0x49 | Get/Set HX71X config                          |
 | 0x55 | Get/Set device config                         |
 | 0x56 | Set default device config                     |
 | 0x5A | Get/Set device config (not save to Flash)     |
 | 0x60 | Get/Set LCD buffer                            |
 | 0x61 | Start/Stop notify LCD buffer                  |
-| 0x70 | Set PinCode                                   |
-| 0x71 | Request Mtu Size Exchange                     |
+| 0x70 | Set PinCode (0..999999)                       |
+| 0x71 | Request MTU Size Exchange (23..255)           |
 | 0x72 | Set Reboot on disconnect                      |
-| 0x73 | Extension BigOTA (MJWSD05MMC)                 |
+| 0x73 | Extension BigOTA (Zigbee, MJWSD05MMC)         |
 | 0xDD | Reset LE Long Range mode                      |
 
----
-
-![foto](https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/SensorsTH.jpg)
 
