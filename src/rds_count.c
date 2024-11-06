@@ -24,6 +24,9 @@
 #include "bthome_beacon.h"
 #endif
 #include "rds_count.h"
+#if (USE_SENSOR_HX71X)
+#include "hx71x.h"
+#endif
 
 #if (DEV_SERVICES & SERVICE_LE_LR)
 extern u32 blt_advExpectTime;
@@ -45,7 +48,6 @@ void rds_input_off(void) {
 	}
 #endif
 }
-
 
 
 void rds_init(void) {
@@ -216,7 +218,7 @@ void rds_task(void) {
 			if (!trg.flg.rds1_input) {
 				// RDS1 on event, keypress event
 				trg.flg.rds1_input = 1;
-#if (USE_HX71X) && (DEVICE_TYPE == DEVICE_TNK01)
+#if (USE_SENSOR_HX71X) && (DEVICE_TYPE == DEVICE_TNK01)
 				hx71x_calibration();
 #endif
 				if (trg.rds.type1 == RDS_SWITCH) { // switch mode

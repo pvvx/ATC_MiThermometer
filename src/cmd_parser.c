@@ -29,6 +29,9 @@
 #include "ext_ota.h"
 #endif
 #include "rh.h"
+#if (USE_SENSOR_HX71X)
+#include "hx71x.h"
+#endif
 
 #define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (uint32_t)faddr, len, (uint8_t *)pbuf)
 
@@ -692,7 +695,7 @@ void cmd_parser(void * p) {
 			memcpy(&send_buf[1], &my18b20.coef, my18b20_send_size);
 			olen = my18b20_send_size + 1;
 #endif
-#if USE_HX71X
+#if USE_SENSOR_HX71X
 		} else if (cmd == CMD_ID_HXC) { // Get/set HX71X config
 			if (--len > sizeof(hx71x.cfg))	len = sizeof(hx71x.cfg);
 			if (len) {

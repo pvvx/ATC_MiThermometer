@@ -548,7 +548,7 @@ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 #endif
 #endif
 #if (USE_SENSOR_HX71X && SENSOR_HX71X_WAKEAP)
-	cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, 1);  // pad wakeup deepsleep enable
+	cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, wrk.ble_connected == 0);  // pad wakeup deepsleep enable
 #endif
 #if (DEV_SERVICES & SERVICE_KEY)
 	cpu_set_gpio_wakeup(GPIO_KEY2, BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable

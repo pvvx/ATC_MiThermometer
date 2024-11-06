@@ -23,7 +23,7 @@ hx71x_cfg_t def_hx71x_cfg = {
 };
 // set config: 49b04fed7b82dC0000ec2c0000  // b04fed7b82dc0000ec2c0000806721a0
 
-
+// HX71XMODE_A128 - Period: 94 ms, Pulse (1): 81.5 us
 _attribute_ram_code_
 int hx71x_get_data(hx71x_mode_t mode) {
 		u32 i = mode;
@@ -32,7 +32,6 @@ int hx71x_get_data(hx71x_mode_t mode) {
 		u8 tmp_s = GPIO_HX71X_SCK & 0xff;
 		u32 pcClkReg = (0x583+((GPIO_HX71X_SCK>>8)<<3)); // reg_gpio_out() register GPIO output
 
-		u8 r = irq_disable();
 
 		write_reg8(pcClkReg, read_reg8(pcClkReg) & (~tmp_s)); // preset PD_SCK output 0
 
@@ -51,16 +50,12 @@ int hx71x_get_data(hx71x_mode_t mode) {
 		// Решение только одно - читать сразу по фронту готовности (set SENSOR_HX71X_WAKEAP = 1), пока идет пауза до следующего измерения
 		// Иначе будут сбои в показаниях, которые не отследить
 
-		u32 dout = 256; // HX71XMODE_A128 - Period: 94 ms, Pulse (1): 81.5 us
-		while(dout-- != 0) {
-			if((read_reg8(pcRxReg) & tmp_d) == 0) {
-				break;
-			} else {
-				x |= 1;
-			}
-		}
+		u32 dout = 0;
 
-		dout = 0;
+		u8 r = irq_disable();
+
+		if(read_reg8(pcRxReg) & tmp_d)
+				x |= 1;
 		while(i--) {
 			sleep_us(1);
 			write_reg8(pcClkReg, read_reg8(pcClkReg) | tmp_s);	// PD_SCK set "1"
