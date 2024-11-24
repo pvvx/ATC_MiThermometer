@@ -45,7 +45,7 @@ extern "C" {
 #define DEVICE_PLM1 		29  // Tuya BLE Plant monitor ECF-SGS01-A rev1.3 (BT3L Tuya module)
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_TNK01 // DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
@@ -1278,6 +1278,7 @@ extern "C" {
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
 
+#define I2C_MAX_SPEED 		200000 // 200 kHz
 #define I2C_SCL 			GPIO_PC0
 #define I2C_SDA 			GPIO_PC1
 #define I2C_GROUP 			I2C_GPIO_GROUP_C0C1
