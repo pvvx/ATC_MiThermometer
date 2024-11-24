@@ -21,6 +21,8 @@ From [ZigbeeTLc](https://github.com/pvvx/ZigbeeTLc) firmware to BLE:
 
 From [devbis Zigbee](https://github.com/devbis/z03mmc) firmware to BLE:
 
-db15-0203-99993001-ATC_vxx.zigbee new version `devbis`
+db15-0203-99993001-ATC_vxx.zigbee
 
-1141-0203-99993001-ATC_vxx.zigbee old version `devbis`
+From Tuya Zigbee firmware to BLE:
+
+1141-d3a3-01983001-TS0201BLE_xxx.zigbee Tuya TS0201-TZ3000 Zigbee to BLE
