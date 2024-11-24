@@ -74,7 +74,7 @@ static inline unsigned int onewire_pin_read(void) {
 #endif
 #else
 	if(gpio_read(GPIO_ONEWIRE1))
-		ret = 1;
+		ret = 3;
 #endif
 	return ret;
 }
@@ -112,13 +112,8 @@ int onewire_bit_read(void) {
 		onewire_pin_hi();
 		sleep_us(15); // 15
 		ret = onewire_pin_read();
-#if USE_SENSOR_MY18B20 == 2
 		if(ret != 3) {
 			while(onewire_pin_read() != 3) {
-#else
-		if(ret == 0) {
-			while(onewire_pin_read() == 0) {
-#endif
 				if(clock_time() - tt > 65 * CLOCK_16M_SYS_TIMER_CLK_1US) {
 					ret = -1;
 					break;
@@ -159,11 +154,7 @@ int onewire_tst_presence(void) {
 	if(onewire_pin_read() == 0) {
 		ret = 0;
 		unsigned int tt = clock_time();
-#if USE_SENSOR_MY18B20 == 2
 		while(onewire_pin_read() != 3) {
-#else
-		while(onewire_pin_read() == 0) {
-#endif
 			if(clock_time() - tt > (265-80) * CLOCK_16M_SYS_TIMER_CLK_1US) {
 				ret = -1;
 				break;
@@ -200,16 +191,18 @@ int onewire_16bit_read(short *pdata) {
 #if USE_SENSOR_MY18B20 == 2
 			if(cbit & 1)
 				pdata[0] |= mask;
-#else
-			if(cbit)
-				pdata[0] |= mask;
-#endif
 			else
 				pdata[0] &= ~mask;
 			if(cbit & 2)
 				pdata[1] |= mask;
 			else
 				pdata[1] &= ~mask;
+#else
+			if(cbit)
+				pdata[0] |= mask;
+			else
+				pdata[0] &= ~mask;
+#endif
 		}
 		mask <<= 1;
 	}
@@ -246,10 +239,11 @@ void delay_us(unsigned int us) {
 void init_my18b20(void) {
 	my18b20_coef_t * ptabinit = (my18b20_coef_t *)&def_coef_my18b20;
 	onewire_bus_low();
+	my18b20.type =
 #if USE_SENSOR_MY18B20 == 2
-	my18b20.type = IU_SENSOR_MY18B20x2;
+	 IU_SENSOR_MY18B20x2;
 #else
-	my18b20.type = IU_SENSOR_MY18B20;
+	 IU_SENSOR_MY18B20;
 #endif
 	my18b20.stage = 0; // init
 	my18b20.rd_ok = 0;

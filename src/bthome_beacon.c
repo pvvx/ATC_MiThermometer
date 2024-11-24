@@ -78,6 +78,10 @@ void bthome_encrypt_data_beacon(void) {
 		padv_bthome_data1_t p = (padv_bthome_data1_t)&buf;
 		p->b_id = BtHomeID_battery;
 		p->battery_level = measured_data.battery_level;
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
+		p->t_id = BtHomeID_temperature;
+		p->temperature = measured_data.temp; // x0.01 C
+#endif
 #if (DEV_SERVICES & SERVICE_18B20)
 		p->t1_id = BtHomeID_temperature;
 		p->temperature1 = measured_data.xtemp[0]; // x0.01 C
@@ -87,8 +91,6 @@ void bthome_encrypt_data_beacon(void) {
 #endif
 #endif
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
-		p->t_id = BtHomeID_temperature;
-		p->temperature = measured_data.temp; // x0.01 C
 		p->h_id = BtHomeID_humidity;
 		p->humidity = measured_data.humi; // x0.01 %
 #endif
