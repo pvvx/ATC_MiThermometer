@@ -34,6 +34,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 * DIY improvements - relay control by temperature or humidity, transmission of the reed switch status - open / closed or pulse counter
 * Firmware download support for [Zigbee](https://github.com/pvvx/ZigbeeTLc)
 * Flashing third party Zigbee OTA files.
+* Support for connecting [external MY18B20 sensors](https://github.com/pvvx/ATC_MiThermometer/issues/571) to a device (TS0201, ZTH01) with 2xAAA batteries
 * Support Low cost [BLE Advertisements Repeater into Zigbee](https://github.com/pvvx/TLB2Z):
 
 ![b2z.gif](https://github.com/pvvx/TLB2Z/blob/master/web/b2z.gif)
