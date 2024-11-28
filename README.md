@@ -358,8 +358,9 @@ Using the default settings for advertising interval of 5 seconds and measurement
 
 * Bluetooth Advertisement: 19..21 uA 3.3V (LCD off - 16.5 uA)
 * Bluetooth Connection: 27..33 uA 3.3V
+* All sleep, LCD off: 11..12 uA 3.3V !
 
-(!) TH03 power consumption is twice as much as LYWSD03MMC. The reason is the LCD driver chip and T/H sensor. Not recommended for purchase.
+(!) TH03 power consumption is twice as much as LYWSD03MMC. The reason is the LCD driver chip and T/H sensor. Not recommended for purchase. The developers of this device under the Tuya brand used all components that are not suitable for power supply from CR2032... The goal was one - to sell.
 
 
 ### Bluetooth Advertising Formats
