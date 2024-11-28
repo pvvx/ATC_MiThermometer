@@ -4,7 +4,6 @@
 
 Please post questions about using and setting up [Home Assistant](https://www.home-assistant.io/) integrations on the appropriate resources!
 
-Next year (2024), a transition to modern Bluetooth SIG standards is planned. Linux has not supported Bluetooth open-standards since 2014. There is no point in waiting more than 10 years for progress in Linux. The path will sink into oblivion :).
 
 _This repository contains custom firmware for several Bluetooth Thermometer & Hygrometer devices._
 _The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required._
@@ -40,6 +39,8 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 ![b2z.gif](https://github.com/pvvx/TLB2Z/blob/master/web/b2z.gif)
 
 **Supported models:**
+
+(!) It is not recommended to buy Tuya thermometers with CHT8305 sensors and/or BL55028 LCD driver chips. They have increased consumption and are not compatible with battery operation. This is a dummy thermometer from Tuya.
 
 * Thermometers with display
 
