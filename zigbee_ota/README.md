@@ -24,8 +24,14 @@
 
 db15-0203-99993001-ATC_vxx.zigbee
 
-### From Tuya Zigbee firmware to BLE:
+### TS0201-TZ3000 From Tuya Zigbee firmware to BLE:
 
 1141-d3a3-01983001-TS0201BLE_xxx.zigbee Tuya TS0201-TZ3000 Zigbee to BLE
 
 * Index file: ts0201_tuya2ble.json
+
+### TH03 From Tuya (Sonoff) Zigbee firmware to BLE:
+
+1286-0202-10993607-TH03BLE_v48.zigbee  Tuya TH03 Zigbee to BLE
+
+* Index file: th03_tuya2ble.json
