@@ -54,6 +54,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 |  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |
 | Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | BLE |
+| Not recommended for purchase! |
 
 
 * Thermometers without display
@@ -354,9 +355,10 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 
 Using the default settings for advertising interval of 5 seconds and measurement interval of 20 seconds:
 
-* Bluetooth Advertisement: 19..21 uA 3.3V 
+* Bluetooth Advertisement: 19..21 uA 3.3V (LCD off - 16.5 uA)
 * Bluetooth Connection: 27..33 uA 3.3V
-(!) TH03 power consumption is twice as much as LYWSD03MMC (!) The reason is the LCD driver chip and T/H sensor. Not recommended for purchase.
+
+(!) TH03 power consumption is twice as much as LYWSD03MMC. The reason is the LCD driver chip and T/H sensor. Not recommended for purchase.
 
 
 ### Bluetooth Advertising Formats
