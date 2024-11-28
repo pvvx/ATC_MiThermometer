@@ -620,6 +620,9 @@ static void start_tst_battery(void) {
 #if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122)
 		// Set sleep power < 1 uA
 		send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
+#elif (DEVICE_TYPE == DEVICE_ZTH03)
+extern int soft_i2c_send_byte(uint8_t addr, uint8_t b);
+		soft_i2c_send_byte(0x3E << 1, 0xD0);
 #endif
 		go_sleep(120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 	}

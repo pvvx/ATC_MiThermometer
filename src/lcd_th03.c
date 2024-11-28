@@ -188,7 +188,7 @@ void init_lcd(void){
 	lcd_i2c_addr = TH03_I2C_ADDR << 1;
 	//display_cmp_buff[0] = 0;
 	if(cfg.flg2.screen_off) {
-		if(lcd_send_i2c_byte(0xEA)) // LCD reset
+		if(lcd_send_i2c_byte(0xD0) || lcd_send_i2c_byte(0xEA)) // LCD reset
 			lcd_i2c_addr = 0;
 	} else {
 		if(lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd)))

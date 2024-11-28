@@ -51,13 +51,13 @@
 #define DEVICE_MHO_C401N   	 8	// E-Ink display MHO-C401 2022
 #define DEVICE_MJWSD05MMC	 9  // LCD display MJWSD05MMC
 #define DEVICE_MHO_C122   	11	// LCD display MHO_C122
+#define DEVICE_ZTH03   		12  // ZigBee ZTH03
 #define DEVICE_TB03F		16  // DIY TB-03F-Kit + INA226
 #define DEVICE_TS0201   	17	// ZigBee TS0201, analog: IH-K009
 #define DEVICE_TNK01		18  // DIY, PB-03F module, Water tank controller
 #define DEVICE_TH03Z   		22	// ZigBee TH03Z
 #define DEVICE_ZTH01   		27	// ZigBee ZTH01
 #define DEVICE_ZTH02   		28	// ZigBee ZTH02
-#define DEVICE_ZTH03   		30  // ZigBee TH03 LCD
 
 
 #if 0 // not used in this code!
