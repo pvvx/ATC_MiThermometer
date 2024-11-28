@@ -201,6 +201,16 @@ const cfg_t def_cfg = {
 #if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
+#elif DEVICE_TYPE == DEVICE_ZTH03
+		.flg2.adv_flags = true,
+		.advertising_interval = 80, // multiply by 62.5 ms = 5 sec
+		.flg.comfort_smiley = true,
+		.measure_interval = 4, // * advertising_interval = 20 sec
+		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
+#endif
 #else
 #error "DEVICE_TYPE = ?"
 #endif

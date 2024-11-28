@@ -18,6 +18,7 @@
 | 0x0216 |  TH03Z |
 | 0x021b |  ZTH01 |
 | 0x021c |  ZTH02 |
+| 0x021e |  TH03 |
 
 ### From [devbis Zigbee](https://github.com/devbis/z03mmc) firmware to BLE:
 

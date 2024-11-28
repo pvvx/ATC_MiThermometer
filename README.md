@@ -49,6 +49,13 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | [Programmator](https://github.com/pvvx/ATC_MiThermometer/issues/339) |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 
+| [Tuya ZigBee TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/) |
+|:--:|
+|  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |
+| Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
+| BLE |
+
+
 * Thermometers without display
 
 | [Tuya ZigBee TS0201 TZ3000](https://pvvx.github.io/TS0201_TZ3000) | [Tuya ZigBee TH03Z](https://pvvx.github.io/TH03Z) | [Tuya ZigBee ZTH01](https://pvvx.github.io/TS0601_TZE200_zth01) | [Tuya ZigBee ZTH02](https://pvvx.github.io/TS0601_TZE200_zth02) |
@@ -254,6 +261,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
 |     4.7 | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
 |     4.8 | Reorganization of program code. Combining code with "BLE_THSensor". [Option added](https://github.com/pvvx/ATC_MiThermometer/issues/571): One MY18B20 on PD2 TS0201S1, ZTH01S1; Two MY18B20 on PD2 and PD4 TS0201S2, ZTH01S2. Temperature from MY18B20 is transmitted in BTHome format. |
+|         | Added "[Tuya TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/)" |
 
 ## Applications
 

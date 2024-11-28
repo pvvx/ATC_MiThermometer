@@ -57,6 +57,9 @@ make -s -j PROJECT_NAME=ZTH02%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZTH02"
 @del /Q "TB03F%SWVER%.bin"
 make -s -j PROJECT_NAME=TB03F%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TB03F"
 @if not exist "TB03F%SWVER%.bin" goto :error
+@del /Q "TH03%SWVER%.bin"
+make -s -j PROJECT_NAME=TH03%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZTH03"
+@if not exist "TH03%SWVER%.bin" goto :error
 @exit
 :error
 echo "Error!"

@@ -41,6 +41,7 @@ extern lcd_flg_t lcd_flg;
 #define B16_I2C_ADDR		0	 // UART
 #define B19_I2C_ADDR		0x3E // BU9792AFUV
 #define CGDK2_I2C_ADDR		0x3E // BU9792AFUV
+#define TH03_I2C_ADDR		0x3E // BL55028
 
 extern uint8_t lcd_i2c_addr; // LCD controller I2C address
 
@@ -102,6 +103,7 @@ void show_clock(void);
 extern uint8_t stage_lcd;
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 
 #elif DEVICE_TYPE == DEVICE_MHO_C401N
 
@@ -115,6 +117,7 @@ extern uint8_t stage_lcd;
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 void show_connected_symbol(bool state);
 int task_lcd(void);
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 
 #elif DEVICE_TYPE == DEVICE_CGG1
 
@@ -132,6 +135,7 @@ extern uint8_t stage_lcd;
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
 void show_batt_cgg1(void);
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 
@@ -158,6 +162,7 @@ void show_reboot_screen(void);
 #define SHOW_REBOOT_SCREEN() show_reboot_screen()
 void show_batt_cgdk2(void);
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 
 #elif DEVICE_TYPE == DEVICE_MHO_C122
 
@@ -170,6 +175,19 @@ void show_reboot_screen(void);
 #define SHOW_REBOOT_SCREEN() show_reboot_screen()
 #define LCD_BUF_SIZE	6
 extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
+void show_small_number(int16_t number, bool percent); // -9 .. 99
+
+#elif DEVICE_TYPE == DEVICE_ZTH03
+
+void show_ota_screen(void);
+#define SHOW_OTA_SCREEN() show_ota_screen()
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+void show_reboot_screen(void);
+#define SHOW_REBOOT_SCREEN() show_reboot_screen()
+#define LCD_BUF_SIZE	6
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE+1];
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 
 #else
@@ -187,6 +205,7 @@ enum {
 	SCR_TYPE_BAT_V,		//4 Battery V
 	SCR_TYPE_EXT		//5 External number & symbols
 } SCR_TYPE_ENUM;
+
 
 #define MJWSD05MMC_LCD_I2C_ADDR	0x3E // BU9792AFUV
 //#define  min_step_time_update_lcd (500 * CLOCK_16M_SYS_TIMER_CLK_1MS)
@@ -251,10 +270,9 @@ void show_data_s2(void);
 void show_low_bat(void);
 
 #define LCD_BUF_SIZE	18
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 
 #endif // (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-
-extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 
 #else
 

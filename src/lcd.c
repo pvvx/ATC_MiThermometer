@@ -27,16 +27,26 @@
 //RAM uint32_t tim_last_chow; // timer show lcd >= 1.5 sec
 
 RAM lcd_flg_t lcd_flg;
+#if	(DEVICE_TYPE == DEVICE_ZTH03)
+RAM uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE+1];
+#else
 RAM uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
+#endif
 
 #if (!USE_EPD)
 _attribute_ram_code_
 void update_lcd(void){
 	if(cfg.flg2.screen_off)
 		return;
+#if	(DEVICE_TYPE == DEVICE_ZTH03)
+	if (memcmp(&display_cmp_buff[1], &display_buff, sizeof(display_buff))) {
+		memcpy(&display_cmp_buff[1], &display_buff, sizeof(display_buff));
+		send_to_lcd();
+#else
 	if (memcmp(&display_cmp_buff, &display_buff, sizeof(display_buff))) {
 		send_to_lcd();
 		memcpy(&display_cmp_buff, &display_buff, sizeof(display_buff));
+#endif
 		lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
 	}
 }

@@ -57,6 +57,7 @@
 #define DEVICE_TH03Z   		22	// ZigBee TH03Z
 #define DEVICE_ZTH01   		27	// ZigBee ZTH01
 #define DEVICE_ZTH02   		28	// ZigBee ZTH02
+#define DEVICE_ZTH03   		30  // ZigBee TH03 LCD
 
 
 #if 0 // not used in this code!

@@ -194,7 +194,7 @@ static const u8 my_ManStr[] = {"DIY.home"};
 static const u8 my_ModelStr[] = {"TNK01"};
 static const u8 my_HardStr[4] = {"V1.0"};// = {"V1.0"};
 #if !USE_FLASH_SERIAL_UID
-static const u8 my_SerialStr[] = {"0000-0000-0000-0004"}; // "0000-0000-0000-00000"
+static const u8 my_SerialStr[] = {"0000-0000-0000-0005"}; // "0000-0000-0000-00000"
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"DIY.home"};
@@ -203,7 +203,7 @@ static const u8 my_ManStr[] = {"DIY.home"};
 static const u8 my_ModelStr[] = {"TB-03F"};
 static const u8 my_HardStr[4] = {"V1.0"};// = {"V1.0"};
 #if !USE_FLASH_SERIAL_UID
-static const u8 my_SerialStr[] = {"0000-0000-0000-0004"}; // "0000-0000-0000-00000"
+static const u8 my_SerialStr[] = {"0000-0000-0000-0006"}; // "0000-0000-0000-00000"
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"DIY.home"};
@@ -212,7 +212,16 @@ static const u8 my_ManStr[] = {"DIY.home"};
 static const u8 my_ModelStr[] = {"PLM-1"};
 static const u8 my_HardStr[4] = {"V1.3"};
 #if !USE_FLASH_SERIAL_UID
-static const u8 my_SerialStr[] = {"0000-0000-0000-0004"}; // "0000-0000-0000-00000"
+static const u8 my_SerialStr[] = {"0000-0000-0000-0007"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"Tuya"};
+
+#elif DEVICE_TYPE == DEVICE_ZTH03
+static const u8 my_ModelStr[] = {"TH03"};
+static const u8 my_HardStr[4] = {"V1.1"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-0008"}; // "0000-0000-0000-00000"
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Tuya"};
