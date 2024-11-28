@@ -350,6 +350,15 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 * Bluetooth Advertisement: 12..16 uA 3.3V 
 * Bluetooth Connection: 23..30 uA 3.3V
 
+**Tuya TH03**
+
+Using the default settings for advertising interval of 5 seconds and measurement interval of 20 seconds:
+
+* Bluetooth Advertisement: 19..21 uA 3.3V 
+* Bluetooth Connection: 27..33 uA 3.3V
+(!) TH03 power consumption is twice as much as LYWSD03MMC (!) The reason is the LCD driver chip and T/H sensor. Not recommended for purchase.
+
+
 ### Bluetooth Advertising Formats
 
 The Firmware can be configured to support one of four different Bluetooth advertisements data formats:
