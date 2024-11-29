@@ -55,7 +55,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 | <img src="https://pvvx.github.io/MHO_C122/img/MHO-C122.png" alt="MHO-C122 (2AWMOMHOC122)" width="120"/> |  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |
 | [Programmator](https://github.com/pvvx/ATC_MiThermometer/issues/339) | Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE |
-| | Not recommended for purchase! |
+| | [Not recommended for purchase!](https://github.com/pvvx/ZigbeeTLc/issues/129) |
 
 
 * Thermometers without display
@@ -221,6 +221,7 @@ In case you want to go back to the original firmware, you can download them here
 * [Qingping CGDK2 Original Firmware v1.1.1_0210](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGDK2_v1.1.1_0210.bin)
 * [Qingping CGDK2 Original Firmware v1.1.1_0217](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGDK2_v1.1.1_0217.bin)
 * [Qingping CGDK2 Original Firmware v1.1.1_0223](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGDK2_v1.1.1_0223.bin)
+* [Zigbee TH03](https://github.com/pvvx/ATC_MiThermometer/raw/master/1286-0202-10033607-TH03_Tuya_OTA.zigbee)
 
 ### Firmware version history
 
@@ -360,7 +361,7 @@ Using the default settings for advertising interval of 5 seconds and measurement
 * Bluetooth Connection: 27..33 uA 3.3V
 * All sleep, LCD off: 11..12 uA 3.3V !
 
-(!) TH03 power consumption is twice as much as LYWSD03MMC. The reason is the LCD driver chip and T/H sensor. Not recommended for purchase. The developers of this device under the Tuya brand used all components that are not suitable for power supply from CR2032... The goal was one - to sell.
+(!) [TH03 power consumption](https://pvvx.github.io/TS0201_TZ3000_TH03/) is twice as much as LYWSD03MMC. The reason is the LCD driver chip and T/H sensor. Not recommended for purchase. The developers of this device under the Tuya brand used all components that are not suitable for power supply from CR2032... The goal was one - to sell.
 
 
 ### Bluetooth Advertising Formats
