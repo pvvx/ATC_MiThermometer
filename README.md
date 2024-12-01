@@ -52,7 +52,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 
 | [MHO-C122 (2AWMOMHOC122)](https://pvvx.github.io/MHO_C122) | [Tuya ZigBee TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/) | [Tuya ZigBee LKTMZL02](https://pvvx.github.io/LKTMZL02) |
 |:--:|:--:|:--:|
-| <img src="https://pvvx.github.io/MHO_C122/img/MHO-C122.png" alt="MHO-C122 (2AWMOMHOC122)" width="120"/> |  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> | | <img src="https://pvvx.github.io/LKTMZL02/img/LKTMZL02.png" alt="LKTMZL02" width="120"/> |
+| <img src="https://pvvx.github.io/MHO_C122/img/MHO-C122.png" alt="MHO-C122 (2AWMOMHOC122)" width="120"/> |  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |  <img src="https://pvvx.github.io/LKTMZL02/img/LKTMZL02.png" alt="LKTMZL02" width="120"/> |
 | [Programmator](https://github.com/pvvx/ATC_MiThermometer/issues/339) | Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE |
 | | [Not recommended for purchase!](https://github.com/pvvx/ZigbeeTLc/issues/129) | |
