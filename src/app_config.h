@@ -1731,6 +1731,8 @@ extern "C" {
 		| SERVICE_LED \
 )
 
+#define ZIGBEE_TUYA_OTA 	1
+
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
