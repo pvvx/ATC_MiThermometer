@@ -173,17 +173,6 @@ const uint8_t lcd_init_cmd[]	=	{
 
 #endif
 
-typedef struct __attribute__((packed)) _dma_uart_buf_t {
-	volatile uint32_t dma_len;
-	uint32_t head;
-	uint8_t start;
-	uint8_t data[6];
-	uint8_t chk;
-	uint8_t end;
-} dma_uart_buf_t;
-
-RAM dma_uart_buf_t utxb;
-
 void init_lcd(void){
 	lcd_i2c_addr = TH03_I2C_ADDR << 1;
 	//display_cmp_buff[0] = 0;
@@ -265,14 +254,14 @@ void show_battery_symbol(bool state){
 		display_buff[3] &= ~BIT(6);
 }
 
-/* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
+/* number in 0.1 (-19995..19995), Show: -1999 .. 1999 */
 _attribute_ram_code_
 __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 	display_buff[2] &= BIT(3); // F/C "_"
 	if (number > 19995) {
    		display_buff[0] = LCD_SYM_H; // "H"
    		display_buff[1] = LCD_SYM_i; // "i"
-	} else if (number < -995) {
+	} else if (number < -19995) {
    		display_buff[0] = LCD_SYM_L; // "L"
    		display_buff[1] = LCD_SYM_o; // "o"
 	} else {

@@ -50,12 +50,12 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE |
 
-| [MHO-C122 (2AWMOMHOC122)](https://pvvx.github.io/MHO_C122) | [Tuya ZigBee TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/) |
-|:--:|:--:|
-| <img src="https://pvvx.github.io/MHO_C122/img/MHO-C122.png" alt="MHO-C122 (2AWMOMHOC122)" width="120"/> |  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> |
-| [Programmator](https://github.com/pvvx/ATC_MiThermometer/issues/339) | Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
-| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE |
-| | [Not recommended for purchase!](https://github.com/pvvx/ZigbeeTLc/issues/129) |
+| [MHO-C122 (2AWMOMHOC122)](https://pvvx.github.io/MHO_C122) | [Tuya ZigBee TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/) | [Tuya ZigBee LKTMZL02](https://pvvx.github.io/LKTMZL02) |
+|:--:|:--:|:--:|
+| <img src="https://pvvx.github.io/MHO_C122/img/MHO-C122.png" alt="MHO-C122 (2AWMOMHOC122)" width="120"/> |  <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="Xiaomi Mijia (LYWSD03MMC)" width="120"/> | | <img src="https://pvvx.github.io/LKTMZL02/img/LKTMZL02.png" alt="LKTMZL02" width="120"/> |
+| [Programmator](https://github.com/pvvx/ATC_MiThermometer/issues/339) | Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
+| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE |
+| | [Not recommended for purchase!](https://github.com/pvvx/ZigbeeTLc/issues/129) | |
 
 
 * Thermometers without display
@@ -264,7 +264,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
 |     4.7 | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
 |     4.8 | Reorganization of program code. Combining code with "BLE_THSensor". [Option added](https://github.com/pvvx/ATC_MiThermometer/issues/571): One MY18B20 on PD2 TS0201S1, ZTH01S1; Two MY18B20 on PD2 and PD4 TS0201S2, ZTH01S2. Temperature from MY18B20 is transmitted in BTHome format. |
-|         | Added "[Tuya TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/)" |
+|         | Added "[Tuya TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/)", "[LKTMZL02](https://pvvx.github.io/LKTMZL02)" |
 
 ## Applications
 
@@ -357,12 +357,18 @@ Using the default settings for advertising interval of 2.5 seconds and measureme
 
 Using the default settings for advertising interval of 5 seconds and measurement interval of 20 seconds:
 
-* Bluetooth Advertisement: 19..21 uA 3.3V (LCD off - 16.5 uA)
+* Bluetooth Advertisement: 19..21 uA 3.3V (LCD off: 16.5 uA)
 * Bluetooth Connection: 27..33 uA 3.3V
 * All sleep, LCD off: 11..12 uA 3.3V !
 
 (!) [TH03 power consumption](https://pvvx.github.io/TS0201_TZ3000_TH03/) is twice as much as LYWSD03MMC. The reason is the LCD driver chip and T/H sensor. Not recommended for purchase. The developers of this device under the Tuya brand used all components that are not suitable for power supply from CR2032... The goal was one - to sell.
 
+**Tuya ZL02-ZX (LKTMZL02)**
+
+Using the default settings for advertising interval of 5 seconds and measurement interval of 20 seconds:
+
+* Bluetooth Advertisement: 13..14 uA 3.3V (LCD off: 6.8..7.2 uA)
+* Sleep: 8.5 uA 3.3V (LCD off: 2.1 uA)
 
 ### Bluetooth Advertising Formats
 

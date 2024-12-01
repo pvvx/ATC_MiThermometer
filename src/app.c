@@ -211,6 +211,17 @@ const cfg_t def_cfg = {
 #if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
+
+#elif DEVICE_TYPE == DEVICE_LKTMZL02
+		.flg2.adv_flags = true,
+		.advertising_interval = 80, // multiply by 62.5 ms = 5 sec
+		.flg.comfort_smiley = true,
+		.measure_interval = 4, // * advertising_interval = 20 sec
+		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
+#endif
 #else
 #error "DEVICE_TYPE = ?"
 #endif
@@ -437,7 +448,7 @@ void low_vbat(void) {
 	while(task_lcd()) pm_wait_ms(10);
 #endif
 	show_temp_symbol(0);
-#if (DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 	show_smiley(0);
 #endif
 	show_big_number_x10(measured_data.battery_mv * 10);
@@ -620,7 +631,7 @@ static void start_tst_battery(void) {
 #if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122)
 		// Set sleep power < 1 uA
 		send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
-#elif (DEVICE_TYPE == DEVICE_ZTH03)
+#elif (DEVICE_TYPE == DEVICE_ZTH03) || (DEVICE_TYPE == DEVICE_LKTMZL02)
 extern int soft_i2c_send_byte(uint8_t addr, uint8_t b);
 		soft_i2c_send_byte(0x3E << 1, 0xD0);
 #endif

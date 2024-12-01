@@ -100,6 +100,7 @@ void show_clock(void);
 #define POWERUP_SCREEN	0
 #define SHOW_REBOOT_SCREEN()
 #define LCD_BUF_SIZE	18
+#define SHOW_SMILEY		1
 extern uint8_t stage_lcd;
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
@@ -113,6 +114,7 @@ extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 #define POWERUP_SCREEN	0
 #define SHOW_REBOOT_SCREEN()
 #define LCD_BUF_SIZE	16
+#define SHOW_SMILEY		1
 extern uint8_t stage_lcd;
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 void show_connected_symbol(bool state);
@@ -131,6 +133,7 @@ extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 #else
 #define LCD_BUF_SIZE	18
 #endif
+#define SHOW_SMILEY		1
 extern uint8_t stage_lcd;
 void show_small_number_x10(int16_t number, bool percent); // -9 .. 99
 int task_lcd(void);
@@ -147,6 +150,7 @@ void show_ota_screen(void);
 void show_reboot_screen(void);
 #define SHOW_REBOOT_SCREEN() show_reboot_screen()
 #define LCD_BUF_SIZE	6
+#define SHOW_SMILEY		1
 extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 
@@ -155,6 +159,7 @@ void show_small_number(int16_t number, bool percent); // -9 .. 99
 void show_ota_screen(void);
 #define SHOW_OTA_SCREEN() show_ota_screen()
 #define LCD_BUF_SIZE	18
+#define SHOW_SMILEY		0
 #define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
 #define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
 #define POWERUP_SCREEN	0
@@ -174,6 +179,7 @@ void show_ota_screen(void);
 void show_reboot_screen(void);
 #define SHOW_REBOOT_SCREEN() show_reboot_screen()
 #define LCD_BUF_SIZE	6
+#define SHOW_SMILEY		1
 extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 
@@ -187,7 +193,22 @@ void show_ota_screen(void);
 void show_reboot_screen(void);
 #define SHOW_REBOOT_SCREEN() show_reboot_screen()
 #define LCD_BUF_SIZE	6
+#define SHOW_SMILEY		1
 extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE+1];
+void show_small_number(int16_t number, bool percent); // -9 .. 99
+
+#elif DEVICE_TYPE == DEVICE_LKTMZL02
+
+void show_ota_screen(void);
+#define SHOW_OTA_SCREEN() show_ota_screen()
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+void show_reboot_screen(void);
+#define SHOW_REBOOT_SCREEN() show_reboot_screen()
+#define LCD_BUF_SIZE	7
+#define SHOW_SMILEY		0
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 
 #else

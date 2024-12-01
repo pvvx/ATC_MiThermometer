@@ -19,6 +19,7 @@
 | 0x021b |  ZTH01 |
 | 0x021c |  ZTH02 |
 | 0x021e |  TH03 |
+| 0x021f |  LKTMZL02 |
 
 ### From [devbis Zigbee](https://github.com/devbis/z03mmc) firmware to BLE:
 
@@ -35,3 +36,9 @@ db15-0203-99993001-ATC_vxx.zigbee
 1286-0202-10993607-TH03BLE_v48.zigbee  Tuya TH03 Zigbee to BLE
 
 * Index file: th03_tuya2ble.json
+
+### ZL02 From Tuya Zigbee firmware to BLE:
+
+1141-d3a3-01983001-ZL02BLE_v48.zigbee Tuya ZL02 Zigbee to BLE
+
+* Index file: zl02_tuya2ble.json

@@ -45,9 +45,10 @@ extern "C" {
 #define DEVICE_ZTH02   		28	// ZigBee ZTH02
 #define DEVICE_PLM1 		29  // Tuya BLE Plant monitor ECF-SGS01-A rev1.3 (BT3L Tuya module)
 #define DEVICE_ZTH03 		30  // Tuya TH03 Zigbee LCD
+#define DEVICE_LKTMZL02		31  // Tuya LKTMZL02 Zigbee LCD 2xAAA
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC // DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_LKTMZL02 // DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
@@ -1692,6 +1693,119 @@ extern "C" {
 #define PD4_OUTPUT_ENABLE	0
 #define PD4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PD4 RDS1_PULLUP
+#endif
+
+#elif DEVICE_TYPE == DEVICE_LKTMZL02
+
+// TLSR8258
+// GPIO_PA0 - free (Reed Switch, input)
+// GPIO_PA1 - free
+// GPIO_PA7 - SWS, (debug TX)
+// GPIO_PB1 - free
+// GPIO_PB4 - LED - "1" On
+// GPIO_PB5 - free, (TRG)
+// GPIO_PB6 - free
+// GPIO_PB7 - free
+// GPIO_PC0 - KEY
+// GPIO_PC1 - SDA1, used I2C LCD
+// GPIO_PC2 - SDA, used I2C Sensor
+// GPIO_PC3 - SCL, used I2C Sensor
+// GPIO_PC4 - SCL1, used I2C LCD
+// GPIO_PD2 - free
+// GPIO_PD3 - free
+// GPIO_PD4 - free
+// GPIO_PD7 - free
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+)
+
+#define USE_EPD				0 // min update time ms
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_AHT20_30		1
+#define USE_SENSOR_SHT4X		0
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		0
+
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR825x
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+// I2C Sensor
+#define I2C_MAX_SPEED 		700000 // 700 kHz
+#define I2C_SCL 			GPIO_PC2
+#define I2C_SDA 			GPIO_PC3
+#define I2C_GROUP 			I2C_GPIO_GROUP_C2C3
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
+
+// I2C LCD
+#define I2C_SCL_LCD			GPIO_PC4
+#define I2C_SDA_LCD			GPIO_PC1
+#define PC1_INPUT_ENABLE	1
+#define PC1_DATA_OUT		0
+#define PC1_OUTPUT_ENABLE	0
+#define PC1_FUNC			AS_GPIO
+#define PC4_INPUT_ENABLE	1
+#define PC4_DATA_OUT		0
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC4	PM_PIN_PULLUP_10K
+
+#define GPIO_TRG			GPIO_PB5
+#define PB5_INPUT_ENABLE	1
+#define PB5_DATA_OUT		0
+#define PB5_OUTPUT_ENABLE	0
+#define PB5_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB5	PM_PIN_PULLDOWN_100K
+
+#define GPIO_LED			GPIO_PB4
+#define PB4_INPUT_ENABLE	1
+#define PB4_DATA_OUT		1
+#define PB4_OUTPUT_ENABLE	0
+#define PB4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLDOWN_100K
+
+#if (DEV_SERVICES & SERVICE_KEY)
+// PC4 - key
+#define GPIO_KEY2			GPIO_PC0	// key "Connect"
+#define PC0_INPUT_ENABLE	1
+#define PC0_DATA_OUT		0
+#define PC0_OUTPUT_ENABLE	0
+#define PC0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC0 PM_PIN_PULLUP_1M
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_1M
+#define GPIO_RDS1 			GPIO_PA0	// Reed Switch, Input
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA0 RDS1_PULLUP
+#else
+#define RDS1_PULLUP			PM_PIN_PULLUP_1M
+#define GPIO_RDS1 			GPIO_PC0	// Reed Switch, Input
+#define PC0_INPUT_ENABLE	1
+#define PC0_DATA_OUT		0
+#define PC0_OUTPUT_ENABLE	0
+#define PC0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC0 RDS1_PULLUP
 #endif
 
 #else // DEVICE_TYPE

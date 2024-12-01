@@ -78,7 +78,7 @@ void lcd(void) {
 	else
 		lcd_flg.update_next_measure = 1;
 	if (lcd_flg.chow_ext_ut == 0xffffffff) {
-#if	(DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 			show_smiley(*((uint8_t *) &ext.flg));
 #endif
 			show_battery_symbol(ext.flg.battery);
@@ -100,7 +100,7 @@ void lcd(void) {
 				|| measured_data.battery_level <= 5
 #endif
 				) { // Battery
-#if	(DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 				show_smiley(0); // stage show battery
 #endif
 				show_battery_symbol(1);
@@ -120,17 +120,17 @@ void lcd(void) {
 				show_ble_symbol(_ble_con);
 				return;
 #else
-#if	(DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 				show_smiley(0); // stage clock/blinking and blinking on
 #endif
 #endif // USE_DISPLAY_CLOCK
 			}
-#if	(DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 			else
 				show_smiley(*((uint8_t *) &ext.flg));
 #endif
 		}
-#if	(DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 		else
 			show_smiley(*((uint8_t *) &ext.flg));
 #endif
@@ -154,12 +154,13 @@ void lcd(void) {
 			}
 #endif
 			if (cfg.flg.show_batt_enabled
-#if	(DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
+#if	(DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_LKTMZL02)
+
 #else
 				|| measured_data.battery_level <= 5
 #endif
 				) { // Battery
-#if	(DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 				show_smiley(0); // stage show battery
 #endif
 				show_battery_symbol(1);
@@ -179,12 +180,12 @@ void lcd(void) {
 				show_ble_symbol(_ble_con);
 				return;
 #else
-#if	(DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 				show_smiley(0); // stage blinking and blinking on
 #endif
 #endif // USE_DISPLAY_CLOCK
 			} else {
-#if	(DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 				if (cfg.flg.comfort_smiley) { // comfort on
 					show_smiley(is_comfort(measured_data.temp, measured_data.humi));
 				} else
@@ -192,7 +193,7 @@ void lcd(void) {
 #endif
 			}
 		} else {
-#if	(DEVICE_TYPE != DEVICE_CGDK2)
+#if	(SHOW_SMILEY)
 			if (cfg.flg.comfort_smiley) { // comfort on
 				show_smiley(is_comfort(measured_data.temp, measured_data.humi));
 			} else
@@ -204,7 +205,11 @@ void lcd(void) {
 			show_battery_symbol(!cfg.flg.show_batt_enabled);
 			show_small_number_x10(measured_data.humi_x01, 1);
 #else
+#if	(DEVICE_TYPE == DEVICE_LKTMZL02)
+			show_battery_symbol(!cfg.flg.show_batt_enabled);
+#else
 			show_battery_symbol(0);
+#endif
 			show_small_number(measured_data.humi_x1, 1);
 #endif
 		}

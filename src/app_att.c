@@ -224,7 +224,17 @@ static const u8 my_HardStr[4] = {"V1.1"};
 static const u8 my_SerialStr[] = {"0000-0000-0000-0008"}; // "0000-0000-0000-00000"
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"Sonoff"};
+
+#elif DEVICE_TYPE == DEVICE_LKTMZL02
+static const u8 my_ModelStr[] = {"LZ02"};
+static const u8 my_HardStr[4] = {"V1.1"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-0008"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Tuya"};
+
 #else
 #error "DEVICE_TYPE = ?"
 #endif
