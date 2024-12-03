@@ -73,7 +73,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 | <img src="https://pvvx.github.io/ATC_MiThermometer/img/phy62x2.jpg" alt="Tuya PHY62x2" width="120"/> |
 | [PHY62x2BTHome](https://pvvx.github.io/THB2/web/PHY62x2BTHome.html) |
 
-* [ID numbers of alternative firmware](https://pvvx.github.io/)
+* [ID numbers of alternative firmware](https://pvvx.github.io/README.md)
 
 **Warnings**
 
