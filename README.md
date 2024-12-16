@@ -55,7 +55,7 @@ The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA
 | <img src="https://pvvx.github.io/MHO_C122/img/MHO-C122.png" alt="MHO-C122 (2AWMOMHOC122)" width="120"/> | <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="TH03" width="120"/> |  <img src="https://pvvx.github.io/LKTMZL02/img/LKTMZL02.png" alt="LKTMZL02" width="120"/> | <img src="https://pvvx.github.io/ATC_MiThermometer/img/LYWSD03MMC.png" alt="ZTH03" width="120"/> |
 | [Programmator](https://github.com/pvvx/ATC_MiThermometer/issues/339) | Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |  [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
-| | [Not recommended for purchase!](https://github.com/pvvx/ZigbeeTLc/issues/129) | modification required |
+| | [Not recommended for purchase!](https://github.com/pvvx/ZigbeeTLc/issues/129) | | modification required |
 
 
 * Thermometers without display
