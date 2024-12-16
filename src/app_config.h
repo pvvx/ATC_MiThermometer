@@ -37,7 +37,7 @@ extern "C" {
 //#define DEVICE_BTH01		20	// PHY62x2 BLE https://github.com/pvvx/THB2
 //#define DEVICE_TH05		21	// PHY62x2 BLE LCD https://github.com/pvvx/THB2
 #define DEVICE_TH03Z   		22	// ZigBee TH03Z
-//#define BOARD_THB1		23 // https://github.com/pvvx/THB2
+//#define BOARD_THB1		23 // THB1 https://github.com/pvvx/THB2
 //#define BOARD_TH05D		24 // TH05_V1.3 https://github.com/pvvx/THB2
 //#define BOARD_TH05F		25 // TH05Y_V1.2 https://github.com/pvvx/THB2
 //#define BOARD_THB3		26 // https://github.com/pvvx/THB2
@@ -46,9 +46,11 @@ extern "C" {
 #define DEVICE_PLM1 		29  // Tuya BLE Plant monitor ECF-SGS01-A rev1.3 (BT3L Tuya module)
 #define DEVICE_ZTH03 		30  // Tuya TH03 Zigbee LCD
 #define DEVICE_LKTMZL02		31  // Tuya LKTMZL02 Zigbee LCD 2xAAA
+//#define DEVICE_KEY2		32  // KEY2 https://github.com/pvvx/THB2
+#define DEVICE_ZTH05Z		33  // Tuya ZTH05ZTUv12 Zigbee LCD, AHT30, CR2032
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LKTMZL02 // DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_ZTH05Z
 #endif
 
 // supported services by the device (bits)
@@ -111,6 +113,7 @@ extern "C" {
 #define MI_HW_VER_FADDR 0x55000 // Mi HW version
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		0
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -216,6 +219,7 @@ extern "C" {
 #define USE_EPD			(600/50 - 1) // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		0
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -328,6 +332,7 @@ extern "C" {
 #define USE_EPD			(550/50 - 1) // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		0
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -476,6 +481,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		0
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -576,6 +582,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		0
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -700,6 +707,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		0
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		0
@@ -781,6 +789,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		0
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -889,6 +898,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		1
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -901,7 +911,7 @@ extern "C" {
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
 
-#define I2C_MAX_SPEED 		700000 // 700 kHz
+#define I2C_MAX_SPEED 		200000 // 200 kHz
 #define I2C_SCL 	GPIO_PC3
 #define I2C_SDA 	GPIO_PC2
 #define I2C_GROUP 	I2C_GPIO_GROUP_C2C3
@@ -984,6 +994,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		1
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -996,7 +1007,7 @@ extern "C" {
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
 
-#define I2C_MAX_SPEED 		700000 // 700 kHz
+#define I2C_MAX_SPEED 		200000 // 700 kHz
 #define I2C_SCL 	GPIO_PC3
 #define I2C_SDA 	GPIO_PC2
 #define I2C_GROUP 	I2C_GPIO_GROUP_C2C3
@@ -1082,6 +1093,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		1
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -1094,7 +1106,7 @@ extern "C" {
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
 
-#define I2C_MAX_SPEED 		700000 // 700 kHz
+#define I2C_MAX_SPEED 		200000 // 700 kHz
 #define I2C_SCL 			GPIO_PC3
 #define I2C_SDA 			GPIO_PC2
 #define I2C_GROUP 			I2C_GPIO_GROUP_C2C3
@@ -1176,6 +1188,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		1
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		1
@@ -1188,7 +1201,7 @@ extern "C" {
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
 
-#define I2C_MAX_SPEED 		700000 // 700 kHz
+#define I2C_MAX_SPEED 		200000 // 700 kHz
 #define I2C_SCL 			GPIO_PC3
 #define I2C_SDA 			GPIO_PC2
 #define I2C_GROUP 			I2C_GPIO_GROUP_C2C3
@@ -1264,6 +1277,7 @@ extern "C" {
 #define USE_EPD					0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		0
 #define USE_SENSOR_SHTC3		0
@@ -1371,6 +1385,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		0
 #define USE_SENSOR_SHT4X		0
 #define USE_SENSOR_SHTC3		0
@@ -1475,6 +1490,7 @@ extern "C" {
 		| SERVICE_18B20 \
 )
 #else
+#define SENSOR_SLEEP_MEASURE 	0
 #define USE_SENSOR_INA226		1
 #define DEV_SERVICES ( SERVICE_OTA\
 		| SERVICE_OTA_EXT \
@@ -1497,6 +1513,7 @@ extern "C" {
 #define USE_EPD					0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		0 //1
 #define USE_SENSOR_SHTC3		0
@@ -1579,7 +1596,6 @@ extern "C" {
 
 #endif // USE_SENSOR_MY18B20
 
-//#define SENSOR_SLEEP_MEASURE 	0
 #define USE_FLASH_SERIAL_UID	1
 
 #elif DEVICE_TYPE == DEVICE_ZTH03
@@ -1621,6 +1637,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		0
 #define USE_SENSOR_SHTC3		0
@@ -1736,6 +1753,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		0
 #define USE_SENSOR_SHTC3		0
@@ -1785,7 +1803,7 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLDOWN_100K
 
 #if (DEV_SERVICES & SERVICE_KEY)
-// PC4 - key
+// PC0 - key
 #define GPIO_KEY2			GPIO_PC0	// key "Connect"
 #define PC0_INPUT_ENABLE	1
 #define PC0_DATA_OUT		0
@@ -1808,6 +1826,101 @@ extern "C" {
 #define PC0_OUTPUT_ENABLE	0
 #define PC0_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC0 RDS1_PULLUP
+#endif
+
+#elif DEVICE_TYPE == DEVICE_ZTH05Z
+
+// TLSR8258
+// GPIO_PA0 - free (Reed Switch, input)
+// GPIO_PA1 - free
+// GPIO_PA7 - SWS, (debug TX)
+// GPIO_PB1 - free
+// GPIO_PB4 - KEY
+// GPIO_PB5 - free, (TRG)
+// GPIO_PB6 - free
+// GPIO_PB7 - free
+// GPIO_PC0 - free
+// GPIO_PC1 - free
+// GPIO_PC2 - SDA
+// GPIO_PC3 - SCL
+// GPIO_PC4 - free
+// GPIO_PD2 - free, (RDS)
+// GPIO_PD3 - free
+// GPIO_PD4 - free
+// GPIO_PD7 - free
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+)
+
+
+#define ZIGBEE_TUYA_OTA 	1
+
+#define USE_EPD				0 // min update time ms
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
+#define USE_SENSOR_AHT20_30		1
+#define USE_SENSOR_SHT4X		0
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		0
+
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR825x
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+// I2C Sensor
+#define I2C_MAX_SPEED 		100000 // 100..700 kHz
+#define I2C_SCL 			GPIO_PC2
+#define I2C_SDA 			GPIO_PC3
+#define I2C_GROUP 			I2C_GPIO_GROUP_C2C3
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
+
+#define GPIO_TRG			GPIO_PB5
+#define PB5_INPUT_ENABLE	1
+#define PB5_DATA_OUT		0
+#define PB5_OUTPUT_ENABLE	0
+#define PB5_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB5	PM_PIN_PULLDOWN_100K
+
+
+#if (DEV_SERVICES & SERVICE_KEY)
+// PB4 - key
+#define GPIO_KEY2			GPIO_PB4	// key "Connect"
+#define PB4_INPUT_ENABLE	1
+#define PB4_DATA_OUT		0
+#define PB4_OUTPUT_ENABLE	0
+#define PB4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB4 PM_PIN_PULLUP_1M
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_1M
+#define GPIO_RDS1 			GPIO_PD2	// Reed Switch, Input
+#define PD2_INPUT_ENABLE	1
+#define PD2_DATA_OUT		0
+#define PD2_OUTPUT_ENABLE	0
+#define PD2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD2 RDS1_PULLUP
+#else
+#define RDS1_PULLUP			PM_PIN_PULLUP_1M
+#define GPIO_RDS1 			GPIO_PC0	// Reed Switch, Input
+#define PB4_INPUT_ENABLE	1
+#define PB4_DATA_OUT		0
+#define PB4_OUTPUT_ENABLE	0
+#define PB4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB4 RDS1_PULLUP
 #endif
 
 #else // DEVICE_TYPE

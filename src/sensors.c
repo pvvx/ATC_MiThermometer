@@ -14,7 +14,6 @@
 #include "sensor.h"
 #include "app.h"
 
-
 //==================================== SHTC3
 
 //  I2C addres
@@ -162,6 +161,9 @@ const sensor_def_cfg_t def_thcoef_aht2x = {
 //#define CHT8305_I2C_ADDR		0x40
 //#define CHT8305_I2C_ADDR_MAX	0x43
 
+#define CHT8xxx_REG_MID		0xfe
+#define CHT8xxx_REG_VID		0xff
+
 //  Registers
 #define CHT8305_REG_TMP		0x00
 #define CHT8305_REG_HMD		0x01
@@ -206,6 +208,69 @@ const sensor_def_cfg_t def_thcoef_cht8305 = {
 #endif
 		.sensor_type = TH_SENSOR_CHT8305
 };
+
+//==================================== CHT8215
+
+#define CHT8215_POWER_TIMEOUT_us	5000	// time us, 5 ms
+#define CHT8215_SOFT_RESET_us		5000	// time us, 5 ms
+#define CHT8215_MEASURE_us			(6500+6500)	// time us, 6.5 T + 6.5 H ms
+
+#define CHT8215_MAX_CLK_HZ			400000	// 400 kHz
+#define CHT8215_MEASURING_TIMEOUT   3 // none
+
+#define CHT8215_I2C_ADDR0	0x40
+#define CHT8215_I2C_ADDR1	0x44
+#define CHT8215_I2C_ADDR2	0x48
+#define CHT8215_I2C_ADDR3	0x4C
+
+//	Registers
+#define CHT8215_REG_TMP		0x00
+#define CHT8215_REG_HMD		0x01
+#define CHT8215_REG_STA		0x02
+#define CHT8215_REG_CFG		0x03
+#define CHT8215_REG_CRT		0x04
+#define CHT8215_REG_TLL		0x05
+#define CHT8215_REG_TLM		0x06
+#define CHT8215_REG_HLL		0x07
+#define CHT8215_REG_HLM		0x08
+#define CHT8215_REG_OST		0x0f
+#define CHT8215_REG_RST		0xfc
+#define CHT8215_REG_MID		0xfe
+#define CHT8215_REG_VID		0xff
+
+//	Status register mask
+#define CHT8215_STA_BUSY	0x8000
+#define CHT8215_STA_THI		0x4000
+#define CHT8215_STA_TLO		0x2000
+#define CHT8215_STA_HHI		0x1000
+#define CHT8215_STA_HLO		0x0800
+
+//	Config register mask
+#define CHT8215_CFG_MASK		0x8000
+#define CHT8215_CFG_SD			0x4000
+#define CHT8215_CFG_ALTH		0x2000
+#define CHT8215_CFG_EM			0x1000
+#define CHT8215_CFG_EHT			0x0100
+#define CHT8215_CFG_TME			0x0080
+#define CHT8215_CFG_POL			0x0020
+#define CHT8215_CFG_ALT			0x0018
+#define CHT8215_CFG_CONSEC_FQ	0x0006
+#define CHT8215_CFG_ATM			0x0001
+
+#define CHT8215_MID	0x5959
+#define CHT8215_VID	0x1582
+
+const sensor_def_cfg_t def_thcoef_cht8215 = {
+		.coef.val1_k = 25606, // temp_k
+		.coef.val1_z = 0, // temp_z
+		.coef.val2_k = 20000, // humi_k
+		.coef.val2_z = 0, // humi_z
+#if SENSOR_SLEEP_MEASURE
+		.measure_timeout = CHT8215_MEASURING_TIMEOUT,
+#endif
+		.sensor_type = TH_SENSOR_CHT8215
+};
+
 //===================================
 
 RAM sensor_cfg_t sensor_cfg;
@@ -291,6 +356,30 @@ static int read_sensor_cht8305(void) {
 #if !SENSOR_SLEEP_MEASURE
 			send_i2c_byte(sensor_cfg.i2c_addr, CHT8305_REG_TMP); // start measure T/H
 #endif
+			return 1;
+		}
+	}
+	sensor_cfg.i2c_addr = 0;
+	return 0;
+}
+#endif
+
+#if USE_SENSOR_CHT8215
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+static int read_sensor_cht8215(void) {
+	uint32_t _temp, i = 3;
+	uint8_t reg_data[4];
+	while(i--) {
+		if ((!read_i2c_byte_addr(sensor_cfg.i2c_addr, CHT8215_REG_TMP, reg_data, 2))
+			&&(!read_i2c_byte_addr(sensor_cfg.i2c_addr, CHT8215_REG_HMD, &reg_data[2], 2))) {
+			_temp = (reg_data[0] << 8) | reg_data[1];
+			measured_data.temp = ((uint32_t)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C // 16500 -4000
+			_temp = (reg_data[2] << 8) | reg_data[3];
+			measured_data.humi = ((uint32_t)(_temp * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 % // 10000 -0
+			if (measured_data.humi < 0) measured_data.humi = 0;
+			else if (measured_data.humi > 9999) measured_data.humi = 9999;
+			measured_data.count++;
 			return 1;
 		}
 	}
@@ -414,10 +503,10 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 #endif
 
 static int check_sensor(void) {
-#if USE_SENSOR_CHT8305
+#if USE_SENSOR_CHT8305 || USE_SENSOR_CHT8215
 	int test_i2c_addr = CHT8305_I2C_ADDR << 1;
 #else
-#if (USE_SENSOR_CHT8305 || USE_SENSOR_SHT4X || USE_SENSOR_SHT30)
+#if (USE_SENSOR_SHT4X || USE_SENSOR_SHT30)
 	int test_i2c_addr = SHT4x_I2C_ADDR << 1; // or SHT30_I2C_ADDR
 #endif
 #endif
@@ -468,16 +557,17 @@ static int check_sensor(void) {
 #endif
 	// Scan I2C addr 0x40..0x46
 	 {
-#if (USE_SENSOR_CHT8305 || USE_SENSOR_SHT4X || USE_SENSOR_SHT30)
+#if (USE_SENSOR_CHT8305 || USE_SENSOR_CHT8215 || USE_SENSOR_SHT4X || USE_SENSOR_SHT30)
 		do {
 			if((sensor_cfg.i2c_addr = (uint8_t) scan_i2c_addr(test_i2c_addr)) != 0) {
-#if USE_SENSOR_CHT8305
+#if (USE_SENSOR_CHT8305 || USE_SENSOR_CHT8215)
 				if(sensor_cfg.i2c_addr <= (CHT8305_I2C_ADDR_MAX << 1)) {
 					// I2C addr 0x40..0x43
-					// CHT8305
+					// CHT8305/CHT8315
 					if (!read_i2c_byte_addr(sensor_cfg.i2c_addr, CHT8305_REG_MID, buf, 2) // Get MID
 						&& !read_i2c_byte_addr(sensor_cfg.i2c_addr, CHT8305_REG_VID, &buf[2], 2)) {
 						sensor_cfg.id = (buf[2] << 24) | (buf[3] << 16) | (buf[0] << 8) | buf[1];
+#if USE_SENSOR_CHT8305
 						if(sensor_cfg.id == ((CHT8305_VID << 16) | CHT8305_MID)) {
 							// Soft reset command
 							buf[0] = CHT8305_REG_CFG;
@@ -491,13 +581,27 @@ static int check_sensor(void) {
 							buf[2] = CHT8305_CFG_MODE & 0xff;
 							send_i2c_buf(sensor_cfg.i2c_addr, buf, 3);
 							pm_wait_us(CHT8305_SOFT_RESET_us);
-							sensor_cfg.sensor_type = TH_SENSOR_CHT8305;
+							//sensor_cfg.sensor_type = TH_SENSOR_CHT8305;
 							ptabinit = (sensor_def_cfg_t *)&def_thcoef_cht8305;
 							send_i2c_byte(sensor_cfg.i2c_addr, CHT8305_REG_TMP); // start measure T/H
 //							pm_wait_us(CHT8305_MEASURE_us);
 //							read_sensor_cht8305();
 							break;
 						} else
+#endif
+#if USE_SENSOR_CHT8215
+						if(sensor_cfg.id == ((CHT8215_VID << 16) | CHT8215_MID)) {
+							//sensor_cfg.sensor_type = TH_SENSOR_CHT8215;
+							if(measurement_step_time >= 5000 * CLOCK_16M_SYS_TIMER_CLK_1MS) { // > 5 sec
+								buf[0] = CHT8215_REG_CRT;
+								buf[1] = 0x03;
+								buf[2] = 0;
+								send_i2c_buf(sensor_cfg.i2c_addr, buf, 3); // Set conversion ratio 5 sec
+							}
+							ptabinit = (sensor_def_cfg_t *)&def_thcoef_cht8215;
+							break;
+						} else
+#endif
 							sensor_cfg.i2c_addr = 0;
 					}
 				} else
@@ -578,6 +682,11 @@ int read_sensor_cb(void) {
 			if (read_sensor_cht8305()) return 1;
 		} else
 #endif
+#if USE_SENSOR_CHT8215
+		if(sensor_cfg.sensor_type == TH_SENSOR_CHT8215) {
+			if (read_sensor_cht8215()) return 1;
+		} else
+#endif
 #if USE_SENSOR_AHT20_30
 		if(sensor_cfg.sensor_type == TH_SENSOR_AHT2x) {
 			if (read_sensor_aht2x()) return 1;
@@ -634,6 +743,7 @@ void start_measure_sensor_deep_sleep(void) {
 #endif //USE_SENSOR_SHT30
 		{};
 	}
+
 #if SENSOR_SLEEP_MEASURE
 //	sensor_cfg.time_measure = clock_time() | 1;
 #endif

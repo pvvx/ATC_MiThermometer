@@ -60,6 +60,7 @@
 #define DEVICE_PLM1 		29  // Tuya BLE Plant monitor ECF-SGS01-A rev1.3 (BT3L Tuya module)
 #define DEVICE_ZTH03 		30  // Tuya TH03 Zigbee LCD
 #define DEVICE_LKTMZL02		31  // Tuya LKTMZL02 Zigbee LCD 2xAAA
+#define DEVICE_ZTH05Z		33  // Tuya ZTH05ZTUv12 Zigbee LCD, AHT30, CR2032
 
 
 #if 0 // not used in this code!

@@ -11,6 +11,7 @@ $(OUT_PATH)/src/lcd_mjwsd05mmc.o \
 $(OUT_PATH)/src/lcd_mho_c122.o \
 $(OUT_PATH)/src/lcd_th03.o \
 $(OUT_PATH)/src/lcd_lktmzl02.o \
+$(OUT_PATH)/src/lcd_zth05z.o \
 $(OUT_PATH)/src/epd_cgg1.o \
 $(OUT_PATH)/src/epd_cgg1n.o \
 $(OUT_PATH)/src/epd_mho_c401.o \

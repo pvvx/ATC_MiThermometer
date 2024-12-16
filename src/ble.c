@@ -505,6 +505,11 @@ void ble_set_name(void) {
 		ble_name[3] = 'L';
 		ble_name[4] = '2';
 		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_ZTH05Z
+		ble_name[2] = 'T';
+		ble_name[3] = 'H';
+		ble_name[4] = '5';
+		ble_name[5] = '_';
 #else
 		ble_name[2] = 'A';
 		ble_name[3] = 'T';

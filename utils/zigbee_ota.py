@@ -34,7 +34,7 @@ def main(args):
 		manufacturer_code = int.from_bytes(firmware[18:20], byteorder='little')
 		image_type = int.from_bytes(firmware[20:22], byteorder='little')
 		file_version = args.set_version or int.from_bytes(firmware[2:6], byteorder='little')
-		hs = str.encode('Telink OTA BLE device')
+		hs = str.encode('ZigbeeTLc to BLE')
 		ota_hdr = ota_hdr_s.pack(
 			0xbeef11e,
 			0x100,  # header version is 0x0100

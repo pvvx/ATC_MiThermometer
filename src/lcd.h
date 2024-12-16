@@ -42,6 +42,7 @@ extern lcd_flg_t lcd_flg;
 #define B19_I2C_ADDR		0x3E // BU9792AFUV
 #define CGDK2_I2C_ADDR		0x3E // BU9792AFUV
 #define TH03_I2C_ADDR		0x3E // BL55028
+#define TH05Z_I2C_ADDR		0x3E // BL55028
 
 extern uint8_t lcd_i2c_addr; // LCD controller I2C address
 
@@ -208,6 +209,20 @@ void show_reboot_screen(void);
 #define SHOW_REBOOT_SCREEN() show_reboot_screen()
 #define LCD_BUF_SIZE	7
 #define SHOW_SMILEY		0
+extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
+void show_small_number(int16_t number, bool percent); // -9 .. 99
+
+#elif DEVICE_TYPE == DEVICE_ZTH05Z
+
+void show_ota_screen(void);
+#define SHOW_OTA_SCREEN() show_ota_screen()
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+void show_reboot_screen(void);
+#define SHOW_REBOOT_SCREEN() show_reboot_screen()
+#define LCD_BUF_SIZE	6
+#define SHOW_SMILEY		1
 extern uint8_t display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 void show_small_number(int16_t number, bool percent); // -9 .. 99
 

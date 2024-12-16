@@ -144,23 +144,25 @@ typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 
 typedef struct __attribute__((packed)) _adv_bthome_data2_t {
 #if (DEV_SERVICES & SERVICE_IUS)
-	uint8_t		e_id; // BtHomeID_energy32
-	uint32_t	energy; // x 0.001 W
 #else
 	uint8_t		v_id;	// = BtHomeID_voltage
 	uint16_t	battery_mv; // mV
 #endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
-	uint8_t		s_id;	// = BtHomeID_opened / BtHomeID_switch ?
+	uint8_t		s_id;	// = BtHomeID_switch
 	uint8_t		swtch;
 #endif
 #if (DEV_SERVICES & SERVICE_RDS)
-	uint8_t		o1_id;	// = BtHomeID_opened ?
+	uint8_t		o1_id;	// = BtHomeID_opened
 	uint8_t		opened1;
 #ifdef GPIO_RDS2
-	uint8_t		o2_id;	// = BtHomeID_opened ?
+	uint8_t		o2_id;	// = BtHomeID_opened
 	uint8_t		opened2;
 #endif
+#endif
+#if (DEV_SERVICES & SERVICE_IUS)
+	uint8_t		e_id; // BtHomeID_energy32
+	uint32_t	energy; // x 0.001 W
 #endif
 } adv_bthome_data2_t, * padv_bthome_data2_t; // max 15 bytes!
 

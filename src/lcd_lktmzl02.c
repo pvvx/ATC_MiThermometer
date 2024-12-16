@@ -194,7 +194,7 @@ const uint8_t lcd_init_cmd[]	=	{
 //		0x80, // load data pointer
 //		0xf0, // blink control off,  0xf2 - blink
 //		0xfc, // All pixel control (APCTL): Normal
-		0x0c, 0xff,0xff,0xff,0xff,0xff,0xff,0
+		0x0c, 0,0,0,0,0,0,0
 };
 
 void init_lcd(void){
@@ -206,7 +206,7 @@ void init_lcd(void){
 		if(lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd)))
 			lcd_i2c_addr = 0;
 		else {
-			pm_wait_us(200);
+			//pm_wait_us(200);
 			send_to_lcd();
 		}
 	}

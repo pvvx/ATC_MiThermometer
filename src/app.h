@@ -222,6 +222,9 @@ typedef struct _measured_data_t {
 	uint8_t 	humi_x1; 		// x 1 %
 #endif
 	uint8_t 	battery_level;	// 0..100% (average_battery_mv)
+#if (DEV_SERVICES & SERVICE_IUS)
+	uint32_t    energy;
+#endif
 } measured_data_t;  // save max 18 bytes
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
 #define  MEASURED_MSG_SIZE  8
