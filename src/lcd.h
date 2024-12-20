@@ -295,14 +295,6 @@ void send_to_lcd(void);
 void update_lcd(void);
 void show_battery_symbol(bool state);
 void show_ble_symbol(bool state);
-
-void show_s1_number_x100(int32_t number, uint8_t atr);
-void show_s3_number_x10(int32_t number, uint8_t atr);
-void show_s4_number_x10(int32_t number, uint8_t atr);
-void show_clock_s1(void);
-void show_clock_s3(void);
-void show_battery_s1(uint8_t level);
-void show_data_s2(void);
 void show_low_bat(void);
 
 #define LCD_BUF_SIZE	18

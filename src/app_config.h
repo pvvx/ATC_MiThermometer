@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x48	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x49	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 
@@ -50,7 +50,7 @@ extern "C" {
 #define DEVICE_ZTH05Z		33  // Tuya ZTH05ZTUv12 Zigbee LCD, AHT30, CR2032
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_ZTH05Z
+#define DEVICE_TYPE			DEVICE_MJWSD05MMC
 #endif
 
 // supported services by the device (bits)
@@ -75,6 +75,8 @@ extern "C" {
 #define SERVICE_18B20		0x00040000	// use sensor(s) MY18B20
 #define SERVICE_IUS			0x00080000	// use I and U sensor (INA226)
 #define SERVICE_PLM			0x00100000	// use PWM-RH and NTC
+#define SERVICE_BUTTON		0x00200000	// брелок-кнопка
+#define SERVICE_FINDMY		0x00400000	// FindMy
 
 /* minimal DEV_SERVICES:
 #define DEV_SERVICES ( SERVICE_OTA \ // OTA enable

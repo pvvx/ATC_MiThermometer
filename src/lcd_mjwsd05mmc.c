@@ -438,7 +438,7 @@ static void clear_s4(void) {
  *   999	(9.99)	[ 999 ][  9.99]
  *  9999	(99.99)	[ 9999][ 99.99]
  * 19999	(199.99)[19999][199.99] */
-void show_s1_number_x100(int32_t number, uint8_t atr){
+static void show_s1_number_x100(int32_t number, uint8_t atr){
 	uint8_t buf[6] = {0};
 	clear_s1();
 	show_symbol_s1(atr);
@@ -539,7 +539,7 @@ void show_s1_number_x100(int32_t number, uint8_t atr){
 }
 
 /* number in 0.1 (-995..1995) show: -99..-9.9..199.9..1999 */
-void show_s1_number_x10(int32_t number, uint8_t atr){
+static void show_s1_number_x10(int32_t number, uint8_t atr){
 	clear_s1();
 	show_symbol_s1(atr);
 	if (number > 99995) {
@@ -576,7 +576,7 @@ void show_s1_number_x10(int32_t number, uint8_t atr){
 
 
 /* number in 0.1 (-9995..99995) show: -999..-99.9..999.9..9999 */
-void show_s3_number_x10(int32_t number, uint8_t atr){
+static void show_s3_number_x10(int32_t number, uint8_t atr){
 	clear_s3();
 	show_symbol_s3(atr);
 	if (number > 99995) {
@@ -613,7 +613,7 @@ void show_s3_number_x10(int32_t number, uint8_t atr){
 }
 
 /* number in 0.1 (-99.5 .1999.5) -99..-9.9..199.9..1999 */
-void show_s4_number_x10(int32_t number, uint8_t atr){
+static void show_s4_number_x10(int32_t number, uint8_t atr){
 	clear_s4();
 	show_symbol_s4(atr);
 	if (number > 19995) {
@@ -649,7 +649,7 @@ void show_s4_number_x10(int32_t number, uint8_t atr){
 	}
 }
 
-void show_clock_s3(void) {
+static void show_clock_s3(void) {
 #if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 	uint8_t hrs = rtc.hours;
 	if(cfg.flg.time_am_pm) {
@@ -679,12 +679,7 @@ void show_clock_s3(void) {
 #endif
 }
 
-void show_weekday(void) {
-	display_buff[4] &= BIT(4); // "1"
-	display_buff[4] |= sb_dnd[rtc.weekday & 7];
-}
-
-void show_clock_s1(void) {
+static void show_clock_s1(void) {
 #if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 	clear_s1();
 	display_buff[1] = BIT(0); // ":"
@@ -714,13 +709,14 @@ void show_clock_s1(void) {
 #endif
 }
 
-void show_data_s2(void) {
+static void show_data_s2(uint8_t flg) {
 	uint8_t mh, ml, dh, dl;
 	clear_s2();
 	display_buff[5] = BIT(0); // "/"
-
 	display_buff[4] &= BIT(4); // s1: "1"
-	display_buff[4] |= sb_dnd[rtc.weekday];
+	if((flg & MASK_FLG3_WEEKDAY) == 0) {
+		display_buff[4] |= sb_dnd[rtc.weekday];
+	}
 
 	if (rtc.month >= 10) {
 		mh = 1;
@@ -741,7 +737,7 @@ void show_data_s2(void) {
 	lcd_set_digit(display_buff, dl, sb_s2[3]);
 }
 
-void show_battery_s1(uint8_t level) {
+static void show_battery_s1(uint8_t level) {
 	clear_s1();
 	display_buff[0] |= BIT(7); // "%"
 	if(level > 99)
@@ -877,7 +873,7 @@ void lcd(void) {
 		else
 			show_smiley(LCD_SYM_SMILEY_NONE);
 	}
-	show_data_s2();
+	show_data_s2(cfg.flg3);
 }
 
 

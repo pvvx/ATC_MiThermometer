@@ -39,6 +39,10 @@ enum {
 #define MASK_FLG2_REBOOT	0x60
 #define MASK_FLG2_SCR_OFF	0x80
 
+// cfg.flg3
+#define MASK_FLG3_WEEKDAY	0x80
+
+
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
 		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - BTHome
@@ -107,8 +111,8 @@ typedef struct __attribute__((packed)) _cfg_t {
 	int8_t temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	int8_t humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)
 #else
-	int8_t x1;
-	int8_t x2;
+	int8_t flg3;
+	int8_t flg4;
 #endif
 	uint8_t advertising_interval; // multiply by 62.5 for value in ms (1..160,  62.5 ms .. 10 sec)
 	uint8_t measure_interval; // measure_interval = advertising_interval * x (2..25)
