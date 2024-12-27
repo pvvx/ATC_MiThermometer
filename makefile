@@ -10,7 +10,7 @@ PROJECT_PATH := ./src
 OUT_PATH :=./out
 ZBO_PATH :=./zigbee_ota
 
-PGM_PORT?=COM17
+PGM_PORT?=COM9
 
 ifneq ($(TEL_PATH)/components/drivers/8258/gpio_8258.c, $(wildcard $(TEL_PATH)/components/drivers/8258/gpio_8258.c))
 $(error "Please check SDK Path and set TEL_PATH.")

@@ -8,7 +8,7 @@
 
 typedef struct _lcd_flg_t {
 	uint32_t chow_ext_ut; // count chow ext.vars validity time, in sec
-#if (DEVICE_TYPE != DEVICE_MJWSD05MMC)
+#if  !((DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN))
 	uint32_t min_step_time_update_lcd; // = cfg.min_step_time_update_lcd * (50 * CLOCK_16M_SYS_TIMER_CLK_1MS)
 	uint32_t tim_last_chow; // timer show lcd >= 1.5 sec
 	uint8_t show_stage; // count/stage update lcd code buffer
@@ -29,7 +29,7 @@ typedef struct _lcd_flg_t {
 extern lcd_flg_t lcd_flg;
 
 
-#if (DEVICE_TYPE != DEVICE_MJWSD05MMC)
+#if  !((DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN))
 /* CGG1 no symbol 'smiley' ! */
 #define SMILE_HAPPY 5 		// "(^-^)" happy
 #define SMILE_SAD   6 		// "(-^-)" sad

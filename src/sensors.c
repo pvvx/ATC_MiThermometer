@@ -209,7 +209,7 @@ const sensor_def_cfg_t def_thcoef_cht8305 = {
 		.sensor_type = TH_SENSOR_CHT8305
 };
 
-//==================================== CHT8215
+//==================================== CHT8215/CHT8310
 
 #define CHT8215_POWER_TIMEOUT_us	5000	// time us, 5 ms
 #define CHT8215_SOFT_RESET_us		5000	// time us, 5 ms

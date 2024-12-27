@@ -76,7 +76,7 @@ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDef
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4]
 			+ adc_sample[5]) / 4;
-#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 	return (adc_average * 1686) >> 10; // adc_vref default: 1175 (mV)
 #else
 	return (adc_average * 1175) >> 10; // adc_vref default: 1175 (mV)

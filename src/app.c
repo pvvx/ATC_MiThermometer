@@ -87,7 +87,7 @@ const cfg_t def_cfg = {
 		.flg.advertising_type = ADV_TYPE_DEFAULT,
 		.rf_tx_power = RF_POWER_P0p04dBm, // RF_POWER_P3p01dBm,
 		.connect_latency = DEF_CONNECT_LATENCY, // (49+1)*1.25*16 = 1000 ms
-#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		.advertising_interval = 80, // multiply by 62.5 ms = 5 sec
 		.flg.comfort_smiley = true,
 		.measure_interval = 4, // * advertising_interval = 20 sec
@@ -243,7 +243,13 @@ RAM cfg_t cfg;
 #if (DEV_SERVICES & SERVICE_SCREEN)
 
 static const external_data_t def_ext = {
-#if DEVICE_TYPE != DEVICE_MJWSD05MMC
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+		.number = 1234500,
+		.vtime_sec = 30, // 30 sec
+		.flg.smiley = 7, // 7 = "(ooo)"
+		.flg.battery = false,
+		.flg.temp_symbol = LCD_SYM_N // 0 = " ", ... app.h
+#else
 		.big_number = 0,
 		.small_number = 0,
 		.vtime_sec = 60, // 1 minutes
@@ -251,12 +257,6 @@ static const external_data_t def_ext = {
 		.flg.percent_on = true,
 		.flg.battery = false,
 		.flg.temp_symbol = 5 // 5 = "°C", ... app.h
-#else
-		.number = 1234500,
-		.vtime_sec = 30, // 30 sec
-		.flg.smiley = 7, // 7 = "(ooo)"
-		.flg.battery = false,
-		.flg.temp_symbol = LCD_SYM_N // 0 = " ", ... app.h
 #endif
 		};
 
@@ -348,6 +348,8 @@ void set_hw_version(void) {
 	cfg.hw_ver = HW_VER_MHO_C401_2022;
 #elif DEVICE_TYPE == DEVICE_MJWSD05MMC
 	cfg.hw_ver = HW_VER_MJWSD05MMC;
+#elif DEVICE_TYPE == DEVICE_MJWSD05MMC_EN
+	cfg.hw_ver = HW_VER_MJWSD05MMC_EN;
 #elif DEVICE_TYPE == DEVICE_MHO_C122
 	cfg.hw_ver = HW_VER_MHO_C122;
 #elif DEVICE_TYPE > HW_VER_EXTENDED
@@ -429,7 +431,8 @@ void test_config(void) {
 	}
 	my_periConnParameters.timeout = connection_timeout;
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if DEVICE_TYPE != DEVICE_MJWSD05MMC
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+#else
 #if	USE_EPD
 	if (cfg.min_step_time_update_lcd < USE_EPD) // min 0.5 sec: (10*50ms)
 		cfg.min_step_time_update_lcd = USE_EPD;
@@ -453,7 +456,7 @@ void low_vbat(void) {
 	rds1_input_off();
 #endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 	show_low_bat();
 #else
 #if (USE_EPD)
@@ -547,7 +550,7 @@ void read_sensors(void) {
 #endif
 #endif
 		wrk.msc.all_flgs = 0xff;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		SET_LCD_UPDATE();
 #endif
 #if SENSOR_SLEEP_MEASURE
@@ -640,7 +643,7 @@ static void start_tst_battery(void) {
 #if USE_SENSOR_SHTC3
 		send_i2c_word(0x70 << 1, 0x98b0); // SHTC3 go SLEEP: Sleep command of the sensor
 #endif // USE_SENSOR_SHTC3
-#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122)
+#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		// Set sleep power < 1 uA
 		send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
 #elif (DEVICE_TYPE == DEVICE_ZTH03) || (DEVICE_TYPE == DEVICE_LKTMZL02)
@@ -941,7 +944,7 @@ void main_loop(void) {
 			else {
 				if(new - ext_key.key_pressed_tik1 > 1750*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 					ext_key.key_pressed_tik1 = new;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 					if(++cfg.flg2.screen_type > SCR_TYPE_EXT)
 						cfg.flg2.screen_type = SCR_TYPE_TIME;
 #elif (DEV_SERVICES & SERVICE_SCREEN)
@@ -1129,7 +1132,7 @@ void main_loop(void) {
 					} else
 						lcd_flg.update = 1;
 				}
-#elif (DEVICE_TYPE != DEVICE_MJWSD05MMC)
+#elif !((DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN))
 				if (new - lcd_flg.tim_last_chow >= lcd_flg.min_step_time_update_lcd) {
 					lcd_flg.tim_last_chow = new;
 					lcd_flg.show_stage++;

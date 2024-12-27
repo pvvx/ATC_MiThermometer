@@ -22,7 +22,8 @@ enum {
 	HW_VER_MHO_C401_2022,	//8 SHTV3
 	HW_VER_MJWSD05MMC,		//9 SHT4x
 	HW_VER_LYWSD03MMC_B15,	//10 SHTV3
-	HW_VER_MHO_C122 		//11 SHTV3
+	HW_VER_MHO_C122, 		//11 SHTV3
+	HW_VER_MJWSD05MMC_EN	//12 SHT4x
 } HW_VERSION_ID;
 #define HW_VER_EXTENDED  	15
 
@@ -47,13 +48,13 @@ typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
 		uint8_t advertising_type	: 2; // 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - BTHome
 		uint8_t comfort_smiley		: 1;
-#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		uint8_t x100				: 1;
 #else
 		uint8_t show_time_smile	: 1; // if USE_CLOCK: = 0 - smile, =1 time, else: blinking on/off
 #endif
 		uint8_t temp_F_or_C			: 1;
-#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		uint8_t time_am_pm			: 1;
 #else
 		uint8_t show_batt_enabled	: 1;
@@ -96,7 +97,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	 * 4 = Battery V
 	 * 5 = External number & symbols
 	 * */
-#if	(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		uint8_t screen_type	: 3;
 #else
 		uint8_t smiley 		: 3;	// 0..7
@@ -128,7 +129,7 @@ extern const cfg_t def_cfg;
 #if (DEV_SERVICES & SERVICE_SCREEN)
 /* Warning: MHO-C401 Symbols: "%", "°Г", "(  )", "." have one control bit! */
 typedef struct __attribute__((packed)) _external_data_t {
-#if(DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 	int32_t		number; // -999.50..19995.50, x0.01
 	uint16_t 	vtime_sec; // validity time, in sec
 	struct __attribute__((packed)) {

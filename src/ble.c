@@ -52,19 +52,7 @@ RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
 RAM my_fifo_t blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b, };
 RAM uint8_t blt_txfifo_b[40 * 16] = { 0 };
 RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
-RAM uint8_t ble_name[MAX_DEV_NAME_LEN+2]; /* = { 11, GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-#if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N)) || (DEVICE_TYPE == DEVICE_MHO_C122)
-		'M', 'H', 'O', '_', '0', '0', '0', '0',	'0', '0' };
-#elif DEVICE_TYPE == DEVICE_CGG1
-		'C', 'G', 'G', '_', '0', '0', '0', '0',	'0', '0' };
-#elif DEVICE_TYPE == DEVICE_CGDK2
-		'C', 'G', 'D', '_', '0', '0', '0', '0',	'0', '0' };
-#elif DEVICE_TYPE == DEVICE_MJWSD05MMC
-		'B', 'T', 'H', '_', '0', '0', '0', '0',	'0', '0' };
-#else
-		'A', 'T', 'C', '_', '0', '0', '0', '0',	'0', '0' };
-#endif
-*/
+RAM uint8_t ble_name[MAX_DEV_NAME_LEN+2];
 
 RAM uint8_t mac_public[6], mac_random_static[6];
 RAM adv_buf_t adv_buf;
@@ -455,10 +443,15 @@ void ble_set_name(void) {
 		ble_name[3] = 'G';
 		ble_name[4] = 'D';
 		ble_name[5] = '_';
-#elif DEVICE_TYPE == DEVICE_MJWSD05MMC
+#elif (DEVICE_TYPE == DEVICE_MJWSD05MMC)
 		ble_name[2] = 'B';
 		ble_name[3] = 'T';
 		ble_name[4] = 'H';
+		ble_name[5] = '_';
+#elif (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+		ble_name[2] = 'B';
+		ble_name[3] = 'T';
+		ble_name[4] = 'E';
 		ble_name[5] = '_';
 #elif DEVICE_TYPE == DEVICE_TS0201
 		ble_name[2] = 'T';

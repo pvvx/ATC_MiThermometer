@@ -21,7 +21,7 @@ extern "C" {
 #endif
 #define DEVICE_CGDK2 		6  // LCD display "Qingping Temp & RH Monitor Lite"
 #define DEVICE_MHO_C401N	8	// E-Ink display MHO-C401 2022
-#define DEVICE_MJWSD05MMC	9  // LCD display MJWSD05MMC
+#define DEVICE_MJWSD05MMC	9  // LCD (ch) display MJWSD05MMC
 #define DEVICE_LYWSD03MMC	10	// LCD display LYWSD03MMC
 // HW_VER_LYWSD03MMC_B14 = 0
 // HW_VER_LYWSD03MMC_B19 = 3
@@ -29,6 +29,8 @@ extern "C" {
 // HW_VER_LYWSD03MMC_B17 = 5
 // HW_VER_LYWSD03MMC_B15 = 10
 #define DEVICE_MHO_C122		11	// LCD display MHO_C122
+#define DEVICE_MJWSD05MMC_EN	12  // LCD (en) display MJWSD05MMC
+
 //---
 #define DEVICE_TB03F  		16	// DIY, TB-03F-Kit module + INA226 or MY18B20
 #define DEVICE_TS0201   	17	// ZigBee TS0201, analog: IH-K009
@@ -50,7 +52,7 @@ extern "C" {
 #define DEVICE_ZTH05Z		33  // Tuya ZTH05ZTUv12 Zigbee LCD, AHT30, CR2032
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_MJWSD05MMC
+#define DEVICE_TYPE			DEVICE_MJWSD05MMC_EN
 #endif
 
 // supported services by the device (bits)
@@ -652,7 +654,7 @@ extern "C" {
 #define PB6_FUNC			AS_GPIO
 #endif
 
-#elif DEVICE_TYPE == DEVICE_MJWSD05MMC
+#elif (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 /* Original Flash markup:
   0x00000 Old Firmware bin
   0x40000 OTA New bin storage Area

@@ -90,7 +90,7 @@ static const u8 my_FirmStr[] = {"github.com/pvvx"};
 RAM uint8_t my_SerialStr[20]; // "556202-C86013-123456"
 #endif
 
-#if DEVICE_TYPE == DEVICE_MJWSD05MMC
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 static const u8 my_ModelStr[] = {"MJWSD05MMC"};
 RAM u8 my_HardStr[4];// = {"V2.3"}
 RAM u8 my_SerialStr[20]; // = {"F2.0-CFMK-LB-TMDZ---"}

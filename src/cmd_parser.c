@@ -320,7 +320,7 @@ void cmd_parser(void * p) {
 					lcd_flg.chow_ext_ut = 0xffffffff;
 				else
 					lcd_flg.chow_ext_ut = utc_time_sec + ext.vtime_sec;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 				SET_LCD_UPDATE();
 #else
 				lcd_flg.update_next_measure = 0;
@@ -334,7 +334,7 @@ void cmd_parser(void * p) {
 			if (len) {
 				memcpy(&cfg, &req->dat[1], len);
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 				SET_LCD_UPDATE();
 #else
 				lcd_flg.update_next_measure = 0;
@@ -618,7 +618,7 @@ void cmd_parser(void * p) {
 			send_buf[1] = 0;
 #endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_LKTMZL02) || (DEVICE_TYPE == DEVICE_ZTH05Z))
+#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_LKTMZL02) || (DEVICE_TYPE == DEVICE_ZTH05Z) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN))
 			send_buf[2] = lcd_i2c_addr;
 #else
 			send_buf[2] = 1;	// SPI
@@ -626,7 +626,7 @@ void cmd_parser(void * p) {
 #else
 			send_buf[2] = 0;	// none
 #endif
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 			send_buf[3] = rtc_i2c_addr;
 			olen = 3 + 1;
 #else

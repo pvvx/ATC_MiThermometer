@@ -170,6 +170,8 @@ void tuya_zigbee_ota(void) {
 
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
 static const uint8_t _mi_hw_vers[] = "F2.0-CFMK-LB-TMDZ---";
+#elif (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+static const uint8_t _mi_hw_vers[] = "F2.0-JY-LB-TMDZ-HW--";
 #elif (DEVICE_TYPE == DEVICE_LYWSD03MMC)
 static const uint8_t _mi_hw_vers[] = "F1.0-CFMK-LB-ZCXTJ--";
 #elif (DEVICE_TYPE == DEVICE_MHO_C401)
@@ -183,7 +185,7 @@ uint32_t get_mi_hw_version(void) {
 	flash_read_page(MI_HW_SAVE_FADDR, sizeof(hw[0]), (unsigned char *) &hw);
 	if(hw[0] == 0xffffffff) {
 		flash_read_page(MI_HW_VER_FADDR, sizeof(hw), (unsigned char *) &hw);
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		if ((hw[0] & 0xf0fff0ff) != 0x302E3056)
 #elif (DEVICE_TYPE == DEVICE_LYWSD03MMC)
 		if ((hw[0] & 0xf0fff0ff) != 0x302E3042)
@@ -207,13 +209,13 @@ void set_SerialStr(void) {
 		memcpy(my_SerialStr, _mi_hw_vers, sizeof(my_SerialStr));
 #if (DEVICE_TYPE == DEVICE_MHO_C401)
 		hw[0] = 0x34315F56; // "V_14" -  56 5F 31 34
-#elif (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#elif (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		hw[0] = 0x332E3256; // "V2.3" -  56 32 2E 33
 #endif
 	} else {
 		memcpy(my_SerialStr, &hw[1], sizeof(my_SerialStr));
 	}
-#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)
+#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 	memcpy(my_HardStr, &hw[0], sizeof(my_HardStr));
 #endif
 }
