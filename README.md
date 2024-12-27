@@ -212,7 +212,8 @@ In case you want to go back to the original firmware, you can download them here
 
 * [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0109](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin) (HW: B1.4 only)
 * [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0130](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin) (HW: B1.4..B2.0)
-* [Xiaomi MJWSD05MMC Original Firmware v2.0.0_0026](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MJWSD05MMC_v2.0.0_0026.bin) (HW: V2.3)
+* [Xiaomi MJWSD05MMC(ch) Original Firmware v2.0.0_0026](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MJWSD05MMC_v2.0.0_0026.bin) (HW: V2.3)
+* [Xiaomi MJWSD05MMC(en) Original Firmware v2.0.0_0005](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MJWSD05MMC_en_2.0.0_0005.bin) (HW: V2.3)
 * [MiaoMiaoCe Technology (Beijing) Co., Ltd. MHO-C122 Original Firmware (Tuya)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_MHO_C122_tuya.bin)
 * [Xiaomi MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
 * [Xiaomi and Azarton MHO_C401 Original Firmware v1.0.0_0016](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0016.bin)
