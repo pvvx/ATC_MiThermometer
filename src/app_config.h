@@ -1870,7 +1870,7 @@ extern "C" {
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
-#define USE_SENSOR_CHT8215		0
+#define USE_SENSOR_CHT8215		1
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		0
 #define USE_SENSOR_SHTC3		0
