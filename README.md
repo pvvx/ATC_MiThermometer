@@ -267,7 +267,8 @@ In case you want to go back to the original firmware, you can download them here
 |     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
 |     4.7 | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
 |     4.8 | Reorganization of program code. Combining code with "BLE_THSensor". [Option added](https://github.com/pvvx/ATC_MiThermometer/issues/571): One MY18B20 on PD2 TS0201S1, ZTH01S1; Two MY18B20 on PD2 and PD4 TS0201S2, ZTH01S2. Temperature from MY18B20 is transmitted in BTHome format. |
-|         | Added "[Tuya TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/)", "[LKTMZL02](https://pvvx.github.io/LKTMZL02)", "[ZTH05](https://pvvx.github.io/TS0601_TZE204)" |
+|     4.9 | Added "[Tuya TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/)", "[LKTMZL02](https://pvvx.github.io/LKTMZL02)", "[ZTH05](https://pvvx.github.io/TS0601_TZE204)" |
+|     5.0 | Beta version... |
 
 ## Applications
 
