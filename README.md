@@ -570,31 +570,16 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 
 
 ## Resources & Links
-* [HTML files](https://github.com/pvvx/pvvx.github.io)
+
+* [HTML files & IDs numbers of alternative firmware](https://github.com/pvvx/pvvx.github.io)
 
 * [Telink Linux Tool Chain 2020-06-26](https://yadi.sk/d/pt_qTBB-t24i9A)
-
-* [MHO-C401 Info](https://pvvx.github.io/MHO_C401/)
-
-* [CGG1-Mijia Info](https://pvvx.github.io/CGG1)
-
-* [Build Telink EVK on E104-BT10-G/N module (TLSR8269)](https://github.com/pvvx/TLSR8269-EVK)
-
-* [Alternative programmer TLSR SWire on module TB-04/03F or E104-BT10](https://github.com/pvvx/TLSRPGM)
-
-* [Additional information on the format Advertising for Xiaomi LYWSD03MMC](https://github.com/Magalex2x14/LYWSD03MMC-info)
-
-* [Reading and recovering Mi-Home keys](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/)
 
 * [LYWSD03MMC Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251-lcd-termometr-lywsd03mmc-xiaomi-bluetooth-termometr.5263/)
 
 * [MHO-C401 Forum link (russian)](https://esp8266.ru/forum/threads/tlsr8251f512et24-e-inc-display-termometr-mho-c401-bluetooth-termometr.5446/)
 
 * [Solar powered Bluetooth Thermometer with Supercap](https://hackaday.io/project/177910-solar-powered-bluetooth-thermometer-with-supercap)
-
-### CJMCU-2557 BQ25570
-
-![CJMCU-2557](https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/ATC_MiThermometer/img/CJMCU-2557.jpg)
 
 ## Control function ID when connected
 
