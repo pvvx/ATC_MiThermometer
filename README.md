@@ -18,6 +18,9 @@ _There is an alternative firmware from [Ivan Belokobylskij](https://github.com/d
 
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time. OTA and configuration main page - [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
+Due to unclear sanctions from English-speaking countries, this and related projects will most likely be closed to English-speaking users. Or provided on a paid basis.
+Access to github is already slowing down. Most Internet information resources have long been blocking on their side.
+
 **Key features**
 
 * Extended battery life (over a year)
