@@ -628,5 +628,3 @@ ATC_MiThermometer is based on the original work of [@atc1441](https://twitter.co
 | 0x72 | Set Reboot on disconnect                      |
 | 0x73 | Extension BigOTA (Zigbee, MJWSD05MMC)         |
 | 0xDD | Reset LE Long Range mode                      |
-
-
