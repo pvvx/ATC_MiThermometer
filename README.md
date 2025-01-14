@@ -1,6 +1,6 @@
 # Custom firmware for BLE thermometers on the Telink chipset.
 
-**Warning: [Firmware LYWSD03MMC version 2.1.1_0159 is temporarily not supported!](https://github.com/pvvx/ATC_MiThermometer/issues/378#issuecomment-1756740533)**
+**Warning: [Firmware LYWSD03MMC version 2.1.1_0159 requires registration in MI-Home and obtaining IDs](https://github.com/pvvx/ATC_MiThermometer/issues/602#issue-2786915630).**
 
 Please post questions about using and setting up [Home Assistant](https://www.home-assistant.io/) integrations on the appropriate resources!
 
