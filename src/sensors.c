@@ -722,10 +722,10 @@ void start_measure_sensor_deep_sleep(void) {
 			send_i2c_word(sensor_cfg.i2c_addr, SHTC3_WAKEUP); //	Wake-up command of the sensor
 			sleep_us(SHTC3_WAKEUP_us - 5);	// 240 us
 #if (DEVICE_TYPE == DEVICE_CGDK2)
-			if(sensor_cfg.id)
-				send_i2c_word(sensor_cfg.i2c_addr, SHTC3_MEASURE);
-			else
+			if(sensor_cfg.id == 0xBDC3)
 				send_i2c_word(0, SHTC3_MEASURE_CS);
+			else
+				send_i2c_word(sensor_cfg.i2c_addr, SHTC3_MEASURE);
 #else
 			send_i2c_word(sensor_cfg.i2c_addr, SHTC3_MEASURE);
 #endif
