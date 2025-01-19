@@ -233,45 +233,46 @@ In case you want to go back to the original firmware, you can download them here
 
 | Version | Changes |
 | ------: | ------- |
-|     1.2 | Bind, Set Pin-code, Support MHO-C401 |
-|     1.3 | Get/Set comfort parameters |
-|     1.4 | Get/Set device name, Get/Set MAC |
-|     1.5 | Add Standard Device Information Characteristics |
-|     1.6 | Fix alternation of Advertising in mi mode |
-|     1.7 | Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled |
-|     1.8 | Time display (instead of a blinking smile) |
-|     1.9 | Recording measurements to flash memory (cyclic buffer for 20000 measurements) |
-|     2.0 | Recording measurements with averaging to flash memory |
-|     2.1 | Periodic display refresh for MHO-C401 <br> 'Erase mi-keys' option to return to original firmware |
-|     2.2 | Added parameter "Encrypted Mi Beacon" |
-|     2.3 | Added "Delete all records" |
-|     2.4 | Added parameter "Clock time step" |
-|     2.5 | Remove TRG/FLG errors, minor optimization |
-|     2.6 | Expanding the ranges of threshold parameters (TRG) |
-|     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding version for CGG1-M 2020-2021  |
-|     2.8 | Added saving bindkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults |
-|     2.9 | Added additional id flags to advertising packages |
-|     3.0 | Added toggle support for advertising package structures for third-party software |
-|     3.1 | Fix security attributes (for pincode) |
-|     3.2 | Added [new encrypted beacon formats](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018), reed switch maintenance |
-|     3.3 | Added autodetection for [LYWSD03MMC hardware versions B1.6 and B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125). For CGG1-M and MHO-C401 - autodetection of SHTV3 or SHT4x sensors |
-|     3.4 | Correct Hardware Version Setting for [LYWSD03MMC B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145) |
-|     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163). Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M. CGG1 - correction of the battery charge display. Added CGDK2 and modified [(DIY) variant of CGDK2-2](https://pvvx.github.io/CGDK2/CGDK2-2/). |
-|     3.6 | Additional parameters: Support BT5.0 PHY, Channel Selection Algorithm 2, Correct RF-TX Power in suspend |
-|     3.7 | Added [format 'HA BLE'](https://github.com/custom-components/ble_monitor/issues/548), reed switch operation mode: Switch and Count. Full support for "HA BLE" encryption. Speed correction I2C for LCD controller LYWSD03MMC HW:1.9. Support for CGG1-M hardware version 2022. |
-|     3.8 | Fix [clear_memo](https://github.com/pvvx/ATC_MiThermometer/issues/240), renaming 'HA BLE' format to ['BTHome'](https://bthome.io/) |
-|     3.9 | Changed the calculation of battery readings in %, optimization of consumption for the solar battery when the voltage drops below 2V (deep-sleep), added option to invert event for reed switch, small optimizations. |
-|     4.0 | Improved stability in connected mode. I2C bus CLK and PullUp correction.|
-|     4.1 | Changed "connection latency" for [stability in connected](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494).|
-|     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N) and [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC). Added function key: Connect |
-|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check LYWSD03MMC HW: B1.5. Added MHO-C122 (2AWMOMHOC122) test support. LCD display stabilization LYWSD03MMC HW:B1.9 |
-|     4.4 | Adding an [option to display only external data](https://github.com/pvvx/ATC_MiThermometer/issues/380#issuecomment-1727042304). Only the value from the "EEP BindKey" [is now taken as the BindKey](https://github.com/pvvx/ATC_MiThermometer/issues/372). |
-|     4.5 | Replacing BTHome ver1 (HA_BLE) with [BTHome ver2](https://bthome.io/). Moving firmware after recovery to BLE from Zigbee OTA. Fixed a bug where the date was not displayed correctly for MJWSD05MMC. |
-|     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
-|     4.7 | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
-|     4.8 | Reorganization of program code. Combining code with "BLE_THSensor". [Option added](https://github.com/pvvx/ATC_MiThermometer/issues/571): One MY18B20 on PD2 TS0201S1, ZTH01S1; Two MY18B20 on PD2 and PD4 TS0201S2, ZTH01S2. Temperature from MY18B20 is transmitted in BTHome format. |
-|     4.9 | Added "[Tuya TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/)", "[LKTMZL02](https://pvvx.github.io/LKTMZL02)", "[ZTH05](https://pvvx.github.io/TS0601_TZE204)" |
 |     5.0 | Beta version... |
+|     4.9 | Added "[Tuya TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/)", "[LKTMZL02](https://pvvx.github.io/LKTMZL02)", "[ZTH05](https://pvvx.github.io/TS0601_TZE204)" |
+|     4.8 | Reorganization of program code. Combining code with "BLE_THSensor". [Option added](https://github.com/pvvx/ATC_MiThermometer/issues/571): One MY18B20 on PD2 TS0201S1, ZTH01S1; Two MY18B20 on PD2 and PD4 TS0201S2, ZTH01S2. Temperature from MY18B20 is transmitted in BTHome format. |
+|     4.7 | Changing sensor settings: Added slope factor, zero offset in 0.01 units. |
+|     4.6 | All thermometers support EXT OTA. Flashing third party Zigbee OTA files (*.zigbee). |
+|     4.5 | Replacing BTHome ver1 (HA_BLE) with [BTHome ver2](https://bthome.io/). Moving firmware after recovery to BLE from Zigbee OTA. Fixed a bug where the date was not displayed correctly for MJWSD05MMC. |
+|     4.4 | Adding an [option to display only external data](https://github.com/pvvx/ATC_MiThermometer/issues/380#issuecomment-1727042304). Only the value from the "EEP BindKey" [is now taken as the BindKey](https://github.com/pvvx/ATC_MiThermometer/issues/372). |
+|     4.3 | Increasing the degree of averaging (x64) of the sent values over the battery. Added "Screen Off" option. Check LYWSD03MMC HW: B1.5. Added MHO-C122 (2AWMOMHOC122) test support. LCD display stabilization LYWSD03MMC HW:B1.9 |
+|     4.2 | Option Increasing Communication Distance: Bluetooth 5.0 LE Long Range (Advertising Extensions: primary and secondary Coded PHY S=8, Connectable). Added support [MHO-C401 (2022.11)](https://pvvx.github.io/MHO_C401N) and [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC). Added function key: Connect |
+|     4.1 | Changed "connection latency" for [stability in connected](https://github.com/pvvx/ATC_MiThermometer/issues/265#issuecomment-1431495494).|
+|     4.0 | Improved stability in connected mode. I2C bus CLK and PullUp correction.|
+|     3.9 | Changed the calculation of battery readings in %, optimization of consumption for the solar battery when the voltage drops below 2V (deep-sleep), added option to invert event for reed switch, small optimizations. |
+|     3.8 | Fix [clear_memo](https://github.com/pvvx/ATC_MiThermometer/issues/240), renaming 'HA BLE' format to ['BTHome'](https://bthome.io/) |
+|     3.7 | Added [format 'HA BLE'](https://github.com/custom-components/ble_monitor/issues/548), reed switch operation mode: Switch and Count. Full support for "HA BLE" encryption. Speed correction I2C for LCD controller LYWSD03MMC HW:1.9. Support for CGG1-M hardware version 2022. |
+|     3.6 | Additional parameters: Support BT5.0 PHY, Channel Selection Algorithm 2, Correct RF-TX Power in suspend |
+|     3.5 | Correction of moisture readings for SHT4x sensors. [Rounding off sensor values on display.](https://github.com/pvvx/ATC_MiThermometer/issues/163). Saving HW string B2.0 on LYWSD03MMC. Eliminated [battery voltage noise](https://github.com/pvvx/ATC_MiThermometer/issues/180) in CGG1-M. CGG1 - correction of the battery charge display. Added CGDK2 and modified [(DIY) variant of CGDK2-2](https://pvvx.github.io/CGDK2/CGDK2-2/). |
+|     3.4 | Correct Hardware Version Setting for [LYWSD03MMC B1.7](https://github.com/pvvx/ATC_MiThermometer/issues/145) |
+|     3.3 | Added autodetection for [LYWSD03MMC hardware versions B1.6 and B1.9](https://github.com/pvvx/ATC_MiThermometer/issues/125). For CGG1-M and MHO-C401 - autodetection of SHTV3 or SHT4x sensors |
+|     3.2 | Added [new encrypted beacon formats](https://github.com/pvvx/ATC_MiThermometer/issues/94#issuecomment-846984018), reed switch maintenance |
+|     3.1 | Fix security attributes (for pincode) |
+|     3.0 | Added toggle support for advertising package structures for third-party software |
+|     2.9 | Added additional id flags to advertising packages |
+|     2.8 | Added saving bindkey to EEP if mi-keys are erased, reduced TX power to 0 dB for defaults |
+|     2.7 | Reducing power consumption of MHO-C401 (EDP update), adding version for CGG1-M 2020-2021  |
+|     2.6 | Expanding the ranges of threshold parameters (TRG) |
+|     2.5 | Remove TRG/FLG errors, minor optimization |
+|     2.4 | Added parameter "Clock time step" |
+|     2.3 | Added "Delete all records" |
+|     2.2 | Added parameter "Encrypted Mi Beacon" |
+|     2.1 | Periodic display refresh for MHO-C401 <br> 'Erase mi-keys' option to return to original firmware |
+|     2.0 | Recording measurements with averaging to flash memory |
+|     1.9 | Recording measurements to flash memory (cyclic buffer for 20000 measurements) |
+|     1.8 | Time display (instead of a blinking smile) |
+|     1.7 | Authorization and encryption in permissions to access GAP ATT attributes, if pin code is enabled |
+|     1.6 | Fix alternation of Advertising in mi mode |
+|     1.5 | Add Standard Device Information Characteristics |
+|     1.4 | Get/Set device name, Get/Set MAC |
+|     1.3 | Get/Set comfort parameters |
+|     1.2 | Bind, Set Pin-code, Support MHO-C401 |
+
 
 ## Applications
 
