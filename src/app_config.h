@@ -56,7 +56,7 @@ extern "C" {
 #define DEVICE_ZYZTH02		37  // development is not completed! Tuya ZY-ZTH02 Zigbee LCD, 2 x AAA, SHT30
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_ZYZTH02
 #endif
 
 // supported services by the device (bits)
@@ -2002,12 +2002,12 @@ extern "C" {
 #define PB4_FUNC			AS_GPIO
 //#define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLUP_1M
 
-#define GPIO_LED			GPIO_PB1
-#define PB1_INPUT_ENABLE	1
-#define PB1_DATA_OUT		1
-#define PB1_OUTPUT_ENABLE	0
-#define PB1_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
+#define GPIO_LED			GPIO_PC2
+#define PC2_INPUT_ENABLE	1
+#define PC2_DATA_OUT		1
+#define PC2_OUTPUT_ENABLE	0
+#define PC2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLDOWN_100K
 
 #define GPIO_TRG			GPIO_PA1	// mark "TXD2"
 #define PA1_INPUT_ENABLE	1
