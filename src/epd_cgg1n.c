@@ -409,7 +409,7 @@ _attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
 			transmit(0, 0x040);
 			transmit(0, 0x0A9);
 			transmit(0, 0x0A8);
-			transmit_blk(1, display_buff, sizeof(display_buff));
+			transmit_blk(1, display_cmp_buff, sizeof(display_cmp_buff));
 			transmit(0, 0x0AB);
 			transmit(0, 0x0AA);
 			transmit(0, 0x0AF);

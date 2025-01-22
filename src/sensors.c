@@ -8,7 +8,6 @@
 
 #include "drivers/8258/gpio_8258.h"
 #include "drivers/8258/pm.h"
-//#include "stack/ble/ll/ll_pm.h"
 
 #include "i2c.h"
 #include "sensor.h"
@@ -90,6 +89,7 @@ const sensor_def_cfg_t def_thcoef_sht4x = {
 
 #define SHT30_SOFT_RESET	0xA230 // Soft reset command
 #define SHT30_RD_STATUS		0x2DF3 // Read status reg (2 bytes + crc)
+#define SHT30_CLR_STATUS	0x4130 // Clear status reg (2 bytes + crc)
 #define SHT30_HIMEASURE		0x0024 // Measurement commands, Clock Stretching Disabled, Normal Mode, Read T First
 #define SHT30_HIMEASURE_CS	0x062C // Measurement commands, Clock Stretching, Normal Mode, Read T First
 #define SHT30_LPMEASURE		0x1624 // Measurement commands, Clock Stretching Disabled, Low Power Mode, Read T First
@@ -389,13 +389,20 @@ static int read_sensor_cht8215(void) {
 #endif
 
 #if (USE_SENSOR_SHT4X || USE_SENSOR_SHTC3 || USE_SENSOR_SHT30)
+
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 static int read_sensor_sht30_shtc3_sht4x(void) {
 	int ret = 0;
+	int i;
 	uint16_t _temp;
 	uint16_t _humi;
-	uint8_t data, crc; // calculated checksum
-	int i;
+#ifndef I2C_GROUP
+	uint8_t buf[6];
+	i = 256;
+#else
+	uint8_t crc; // calculated checksum
+	uint8_t data;
+	i = 512;
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 		init_i2c();
 #if (I2C_MAX_SPEED > 400000)
@@ -410,8 +417,29 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 #else
 	reg_i2c_id = sensor_cfg.i2c_addr | FLD_I2C_WRITE_READ_BIT;
 #endif
-	i = 512;
+#endif
 	do {
+#ifndef I2C_GROUP
+#if (DEVICE_TYPE == DEVICE_CGDK2) // SHTC3
+		if(sensor_cfg.id == 0xBDC3)
+			if(read_i2c_buf(0, buf, sizeof(buf)))
+				continue;
+		else {
+			if(read_i2c_buf(sensor_cfg.i2c_addr, buf, sizeof(buf)))
+				continue;
+		}
+#else
+		if(read_i2c_buf(sensor_cfg.i2c_addr, buf, sizeof(buf)))
+			continue;
+#endif
+		if ((sensor_crc(buf[1] ^ sensor_crc(buf[0] ^ 0xff)) == buf[2])
+		&& (sensor_crc(buf[4] ^ sensor_crc(buf[3] ^ 0xff)) == buf[5]))
+		{
+			_temp = (buf[0] << 8) | buf[1];
+			_humi = (buf[3] << 8) | buf[4];
+			if(_temp != 0xffff) {
+
+#else
 		reg_i2c_ctrl = FLD_I2C_CMD_ID | FLD_I2C_CMD_START;
 		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 		if (reg_i2c_status & FLD_I2C_NAK) {
@@ -465,6 +493,7 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 			if (crc == data && _temp != 0xffff) {
 #endif
+#endif
 				measured_data.temp = ((int32_t)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C //17500 - 4500
 				measured_data.humi = ((uint32_t)(_humi * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 %	   // 10000 -0
 				if (measured_data.humi < 0) measured_data.humi = 0;
@@ -493,7 +522,7 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 			}
 		}
 	} while (i--);
-#if (I2C_MAX_SPEED > 400000)
+#if (I2C_MAX_SPEED > 400000)  && defined(I2C_GROUP)
 	reg_i2c_speed = r;
 #endif
 	if(!ret)
@@ -633,14 +662,16 @@ static int check_sensor(void) {
 						// SHT30
 						if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_SOFT_RESET)) { // Soft reset command
 							sleep_us(SHT30_SOFT_RESET_us);
+							// clear status reg
+							// send_i2c_word(sensor_cfg.i2c_addr, SHT30_CLR_STATUS);
 							// read status reg
 							if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_RD_STATUS)
 							&& !read_i2c_buf(sensor_cfg.i2c_addr, buf, 3)
 							&& buf[2] == sensor_crc(buf[1] ^ sensor_crc(buf[0] ^ 0xff))) {
-								sensor_cfg.id = (0x0030 << 16) | (buf[0] << 8) | buf[1];
-								ptabinit = (sensor_def_cfg_t *)&def_thcoef_sht30;
-								/* if(!send_i2c_word(SHT30_HIMEASURE)) { // start measure T/H
-								} */
+								//if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_HIMEASURE)) { // start measure T/H
+									sensor_cfg.id = (0x0030 << 16) | (buf[0] << 8) | buf[1];
+									ptabinit = (sensor_def_cfg_t *)&def_thcoef_sht30;
+								//}
 								break;
 							}
 						}
@@ -751,4 +782,3 @@ void start_measure_sensor_deep_sleep(void) {
 }
 
 #endif // (DEV_SERVICES & SERVICE_THS)
-

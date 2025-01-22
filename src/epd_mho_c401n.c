@@ -51,7 +51,6 @@ RAM uint16_t lcd_refresh_cnt;
 const uint8_t T_LUT_ping[5] = {0x07B, 0x081, 0x0E4, 0x0E7, 0x008};
 const uint8_t T_LUT_init[14] = {0x082, 0x068, 0x050, 0x0E8, 0x0D0, 0x0A8, 0x065, 0x07B, 0x081, 0x0E4, 0x0E7, 0x008, 0x0AC, 0x02B };
 const uint8_t T_LUT_work[9] = {0x082, 0x080, 0x000, 0x0C0, 0x080, 0x080, 0x062, 0x0AC, 0x02B};
-
 //----------------------------------
 // define segments
 // the data in the arrays consists of {byte, bit} pairs of each segment
@@ -343,12 +342,12 @@ static void transmit_blk(uint8_t cd, const uint8_t * pdata, size_t size_data) {
 void init_lcd(void) {
 	// pulse RST_N low for 110 microseconds
     gpio_write(EPD_RST, LOW);
-    pm_wait_us(110);
+	display_buff[15] = 0;
 	lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
     stage_lcd = 1;
     epd_updated = 0;
+    pm_wait_us(110);
     gpio_write(EPD_RST, HIGH);
-	display_buff[15] = 0;
     bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
 
@@ -373,7 +372,7 @@ void update_lcd(void){
 }
 
 _attribute_ram_code_
-__attribute__((optimize("-Os"))) int task_lcd(void) {
+int task_lcd(void) {
 	if(cfg.flg2.screen_off) {
 		stage_lcd = 0;
 		return stage_lcd;
@@ -385,10 +384,10 @@ __attribute__((optimize("-Os"))) int task_lcd(void) {
 			stage_lcd = 2;
 			break;
 		case 2: // Update/Init, stage 2
-			if (epd_updated == 0) {
-				transmit_blk(0, T_LUT_init, sizeof(T_LUT_init));
-			} else {
+			if (epd_updated) {
 				transmit_blk(0, T_LUT_work, sizeof(T_LUT_work));
+			} else {
+				transmit_blk(0, T_LUT_init, sizeof(T_LUT_init));
 			}
 			stage_lcd = 3;
 			break;
@@ -396,7 +395,7 @@ __attribute__((optimize("-Os"))) int task_lcd(void) {
 			transmit(0, 0x040);
 			transmit(0, 0x0A9);
 			transmit(0, 0x0A8);
-			transmit_blk(1, display_buff, sizeof(display_buff));
+			transmit_blk(1, display_cmp_buff, sizeof(display_cmp_buff));
 			transmit(0, 0x0AB);
 			transmit(0, 0x0AA);
 			transmit(0, 0x0AF);
@@ -408,11 +407,14 @@ __attribute__((optimize("-Os"))) int task_lcd(void) {
 				stage_lcd = 2;
 				// EPD_BUSY: ~1000 ms
 			}
+			//sleep_us(50); // Waiting for EPD BUSY to be setting
 			break;
 		case 4: // Update, stage 4
 			transmit(0, 0x0AE);
 			transmit(0, 0x028);
 			transmit(0, 0x0AD);
+			stage_lcd = 0;
+			break;
 		default:
 			stage_lcd = 0;
 		}

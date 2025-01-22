@@ -632,7 +632,7 @@ void cmd_parser(void * p) {
 #else
 			olen = 2 + 1;
 #endif
-#ifdef I2C_GROUP
+#if defined(I2C_GROUP) || defined(I2C_SDA)
 		} else if (cmd == CMD_ID_I2C_SCAN) {   // Universal I2C/SMBUS read-write
 			len = 0;
 			olen = 1;
@@ -642,6 +642,7 @@ void cmd_parser(void * p) {
 					olen++;
 				len += 2;
 			}
+#if defined(I2C_GROUP)
 		} else if (cmd == CMD_ID_I2C_UTR) {   // Universal I2C/SMBUS read-write
 			i2c_utr_t * pbufi = (i2c_utr_t *)&req->dat[1];
 			olen = pbufi->rdlen & 0x7f;
@@ -658,6 +659,7 @@ void cmd_parser(void * p) {
 				send_buf[1] = 0xff; // Error cmd
 				olen = 2;
 			}
+#endif
 #endif
 #if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
 		} else if (cmd == CMD_ID_CFS) {	// Get/Set sensor config

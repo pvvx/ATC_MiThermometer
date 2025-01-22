@@ -425,13 +425,13 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) int task_lcd(void) {
 					// send the actual data
 					transmit(0, DATA_START_TRANSMISSION_1);
 					for (int i = 0; i < 18; i++)
-						transmit(1, display_buff[i]);
+						transmit(1, display_cmp_buff[i]);
 				}
 			} else {
 				// send the actual data
 				transmit(0, DATA_START_TRANSMISSION_1);
 				for (int i = 0; i < 18; i++)
-					transmit(1, display_buff[i]);
+					transmit(1, display_cmp_buff[i]);
 			}
 			stage_lcd = 3;
 			// Refresh

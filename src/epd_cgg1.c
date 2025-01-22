@@ -434,8 +434,8 @@ _attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
 			}
 			// send the actual data
 			transmit(0, DATA_START_TRANSMISSION_1);
-			for (int i = 0; i < sizeof(display_buff); i++)
-				transmit(1, display_buff[i]^0xFF);
+			for (int i = 0; i < sizeof(display_cmp_buff); i++)
+				transmit(1, display_cmp_buff[i]^0xFF);
 			// Refresh
 			transmit(0, DISPLAY_REFRESH);
 			// EPD_BUSY: Low 1217 ms from reset, 608.5 ms in refresh cycle

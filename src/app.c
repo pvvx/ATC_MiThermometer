@@ -234,6 +234,16 @@ const cfg_t def_cfg = {
 		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
 
+#elif (DEVICE_TYPE == DEVICE_ZYZTH02)
+		.flg2.adv_flags = true,
+		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
+		.flg.comfort_smiley = true,
+		.measure_interval = 4, // * advertising_interval = 10 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
+#endif
+
 #else
 #error "DEVICE_TYPE = ?"
 #endif
@@ -1158,13 +1168,10 @@ void main_loop(void) {
 		if (stage_lcd) {
 			if (task_lcd()) {
 				if(!gpio_read(EPD_BUSY)) {
-//					if ((bls_pm_getSystemWakeupTick() - clock_time()) > 25 * CLOCK_16M_SYS_TIMER_CLK_1MS)
-					{
-						cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable
+					cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable
 #if !((DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) || (USE_SENSOR_HX71X))
-						bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
+					bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 #endif
-					}
 				} else {
 					cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
 					bls_pm_setSuspendMask(SUSPEND_DISABLE);
