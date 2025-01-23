@@ -8,6 +8,9 @@ make -s -j PROJECT_NAME=ATC%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_LYWSD03MMC"
 @del /Q "BTH%SWVER%.bin"
 make -s -j PROJECT_NAME=BTH%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MJWSD05MMC"
 @if not exist "BTH%SWVER%.bin" goto :error
+@del /Q "BTE%SWVER%.bin"
+make -s -j PROJECT_NAME=BTE%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MJWSD05MMC_EN"
+@if not exist "BTE%SWVER%.bin" goto :error
 @del /Q "CGDK2%SWVER%.bin"
 make -s -j PROJECT_NAME=CGDK2%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_CGDK2"
 @if not exist "CGDK2%SWVER%.bin" goto :error
@@ -32,7 +35,7 @@ make -s -j PROJECT_NAME=TNK01%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TNK01"
 @del /Q "TS0201%SWVER%.bin"
 make -s -j PROJECT_NAME=TS0201%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TS0201"
 @if not exist "TS0201%SWVER%.bin" goto :error
-python3 utils\zb_bin_ota.py TS0201%SWVER%.bin zigbee_ota\TS0201BLE%SWVER% -m0x1141 -i0xd3a3 -v0x01983001 -s"Tuya TS0201 to BLE"
+python3 utils\zb_bin_ota.py TS0201%SWVER%.bin zigbee_ota\TS0201BLE%SWVER% -m0x1141 -i0xd3a3 -v0x01983001 -s"Tuya to BLE"
 @del /Q "TS0201S1%SWVER%.bin"
 make -s -j PROJECT_NAME=TS0201S1%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TS0201 -DUSE_SENSOR_MY18B20=1"
 @if not exist "TS0201S1%SWVER%.bin" goto :error
@@ -60,14 +63,17 @@ make -s -j PROJECT_NAME=TB03F%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TB03F"
 @del /Q "TH03%SWVER%.bin"
 make -s -j PROJECT_NAME=TH03%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZTH03"
 @if not exist "TH03%SWVER%.bin" goto :error
-python3 utils\zb_bin_ota.py TH03%SWVER%.bin zigbee_ota\TH03BLE%SWVER% -m0x1286 -i0x0202 -v0x10993607 -s"Tuya TH03 to BLE"
-@del /Q "ZL02%SWVER%.bin"
-make -s -j PROJECT_NAME=ZL02%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_LKTMZL02"
-@if not exist "ZL02%SWVER%.bin" goto :error
-python3 utils\zb_bin_ota.py ZL02%SWVER%.bin zigbee_ota\ZL02BLE%SWVER% -m0x1141 -i0xd3a3 -v0x01983001 -s"Tuya ZL02 to BLE"
+python3 utils\zb_bin_ota.py TH03%SWVER%.bin zigbee_ota\TH03BLE%SWVER% -m0x1286 -i0x0202 -v0x10993607 -s"Tuya to BLE"
+@del /Q "LKTMZL02%SWVER%.bin"
+make -s -j PROJECT_NAME=LKTMZL02%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_LKTMZL02"
+@if not exist "LKTMZL02%SWVER%.bin" goto :error
+python3 utils\zb_bin_ota.py LKTMZL02%SWVER%.bin zigbee_ota\LKTMZL02BLE%SWVER% -m0x1141 -i0xd3a3 -v0x01983001 -s"Tuya to BLE"
 @del /Q "ZTH05%SWVER%.bin"
 make -s -j PROJECT_NAME=ZTH05%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZTH05Z"
 @if not exist "ZTH05%SWVER%.bin" goto :error
+@del /Q "ZYZTH02%SWVER%.bin"
+make -s -j PROJECT_NAME=ZYZTH02%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZYZTH02"
+@if not exist "ZYZTH02%SWVER%.bin" goto :error
 @exit
 :error
 echo "Error!"

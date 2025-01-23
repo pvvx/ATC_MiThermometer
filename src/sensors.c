@@ -81,7 +81,7 @@ const sensor_def_cfg_t def_thcoef_sht4x = {
 		.sensor_type = TH_SENSOR_SHT4x
 };
 
-//==================================== SHT30/GXHT3x
+//==================================== SHT30/GXHT3x/CHT832x
 
 //  I2C addres
 //#define SHT30_I2C_ADDR		0x44
@@ -389,7 +389,7 @@ static int read_sensor_cht8215(void) {
 #endif
 
 #if (USE_SENSOR_SHT4X || USE_SENSOR_SHTC3 || USE_SENSOR_SHT30)
-
+/* SHT30/GXHT3x/CHT832x/SHTC3/SHT4X */
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 static int read_sensor_sht30_shtc3_sht4x(void) {
 	int ret = 0;
@@ -659,7 +659,7 @@ static int check_sensor(void) {
 					if(!ptabinit)
 #endif // USE_SENSOR_SHT4X
 					{
-						// SHT30
+						// SHT30/GXHT3x/CHT832x
 						if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_SOFT_RESET)) { // Soft reset command
 							sleep_us(SHT30_SOFT_RESET_us);
 							// clear status reg

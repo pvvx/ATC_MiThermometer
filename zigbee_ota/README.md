@@ -3,24 +3,31 @@
 
 |Image Type| Device, note |
 | -- | -- |
-| 0x0201 |  MHO-C401 (old version) |
-| 0x0202 |  CGG1 (old version) |
-| 0x0203 |  LYWSD03MMC ver https://github.com/devbis/z03mmc |
-| 0x0206 |  CGDK2 |
-| 0x0207 |  CGG1 (new version) |
-| 0x0208 |  MHO-C401 (new version) |
-| 0x0209 |  MJWSD05MMC (ch) |
-| 0x020A |  LYWSD03MMC |
-| 0x020B |  MHO-C122 |
-| 0x020C |  MJWSD05MMC (en) |
-| 0x0210 |  TB-03F |
-| 0x0211 |  TS0201-TZ3000 |
-| 0x0211 |  TNK01 |
-| 0x0216 |  TH03Z |
-| 0x021b |  ZTH01 |
-| 0x021c |  ZTH02 |
-| 0x021e |  TH03 |
-| 0x021f |  LKTMZL02 |
+| 0x0201 | [MHO-C401 (old version)](https://pvvx.github.io/MHO_C401) |
+| 0x0202 | [CGG1-M (old version)](https://pvvx.github.io/CGG1) |
+| 0x0203 | LYWSD03MMC ver https://github.com/devbis/z03mmc |
+| 0x0206 | [CGDK2](https://pvvx.github.io/CGDK2) |
+| 0x0207 | [CGG1-M (new version)](https://pvvx.github.io/CGG1_2022) |
+| 0x0208 | [MHO-C401 (new version)](https://pvvx.github.io/MHO_C401N)  |
+| 0x0209 | [MJWSD05MMC (ch)](https://pvvx.github.io/MJWSD05MMC) |
+| 0x020A | All [LYWSD03MMC](https://pvvx.github.io/ATC_MiThermometer) |
+| 0x020B | [MHO-C122](https://pvvx.github.io/MHO_C122) |
+| 0x020C | [MJWSD05MMC (en)](https://pvvx.github.io/MJWSD05MMC) |
+| 0x0210 | TB-03F |
+| 0x0211 | TS0201 [TS0201_TZ3000](https://pvvx.github.io/TS0201_TZ3000) |
+| 0x0211 | TNK01 |
+| 0x0216 | [TH03Z](https://pvvx.github.io/TH03Z) |
+| 0x021b | [ZTH01(TS0601_TZE200)](https://pvvx.github.io/TS0601_TZE200_zth01) |
+| 0x021c | [ZTH02(TS0601_TZE200)](https://pvvx.github.io/TS0601_TZE200_zth02) |
+| 0x021e | [TH03(TS0201_TZ3000)](https://pvvx.github.io/TS0201_TZ3000_TH03) |
+| 0x021f | [LKTMZL02(TS0201_TZ3210)](https://pvvx.github.io/LKTMZL02) |
+| 0x0221 | [ZTH05(TS0601_TZE204)](https://pvvx.github.io/TS0601_TZE204) |
+| 0x0223 | [CB3S](https://pvvx.github.io/TS0041_TZ3000_fa9mlvja) TS0041_TZ3000_fa9mlvja |
+| 0x0224 | [HS09](https://pvvx.github.io/TS0201_TZ3000_1twfmkcc) TS0201_TZ3000_1twfmkcc |
+| 0x0225 | [ZY-ZTH02](https://github.com/pvvx/ZigbeeTLc/issues/128#issuecomment-2608399413) TS0201_TZ3000_v1w2k9dd without LCD |
+| 0x0226 | [ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) TS0201_TZ3000_v1w2k9dd LCD |
+
+* [Full table](https://github.com/pvvx/pvvx.github.io/blob/master/README.md)
 
 ### From [devbis Zigbee](https://github.com/devbis/z03mmc) firmware to BLE:
 

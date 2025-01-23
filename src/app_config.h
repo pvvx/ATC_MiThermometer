@@ -53,7 +53,8 @@ extern "C" {
 //#define DEVICE_THB2X		34  // PHY62x2 BLE, https://github.com/pvvx/THB2/discussions/82
 #define DEVICE_CB3S			35  // development is not completed! TS0041_TZ3000_fa9mlvja, Tuya ZigBee "Smart Button"
 #define DEVICE_HS09			36  // development is not completed! TS0201_TZ3000_1twfmkcc: Tuya ZigBee "Smart Humidity Sensor"
-#define DEVICE_ZYZTH02		37  // development is not completed! Tuya ZY-ZTH02 Zigbee LCD, 2 x AAA, SHT30
+#define DEVICE_ZYZTH02		37  // Tuya ZY-ZTH02 Zigbee, 2 x AAA, SHT30/CHT832x
+#define DEVICE_ZYZTH01		38  // development is not completed! Tuya ZY-ZTH02Pro Zigbee LCD, 2 x AAA, SHT30/CHT832x
 
 #ifndef DEVICE_TYPE
 #define DEVICE_TYPE			DEVICE_ZYZTH02
@@ -1932,7 +1933,7 @@ extern "C" {
 #endif
 
 
-#elif DEVICE_TYPE == DEVICE_ZYZTH02
+#elif (DEVICE_TYPE == DEVICE_ZYZTH02) || (DEVICE_TYPE == DEVICE_ZYZTH01)
 
 // TLSR8258
 // GPIO_PA0 - free "RXD2" (Reed Switch, input)
