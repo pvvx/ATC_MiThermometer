@@ -45,8 +45,12 @@ db15-0203-99993001-ATC_vxx.zigbee
 
 * Index file: th03_tuya2ble.json
 
-### ZL02 From Tuya Zigbee firmware to BLE:
+### LKTMZL02 From Tuya Zigbee firmware to BLE:
 
-1141-d3a3-01983001-ZL02BLE_v48.zigbee Tuya ZL02 Zigbee to BLE
+1141-d3a3-01983001-ZL02BLE_v48.zigbee Tuya LKTMZL02 Zigbee to BLE
 
 * Index file: zl02_tuya2ble.json
+
+### ZYZTH02 From Tuya Zigbee firmware to BLE:
+
+1002-0203-60993001-ZYZTH02BLE_v50.zigbee Tuya ZYZTH02 Zigbee to BLE
