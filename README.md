@@ -63,11 +63,11 @@ Access to github is already slowing down. Most Internet information resources ha
 
 * Thermometers without display
 
-| [Tuya ZigBee TS0201 TZ3000](https://pvvx.github.io/TS0201_TZ3000) | [Tuya ZigBee TH03Z](https://pvvx.github.io/TH03Z) | [Tuya ZigBee ZTH01](https://pvvx.github.io/TS0601_TZE200_zth01) | [Tuya ZigBee ZTH02](https://pvvx.github.io/TS0601_TZE200_zth02) |
-|:--:|:--:|:--:|:--:|
-| <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TH03Z/img/TH03Z.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth01/img/ZTH01.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth02/img/zth02.jpg" width="120"/> |
-| Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
-| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc)<br>[BZdevice](https://github.com/pvvx/BZdevice) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
+| [Tuya ZigBee TS0201 TZ3000](https://pvvx.github.io/TS0201_TZ3000) | [Tuya ZigBee TH03Z](https://pvvx.github.io/TH03Z) | [Tuya ZigBee ZTH01](https://pvvx.github.io/TS0601_TZE200_zth01) | [Tuya ZigBee ZTH02](https://pvvx.github.io/TS0601_TZE200_zth02) | [Tuya ZigBee ZY-ZTH02](https://pvvx.github.io/ZY-ZTH02) |
+|:--:|:--:|:--:|:--:|:--:|
+| <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TH03Z/img/TH03Z.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth01/img/ZTH01.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth02/img/zth02.jpg" width="120"/> |  <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/refs/heads/master/ZY-ZTH02/img/ZY-ZTH02.jpg" width="120"/> |
+| Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
+| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc)<br>[BZdevice](https://github.com/pvvx/BZdevice) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |  BLE |
 
 * Tuya devices (SOC PHY62x2)
 
