@@ -42,11 +42,11 @@ Background: 15=0xff ?
 None: 0.1..0.3, 0.5..0.7, 2.3..2.7, 4.3..4.7, 5.1, 5,3, 5.5, 5.7, 6.1, 6.3, 6.7, 7.1, 7.3, 7.5..7.7, 9.3..9.7, 11.3, 11.5..11.7, 13.3..13.7, 14.1, 14.3, 14.5
 */
 
-#define DEF_EPD_REFRESH_CNT	2048
 
 RAM uint8_t stage_lcd;
 RAM uint8_t epd_updated;
-RAM uint16_t lcd_refresh_cnt;
+//#define DEF_EPD_REFRESH_CNT	2048
+//RAM uint16_t lcd_refresh_cnt;
 
 const uint8_t T_LUT_ping[5] = {0x07B, 0x081, 0x0E4, 0x0E7, 0x008};
 const uint8_t T_LUT_init[14] = {0x082, 0x068, 0x050, 0x0E8, 0x0D0, 0x0A8, 0x065, 0x07B, 0x081, 0x0E4, 0x0E7, 0x008, 0x0AC, 0x02B };
@@ -343,10 +343,10 @@ void init_lcd(void) {
 	// pulse RST_N low for 110 microseconds
     gpio_write(EPD_RST, LOW);
 	display_buff[15] = 0;
-	lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
+//	lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
     stage_lcd = 1;
     epd_updated = 0;
-    pm_wait_us(110);
+    sleep_us(110);
     gpio_write(EPD_RST, HIGH);
     bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
@@ -361,10 +361,12 @@ void update_lcd(void){
  	if (!stage_lcd) {
 		if (memcmp(display_cmp_buff, display_buff, sizeof(display_buff))) {
 			memcpy(display_cmp_buff, display_buff, sizeof(display_buff));
+#if 0
 			if (lcd_refresh_cnt)
 				lcd_refresh_cnt--;
 			else if(wrk.ble_connected == 0)
 				init_lcd(); // pulse RST_N low for 110 microseconds
+#endif
 			lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
 			stage_lcd = 1;
 		}
@@ -407,7 +409,7 @@ int task_lcd(void) {
 				stage_lcd = 2;
 				// EPD_BUSY: ~1000 ms
 			}
-			//sleep_us(50); // Waiting for EPD BUSY to be setting
+			// sleep_us(200); // Waiting for EPD BUSY to be setting?
 			break;
 		case 4: // Update, stage 4
 			transmit(0, 0x0AE);

@@ -1,0 +1,170 @@
+[
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83826,
+        "manufacturerCode": 4417,
+        "imageType": 513,
+        "sha512": "943125877ed6b3d7dea6ac99513582e6a82080f350a77af0471dc4849b6b07b619dfdc1d89ef6ac03903cf930b4a78d19f2e5e63a37f3dbaae763e4656de8bb1",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0201-99993001-MHO_C401_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 84002,
+        "manufacturerCode": 4417,
+        "imageType": 514,
+        "sha512": "203497c99bf453e31773a10f8713691667328d7133d1df45864e8c1b86d0ae436112bdd898b76ac7f3b5305bf19bf4aaeea376f560aec2e4667b0ecbf968ca88",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0202-99993001-CGG1_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83154,
+        "manufacturerCode": 4417,
+        "imageType": 515,
+        "sha512": "9ba89546e68518c6b3a71247fe9ffbfdf6329d7e23fd6ce4249132a5d3b370f590d4efa9b148cd1f0fad5c9cf64ed0bc4becd8de0a36e659257b10a5211d3906",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0203-99993001-ATC_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83106,
+        "manufacturerCode": 4417,
+        "imageType": 518,
+        "sha512": "84409429d3ca942170557a75cab1abb83ec0e8990be2f0ca7a6f24a94f5d657a96862dd20012878e954983107ee6c79281a1ad07f065984e02548133ca5e74d8",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0206-99993001-CGDK2_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83458,
+        "manufacturerCode": 4417,
+        "imageType": 519,
+        "sha512": "2d3f5952b9efc77893b73fda2871beb134857ecb8931ea88437c5e2340992d95b21d15b89d5381e7d4b5de41d7bcfa4921d601a6a0cbd24f21ed7b50c132678a",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0207-99993001-CGG1M_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83314,
+        "manufacturerCode": 4417,
+        "imageType": 520,
+        "sha512": "68cd536af67ab8efcea3d47165f3e5124efb153a845baed523c5bc6f2a2de2eb1dd11f21c4ca7474816d17d3fb3fa5654b5d452add7d728a133cf531e5f5b166",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0208-99993001-MHO_C401N_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 85874,
+        "manufacturerCode": 4417,
+        "imageType": 521,
+        "sha512": "07e034fcabb7327ba2471927114d6e50ba32ede5e6253577435c97e42835dc2aab18e006d7f8ace28963dc723a2e4af45044f0dc6a2c61fde7565426a5016aa1",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0209-99993001-BTH_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83154,
+        "manufacturerCode": 4417,
+        "imageType": 522,
+        "sha512": "3150589103aa112852f6b4c9c46ff151d3948c7646177bd9919fbf0c4e5dfe9a666df0adaf887aa09d73620a9cb24cbf695fe43c65e2ab870fd2b0ab9ef7162d",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-020a-99993001-ATC_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 82466,
+        "manufacturerCode": 4417,
+        "imageType": 523,
+        "sha512": "edc49ec566396afdb02d99af11dcc2c7baaf807c8701523436788a2a74caffc8a8505ec2d02c3d235ba2525b6db1305e1addc2d3d1f236a5fb3550d883127d55",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-020b-99993001-MHO_C122_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 85778,
+        "manufacturerCode": 4417,
+        "imageType": 524,
+        "sha512": "993ef5243aa0d02a131fb4466224f115c4ade4b0b16b0649f812d1b7ef28ae9a333971823846f8cd4c3bf06c73913d30d08d402ce009b97c4ca91edd8a648558",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-020c-99993001-BTE_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 77698,
+        "manufacturerCode": 4417,
+        "imageType": 528,
+        "sha512": "cdde9e23ca44ca75a61b6adf17f5bfd376685d5db5b29f8d22a94e1c811b354f257158198aed2d5c283e652afe5d64a63bbd9e9a19b95de6440d4f6f546dfcf8",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0210-99993001-TB03F_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79634,
+        "manufacturerCode": 4417,
+        "imageType": 529,
+        "sha512": "94a2933bcc43b7b8fed7478c4fac1322297069fb83c34eeb7cadce3aa466abf6195f8d6a06eb2cd13b4f6182d4ad1be250b12c5338c2bf2bf974e0dddba02b53",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0211-99993001-TS0201_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 76658,
+        "manufacturerCode": 4417,
+        "imageType": 530,
+        "sha512": "8327798020d92df818f87866bbb7a2baac6a49d6086f61df4b7d0cfa591e6b03b8bd9efcf2d9a14d7050fc1d8934b93d22ef5e2e96650aab2825b8727ccca44c",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0212-99993001-TNK01_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79634,
+        "manufacturerCode": 4417,
+        "imageType": 534,
+        "sha512": "6dd96b99cb32b79c894632735c5a12cee97be6d82ad73c3584809dfc7cc41f4a2c9c2d339db689b3286ef2bb333741d7ca93d163900c5c4d37e6849fdac9733e",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0216-99993001-TH03Z_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79634,
+        "manufacturerCode": 4417,
+        "imageType": 539,
+        "sha512": "7e2547dbc1d30ae77f9505c3527a92cb7155f487d781073f99089f3090f3dc8f7b28f3fd5ff47c748aa7aa536dd9c0f0731a089a7ca0752e8585a42b7d2316b0",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021b-99993001-ZTH01_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79634,
+        "manufacturerCode": 4417,
+        "imageType": 540,
+        "sha512": "52288829dcb3d3c7e73e2f955564d28eade367c63e2d6193e1c8dc38964a01d87d9d95122c5f823537d3eab16502604c39aac9d3758e671dd366e3b106e90b3e",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021c-99993001-ZTH02_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 80834,
+        "manufacturerCode": 4417,
+        "imageType": 542,
+        "sha512": "ecde80f2e1f16765292c0ad6601791615878a2ca8c2ee8ec50ce4771a217e1afa245b31a5b3b1cf13c092649b6a6f57d7b36d981007b4400f4d457f285e5cec4",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021e-99993001-TH03_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 80882,
+        "manufacturerCode": 4417,
+        "imageType": 543,
+        "sha512": "4a0f2bea31470cb127bd2aee5c20f5619ac2236ee9d83dae7b0d10790b29802c2a26e3a66bc6d38345adcfa1e1271e98c60be628b548f9b7a3dfe908cc58756e",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021f-99993001-LKTMZL02_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 80994,
+        "manufacturerCode": 4417,
+        "imageType": 545,
+        "sha512": "72ddffe8f0faab54989f5a91994244c2a0edaee45c22d2530bb0f3a147604a3b6b65599488cc3d8c280bd7f68e786c84108aedd7a4ccfc6cd741e1e436c26c33",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0221-99993001-ZTH05_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 76754,
+        "manufacturerCode": 4417,
+        "imageType": 549,
+        "sha512": "604cee404f20d42791f373ed4cc717e5983f72265f70f3a5a2e10b70d02fcd8f8f6b89f3976b2d9ff521a292fe290b875a8527b38a8d4b5e5c81cf4741ea03c3",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0225-99993001-ZYZTH02_v50.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83154,
+        "manufacturerCode": 56085,
+        "imageType": 515,
+        "sha512": "8c78f929196c8042c2e19789bed4bd55646b8e65adca96b1e76b5b18ec29b172a830c1230da4e6593c45d669b681801dfbf6adb16955d3e6e47ac8a5e3324a79",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/db15-0203-99993001-ATC_v50.zigbee"
+    }
+]

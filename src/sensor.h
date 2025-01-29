@@ -73,7 +73,6 @@ typedef struct _sensor_cfg_t {
 extern sensor_cfg_t sensor_cfg;
 #define sensor_cfg_send_size 18 //max 19
 
-
 void init_sensor(void);
 void start_measure_sensor_deep_sleep(void);
 int read_sensor_cb(void);

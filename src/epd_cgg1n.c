@@ -377,7 +377,7 @@ _attribute_ram_code_ void update_lcd(void){
 void init_lcd(void) {
 	// pulse RST_N low for 110 microseconds
     gpio_write(EPD_RST, LOW);
-    pm_wait_us(110);
+    sleep_us(110);
 	lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
     stage_lcd = 1;
     epd_updated = 0;
@@ -421,6 +421,7 @@ _attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
 				stage_lcd = 2;
 				// EPD_BUSY: ~1000 ms
 			}
+			// sleep_us(200); // Waiting for EPD BUSY to be setting?
 			break;
 		case 4: // Update, stage 4
 			transmit(0, 0x0AE);
