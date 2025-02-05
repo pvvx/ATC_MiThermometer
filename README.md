@@ -41,6 +41,10 @@ Access to github is already slowing down. Most Internet information resources ha
 
 ![b2z.gif](https://github.com/pvvx/TLB2Z/blob/master/web/b2z.gif)
 
+* Support [BLETHR](https://github.com/pvvx/BLETHR) (Receiving and displaying data from an external thermometer BTHome on Xiaomi LYWSD03MMC):
+
+![blethr.jpg](https://raw.githubusercontent.com/pvvx/pvvx.github.io/refs/heads/master/blethr/img/blethr.jpg)
+
 **Supported models:**
 
 (!) It is not recommended to buy Tuya thermometers with CHT8305 sensors and/or BL55028 LCD driver chips. They have increased consumption and are not compatible with battery operation. This is a dummy thermometer from Tuya.
