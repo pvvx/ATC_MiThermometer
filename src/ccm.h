@@ -20,8 +20,8 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_CCM_H
-#define MBEDTLS_CCM_H
+#ifndef _MBEDTLS_CCM_H
+#define _MBEDTLS_CCM_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,4 +102,4 @@ int aes_ccm_auth_decrypt( const unsigned char *key,
 }
 #endif
 
-#endif /* MBEDTLS_CCM_H */
+#endif /* _MBEDTLS_CCM_H */

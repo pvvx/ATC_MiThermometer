@@ -5,7 +5,6 @@
  *      Author: pvvx
  */
 
-#include <stdint.h>
 #include "tl_common.h"
 #if (DEV_SERVICES & SERVICE_RDS)
 #include "stack/ble/ble.h"
@@ -82,7 +81,7 @@ void rds_init(void) {
 		rds.count = 0;
 	}
 #endif
-	rds.report_tick = utc_time_sec;
+	rds.report_tick = wrk.utc_time_sec;
 }
 
 //_attribute_ram_code_
@@ -155,7 +154,7 @@ static void set_rds_adv_data(void) {
 //_attribute_ram_code_
 static void start_ext_adv(void) {
 #if (DEV_SERVICES & SERVICE_LE_LR)
-	if (adv_buf.ext_adv_init) { // support extension advertise
+	if (adv_buf.ext_adv_init != EXT_ADV_Off) { // support extension advertise
 		set_rds_adv_data();
 		blta.adv_duraton_en = EXT_ADV_COUNT;
 		adv_buf.data_size = 0; // flag adv_buf.send_count++ over adv.event
@@ -227,7 +226,7 @@ void rds_task(void) {
 #if !(DEV_SERVICES & SERVICE_KEY)
 				else if (trg.rds.type1 == RDS_CONNECT) { // connect mode
 					// connect keypress event
-					uint32_t new = clock_time();
+					u32 new = clock_time();
 					ext_key.key_pressed_tik1 = new;
 					ext_key.key_pressed_tik2 = new;
 					set_adv_con_time(0); // set connection adv.
@@ -238,7 +237,7 @@ void rds_task(void) {
 #if !(DEV_SERVICES & SERVICE_KEY)
 			else if (trg.rds.type1 == RDS_CONNECT) { // connect mode
 				// connection key held
-				uint32_t new = clock_time();
+				u32 new = clock_time();
 				if(new - ext_key.key_pressed_tik1 > 1750*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 					ext_key.key_pressed_tik1 = new;
 					cfg.flg.temp_F_or_C ^= 1;
@@ -274,7 +273,7 @@ void rds_task(void) {
 #if !(DEV_SERVICES & SERVICE_KEY)
 			if (trg.rds.type1 == RDS_CONNECT) { // connect mode
 					// connection key released
-					uint32_t new = clock_time();
+					u32 new = clock_time();
 					ext_key.key_pressed_tik1 = new;
 					ext_key.key_pressed_tik2 = new;
 /* in app.c: main_loop()
@@ -290,9 +289,9 @@ void rds_task(void) {
 	}
 #endif
 	if (trg.rds_time_report
-			&& utc_time_sec - rds.report_tick > trg.rds_time_report) {
+			&& wrk.utc_time_sec - rds.report_tick > trg.rds_time_report) {
 		rds.event = trg.rds.type1;
-		rds.report_tick = utc_time_sec;
+		rds.report_tick = wrk.utc_time_sec;
 	}
 	if (rds.event != RDS_NONE) {
 		if(wrk.ble_connected) {

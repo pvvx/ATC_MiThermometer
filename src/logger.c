@@ -4,7 +4,6 @@
  *  Created on: 29.01.2021
  *      Author: pvvx
  */
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if (DEV_SERVICES & SERVICE_HISTORY)
@@ -48,14 +47,14 @@
 #endif
 
 typedef struct _summ_data_t {
-	uint32_t	val0; // battery_mv; // mV
-	int32_t		val1; // temp, temp1, ; // x 0.01 C
+	u32	val0; // battery_mv; // mV
+	s32		val1; // temp, temp1, ; // x 0.01 C
 #if ((DEV_SERVICES & SERVICE_THS) == 0) && (DEV_SERVICES & SERVICE_18B20) && (USE_SENSOR_MY18B20 == 2)
-	int32_t		val2; // temp2, current; // x 0.01 C, x ? mA
+	s32		val2; // temp2, current; // x 0.01 C, x ? mA
 #else
-	uint32_t	val2; // humi, voltage; // x 0.01 %, x ? mV
+	u32	val2; // humi, voltage; // x 0.01 %, x ? mV
 #endif
-	uint32_t 	count;
+	u32 	count;
 } summ_data_t;
 RAM summ_data_t summ_data;
 
@@ -72,8 +71,8 @@ RAM memo_rd_t rd_memo;
 #define MEMO_END_ADDR		FLASH_ADDR_END_MEMO
 #endif
 
-static uint32_t test_next_memo_sec_addr(uint32_t faddr) {
-	uint32_t mfaddr = faddr;
+static u32 test_next_memo_sec_addr(u32 faddr) {
+	u32 mfaddr = faddr;
 	if (mfaddr >= MEMO_END_ADDR)
 		mfaddr = MEMO_START_ADDR;
 	else if (mfaddr < MEMO_START_ADDR)
@@ -81,8 +80,8 @@ static uint32_t test_next_memo_sec_addr(uint32_t faddr) {
 	return mfaddr;
 }
 
-static void memo_sec_init(uint32_t faddr) {
-	uint32_t mfaddr = faddr;
+static void memo_sec_init(u32 faddr) {
+	u32 mfaddr = faddr;
 	mfaddr &= ~(FLASH_SECTOR_SIZE-1);
 	_flash_erase_sector(mfaddr);
 	_flash_write_dword(mfaddr, MEMO_SEC_ID);
@@ -90,9 +89,9 @@ static void memo_sec_init(uint32_t faddr) {
 	memo.cnt_cur_sec = 0;
 }
 
-static void memo_sec_close(uint32_t faddr) {
-	uint32_t mfaddr = faddr;
-	uint16_t flg = 0;
+static void memo_sec_close(u32 faddr) {
+	u32 mfaddr = faddr;
+	u16 flg = 0;
 	mfaddr &= ~(FLASH_SECTOR_SIZE-1);
 	_flash_write(mfaddr + sizeof(memo_head_t) - sizeof(flg), sizeof(flg), &flg);
 	memo_sec_init(test_next_memo_sec_addr(mfaddr + FLASH_SECTOR_SIZE));
@@ -101,8 +100,8 @@ static void memo_sec_close(uint32_t faddr) {
 #if 0
 void memo_init_count(void) {
 	memo_head_t mhs;
-	uint32_t cnt, i = 0;
-	uint32_t faddr = memo.faddr & (~(FLASH_SECTOR_SIZE-1));
+	u32 cnt, i = 0;
+	u32 faddr = memo.faddr & (~(FLASH_SECTOR_SIZE-1));
 	cnt = memo.faddr - faddr - sizeof(memo_head_t); // смещение в секторе
 	cnt /= sizeof(memo_blk_t);
 	do {
@@ -118,10 +117,10 @@ void memo_init_count(void) {
 __attribute__((optimize("-Os")))
 void memo_init(void) {
 	memo_head_t mhs;
-	uint32_t tmp, fsec_end;
-	uint32_t faddr;
+	u32 tmp, fsec_end;
+	u32 faddr;
 #if USE_MEMO_1M
-	uint8_t buf[4];
+	u8 buf[4];
 	flash_read_id(buf);
 	if(buf[2] == 0x14) {
 		memo.start_addr = FLASH1M_ADDR_START_MEMO;
@@ -149,7 +148,7 @@ void memo_init(void) {
 					memo.faddr = faddr;
 					return;
 				}
-				utc_time_sec = tmp + 5;
+				wrk.utc_time_sec = tmp + 5;
 				memo.cnt_cur_sec++;
 				faddr += sizeof(memo_blk_t);
 			}
@@ -163,8 +162,8 @@ void memo_init(void) {
 }
 
 void clear_memo(void) {
-	uint32_t tmp;
-	uint32_t faddr = MEMO_START_ADDR + FLASH_SECTOR_SIZE;
+	u32 tmp;
+	u32 faddr = MEMO_START_ADDR + FLASH_SECTOR_SIZE;
 	memo.cnt_cur_sec = 0;
 	while (faddr < MEMO_END_ADDR) {
 		_flash_read(faddr, sizeof(tmp), &tmp);
@@ -178,9 +177,9 @@ void clear_memo(void) {
 
 //_attribute_ram_code_
 __attribute__((optimize("-Os")))
-unsigned get_memo(uint32_t bnum, pmemo_blk_t p) {
+unsigned get_memo(u32 bnum, pmemo_blk_t p) {
 	memo_head_t mhs;
-	uint32_t faddr;
+	u32 faddr;
 	faddr = rd_memo.saved.faddr & (~(FLASH_SECTOR_SIZE-1));
 	if (bnum > rd_memo.saved.cnt_cur_sec) {
 		bnum -= rd_memo.saved.cnt_cur_sec;
@@ -223,12 +222,12 @@ void write_memo(void) {
 			return;
 		if(wrk.ble_connected && bls_pm_getSystemWakeupTick() - clock_time() < 125*CLOCK_16M_SYS_TIMER_CLK_1MS)
 			return;
-		mblk.val0 = (uint16_t)(summ_data.val0/summ_data.count);
-		mblk.val1 = (int16_t)(summ_data.val1/(int32_t)summ_data.count);
+		mblk.val0 = (u16)(summ_data.val0/summ_data.count);
+		mblk.val1 = (s16)(summ_data.val1/(s32)summ_data.count);
 #if ((DEV_SERVICES & SERVICE_THS) == 0) && (DEV_SERVICES & SERVICE_18B20) && (USE_SENSOR_MY18B20 == 2)
-		mblk.val2 = (int16_t)(summ_data.val2/summ_data.count);  // temperature
+		mblk.val2 = (s16)(summ_data.val2/summ_data.count);  // temperature
 #else
-		mblk.val2 = (uint16_t)(summ_data.val2/summ_data.count); // humidity
+		mblk.val2 = (u16)(summ_data.val2/summ_data.count); // humidity
 #endif
 		memset(&summ_data, 0, sizeof(summ_data));
 	}
@@ -236,11 +235,11 @@ void write_memo(void) {
 	           c6: dcdc 1.9V
 	analog_write(0x0c, 0xc6);
 	*/
-	if (utc_time_sec == 0xffffffff)
+	if (wrk.utc_time_sec == 0xffffffff)
 		mblk.time = 0xfffffffe;
 	else
-		mblk.time = utc_time_sec;
-	uint32_t faddr = memo.faddr;
+		mblk.time = wrk.utc_time_sec;
+	u32 faddr = memo.faddr;
 	if (!faddr) {
 		memo_init();
 		faddr = memo.faddr;

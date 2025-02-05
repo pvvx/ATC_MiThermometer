@@ -1,6 +1,6 @@
-#pragma once
+#ifndef _EPD_H_
+#define _EPD_H_
 /* Based on source: https://github.com/znanev/ATC_MiThermometer */
-#include <stdint.h>
 
 //----------------------------------
 // define some constants
@@ -50,3 +50,4 @@
 #define MINUS 18
 #define ATC 19
 
+#endif // _EPD_H_

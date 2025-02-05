@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "drivers.h"
 #include "app_config.h"
@@ -25,6 +24,10 @@
 #include "bthome_beacon.h"
 #endif
 #include "stack/ble/service/ble_ll_ota.h"
+#if USE_SYNC_SCAN
+#include "scanning.h"
+#endif
+
 
 void bls_set_advertise_prepare(void *p); // add ll_adv.h
 
@@ -45,16 +48,16 @@ extern  void * ll_module_adv_cb;
 
 #endif
 
+u8 send_buf[SEND_BUFFER_SIZE];
 
-uint8_t send_buf[SEND_BUFFER_SIZE];
-
-RAM uint8_t blt_rxfifo_b[64 * 8] = { 0 };
+RAM u8 blt_rxfifo_b[64 * 8] = { 0 };
 RAM my_fifo_t blt_rxfifo = { 64, 8, 0, 0, blt_rxfifo_b, };
-RAM uint8_t blt_txfifo_b[40 * 16] = { 0 };
+RAM u8 blt_txfifo_b[40 * 16] = { 0 };
 RAM my_fifo_t blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b, };
-RAM uint8_t ble_name[MAX_DEV_NAME_LEN+2];
+RAM u8 ble_name[MAX_DEV_NAME_LEN+2];
 
-RAM uint8_t mac_public[6], mac_random_static[6];
+RAM u8 mac_public[6];
+u8  mac_random_static[6];
 RAM adv_buf_t adv_buf;
 
 void app_enter_ota_mode(void) {
@@ -70,7 +73,7 @@ void app_enter_ota_mode(void) {
 	bls_ota_setTimeout(16 * 1000000); // set OTA timeout  16 seconds
 }
 
-void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
+void ble_disconnect_callback(u8 e, u8 *p, int n) {
 	if (wrk.ble_connected & BIT(CONNECTED_FLG_RESET_OF_DISCONNECT)) // reset device on disconnect?
 		start_reboot();
 
@@ -91,20 +94,20 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 	set_adv_con_time(1); // restore default adv. interval
 	bls_pm_setManualLatency(0);
-	if(adv_buf.ext_adv_init) {
+	if(adv_buf.ext_adv_init != EXT_ADV_Off) {
 		// patch: restart ext_adv after 1 second
 		ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
 		blt_advExpectTime = clock_time() + CLOCK_16M_SYS_TIMER_CLK_1S; // set time next ext.adv
-		pea->advInt_use = adv_interval; // restore next ext.adv. interval
+		pea->advInt_use = wrk.adv_interval; // restore next ext.adv. interval
 		pea->extAdv_en = 1;
 	}
 #else
 	test_config();
-	if(adv_buf.ext_adv_init) {
+	if(adv_buf.ext_adv_init != EXT_ADV_Off) {
 		// patch: restart ext_adv after 1 second
 		ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
 		blt_advExpectTime = clock_time() + CLOCK_16M_SYS_TIMER_CLK_1S; // set time next ext.adv
-		pea->advInt_use = adv_interval; // restore next ext.adv. interval
+		pea->advInt_use = wrk.adv_interval; // restore next ext.adv. interval
 		pea->extAdv_en = 1;
 	} else {
 		ev_adv_timeout(0,0,0);
@@ -114,11 +117,14 @@ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n) {
 	SHOW_CONNECTED_SYMBOL(false);
 }
 
-void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
+void ble_connect_callback(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 
 	wrk.ble_connected = BIT(CONNECTED_FLG_ENABLE);
 	wrk.tim_measure = clock_time();
+#if USE_SYNC_SCAN
+	scan_stop(); // stop scan
+#endif
 	if(cfg.connect_latency > DEF_CONNECT_LATENCY
 #if USE_AVERAGE_BATTERY
 			&& measured_data.average_battery_mv < LOW_VBAT_MV)
@@ -131,7 +137,7 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n) {
 		my_periConnParameters.intervalMin = DEF_CON_INERVAL; // 16*1.25 = 20 ms
 		my_periConnParameters.intervalMax = DEF_CON_INERVAL; // 16*1.25 = 20 ms
 	}
-	my_periConnParameters.timeout = connection_timeout;
+	my_periConnParameters.timeout = wrk.connection_timeout;
 	bls_l2cap_requestConnParamUpdate(my_periConnParameters.intervalMin, my_periConnParameters.intervalMax, my_periConnParameters.latency, my_periConnParameters.timeout);
 	SHOW_CONNECTED_SYMBOL(true);
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
@@ -186,6 +192,9 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	if (!blta.adv_duraton_en)
 #endif
 	{
+#if USE_SYNC_SCAN
+		scan.enabled = 0; // stop scan
+#endif
 		if(++adv_buf.meas_count >= cfg.measure_interval) {
 			adv_buf.meas_count = 0;
 			wrk.start_measure = 1;
@@ -220,7 +229,11 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 #endif // (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 	}
 #if (DEV_SERVICES & SERVICE_RDS)
-	else {
+	else
+	{
+#if USE_SYNC_SCAN
+		if(!scan.enabled)
+#endif
 		// restore next adv. interval
 		blta.adv_interval = EXT_ADV_INTERVAL*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
 	}
@@ -235,7 +248,7 @@ _attribute_ram_code_ int _blt_ext_adv_proc (void) {
 		blta.adv_duraton_en--;
 		if(blta.adv_duraton_en == 0) {
 			ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
-			pea->advInt_use = adv_interval; // restore next ext.adv. interval
+			pea->advInt_use = wrk.adv_interval; // restore next ext.adv. interval
 		}
 	} else
 #endif
@@ -294,10 +307,10 @@ int ext_adv_tx_level(void) {
 void ev_adv_timeout(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 #if (DEV_SERVICES & SERVICE_LE_LR)
-	if (adv_buf.ext_adv_init) { // extension advertise
+	if (adv_buf.ext_adv_init != EXT_ADV_Off) { // extension advertise
 		if(wrk.ble_connected)
 			return;
-		if(adv_buf.ext_adv_init == 3) {
+		if(adv_buf.ext_adv_init == EXT_ADV_1M) {
 			//adv_set: Legacy
 			blc_ll_setExtAdvParam(ADV_HANDLE0,
 					ADV_EVT_PROP_LEGACY_CONNECTABLE_SCANNABLE_UNDIRECTED,
@@ -317,7 +330,7 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 			//adv_set: Extended, Connectable_undirected
 			blc_ll_setExtAdvParam(ADV_HANDLE0,
 				ADV_EVT_PROP_EXTENDED_CONNECTABLE_UNDIRECTED,
-				adv_interval, adv_interval + ADV_DELAY,
+				wrk.adv_interval, wrk.adv_interval + ADV_DELAY,
 				BLT_ENABLE_ADV_ALL, // primary advertising channel map
 				OWN_ADDRESS_PUBLIC, // own address type
 				BLE_ADDR_PUBLIC, // peer address type
@@ -331,20 +344,20 @@ void ev_adv_timeout(u8 e, u8 *p, int n) {
 				0); // scan response notify enable ?
 		}
 		blc_ll_setExtScanRspData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED,
-				ble_name[0]+1, (uint8_t *) ble_name);
+				ble_name[0]+1, (u8 *) ble_name);
 
 		// debug:  Fix CodedPHY channel
 		// blc_ll_setAuxAdvChnIdxByCustomers(20); // auxiliary data channel, must be range of 0~36
 
-		bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
+		bls_ll_setScanRspData((u8 *) ble_name, ble_name[0]+1);
 		blc_ll_setExtAdvEnable_1(BLC_ADV_ENABLE, 1, ADV_HANDLE0, 0 , 0);
 	} else
 #endif
 	{
-		bls_ll_setAdvParam(adv_interval, adv_interval + ADV_DELAY,
+		bls_ll_setAdvParam(wrk.adv_interval, wrk.adv_interval + ADV_DELAY,
 			ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL,
 			BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
-		bls_ll_setScanRspData((uint8_t *) ble_name, ble_name[0]+1);
+		bls_ll_setScanRspData((u8 *) ble_name, ble_name[0]+1);
 		bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //ADV enable
 	}
 }
@@ -360,31 +373,23 @@ void set_adv_con_time(int restore) {
 		test_config(); // restore adv_interval
 		ext_key.rest_adv_int_tad = 0; // stop timer event restore adv.intervals
 	} else {
-		adv_interval = CONNECTABLE_ADV_INERVAL; // new adv.intervals = 1 sec
+		wrk.adv_interval = CONNECTABLE_ADV_INERVAL; // new adv.intervals = 1 sec
 		ext_key.rest_adv_int_tad = -1; // start timer event restore adv.intervals
 	}
 	if(!wrk.ble_connected) {
 #if (DEV_SERVICES & SERVICE_LE_LR)
 		if (adv_buf.ext_adv_init) { // support extension advertise
 			if(restore)
-				adv_buf.ext_adv_init = 1; // LE long range
+				adv_buf.ext_adv_init = EXT_ADV_Coded; // LE long range
 			else
-				adv_buf.ext_adv_init = 3; // legacy
+				adv_buf.ext_adv_init = EXT_ADV_1M; // legacy
 			blc_ll_removeAdvSet(ADV_HANDLE0);
-			ev_adv_timeout(0,0,0);
-			load_adv_data();
-/*
-			// patch: restart ext_adv after 1 second
-			ll_ext_adv_t *pea = (ll_ext_adv_t *)&app_adv_set_param;
-			blt_advExpectTime = clock_time() + CLOCK_16M_SYS_TIMER_CLK_1S; // set time next ext.adv
-			pea->advInt_use = adv_interval; // restore next ext.adv. interval
-			pea->extAdv_en = 1;
-*/
+//			ev_adv_timeout(0,0,0);
+//			load_adv_data();
 		}
-		else
 #endif
-			ev_adv_timeout(0,0,0);
-			load_adv_data();
+		ev_adv_timeout(0,0,0);
+		load_adv_data();
 	}
 }
 #endif // GPIO_KEY2 || (DEV_SERVICES & SERVICE_RDS)
@@ -392,10 +397,10 @@ void set_adv_con_time(int restore) {
 #if (DEV_SERVICES & SERVICE_PINCODE)
 int app_host_event_callback(u32 h, u8 *para, int n) {
 	(void) para; (void) n;
-	uint8_t event = (uint8_t)h;
+	u8 event = (u8)h;
 	if (event == GAP_EVT_SMP_TK_DISPALY) { // PK_Resp_Dsply_Init_Input
 			//u32 *pinCode = (u32*) para;
-			uint32_t * p = (uint32_t *)&smp_param_own.paring_tk[0];
+			u32 * p = (u32 *)&smp_param_own.paring_tk[0];
 			memset(p, 0, sizeof(smp_param_own.paring_tk));
 			p[0] = pincode;
 #if 0
@@ -413,7 +418,7 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 	} else if (event == GAP_EVT_SMP_TK_REQUEST_OOB) {
 		//blc_smp_setTK_by_OOB();
 	} else if (event == GAP_EVT_SMP_TK_NUMERIC_COMPARE) {
-		//uint32_t * pin = (uint32_t*)para;
+		//u32 * pin = (u32*)para;
 		//blc_smp_setNumericComparisonResult(*pin == pincode);
 	} else if (event == GAP_EVT_MASK_SMP_CONN_ENCRYPTION_DONE) {
 #endif
@@ -425,7 +430,7 @@ int app_host_event_callback(u32 h, u8 *para, int n) {
 extern attribute_t my_Attributes[ATT_END_H];
 
 void ble_set_name(void) {
-	int16_t len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, MAX_DEV_NAME_LEN));
+	s16 len = flash_read_cfg(&ble_name[2], EEP_ID_DVN, min(sizeof(ble_name)-3, MAX_DEV_NAME_LEN));
 	if (len < 1 || len > MAX_DEV_NAME_LEN) {
 		//Set the BLE Name to the last three MACs the first ones are always the same
 #if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N) || (DEVICE_TYPE == DEVICE_MHO_C122))
@@ -503,6 +508,11 @@ void ble_set_name(void) {
 		ble_name[3] = 'H';
 		ble_name[4] = '5';
 		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_ZYZTH01
+		ble_name[2] = 'Z';
+		ble_name[3] = 'Y';
+		ble_name[4] = 'P';
+		ble_name[5] = '_';
 #elif DEVICE_TYPE == DEVICE_ZYZTH02
 		ble_name[2] = 'Z';
 		ble_name[3] = 'Y';
@@ -514,13 +524,13 @@ void ble_set_name(void) {
 		ble_name[4] = 'C';
 		ble_name[5] = '_';
 #endif
-		uint8_t *p = str_bin2hex(&ble_name[6], &mac_public[2], 1);
+		u8 *p = str_bin2hex(&ble_name[6], &mac_public[2], 1);
 		p = str_bin2hex(p, &mac_public[1], 1);
 		p = str_bin2hex(p, &mac_public[0], 1);
 		len = 10;
 	}
 	my_Attributes[GenericAccess_DeviceName_DP_H].attrLen = len;
-	ble_name[0] = (uint8_t)(len + 1);
+	ble_name[0] = (u8)(len + 1);
 	ble_name[1] = GAP_ADTYPE_LOCAL_NAME_COMPLETE;
 }
 
@@ -531,7 +541,7 @@ void load_adv_data(void) {
 	u8 size = adv_buf.data_size;
 	if((!size)
 #if (DEV_SERVICES & SERVICE_LE_LR)
-		|| adv_buf.ext_adv_init == 1 // extension advertise LE long Range ?
+		|| adv_buf.ext_adv_init == EXT_ADV_Coded // extension advertise LE long Range ?
 #endif
 		) {
 		memcpy(&adv_buf.data[size], ble_name, ble_name[0] + 1);
@@ -543,7 +553,7 @@ void load_adv_data(void) {
 	else
 		p += sizeof(adv_buf.flag);
 #if (DEV_SERVICES & SERVICE_LE_LR)
-	if (adv_buf.ext_adv_init)  // support extension advertise
+	if (adv_buf.ext_adv_init != EXT_ADV_Off)  // support extension advertise
 		blc_ll_setExtAdvData(ADV_HANDLE0, DATA_OPER_COMPLETE, DATA_FRAGM_ALLOWED, size, p);
 	else
 #endif
@@ -574,7 +584,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	blc_ll_initConnection_module(); // connection module  must for BLE slave/master
 	blc_ll_initSlaveRole_module(); // slave module: 	 must for BLE slave,
 #if (DEV_SERVICES & SERVICE_LE_LR)
-	adv_buf.ext_adv_init = 0;
+	adv_buf.ext_adv_init = EXT_ADV_Off;
 #endif
 	if (cfg.flg2.bt5phy) { // 1M, 2M, Coded PHY
 		blc_ll_init2MPhyCodedPhy_feature();	//if use 2M or Coded PHY
@@ -596,7 +606,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 			blc_ll_setDefaultExtAdvCodingIndication(ADV_HANDLE0, CODED_PHY_PREFER_S8);
 			// patch, set advertise prepare user cb (app_advertise_prepare_handler)
 			ll_module_adv_cb = _blt_ext_adv_proc;
-			adv_buf.ext_adv_init = 1; // flag ext_adv init
+			adv_buf.ext_adv_init = EXT_ADV_Coded; // flag ext_adv init
 			blc_ll_setDefaultPhy(PHY_TRX_PREFER, BLE_PHY_CODED, BLE_PHY_CODED);
 		} else
 #endif
@@ -685,12 +695,13 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 	ev_adv_timeout(0,0,0);	// set advertise config
 }
 
+
 /* adv_type: 0 - atc1441, 1 - Custom,  2 - Mi, 3 - HA_BLE  */
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void set_adv_data(void) {
 #if (USE_CUSTOM_BEACON + USE_BTHOME_BEACON + USE_MIHOME_BEACON + USE_ATC_BEACON) > 1
-	uint8_t adv_type = cfg.flg.advertising_type;
+	u8 adv_type = cfg.flg.advertising_type;
 #endif
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 	if (cfg.flg2.adv_crypto) {
@@ -757,7 +768,7 @@ void ble_send_measures(void) {
 	send_buf[0] = CMD_ID_MEASURE;
 	memcpy(&send_buf[1], &measured_data, MEASURED_MSG_SIZE);
 #if (DEV_SERVICES & (SERVICE_TH_TRG | SERVICE_RDS | SERVICE_PRESSURE | SERVICE_18B20))
-	uint8_t * p = &send_buf[MEASURED_MSG_SIZE+1];
+	u8 * p = &send_buf[MEASURED_MSG_SIZE+1];
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 	*p++ = trg.flg_byte;
 	len++;
@@ -770,16 +781,16 @@ void ble_send_measures(void) {
 	len += 4;
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
-	*p++ = (uint8_t)measured_data.pressure;
-	*p++ = (uint8_t)(measured_data.pressure >> 8);
+	*p++ = (u8)measured_data.pressure;
+	*p++ = (u8)(measured_data.pressure >> 8);
 	len += 2;
 #endif
 #if (DEV_SERVICES & SERVICE_18B20)
-	*p++ = (uint8_t)measured_data.xtemp[0];
-	*p++ = (uint8_t)(measured_data.xtemp[0] >> 8);
+	*p++ = (u8)measured_data.xtemp[0];
+	*p++ = (u8)(measured_data.xtemp[0] >> 8);
 #if	USE_SENSOR_MY18B20 == 2
-	*p++ = (uint8_t)measured_data.xtemp[1];
-	*p++ = (uint8_t)(measured_data.xtemp[1] >> 8);
+	*p++ = (u8)measured_data.xtemp[1];
+	*p++ = (u8)(measured_data.xtemp[1] >> 8);
 	len += 4;
 #else
 	len += 2;
@@ -820,7 +831,7 @@ void ble_send_trg_flg(void) {
 	test_trg_on();
 #endif
 	send_buf[0] = CMD_ID_TRG_OUT;
-	send_buf[1] = *((uint8_t *)(&trg.flg));
+	send_buf[1] = *((u8 *)(&trg.flg));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, send_buf, 2);
 }
 #endif

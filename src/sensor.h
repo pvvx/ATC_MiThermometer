@@ -1,5 +1,5 @@
-#pragma once
-#include <stdint.h>
+#ifndef _SENSORS_H_
+#define _SENSORS_H_
 
 #define AHT2x_I2C_ADDR			0x38
 #define CHT8305_I2C_ADDR		0x40
@@ -46,27 +46,27 @@ enum {
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
 
 typedef struct _thsensor_coef_t {
-	uint32_t val1_k;	// temp_k / current_k
-	uint32_t val2_k;	// humi_k / voltage_k
-	int16_t val1_z;		// temp_z / current_z
-	int16_t val2_z;		// humi_z / voltage_z
+	u32 val1_k;	// temp_k / current_k
+	u32 val2_k;	// humi_k / voltage_k
+	s16 val1_z;		// temp_z / current_z
+	s16 val2_z;		// humi_z / voltage_z
 } sensor_coef_t; // [12]
 
 typedef struct _sensor_def_cfg_t {
 	sensor_coef_t coef;
-	uint32_t measure_timeout;
-	uint8_t sensor_type; // SENSOR_TYPES
+	u32 measure_timeout;
+	u8 sensor_type; // SENSOR_TYPES
 } sensor_def_cfg_t;
 
 typedef struct _sensor_cfg_t {
 	sensor_coef_t coef;
-	uint32_t id;
-	uint8_t i2c_addr;
-	uint8_t sensor_type; // SENSOR_TYPES
+	u32 id;
+	u8 i2c_addr;
+	u8 sensor_type; // SENSOR_TYPES
 	// not saved
 #if SENSOR_SLEEP_MEASURE
-	volatile uint32_t time_measure;
-	uint32_t measure_timeout;
+	volatile u32 time_measure;
+	u32 measure_timeout;
 #endif
 } sensor_cfg_t;
 
@@ -79,3 +79,4 @@ int read_sensor_cb(void);
 
 #endif
 
+#endif //_SENSORS_H_

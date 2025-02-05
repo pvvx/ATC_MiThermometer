@@ -4,8 +4,6 @@
  *  Created on: 21 июл. 2024 г.
  *      Author: pvvx
  */
-
-#include <stdint.h>
 #include "tl_common.h"
 #include "drivers.h"
 #include "vendor/common/user_config.h"
@@ -47,9 +45,9 @@ const sensor_def_cfg_t sensor_ina226_def_cfg = {
 void init_sensor(void) {
 	int test_addr = INA226_I2C_ADDR << 1;
 	union {
-		uint8_t ub[4];
-		uint16_t us[2];
-		uint32_t ud;
+		u8 ub[4];
+		u16 us[2];
+		u32 ud;
 	} buf;
 	sensor_cfg.i2c_addr = 0;
 	sensor_cfg.sensor_type = TH_SENSOR_NONE;
@@ -57,16 +55,16 @@ void init_sensor(void) {
 	// send_i2c_byte(0, 0x06); // Reset command using the general call address
 
 	while(test_addr <= (INA226_I2C_ADDR_MAX << 1)) {
-		if(((sensor_cfg.i2c_addr = (uint8_t) scan_i2c_addr(test_addr)) != 0)
+		if(((sensor_cfg.i2c_addr = (u8) scan_i2c_addr(test_addr)) != 0)
 			 // Get ID
 			&& !read_i2c_byte_addr(sensor_cfg.i2c_addr, INA226_REG_MID, buf.ub, 4)
-			&& !read_i2c_byte_addr(sensor_cfg.i2c_addr, INA226_REG_VID, (uint8_t *) &buf.ub[2], 2)
+			&& !read_i2c_byte_addr(sensor_cfg.i2c_addr, INA226_REG_VID, (u8 *) &buf.ub[2], 2)
 			&& buf.ud == INA226_ID) {
 			sensor_cfg.id = buf.ud;
 			buf.ub[0] = INA226_REG_CFG;
 			buf.ub[1] = (DEF_INA226_CFG >> 8) & 0xff;
 			buf.ub[2] = DEF_INA226_CFG & 0xff;
-			send_i2c_buf(sensor_cfg.i2c_addr, (uint8_t *) buf.ub, 3);
+			send_i2c_buf(sensor_cfg.i2c_addr, (u8 *) buf.ub, 3);
 			if(!sensor_cfg.coef.val1_k) {
 				sensor_cfg.coef = sensor_ina226_def_cfg.coef;
 			}
@@ -80,7 +78,7 @@ void init_sensor(void) {
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 int read_sensor_cb(void) {
 	int ret = 0;
-	uint8_t ub[4];
+	u8 ub[4];
 	if(sensor_cfg.i2c_addr && sensor_cfg.sensor_type
 #if 1
 		&& !read_i2c_byte_addr(sensor_cfg.i2c_addr, INA226_REG_SHT, ub, 2)
@@ -90,7 +88,7 @@ int read_sensor_cb(void) {
 #endif
 		int16_t itmp = (ub[0] << 8) | ub[1];
 		measured_data.current = ((itmp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z;
-		uint16_t utmp = (ub[2] << 8) | ub[3];
+		u16 utmp = (ub[2] << 8) | ub[3];
 		measured_data.voltage = ((utmp * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z;
 		measured_data.energy = measured_data.voltage * measured_data.current;
 		measured_data.count++;

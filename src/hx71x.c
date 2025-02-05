@@ -4,14 +4,12 @@
  *  Created on: 24.12.2019
  *      Author: pvvx
  */
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
+#if USE_SENSOR_HX71X
 #include "app.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
-
-#if USE_SENSOR_HX71X
 #include "hx71x.h"
 
 RAM hx71x_t hx71x;
@@ -75,22 +73,22 @@ int hx71x_get_data(hx71x_mode_t mode) {
 
 
 _attribute_ram_code_
-uint16_t hx71x_get_volume(void) { // in 10 milliliters
-	uint16_t value;
+u16 hx71x_get_volume(void) { // in 10 milliliters
+	u16 value;
 	if(hx71x.count > 1) {
-		value = (uint16_t)((uint32_t)(hx71x.summator / hx71x.count));
+		value = (u16)((u32)(hx71x.summator / hx71x.count));
 		hx71x.count = 1;
 		hx71x.summator = value;
 	} else
-		value = (uint16_t)hx71x.summator;
+		value = (u16)hx71x.summator;
 	return value;
 }
 
 // volume in the tank when the overflow sensor is triggered (in 10 milliliters)
 void hx71x_calibration(void) {
 	if(hx71x.cfg.volume_10ml && hx71x.value) {
-		uint32_t coef = hx71x.value / hx71x.cfg.volume_10ml;
-		uint32_t delta = hx71x.cfg.coef >> 4; // div 16 -> 6.25%
+		u32 coef = hx71x.value / hx71x.cfg.volume_10ml;
+		u32 delta = hx71x.cfg.coef >> 4; // div 16 -> 6.25%
 		if(coef < hx71x.cfg.coef + delta && coef > hx71x.cfg.coef - delta) {
 			if(!hx71x.calcoef)
 				hx71x.calcoef = coef;
@@ -103,7 +101,7 @@ void hx71x_calibration(void) {
 
 _attribute_ram_code_
 void hx71x_task(void) {
-	uint32_t value;
+	u32 value;
 	if(BM_IS_SET(reg_gpio_in(GPIO_HX71X_DOUT), GPIO_HX71X_DOUT & 0xff) == 0) {
 		// HX71X_DOUT = "0"
 		value = hx71x_get_data(HX71XMODE_A128);

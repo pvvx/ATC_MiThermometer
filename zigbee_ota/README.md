@@ -33,6 +33,8 @@
 
 db15-0203-99993001-ATC_vxx.zigbee
 
+* Index file: devbis2ble.json
+
 ### TS0201-TZ3000 From Tuya Zigbee firmware to BLE:
 
 1141-d3a3-01983001-TS0201BLE_xxx.zigbee Tuya TS0201-TZ3000 Zigbee to BLE
@@ -41,16 +43,24 @@ db15-0203-99993001-ATC_vxx.zigbee
 
 ### TH03 From Tuya (Sonoff) Zigbee firmware to BLE:
 
-1286-0202-10993607-TH03BLE_v48.zigbee  Tuya TH03 Zigbee to BLE
+1286-0202-10993607-TH03BLE_xxx.zigbee  Tuya TH03 Zigbee to BLE
 
 * Index file: th03_tuya2ble.json
 
 ### LKTMZL02 From Tuya Zigbee firmware to BLE:
 
-1141-d3a3-01983001-ZL02BLE_v48.zigbee Tuya LKTMZL02 Zigbee to BLE
+1141-d3a3-01983001-LKTMZL02BLE_xxx.zigbee Tuya LKTMZL02 Zigbee to BLE
 
-* Index file: zl02_tuya2ble.json
+* Index file: lktml02_tuya2ble.json
 
-### ZYZTH02 From Tuya Zigbee firmware to BLE:
+### ZY-ZTH02 From Tuya Zigbee firmware to BLE:
 
-1002-0203-60993001-ZYZTH02BLE_v50.zigbee Tuya ZYZTH02 Zigbee to BLE
+1002-0203-60993001-ZYZTH02BLE_xxx.zigbee Tuya ZYZTH02 Zigbee to BLE
+
+* Index file: zyzth02_tuya2ble.json
+
+### ZY-ZTH02Pro From Tuya Zigbee firmware to BLE:
+
+1002-0203-60993001-ZYZTH02PBLE_xxx.zigbee Tuya ZY-ZTH02P Zigbee to BLE
+
+* Index file: zyzth02p_tuya2ble.json

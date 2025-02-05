@@ -19,7 +19,7 @@ void big_to_low_ota(void);
 #endif
 
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
-uint32_t get_mi_hw_version(void);
+u32 get_mi_hw_version(void);
 void set_SerialStr(void);
 #endif
 
@@ -37,14 +37,14 @@ enum {
 } EXT_OTA_ENUM;
 
 typedef struct _ext_ota_t {
-	uint32_t start_addr;
-	uint32_t ota_size; // in kbytes
-	uint32_t check_addr;
+	u32 start_addr;
+	u32 ota_size; // in kbytes
+	u32 check_addr;
 } ext_ota_t;
 
 extern ext_ota_t ext_ota;
 
-uint8_t check_ext_ota(uint32_t ota_addr, uint32_t ota_size);
+u8 check_ext_ota(u32 ota_addr, u32 ota_size);
 void clear_ota_area(void);
 
 #endif // (DEV_SERVICES & SERVICE_OTA_EXT)

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _CMD_PARSER_H_
+#define _CMD_PARSER_H_
 
 // A complete list of interface commands for different devices.
 // Not all commands are supported by a specific device (!)
@@ -60,32 +61,32 @@ enum {
 
 // supported services by the device
 typedef struct _dev_services_t{
-	uint32_t ota: 			1;	//0 OTA
-	uint32_t ota_ext:		1;	//1 OTA extension
-	uint32_t pincode:		1;	//2 pin-code
-	uint32_t bindkey: 		1;	//3 bindkey
-	uint32_t history: 		1;	//4 history
-	uint32_t screen: 		1;	//5 screen
-	uint32_t long_range:	1;	//6 LE Long Range
-	uint32_t ths:			1;	//7 T & H sensor
-	uint32_t rds:			1;	//8 Reed switch sensor
-	uint32_t key:			1;	//9 key
-	uint32_t out_pins:		1;	//10 Output pins
-	uint32_t inp_pins:		1;	//11 Input pins
-	uint32_t time_adj:		1;	//12
-	uint32_t hadr_clock:	1;	//13
-	uint32_t th_trg:		1;	//14
-	uint32_t reserved:		18;
+	u32 ota: 			1;	//0 OTA
+	u32 ota_ext:		1;	//1 OTA extension
+	u32 pincode:		1;	//2 pin-code
+	u32 bindkey: 		1;	//3 bindkey
+	u32 history: 		1;	//4 history
+	u32 screen: 		1;	//5 screen
+	u32 long_range:		1;	//6 LE Long Range
+	u32 ths:			1;	//7 T & H sensor
+	u32 rds:			1;	//8 Reed switch sensor
+	u32 key:			1;	//9 key
+	u32 out_pins:		1;	//10 Output pins
+	u32 inp_pins:		1;	//11 Input pins
+	u32 time_adj:		1;	//12
+	u32 hadr_clock:		1;	//13
+	u32 th_trg:			1;	//14
+	u32 reserved:		18;
 } dev_services_t;
 
 // CMD_ID_DEV_ID
 typedef struct _dev_id_t{
-	uint8_t pid;			// packet identifier = CMD_ID_DEVID
-	uint8_t revision;		// protocol version/revision
-	uint16_t hw_version;	// hardware version
-	uint16_t sw_version;	// software version (BCD)
-	uint16_t dev_spec_data;	// device-specific data (bit0..3: sensor_type)
-	uint32_t services;		// supported services by the device
+	u8 pid;			// packet identifier = CMD_ID_DEVID
+	u8 revision;		// protocol version/revision
+	u16 hw_version;	// hardware version
+	u16 sw_version;	// software version (BCD)
+	u16 dev_spec_data;	// device-specific data (bit0..3: sensor_type)
+	u32 services;		// supported services by the device
 } dev_id_t, * pdev_id_t;
 
 #define MI_KEYTBIND_ID  0x10 // id token + bindkey
@@ -96,9 +97,9 @@ typedef struct _dev_id_t{
 #define MI_KEYDNAME_SIZE (20) // device name buf size
 
 typedef struct __attribute__((packed)) _blk_mi_keys_t {
-	uint8_t id;
-	uint8_t klen;	// max length, end length, current length, ...
-	uint8_t data[MI_KEYTBIND_SIZE]; // token + bindkey
+	u8 id;
+	u8 klen;	// max length, end length, current length, ...
+	u8 data[MI_KEYTBIND_SIZE]; // token + bindkey
 } blk_mi_keys_t, * pblk_mi_keys_t;
 extern blk_mi_keys_t keybuf;
 
@@ -106,9 +107,11 @@ extern blk_mi_keys_t keybuf;
 	void clear_ota_area(void);
 #endif
 
-uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt);
+u32 find_mi_keys(u16 chk_id, u8 cnt);
 
-uint8_t mi_key_stage;
-uint8_t get_mi_keys(uint8_t chk_stage);
+u8 mi_key_stage;
+u8 get_mi_keys(u8 chk_stage);
 
 void cmd_parser(void * p);
+
+#endif // _CMD_PARSER_H_

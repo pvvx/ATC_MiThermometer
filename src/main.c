@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -170,7 +169,7 @@ _attribute_ram_code_ void irq_handler(void) {
 _attribute_ram_code_ int main (void) {    //must run in ramcode
 	blc_pm_select_internal_32k_crystal(); // or blc_pm_select_external_32k_crystal();
 #if ZIGBEE_TUYA_OTA
-	if(*(uint32_t *)(0x08008) == ID_BOOTABLE) {
+	if(*(u32 *)(0x08008) == ID_BOOTABLE) {
 		clock_init(SYS_CLK_TYPE);
 		tuya_zigbee_ota(); // Correct FW OTA address? Reformat Zigbee Boot OTA to Low OTA
 	}

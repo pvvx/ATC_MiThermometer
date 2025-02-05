@@ -8,7 +8,6 @@
 #include "app_config.h"
 #if (DEV_SERVICES & SERVICE_18B20)
 
-#include <stdint.h>
 #include "drivers.h"
 #include "drivers/8258/gpio_8258.h"
 #include "app.h"
@@ -287,9 +286,9 @@ void task_my18b20(void) {
 				if(onewire_tst_presence() >= 0
 					&& onewire_write(0x0becc, 16) >= 0 // cmd read
 					&& onewire_16bit_read(my18b20.temp) >= 0) { // read measure
-					measured_data.xtemp[0] = ((int32_t)(my18b20.temp[0] * my18b20.coef.val1_k) >> 16) + my18b20.coef.val1_z; // x 0.01 C
+					measured_data.xtemp[0] = ((int)(my18b20.temp[0] * my18b20.coef.val1_k) >> 16) + my18b20.coef.val1_z; // x 0.01 C
 #if USE_SENSOR_MY18B20 == 2
-					measured_data.xtemp[1] = ((int32_t)(my18b20.temp[1] * my18b20.coef.val2_k) >> 16) + my18b20.coef.val2_z; // x 0.01 C
+					measured_data.xtemp[1] = ((int)(my18b20.temp[1] * my18b20.coef.val2_k) >> 16) + my18b20.coef.val2_z; // x 0.01 C
 #endif
 					my18b20.rd_ok = 0xff;
 					measured_data.count++;

@@ -4,7 +4,6 @@
  *  Created on: 19/01/2015
  *      Author: pvvx
  */
-#include <stdint.h>
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"

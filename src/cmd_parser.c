@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_common.h"
@@ -33,10 +32,10 @@
 #include "hx71x.h"
 #endif
 
-#define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (uint32_t)faddr, len, (uint8_t *)pbuf)
+#define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (u32)faddr, len, (u8 *)pbuf)
 
 #if (DEV_SERVICES & SERVICE_TIME_ADJUST)
-RAM uint32_t utc_set_time_sec; // clock setting time for delta calculation
+RAM u32 utc_set_time_sec; // clock setting time for delta calculation
 #endif
 
 #if (DEV_SERVICES & SERVICE_MI_KEYS)
@@ -46,8 +45,8 @@ RAM uint32_t utc_set_time_sec; // clock setting time for delta calculation
 #define FLASH_MIKEYS_ADDR 0x78000
 //#define FLASH_SECTOR_SIZE 0x1000 // in "flash_eep.h"
 
-RAM uint8_t mi_key_stage;
-RAM uint8_t mi_key_chk_cnt;
+RAM u8 mi_key_stage;
+RAM u8 mi_key_chk_cnt;
 
 enum {
 	MI_KEY_STAGE_END = 0,
@@ -64,13 +63,13 @@ enum {
 RAM blk_mi_keys_t keybuf;
 
 #if ((DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MHO_C401N))
-uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
-	uint32_t faddr = FLASH_MIKEYS_ADDR;
-	uint32_t faend = faddr + FLASH_SECTOR_SIZE;
+u32 find_mi_keys(u16 chk_id, u8 cnt) {
+	u32 faddr = FLASH_MIKEYS_ADDR;
+	u32 faend = faddr + FLASH_SECTOR_SIZE;
 	pblk_mi_keys_t pk = &keybuf;
-	uint16_t id;
-	uint8_t len;
-	uint8_t fbuf[4];
+	u16 id;
+	u8 len;
+	u8 fbuf[4];
 	do {
 		_flash_read(faddr, sizeof(fbuf), &fbuf);
 		len = fbuf[1];
@@ -91,13 +90,13 @@ uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 }
 #else // DEVICE_LYWSD03MMC & DEVICE_CGG1 & DEVICE_CGDK2 & DEVICE_MJWSD05MMC
 /* if return != 0 -> keybuf = keys */
-uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
-	uint32_t faddr = FLASH_MIKEYS_ADDR;
-	uint32_t faend = faddr + FLASH_SECTOR_SIZE;
+u32 find_mi_keys(u16 chk_id, u8 cnt) {
+	u32 faddr = FLASH_MIKEYS_ADDR;
+	u32 faend = faddr + FLASH_SECTOR_SIZE;
 	pblk_mi_keys_t pk = &keybuf;
-	uint16_t id;
-	uint8_t len;
-	uint8_t fbuf[3];
+	u16 id;
+	u8 len;
+	u8 fbuf[3];
 	do {
 		_flash_read(faddr, sizeof(fbuf), &fbuf);
 		id = fbuf[0] | (fbuf[1] << 8);
@@ -114,7 +113,7 @@ uint32_t find_mi_keys(uint16_t chk_id, uint8_t cnt) {
 }
 #endif
 
-uint8_t send_mi_key(void) {
+u8 send_mi_key(void) {
 	if (blc_ll_getTxFifoNumber() < 9) {
 		while (keybuf.klen > SEND_BUFFER_SIZE - 2) {
 			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *) &keybuf, SEND_BUFFER_SIZE);
@@ -136,11 +135,11 @@ void send_mi_no_key(void) {
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *) &keybuf, 2);
 }
 /* if pkey == NULL -> write new key, else: change deleted keys and current keys*/
-uint8_t store_mi_keys(uint8_t klen, uint16_t key_id, uint8_t * pkey) {
-	uint8_t key_chk_cnt = 0;
-	uint32_t faoldkey = 0;
-	uint32_t fanewkey;
-	uint32_t faddr;
+u8 store_mi_keys(u8 klen, u16 key_id, u8 * pkey) {
+	u8 key_chk_cnt = 0;
+	u32 faoldkey = 0;
+	u32 fanewkey;
+	u32 faddr;
 	if (pkey == NULL) {
 		while ((faddr = find_mi_keys(MI_KEYDELETE_ID, ++key_chk_cnt)) != 0) {
 			if (faddr && keybuf.klen == klen)
@@ -150,7 +149,7 @@ uint8_t store_mi_keys(uint8_t klen, uint16_t key_id, uint8_t * pkey) {
 	if (faoldkey || pkey) {
 		fanewkey = find_mi_keys(key_id, 1);
 		if (fanewkey && keybuf.klen == klen) {
-			uint8_t backupsector[FLASH_SECTOR_SIZE];
+			u8 backupsector[FLASH_SECTOR_SIZE];
 			_flash_read(FLASH_MIKEYS_ADDR, sizeof(backupsector), &backupsector);
 			if (pkey) {
 				if (memcmp(&backupsector[fanewkey - FLASH_MIKEYS_ADDR], pkey, keybuf.klen)) {
@@ -174,7 +173,7 @@ uint8_t store_mi_keys(uint8_t klen, uint16_t key_id, uint8_t * pkey) {
 	return 0;
 }
 
-uint8_t get_mi_keys(uint8_t chk_stage) {
+u8 get_mi_keys(u8 chk_stage) {
 	if (keybuf.klen) {
 		if (!send_mi_key())
 			return chk_stage;
@@ -255,8 +254,8 @@ uint8_t get_mi_keys(uint8_t chk_stage) {
 	return chk_stage;
 }
 
-static int32_t erase_mikeys(void) {
-	int32_t tmp;
+static s32 erase_mikeys(void) {
+	s32 tmp;
 	_flash_read(FLASH_MIKEYS_ADDR, 4, &tmp);
 	if (++tmp) {
 		flash_erase_sector(FLASH_MIKEYS_ADDR);
@@ -268,14 +267,14 @@ static int32_t erase_mikeys(void) {
 
 __attribute__((optimize("-Os")))
 void cmd_parser(void * p) {
-	uint8_t send_buf[32];
+	u8 send_buf[32];
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*) p;
-	uint32_t len = req->l2cap - 3;
+	u32 len = req->l2cap - 3;
 	if (len) {
-		uint8_t cmd = req->dat[0];
+		u8 cmd = req->dat[0];
 		send_buf[0] = cmd;
 		send_buf[1] = 0; // no err
-		uint32_t olen = 0;
+		u32 olen = 0;
 		if (cmd == CMD_ID_DEV_ID) { // Get DEV_ID
 			pdev_id_t p = (pdev_id_t) send_buf;
 			// p->pid = CMD_ID_DEV_ID;
@@ -319,7 +318,7 @@ void cmd_parser(void * p) {
 				if(ext.vtime_sec == 0xffff)
 					lcd_flg.chow_ext_ut = 0xffffffff;
 				else
-					lcd_flg.chow_ext_ut = utc_time_sec + ext.vtime_sec;
+					lcd_flg.chow_ext_ut = wrk.utc_time_sec + ext.vtime_sec;
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 				SET_LCD_UPDATE();
 #else
@@ -500,8 +499,8 @@ void cmd_parser(void * p) {
 #endif // DEV_SERVICES & SERVICE_SCREEN
 #if (DEV_SERVICES & SERVICE_PINCODE)
 		} else if (cmd == CMD_ID_PINCODE && len > 4) { // Set new pinCode 0..999999
-			uint32_t old_pincode = pincode;
-			uint32_t new_pincode = req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16) | (req->dat[4]<<24);
+			u32 old_pincode = pincode;
+			u32 new_pincode = req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16) | (req->dat[4]<<24);
 			if (pincode != new_pincode) {
 				pincode = new_pincode;
 				if (flash_write_cfg(&pincode, EEP_ID_PCD, sizeof(pincode))) {
@@ -544,33 +543,33 @@ void cmd_parser(void * p) {
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
 #endif // (DEV_SERVICES & SERVICE_MI_KEYS)
 		} else if (cmd == CMD_ID_UTC_TIME) { // Get/set utc time
-			if (--len > sizeof(utc_time_sec)) len = sizeof(utc_time_sec);
+			if (--len > sizeof(wrk.utc_time_sec)) len = sizeof(wrk.utc_time_sec);
 			if (len) {
-				memcpy(&utc_time_sec, &req->dat[1], len);
+				memcpy(&wrk.utc_time_sec, &req->dat[1], len);
 #if (DEV_SERVICES & SERVICE_TIME_ADJUST)
-				utc_set_time_sec = utc_time_sec;
+				utc_set_time_sec = wrk.utc_time_sec;
 #endif
 #if (DEV_SERVICES & SERVICE_HARD_CLOCK)
-				rtc_set_utime(utc_time_sec);
+				rtc_set_utime(wrk.utc_time_sec);
 #endif
 				SET_LCD_UPDATE();
 			}
-			memcpy(&send_buf[1], &utc_time_sec, sizeof(utc_time_sec));
+			memcpy(&send_buf[1], &wrk.utc_time_sec, sizeof(wrk.utc_time_sec));
 #if (DEV_SERVICES & SERVICE_TIME_ADJUST)
-			memcpy(&send_buf[sizeof(utc_time_sec) + 1], &utc_set_time_sec, sizeof(utc_set_time_sec));
-			olen = sizeof(utc_time_sec) + sizeof(utc_set_time_sec) + 1;
+			memcpy(&send_buf[sizeof(wrk.utc_time_sec) + 1], &utc_set_time_sec, sizeof(utc_set_time_sec));
+			olen = sizeof(wrk.utc_time_sec) + sizeof(utc_set_time_sec) + 1;
 #else
-			olen = sizeof(utc_time_sec) + 1;
+			olen = sizeof(wrk.utc_time_sec) + 1;
 #endif
 #if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 		} else if (cmd == CMD_ID_TADJUST) { // Get/set adjust time clock delta (in 1/16 us for 1 sec)
 			if (len > 2) {
-				int16_t delta = req->dat[1] | (req->dat[2] << 8);
-				utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S + delta;
-				flash_write_cfg(&utc_time_tick_step, EEP_ID_TIM, sizeof(utc_time_tick_step));
+				s16 delta = req->dat[1] | (req->dat[2] << 8);
+				wrk.utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S + delta;
+				flash_write_cfg(&wrk.utc_time_tick_step, EEP_ID_TIM, sizeof(wrk.utc_time_tick_step));
 			}
-			memcpy(&send_buf[1], &utc_time_tick_step, sizeof(utc_time_tick_step));
-			olen = sizeof(utc_time_tick_step) + 1;
+			memcpy(&send_buf[1], &wrk.utc_time_tick_step, sizeof(wrk.utc_time_tick_step));
+			olen = sizeof(wrk.utc_time_tick_step) + 1;
 #endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
 		} else if (cmd == CMD_ID_LOGGER && len > 2) { // Read memory measures
@@ -601,7 +600,7 @@ void cmd_parser(void * p) {
 			olen = 2;
 		} else if (cmd == CMD_ID_SET_OTA) { // Set OTA address and size
 #if (DEV_SERVICES & SERVICE_OTA_EXT)  // Compatible BigOTA
-			uint32_t ota_addr, ota_size;
+			u32 ota_addr, ota_size;
 			if (len > 8) {
 				memcpy(&ota_addr, &req->dat[1], 4);
 				memcpy(&ota_size, &req->dat[5], 4);
@@ -618,7 +617,7 @@ void cmd_parser(void * p) {
 			send_buf[1] = 0;
 #endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_LKTMZL02) || (DEVICE_TYPE == DEVICE_ZTH05Z) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN))
+#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_LKTMZL02) || (DEVICE_TYPE == DEVICE_ZTH05Z) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_ZYZTH01))
 			send_buf[2] = lcd_i2c_addr;
 #else
 			send_buf[2] = 1;	// SPI
@@ -637,12 +636,11 @@ void cmd_parser(void * p) {
 			len = 0;
 			olen = 1;
 			while(len < 0x100 && olen < SEND_BUFFER_SIZE) {
-				send_buf[olen] = (uint8_t)scan_i2c_addr(len);
+				send_buf[olen] = (u8)scan_i2c_addr(len);
 				if(send_buf[olen])
 					olen++;
 				len += 2;
 			}
-#if defined(I2C_GROUP)
 		} else if (cmd == CMD_ID_I2C_UTR) {   // Universal I2C/SMBUS read-write
 			i2c_utr_t * pbufi = (i2c_utr_t *)&req->dat[1];
 			olen = pbufi->rdlen & 0x7f;
@@ -659,7 +657,6 @@ void cmd_parser(void * p) {
 				send_buf[1] = 0xff; // Error cmd
 				olen = 2;
 			}
-#endif
 #endif
 #if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
 		} else if (cmd == CMD_ID_CFS) {	// Get/Set sensor config
@@ -729,9 +726,9 @@ void cmd_parser(void * p) {
 			if(len > 3) {
 				flash_write_cfg(&req->dat[3], olen, len - 3);
 			}
-			int16_t i = flash_read_cfg(&send_buf[3], olen, SEND_BUFFER_SIZE - 3);
+			s16 i = flash_read_cfg(&send_buf[3], olen, SEND_BUFFER_SIZE - 3);
 			if(i < 0) {
-				send_buf[1] = (uint8_t)(i & 0xff); // Error
+				send_buf[1] = (u8)(i & 0xff); // Error
 				olen = 2;
 			} else
 				olen = i + 3;

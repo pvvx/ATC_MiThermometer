@@ -112,54 +112,54 @@ enum { // mijia ble version 5, Vendor-defined attributes
 
 typedef union _adv_mi_fctrl_t { // Frame Control
 	struct __attribute__((packed)) {
-		uint16_t Factory:		1; // reserved text
-		uint16_t Connected:		1; // reserved text
-		uint16_t Central:		1; // Keep
-		uint16_t isEncrypted:	1; // 0: The package is not encrypted; 1: The package is encrypted
-		uint16_t MACInclude:	1; // 0: Does not include the MAC address; 1: includes a fixed MAC address (the MAC address is included for iOS to recognize this device and connect)
-		uint16_t CapabilityInclude:		1; // 0: does not include Capability; 1: includes Capability. Before the device is bound, this bit is forced to 1
-		uint16_t ObjectInclude:	1; // 0: does not contain Object; 1: contains Object
-		uint16_t Mesh:			1; // 0: does not include Mesh; 1: includes Mesh. For standard BLE access products and high security level access, this item is mandatory to 0. This item is mandatory for Mesh access to 1.
-		uint16_t registered:	1; // 0: The device is not bound; 1: The device is registered and bound.
-		uint16_t solicited:		1; // 0: No operation; 1: Request APP to register and bind. It is only valid when the user confirms the pairing by selecting the device on the developer platform, otherwise set to 0. The original name of this item was bindingCfm, and it was renamed to solicited "actively request, solicit" APP for registration and binding
-		uint16_t AuthMode:		2; // 0: old version certification; 1: safety certification; 2: standard certification; 3: reserved
-		uint16_t version:		4; // Version number (currently v5)
+		u16 Factory:		1; // reserved text
+		u16 Connected:		1; // reserved text
+		u16 Central:		1; // Keep
+		u16 isEncrypted:	1; // 0: The package is not encrypted; 1: The package is encrypted
+		u16 MACInclude:	1; // 0: Does not include the MAC address; 1: includes a fixed MAC address (the MAC address is included for iOS to recognize this device and connect)
+		u16 CapabilityInclude:		1; // 0: does not include Capability; 1: includes Capability. Before the device is bound, this bit is forced to 1
+		u16 ObjectInclude:	1; // 0: does not contain Object; 1: contains Object
+		u16 Mesh:			1; // 0: does not include Mesh; 1: includes Mesh. For standard BLE access products and high security level access, this item is mandatory to 0. This item is mandatory for Mesh access to 1.
+		u16 registered:	1; // 0: The device is not bound; 1: The device is registered and bound.
+		u16 solicited:		1; // 0: No operation; 1: Request APP to register and bind. It is only valid when the user confirms the pairing by selecting the device on the developer platform, otherwise set to 0. The original name of this item was bindingCfm, and it was renamed to solicited "actively request, solicit" APP for registration and binding
+		u16 AuthMode:		2; // 0: old version certification; 1: safety certification; 2: standard certification; 3: reserved
+		u16 version:		4; // Version number (currently v5)
 	} bit;
-	uint16_t	word;	// = 0x3050 Frame ctrl
+	u16	word;	// = 0x3050 Frame ctrl
 } adv_mi_fctrl_t; // Frame Control
 
 typedef struct __attribute__((packed)) _adv_mi_head_t {
-	uint8_t		size;	// = 27?
-	uint8_t		uid;	// = 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
-	uint16_t	UUID;	// = 0xFE95, 16-bit UUID for Members 0xFE95 Xiaomi Inc.
+	u8	size;	// = 27?
+	u8	uid;	// = 0x16, 16-bit UUID https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
+	u16	UUID;	// = 0xFE95, 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 	adv_mi_fctrl_t fctrl;	// Frame Control
-	uint16_t	dev_id;		// Device type (enum: XIAOMI_DEV_ID)
-	uint8_t		counter;	// 0..0xff Measurement count, Serial number, used for de-duplication, different event or attribute reporting requires different Frame Counter
+	u16	dev_id;		// Device type (enum: XIAOMI_DEV_ID)
+	u8	counter;	// 0..0xff Measurement count, Serial number, used for de-duplication, different event or attribute reporting requires different Frame Counter
 } adv_mi_head_t, * padv_head_enc_t;
 
 typedef struct __attribute__((packed)) _adv_mi_data_t {
-	uint16_t	 id;	// = 0x1004, 0x1006, 0x100a (XIAOMI_DATA_ID)
-	uint8_t		 size;
+	u16	 id;	// = 0x1004, 0x1006, 0x100a (XIAOMI_DATA_ID)
+	u8		 size;
 	union {
-		int16_t		 data_i16;
-		uint16_t	 data_u16;
-		uint8_t		 data_u8;
+		s16	 data_i16;
+		u16	 data_u16;
+		u8	 data_u8;
 		struct __attribute__((packed)) {
-			uint8_t		battery_level; // 0..100 %
+			u8		battery_level; // 0..100 %
 		}t0a;
 		struct __attribute__((packed)) {
-			int16_t		temperature; // x0.1 C
-			uint16_t	humidity; // x0.1 %
+			s16	temperature; // x0.1 C
+			u16	humidity; // x0.1 %
 		}t0d;
 	};
 } adv_mi_data_t, * padv_mi_data_t;
 
 typedef struct __attribute__((packed)) _adv_mi_mac_beacon_t {
 	adv_mi_head_t head;
-	uint8_t		MAC[6];		// [0] - lo, .. [6] - hi digits
+	u8		MAC[6];		// [0] - lo, .. [6] - hi digits
 	union {
 		adv_mi_data_t data;
-		uint8_t capability;
+		u8 capability;
 	};
 } adv_mi_mac_beacon_t, * padv_mi_mac_beacon_t;
 
@@ -167,62 +167,62 @@ typedef struct __attribute__((packed)) _adv_mi_no_mac_beacon_t {
 	adv_mi_head_t head;
 	union {
 		adv_mi_data_t data;
-		uint8_t capability;
+		u8 capability;
 	};
 } adv_mi_no_mac_beacon_t, * padv_mi_no_mac_beacon_t;
 
 typedef struct __attribute__((packed)) _adv_mi_ev1_t {
 	adv_mi_head_t head;
 	struct {
-		uint16_t	 id;	// = XIAOMI_DATA_ID_DoorSensor
-		uint8_t		 size;
-		uint8_t		 value;
+		u16	 id;	// = XIAOMI_DATA_ID_DoorSensor
+		u8	 size;
+		u8	 value;
 	} data;
 } adv_mi_ev1_t, * padv_mi_ev1_t;
 
 typedef struct __attribute__((packed)) _adv_mi_ev2_t {
 	adv_mi_head_t head;
 	struct {
-		uint16_t	 id;	// = XIAOMI_VATR_ID_Count
-		uint8_t		 size;
-		uint32_t	 value;
+		u16	 id;	// = XIAOMI_VATR_ID_Count
+		u8	 size;
+		u32	 value;
 	} data;
 } adv_mi_ev2_t, * padv_mi_ev2_t;
 
 
 void mi_beacon_summ(void); // averaging measurements
 void mi_data_beacon(void);
-void mi_event_beacon(uint8_t n); // n = RDS_TYPES
+void mi_event_beacon(u8 n); // n = RDS_TYPES
 
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 typedef struct __attribute__((packed)) _adv_mi_cr_ev1_t {
 	adv_mi_head_t head;
 	struct {
-		uint16_t	 id;	// = XIAOMI_DATA_ID_DoorSensor
-		uint8_t		 size;
-		uint8_t		 value;
+		u16	 id;	// = XIAOMI_DATA_ID_DoorSensor
+		u8	 size;
+		u8	 value;
 	} data;
-	uint8_t	cnt[3];
-	uint8_t	mic[4];
+	u8	cnt[3];
+	u8	mic[4];
 } adv_mi_cr_ev1_t, * padv_mi_cr_ev1_t;
 
 typedef struct __attribute__((packed)) _adv_mi_cr_ev2_t {
 	adv_mi_head_t head;
 	struct {
-		uint16_t	 id;	// = XIAOMI_VATR_ID_Count
-		uint8_t		 size;
-		uint32_t	 value;
+		u16	 id;	// = XIAOMI_VATR_ID_Count
+		u8	 size;
+		u32	 value;
 	} data;
-	uint8_t	cnt[3];
-	uint8_t	mic[4];
+	u8	cnt[3];
+	u8	mic[4];
 } adv_mi_cr_ev2_t, * padv_mi_cr_ev2_t;
 
 
 
 void mi_beacon_init(void);
 void mi_encrypt_data_beacon(void);
-void mi_encrypt_event_beacon(uint8_t n); // n = RDS_TYPES
+void mi_encrypt_event_beacon(u8 n); // n = RDS_TYPES
 #endif
 
 #endif /* MI_BEACON_H_ */

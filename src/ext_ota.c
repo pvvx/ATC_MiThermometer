@@ -4,7 +4,6 @@
  *  Created on: 04.03.2023
  *      Author: pvvx
  */
-#include <stdint.h>
 #include "tl_common.h"
 
 #include "stack/ble/ble.h"
@@ -30,11 +29,11 @@
 /* Reformat Big OTA to Low OTA */
 void big_to_low_ota(void) {
 	// find the real FW flash address
-	uint32_t id = ID_BOOTABLE;
-	uint32_t size;
-	uint32_t faddrr = OTA1_FADDR;
-	uint32_t faddrw = OTA1_FADDR;
-	uint32_t buf_blk[64];
+	u32 id = ID_BOOTABLE;
+	u32 size;
+	u32 faddrr = OTA1_FADDR;
+	u32 faddrw = OTA1_FADDR;
+	u32 buf_blk[64];
 	do {
 		flash_read_page(faddrr, 16, (unsigned char *) &buf_blk);
 		if(buf_blk[2] == id)
@@ -78,12 +77,12 @@ void big_to_low_ota(void) {
 _attribute_ram_code_
 void tuya_zigbee_ota(void) {
 	// find the real FW flash address
-	uint32_t id = ID_BOOTABLE;
-	uint32_t size;
-	uint32_t faddrr = OTA1_FADDR;
-	uint32_t faddrw = OTA2_FADDR;
-	uint32_t faddrs = OTA2_FADDR;
-	uint32_t buf_blk[64];
+	u32 id = ID_BOOTABLE;
+	u32 size;
+	u32 faddrr = OTA1_FADDR;
+	u32 faddrw = OTA2_FADDR;
+	u32 faddrs = OTA2_FADDR;
+	u32 buf_blk[64];
 	flash_unlock();
 	flash_read_page(faddrr, 16, (unsigned char *) &buf_blk);
 	if(buf_blk[2] == id) {
@@ -129,7 +128,7 @@ void tuya_zigbee_ota(void) {
 				faddrw += FLASH_SECTOR_SIZE;
 			} while(faddrw < FMEMORY_SCFG_BASE_ADDR);
 			flash_read_page(ZIGBEE_MAC_FADDR, 8, (unsigned char *) &buf_blk);
-			uint16_t *p = (uint16_t *)buf_blk;
+			u16 *p = (u16 *)buf_blk;
 			if(p[2] == 0xa4c1)
 				flash_write_page(CFG_ADR_MAC, 8, (unsigned char *) &buf_blk);
 			flash_erase_sector(OTA1_FADDR);
@@ -169,19 +168,19 @@ void tuya_zigbee_ota(void) {
  */
 
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC)
-static const uint8_t _mi_hw_vers[] = "F2.0-CFMK-LB-TMDZ---";
+static const u8 _mi_hw_vers[] = "F2.0-CFMK-LB-TMDZ---";
 #elif (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
-static const uint8_t _mi_hw_vers[] = "F2.0-JY-LB-TMDZ-HW--";
+static const u8 _mi_hw_vers[] = "F2.0-JY-LB-TMDZ-HW--";
 #elif (DEVICE_TYPE == DEVICE_LYWSD03MMC)
-static const uint8_t _mi_hw_vers[] = "F1.0-CFMK-LB-ZCXTJ--";
+static const u8 _mi_hw_vers[] = "F1.0-CFMK-LB-ZCXTJ--";
 #elif (DEVICE_TYPE == DEVICE_MHO_C401)
-static const uint8_t _mi_hw_vers[] = "G-19-000000000000000";
+static const u8 _mi_hw_vers[] = "G-19-000000000000000";
 #else
 #error "Define MI_HW_VER_FADDR & _mi_hw_vers!"
 #endif
 
-uint32_t get_mi_hw_version(void) {
-	uint32_t hw[6];
+u32 get_mi_hw_version(void) {
+	u32 hw[6];
 	flash_read_page(MI_HW_SAVE_FADDR, sizeof(hw[0]), (unsigned char *) &hw);
 	if(hw[0] == 0xffffffff) {
 		flash_read_page(MI_HW_VER_FADDR, sizeof(hw), (unsigned char *) &hw);
@@ -203,7 +202,7 @@ uint32_t get_mi_hw_version(void) {
 }
 
 void set_SerialStr(void) {
-	uint32_t hw[6];
+	u32 hw[6];
 	flash_read_page(MI_HW_SAVE_FADDR, sizeof(hw), (unsigned char *) &hw);
 	if(hw[0] == 0xffffffff) {
 		memcpy(my_SerialStr, _mi_hw_vers, sizeof(my_SerialStr));
@@ -226,8 +225,8 @@ void set_SerialStr(void) {
 
 RAM ext_ota_t ext_ota;
 
-uint32_t check_sector_clear(uint32_t addr) {
-	uint32_t faddr = addr, efaddr, fbuf;
+u32 check_sector_clear(u32 addr) {
+	u32 faddr = addr, efaddr, fbuf;
 	faddr &= ~(FLASH_SECTOR_SIZE-1);
 	efaddr = faddr + FLASH_SECTOR_SIZE;
 	while(faddr < efaddr) {
@@ -242,7 +241,7 @@ uint32_t check_sector_clear(uint32_t addr) {
 }
 
 void ota_result_cb(int result) {
-	uint32_t boot_id;
+	u32 boot_id;
 	if(result == OTA_SUCCESS) {
 		// clear the "bootable" identifier on the current work segment
 		flash_read_page(OTA2_FADDR_ID, sizeof(boot_id), (unsigned char *) &boot_id);
@@ -258,7 +257,7 @@ void ota_result_cb(int result) {
  *  ota_addr (0x40000)
  *  ota_size in kB
  */
-uint8_t check_ext_ota(uint32_t ota_addr, uint32_t ota_size) {
+u8 check_ext_ota(u32 ota_addr, u32 ota_size) {
 	if(wrk.ota_is_working == OTA_EXTENDED)
 		return EXT_OTA_BUSY;
 	if(wrk.ota_is_working)
@@ -282,11 +281,11 @@ uint8_t check_ext_ota(uint32_t ota_addr, uint32_t ota_size) {
 
 void clear_ota_area(void) {
 	union {
-		uint8_t b[24];
+		u8 b[24];
 		struct __attribute__((packed)) {
-			uint16_t id_ok;
-			uint32_t start_addr;
-			uint32_t ota_size;
+			u16 id_ok;
+			u32 start_addr;
+			u32 ota_size;
 		} msg;
 	} buf;
 //	if(bls_pm_getSystemWakeupTick() - clock_time() < 512*CLOCK_16M_SYS_TIMER_CLK_1MS)

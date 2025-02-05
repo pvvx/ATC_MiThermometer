@@ -75,6 +75,10 @@ make -s -j PROJECT_NAME=ZTH05%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZTH05Z"
 make -s -j PROJECT_NAME=ZYZTH02%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZYZTH02"
 @if not exist "ZYZTH02%SWVER%.bin" goto :error
 python3 utils\zb_bin_ota.py ZYZTH02%SWVER%.bin zigbee_ota\ZYZTH02BLE%SWVER% -m0x1002 -i0x0203 -v0x60993001 -s"Tuya to BLE"
+@del /Q "ZYZTH02P%SWVER%.bin"
+make -s -j PROJECT_NAME=ZYZTH02P%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZYZTH01"
+@if not exist "ZYZTH02P%SWVER%.bin" goto :error
+python3 utils\zb_bin_ota.py ZYZTH02P%SWVER%.bin zigbee_ota\ZYZTH02PBLE%SWVER% -m0x1002 -i0x0203 -v0x60993001 -s"Tuya to BLE"
 @exit
 :error
 echo "Error!"

@@ -98,109 +98,137 @@ typedef enum {
 	BtHomeID_energy32 = 0x4d,		//0x4d, uint32, 0.001 kWh
 	BtHomeID_volume32 = 0x4e,		//0x4e, uint32, 0.001 L
 	BtHomeID_water32 = 0x4f,		//0x4f, uint32, 0.001
-	BtHomeID_timestamp = 0x50,		//0x50, uint48
+	BtHomeID_timestamp = 0x50,		//0x50, uint32
 	BtHomeID_acceleration = 0x51,	//0x51, uint16, 0.001
 	BtHomeID_gyroscope = 0x52,		//0x52, uint16, 0.001
 	BtHomeID_text = 0x53,			//0x53, size uint8, uint8[]
 	BtHomeID_raw = 0x54				//0x54, size uint8, uint8[]
 } BtHomeIDs_e;
 
+typedef struct __attribute__((packed)) _adv_bthome_t {
+	u8	size;   // =
+	u8	type;	// = 0x16, 16-bit UUID
+	u16	UUID;	// = 0xFCD2, GATT Service BTHome
+	u8	ver;
+	u8 data[1];
+} adv_bthome_t, * padv_bthome_t;
+
+typedef struct __attribute__((packed)) _adv_bthome_sruct_t {
+	u8	type;	// = 0x16, 16-bit UUID
+	union __attribute__((packed)) {
+		u8	data_ub[4];
+		u16	data_us[2];
+		u32	data_uw;
+		s8	data_ib[4];
+		s16	data_is[2];
+		s32	data_iw;
+	};
+} adv_bthome_sruct_t, * padv_bthome_sruct_t;
+
+/* Encrypted bthome nonce */
+typedef struct __attribute__((packed)) _bthome_beacon_nonce_t{
+    u8  mac[6];
+    u16 uuid16;	// = 0xfcd2
+    u8  info;		// = 0x41
+	u32 cnt32;
+} bthome_beacon_nonce_t, * pbthome_beacon_nonce_t;
+
 typedef struct __attribute__((packed)) _adv_head_bth_t {
-	uint8_t		size;   // =
-	uint8_t		type;	// = 0x16, 16-bit UUID
-	uint16_t	UUID;	// = 0xFCD2, GATT Service BTHome
+	u8	size;   // =
+	u8	type;	// = 0x16, 16-bit UUID
+	u16	UUID;	// = 0xFCD2, GATT Service BTHome
 } adv_head_bth_t, * padv_head_bth_t;
 
 typedef struct __attribute__((packed)) _adv_bthome_data1_t {
-	uint8_t		b_id;	// = BtHomeID_battery
-	uint8_t		battery_level; // 0..100 %
+	u8	b_id;	// = BtHomeID_battery
+	u8	battery_level; // 0..100 %
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
-	uint8_t		t_id;	// = BtHomeID_temperature
-	int16_t		temperature; // x 0.01 degree
+	u8	t_id;	// = BtHomeID_temperature
+	s16	temperature; // x 0.01 degree
 #endif
 #if (DEV_SERVICES & SERVICE_18B20)
-	uint8_t		t1_id;	// = BtHomeID_temperature
-	int16_t		temperature1; // x 0.01 degree
+	u8	t1_id;	// = BtHomeID_temperature
+	s16	temperature1; // x 0.01 degree
 #if	(USE_SENSOR_MY18B20 == 2)
-	uint8_t		t2_id;	// = BtHomeID_temperature
-	int16_t		temperature2; // x 0.01 degree
+	u8	t2_id;	// = BtHomeID_temperature
+	s16	temperature2; // x 0.01 degree
 #endif
 #endif
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
-	uint8_t		h_id;	// = BtHomeID_humidity
-	uint16_t	humidity; // x 0.01 %
+	u8	h_id;	// = BtHomeID_humidity
+	u16	humidity; // x 0.01 %
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
-	uint8_t		l_id;	// = BtHomeID_volume16_01
-	uint32_t	volume; // x 0.001 l
+	u8	l_id;	// = BtHomeID_volume16_01
+	u32	volume; // x 0.001 l
 #endif
 #if (DEV_SERVICES & SERVICE_IUS)
-	uint8_t		u_id;	// BtHomeID_voltage
-	uint16_t	voltage; // x 0.001 V
-	uint8_t		i_id; 	// BtHomeID_current
-	uint16_t	current; // x 0.001 A
+	u8	u_id;	// BtHomeID_voltage
+	u16	voltage; // x 0.001 V
+	u8	i_id; 	// BtHomeID_current
+	u16	current; // x 0.001 A
 #endif
 } adv_bthome_data1_t, * padv_bthome_data1_t; // max 15 bytes!
 
 typedef struct __attribute__((packed)) _adv_bthome_data2_t {
 #if (DEV_SERVICES & SERVICE_IUS)
 #else
-	uint8_t		v_id;	// = BtHomeID_voltage
-	uint16_t	battery_mv; // mV
+	u8	v_id;	// = BtHomeID_voltage
+	u16	battery_mv; // mV
 #endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
-	uint8_t		s_id;	// = BtHomeID_switch
-	uint8_t		swtch;
+	u8	s_id;	// = BtHomeID_switch
+	u8	swtch;
 #endif
 #if (DEV_SERVICES & SERVICE_RDS)
-	uint8_t		o1_id;	// = BtHomeID_opened
-	uint8_t		opened1;
+	u8	o1_id;	// = BtHomeID_opened
+	u8	opened1;
 #ifdef GPIO_RDS2
-	uint8_t		o2_id;	// = BtHomeID_opened
-	uint8_t		opened2;
+	u8	o2_id;	// = BtHomeID_opened
+	u8	opened2;
 #endif
 #endif
 #if (DEV_SERVICES & SERVICE_IUS)
-	uint8_t		e_id; // BtHomeID_energy32
-	uint32_t	energy; // x 0.001 W
+	u8	e_id; // BtHomeID_energy32
+	u32	energy; // x 0.001 W
 #endif
 } adv_bthome_data2_t, * padv_bthome_data2_t; // max 15 bytes!
 
 typedef struct __attribute__((packed)) _adv_bthome_event1_t {
-	uint8_t		o1_id;	// = BtHomeID_opened ?
-	uint8_t		opened1;
+	u8	o1_id;	// = BtHomeID_opened ?
+	u8	opened1;
 #ifdef GPIO_RDS2
-	uint8_t		o2_id;	// = BtHomeID_opened ?
-	uint8_t		opened2;
+	u8	o2_id;	// = BtHomeID_opened ?
+	u8	opened2;
 #endif
-	uint8_t		c_id;	// = BtHomeID_count32
-	uint32_t	counter;
+	u8	c_id;	// = BtHomeID_count32
+	u32	counter;
 } adv_bthome_event1_t, * padv_bthome_event1_t; // max 15 bytes!
 
 // BTHOME data1, no security
 typedef struct __attribute__((packed)) _adv_bthome_ns1_t {
 	adv_head_bth_t head;
-	uint8_t		info;	// = 0x40 BtHomeID_Info
-	uint8_t		p_id;	// = BtHomeID_PacketId
-	uint8_t		pid;	// PacketId (measurement count)
+	u8	info;	// = 0x40 BtHomeID_Info
+	u8	p_id;	// = BtHomeID_PacketId
+	u8	pid;	// PacketId (measurement count)
 	adv_bthome_data1_t data; // max 28 - 7 = 21 bytes
 } adv_bthome_ns1_t, * padv_bthome_ns1_t; // max 31 - 3(BLE flags) = 28 bytes!
 
 // BTHOME data2, no security
 typedef struct __attribute__((packed)) _adv_bthome_ns2_t {
 	adv_head_bth_t head;
-	uint8_t		info;	// = 0x40 BtHomeID_Info
-	uint8_t		p_id;	// = BtHomeID_PacketId
-	uint8_t		pid;	// PacketId (measurement count)
+	u8	info;	// = 0x40 BtHomeID_Info
+	u8	p_id;	// = BtHomeID_PacketId
+	u8	pid;	// PacketId (measurement count)
 	adv_bthome_data2_t data; // max 28 - 13 = 15 bytes
 } adv_bthome_ns2_t, * padv_bthome_ns2_t;
 
 // BTHOME event1, no security
 typedef struct __attribute__((packed)) _adv_bthome_ns_ev1_t {
 	adv_head_bth_t head;
-	uint8_t		info;	// = 0x40 BtHomeID_Info
-	uint8_t		p_id;	// = BtHomeID_PacketId
-	uint8_t		pid;	// PacketId (!= measurement count)
+	u8	info;	// = 0x40 BtHomeID_Info
+	u8	p_id;	// = BtHomeID_PacketId
+	u8	pid;	// PacketId (!= measurement count)
 	adv_bthome_event1_t data;
 } adv_bthome_ns_ev1_t, * padv_bthome_ns_ev1_t;
 
@@ -209,39 +237,39 @@ typedef struct __attribute__((packed)) _adv_bthome_ns_ev1_t {
 // BTHOME data1, security
 typedef struct __attribute__((packed)) _adv_bthome_d1_t {
 	adv_head_bth_t head; // 4 bytes
-	uint8_t		info;	 // = 0x41 BtHomeID_Info_Encrypt
+	u8	info;	 // = 0x41 BtHomeID_Info_Encrypt
 	adv_bthome_data1_t data; // max 28 - 13 = 15 bytes
-	uint32_t	count_id; //  4 bytes
-	uint8_t		mic[4]; //  4 bytes
+	u32	count_id; //  4 bytes
+	u8	mic[4]; //  4 bytes
 } adv_bthome_1_t, * padv_bthome_d1_t; // max 31 - 3(BLE flags) = 28 bytes!
 
 // BTHOME data2, security
 typedef struct __attribute__((packed)) _adv_bthome_d2_t {
 	adv_head_bth_t head;
-	uint8_t		info;	// = 0x41 BtHomeID_Info_Encrypt
+	u8	info;	// = 0x41 BtHomeID_Info_Encrypt
 	adv_bthome_data2_t data; // max 28 - 13 = 15 bytes
-	uint32_t	count_id;
-	uint8_t		mic[4];
+	u32	count_id;
+	u8	mic[4];
 } adv_bthome_d2_t, * padv_bthome_d2_t;
 
 // BTHOME event1, security
 typedef struct __attribute__((packed)) _adv_bthome_ev1_t {
 	adv_head_bth_t head;
-	uint8_t		info;	// = 0x41 BtHomeID_Info_Encrypt
+	u8	info;	// = 0x41 BtHomeID_Info_Encrypt
 	adv_bthome_event1_t data;
-	uint32_t	count_id;
-	uint8_t		mic[4];
+	u32	count_id;
+	u8	mic[4];
 } adv_bthome_ev1_t, * padv_bthome_ev1_t;
 
 void bthome_beacon_init(void);
 void bthome_encrypt_data_beacon(void);
 #if (DEV_SERVICES & SERVICE_RDS)
-void bthome_encrypt_event_beacon(uint8_t n); // n = RDS_TYPES
+void bthome_encrypt_event_beacon(u8 n); // n = RDS_TYPES
 #endif
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
 void bthome_data_beacon(void);
 #if (DEV_SERVICES & SERVICE_RDS)
-void bthome_event_beacon(uint8_t n); // n = RDS_TYPES
+void bthome_event_beacon(u8 n); // n = RDS_TYPES
 #endif
 #endif /* BTHOME_BEACON_H_ */

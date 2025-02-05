@@ -24,18 +24,18 @@
 		// Иначе будут сбои в показаниях, которые не отследить
 
 typedef struct _hx71x_cfg_t {
-	uint32_t zero;
-	uint32_t coef;
-	uint32_t volume_10ml; // volume in the tank when the overflow sensor is triggered (in 10 milliliters)
+	u32 zero;
+	u32 coef;
+	u32 volume_10ml; // volume in the tank when the overflow sensor is triggered (in 10 milliliters)
 } hx71x_cfg_t;
 
 typedef struct _hx71x_t {
 	hx71x_cfg_t cfg;
-	uint32_t adc;
-	uint32_t value;
-	uint32_t summator;
-	uint32_t count;
-	uint32_t calcoef;
+	u32 adc;
+	u32 value;
+	u32 summator;
+	u32 count;
+	u32 calcoef;
 } hx71x_t;
 
 
@@ -55,7 +55,7 @@ extern hx71x_cfg_t def_hx71x_cfg;
  */
 int hx71x_get_data(hx71x_mode_t mode);
 void hx71x_calibration(void);
-uint16_t hx71x_get_volume(void); // in 10 milliliters
+u16 hx71x_get_volume(void); // in 10 milliliters
 // void hx71x_suspend(void);
 void hx71x_task(void);
 

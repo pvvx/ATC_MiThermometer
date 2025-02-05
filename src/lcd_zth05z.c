@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if DEVICE_TYPE == DEVICE_ZTH05Z
@@ -9,10 +8,10 @@
 #include "lcd.h"
 #include "battery.h"
 
-RAM uint8_t lcd_i2c_addr;
+RAM u8 lcd_i2c_addr;
 
 #define lcd_send_i2c_byte(a)  send_i2c_byte(lcd_i2c_addr, a)
-#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (uint8_t *) b, a)
+#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (u8 *) b, a)
 
 
 /*
@@ -48,7 +47,7 @@ None: 3.2, 3.3
 #define LCD_SYM_o	0xC6	// "o"
 
 /* 0,1,2,3,4,5,6,7,8,9,A,b,C,d,E,F*/
-const uint8_t display_numbers[] = {
+const u8 display_numbers[] = {
 		// 76543210
 		0b011110101, // 0  0xf5
 		0b000000101, // 1  0x05
@@ -72,8 +71,8 @@ const uint8_t display_numbers[] = {
  * 0400007ceaa49cacbcf0fcc808ffffffff,
  * 0400007cf3c8 - blink
  */
-//const uint8_t lcd_init_cmd[] = {0xb6,0xfc, 0xc8, 0xe8, 0x08, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
-const uint8_t lcd_init_cmd[]	=	{
+//const u8 lcd_init_cmd[] = {0xb6,0xfc, 0xc8, 0xe8, 0x08, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+const u8 lcd_init_cmd[]	=	{
 		// LCD controller initialize:
 		0xea, // Set IC 2Operation(ICSET): Software Reset, Internal oscillator circuit
 		0xd8, // Mode Set (MODE SET): Display enable, 1/3 Bias, power saving
@@ -91,7 +90,7 @@ void send_to_lcd(void){
 	if (lcd_i2c_addr) {
 		if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
-		uint8_t * p = display_buff;
+		u8 * p = display_buff;
 		reg_i2c_id = lcd_i2c_addr;
 		reg_i2c_adr = 0x08;	// addr:8
 		reg_i2c_do = *p++;
@@ -111,12 +110,12 @@ void send_to_lcd(void){
 
 
 void init_lcd(void){
-	lcd_i2c_addr = (uint8_t) scan_i2c_addr(TH05Z_I2C_ADDR << 1);
+	lcd_i2c_addr = (u8) scan_i2c_addr(BL55028_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // B1.9
 		if(cfg.flg2.screen_off) {
 			lcd_send_i2c_byte(0xEA); // lcd reset
 		} else {
-			lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd));
+			lcd_send_i2c_buf((u8 *) lcd_init_cmd, sizeof(lcd_init_cmd));
 		}
 		return;
 	}
@@ -131,7 +130,7 @@ void init_lcd(void){
  * 0xC0 = " ="
  * 0xE0 = "°E" */
 _attribute_ram_code_
-void show_temp_symbol(uint8_t symbol) {
+void show_temp_symbol(u8 symbol) {
 	display_buff[3] &= ~(BIT(6)| BIT(7));
 	if(symbol & 0x20) {
 		display_buff[3] |= BIT(6);
@@ -156,7 +155,7 @@ void show_temp_symbol(uint8_t symbol) {
  * 6 = "(-^-)" sad
  * 7 = "(ooo)" */
 _attribute_ram_code_
-void show_smiley(uint8_t state){
+void show_smiley(u8 state){
 	display_buff[3] &= ~(BIT(0) | BIT(1)| BIT(4));
 	if(state & 1) {
 		display_buff[3] |= BIT(0);
@@ -187,7 +186,7 @@ void show_battery_symbol(bool state){
 
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
 _attribute_ram_code_
-void show_big_number_x10(int16_t number){
+void show_big_number_x10(s16 number){
 	display_buff[2] &= BIT(3); // "_" F
 	if (number > 19995) {
    		display_buff[0] = LCD_SYM_H; // "H"
@@ -227,7 +226,7 @@ void show_big_number_x10(int16_t number){
 
 /* -9 .. 99 */
 _attribute_ram_code_
-void show_small_number(int16_t number, bool percent){
+void show_small_number(s16 number, bool percent){
 	display_buff[4] &= BIT(3); // and "oo"
 	display_buff[5] = percent? BIT(3): 0; // "%"
 	if (number > 99) {
@@ -267,9 +266,9 @@ void show_reboot_screen(void) {
 #if	USE_DISPLAY_CLOCK
 //_attribute_ram_code_
 void show_clock(void) {
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = (tmp / 60) % 24;
+	u32 tmp = wrk.utc_time_sec / 60;
+	u32 min = tmp % 60;
+	u32 hrs = (tmp / 60) % 24;
 	display_buff[0] = display_numbers[hrs / 10];
 	display_buff[1] = display_numbers[hrs % 10];
 	display_buff[2] = 0;

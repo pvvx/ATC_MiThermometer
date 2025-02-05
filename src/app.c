@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -37,38 +36,25 @@
 #include "bthome_beacon.h"
 #endif
 #include "ext_ota.h"
+#if USE_SYNC_SCAN
+#include "scanning.h"
+#endif
 
 void app_enter_ota_mode(void);
 
 RAM measured_data_t measured_data;
 RAM work_flg_t wrk;
 
-//RAM volatile uint8_t tx_measures; // measurement transfer counter, flag
-//RAM volatile uint8_t start_measure; // start measurements
-//RAM uint8_t flg_measured; // flags = 0xff -> measurements completed
-//RAM uint32_t tim_measure; // measurement timer
-
-RAM uint32_t adv_interval; // adv interval in 0.625 ms // = cfg.advertising_interval * 100
-RAM uint32_t connection_timeout; // connection timeout in 10 ms, Tdefault = connection_latency_ms * 4 = 2000 * 4 = 8000 ms
-RAM uint32_t measurement_step_time; // = adv_interval * measure_interval
-
-RAM uint32_t utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
-RAM uint32_t utc_time_sec_tick; // clock counter in 1/16 us
-#if (DEV_SERVICES & SERVICE_TIME_ADJUST)
-RAM uint32_t utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S; // adjust time clock (in 1/16 us for 1 sec)
-#else
-#define utc_time_tick_step CLOCK_16M_SYS_TIMER_CLK_1S
-#endif
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 RAM ext_key_t ext_key; // extension keys
 #endif
 
 #if (DEV_SERVICES & SERVICE_PINCODE)
-RAM uint32_t pincode;
+RAM u32 pincode;
 #endif
 
 #if (DEV_SERVICES & SERVICE_BINDKEY)
-RAM uint8_t bindkey[16];
+RAM u8 bindkey[16];
 #endif
 
 #if (DEV_SERVICES & SERVICE_SCREEN)
@@ -234,6 +220,16 @@ const cfg_t def_cfg = {
 		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
 
+#elif (DEVICE_TYPE == DEVICE_ZYZTH01)
+		.flg2.adv_flags = true,
+		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
+		.measure_interval = 4, // * advertising_interval = 10 sec
+		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
+#endif
+
 #elif (DEVICE_TYPE == DEVICE_ZYZTH02)
 		.flg2.adv_flags = true,
 		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
@@ -243,7 +239,6 @@ const cfg_t def_cfg = {
 #if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
-
 #else
 #error "DEVICE_TYPE = ?"
 #endif
@@ -279,7 +274,7 @@ RAM external_data_t ext;
 	4 - LYWSD03MMC B1.6
 	5 - LYWSD03MMC B1.7
 	10 - LYWSD03MMC B1.5 */
-static const uint8_t id2hwver[8] = {
+static const u8 id2hwver[8] = {
 		'4','0','5','9','6','7','0','0'
 };
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
@@ -302,9 +297,9 @@ void set_hw_version(void) {
 #if (DEV_SERVICES & SERVICE_SCREEN)
 #if	USE_DEVICE_INFO_CHR_UUID
 #else
-	uint8_t my_HardStr[4];
+	u8 my_HardStr[4];
 #endif
-	uint8_t hwver = 0;
+	u8 hwver = 0;
 	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 //		if (cfg.hw_cfg.shtc3) { // sensor SHTC3 ?
 		if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
@@ -370,7 +365,16 @@ void set_hw_version(void) {
 }
 
 // go deep-sleep 
-void go_sleep(uint32_t tik) {
+void go_sleep(u32 tik) {
+#if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
+	hx711_go_sleep();
+#endif
+#if	(DEV_SERVICES & RDS)
+	rds1_input_off();
+#endif
+#if USE_SENSOR_SHTC3
+	send_i2c_word(0x70 << 1, 0x98b0); // SHTC3 go SLEEP: Sleep command of the sensor
+#endif // USE_SENSOR_SHTC3
 	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_TIMER,
 				clock_time() + tik); 
 	while(1);
@@ -397,20 +401,20 @@ void test_config(void) {
 		cfg.advertising_interval = 1; // 1*62.5 = 62.5 ms
 	else if (cfg.advertising_interval > 160) // max 160 : 160*62.5 = 10000 ms
 		cfg.advertising_interval = 160; // 160*62.5 = 10000 ms
-	adv_interval = cfg.advertising_interval * 100; // Tadv_interval = adv_interval * 62.5 ms , adv_interval in 0.625 ms
+	wrk.adv_interval = cfg.advertising_interval * 100; // Tadv_interval = adv_interval * 62.5 ms , adv_interval in 0.625 ms
 
 	// measurement_step_time = adv_interval * 62.5 * measure_interval, max 250 sec
 	if (cfg.measure_interval < 2)
 		cfg.measure_interval = 2; // T = cfg.measure_interval * advertising_interval_ms (ms),  Tmin = 1 * 1*62.5 = 62.5 ms / 1 * 160 * 62.5 = 10000 ms
-	measurement_step_time = adv_interval * (uint32_t)cfg.measure_interval;
+	wrk.measurement_step_time = wrk.adv_interval * (u32)cfg.measure_interval;
 	// test overflow 250 sec
-	uint32_t tmp = 400000 - adv_interval; // 250000000us/6250=400000
-	if(measurement_step_time > tmp) {
-		cfg.measure_interval = tmp / adv_interval;
-		measurement_step_time = adv_interval * (uint32_t)cfg.measure_interval;
+	u32 tmp = 400000 - wrk.adv_interval; // 250000000us/6250=400000
+	if(wrk.measurement_step_time > tmp) {
+		cfg.measure_interval = tmp / wrk.adv_interval;
+		wrk.measurement_step_time = wrk.adv_interval * (u32)cfg.measure_interval;
 	}
-	measurement_step_time *= (625 * sys_tick_per_us);
-	measurement_step_time -= 256; // us
+	wrk.measurement_step_time *= (625 * sys_tick_per_us);
+	wrk.measurement_step_time -= 256; // us
 
 	if(cfg.connect_latency > DEF_CONNECT_LATENCY
 #if USE_AVERAGE_BATTERY
@@ -424,11 +428,11 @@ void test_config(void) {
 	 * connection_latency_ms = (cfg.connect_latency + 1) * connection_interval_ms = (16*125/100)*(99+1) = 2000;
 	 * connection_timeout_ms = connection_latency_ms * 4 = 2000 * 4 = 8000;
 	 */
-	connection_timeout = ((cfg.connect_latency + 1) * (4 * DEF_CON_INERVAL * 125)) / 1000; // = 800, default = 8 sec
-	if (connection_timeout > 32 * 100)
-		connection_timeout = 32 * 100; //x10 ms, max 32 sec?
-	else if (connection_timeout < 100)
-		connection_timeout = 100;	//x10 ms,  1 sec
+	wrk.connection_timeout = ((cfg.connect_latency + 1) * (4 * DEF_CON_INERVAL * 125)) / 1000; // = 800, default = 8 sec
+	if (wrk.connection_timeout > 32 * 100)
+		wrk.connection_timeout = 32 * 100; //x10 ms, max 32 sec?
+	else if (wrk.connection_timeout < 100)
+		wrk.connection_timeout = 100;	//x10 ms,  1 sec
 
 	if (!cfg.connect_latency) {
 		my_periConnParameters.intervalMin =	(cfg.advertising_interval * 625	/ 30) - 1; // Tmin = 20*1.25 = 25 ms, Tmax = 3333*1.25 = 4166.25 ms
@@ -439,7 +443,7 @@ void test_config(void) {
 		my_periConnParameters.intervalMax = DEF_CON_INERVAL; // 16*1.25 = 20 ms
 		my_periConnParameters.latency = cfg.connect_latency;
 	}
-	my_periConnParameters.timeout = connection_timeout;
+	my_periConnParameters.timeout = wrk.connection_timeout;
 #if (DEV_SERVICES & SERVICE_SCREEN)
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 #else
@@ -459,12 +463,6 @@ void test_config(void) {
 }
 
 void low_vbat(void) {
-#if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
-	hx711_go_sleep();
-#endif
-#if	(DEV_SERVICES & RDS)
-	rds1_input_off();
-#endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 	show_low_bat();
@@ -605,13 +603,10 @@ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 
 #if USE_AVERAGE_BATTERY
 //--- check battery
-#define BAT_AVERAGE_SHL		4 // 16*16 = 256 ( 256*10/60 = 42.7 min)
-#define BAT_AVERAGE_COUNT	(1 << BAT_AVERAGE_SHL) // 8
+#define BAT_AVERAGE_COUNT	32
 RAM struct {
-	uint32_t buf2[BAT_AVERAGE_COUNT];
-	uint16_t buf1[BAT_AVERAGE_COUNT];
-	uint8_t index1;
-	uint8_t index2;
+	u32	buf_sum;
+	u8	count;
 } bat_average;
 #endif
 
@@ -622,55 +617,38 @@ void check_battery(void) {
 	if (measured_data.battery_mv < END_VBAT_MV) // It is not recommended to write Flash below 2V
 		low_vbat();
 #if USE_AVERAGE_BATTERY
-	uint32_t i;
-	uint32_t summ = 0;
-	bat_average.index1++;
-	bat_average.index1 &= BAT_AVERAGE_COUNT - 1;
-	if(bat_average.index1 == 0) {
-		bat_average.index2++;
-		bat_average.index2 &= BAT_AVERAGE_COUNT - 1;
-	}
-	bat_average.buf1[bat_average.index1] = measured_data.battery_mv;
-	for(i = 0; i < BAT_AVERAGE_COUNT; i++)
-		summ += bat_average.buf1[i];
-	bat_average.buf2[bat_average.index2] = summ;
-	summ = 0;
-	for(i = 0; i < BAT_AVERAGE_COUNT; i++)
-		summ += bat_average.buf2[i];
-	measured_data.average_battery_mv = summ >> (2*BAT_AVERAGE_SHL);
+	bat_average.buf_sum += measured_data.battery_mv;
+	bat_average.count++;
+	measured_data.average_battery_mv = bat_average.buf_sum / bat_average.count;
 	measured_data.battery_level = get_battery_level(measured_data.average_battery_mv);
+	if(bat_average.count >= BAT_AVERAGE_COUNT) {
+		bat_average.buf_sum >>= 1;
+		bat_average.count >>= 1;
+	}
+#else
+	measured_data.battery_level = get_battery_level(measured_data.battery_mv);
 #endif
 }
 
 __attribute__((optimize("-Os")))
 static void start_tst_battery(void) {
-	uint16_t avr_mv = get_battery_mv();
-	measured_data.battery_mv = avr_mv;
-	if (avr_mv < MIN_VBAT_MV) { // 2.2V
-#if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
-		hx711_go_sleep();
-#endif
-#if USE_SENSOR_SHTC3
-		send_i2c_word(0x70 << 1, 0x98b0); // SHTC3 go SLEEP: Sleep command of the sensor
-#endif // USE_SENSOR_SHTC3
+	measured_data.battery_mv = get_battery_mv();
+	if (measured_data.battery_mv < MIN_VBAT_MV) { // 2.2V
 #if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		// Set sleep power < 1 uA
 		send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
 #elif (DEVICE_TYPE == DEVICE_ZTH03) || (DEVICE_TYPE == DEVICE_LKTMZL02)
-extern int soft_i2c_send_byte(uint8_t addr, uint8_t b);
+extern int soft_i2c_send_byte(u8 addr, u8 b);
 		soft_i2c_send_byte(0x3E << 1, 0xD0);
 #endif
 		go_sleep(120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
 	}
 #if USE_AVERAGE_BATTERY
-	int i;
-	measured_data.average_battery_mv = avr_mv;
-	for(i = 0; i < BAT_AVERAGE_COUNT; i++)
-		bat_average.buf1[i] = avr_mv;
-	avr_mv <<= BAT_AVERAGE_SHL;
-	for(i = 0; i < BAT_AVERAGE_COUNT; i++)
-		bat_average.buf2[i] = avr_mv;
+	bat_average.buf_sum = measured_data.battery_mv;
+	measured_data.average_battery_mv = measured_data.battery_mv;
+	bat_average.count = 1;
 #endif
+	measured_data.battery_level = get_battery_level(measured_data.battery_mv);
 }
 
 
@@ -705,9 +683,9 @@ void set_default_cfg(void) {
 void user_init_normal(void) {//this will get executed one time after power up
 	bool next_start = false;
 	unsigned int old_ver;
+	blc_ll_initBasicMCU(); //must
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	lpc_power_down();
-	blc_ll_initBasicMCU(); //must
 	start_tst_battery();
 	flash_unlock();
 	random_generator_init(); //must
@@ -715,7 +693,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 	big_to_low_ota(); // Correct FW OTA address? Reformat Big OTA to Low OTA
 #endif
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
-	uint32_t hw_ver = get_mi_hw_version();
+	u32 hw_ver = get_mi_hw_version();
 #endif // (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC)
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
 	hx711_gpio_wakeup();
@@ -732,10 +710,10 @@ void user_init_normal(void) {//this will get executed one time after power up
 			memcpy(&cmf, &def_cmf, sizeof(cmf));
 #endif
 #if (DEV_SERVICES & SERVICE_TIME_ADJUST)
-		if (flash_read_cfg(&utc_time_tick_step, EEP_ID_TIM,
-				sizeof(utc_time_tick_step)) != sizeof(utc_time_tick_step))
-			utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S;
+		if (flash_read_cfg(&wrk.utc_time_tick_step, EEP_ID_TIM,
+				sizeof(wrk.utc_time_tick_step)) != sizeof(wrk.utc_time_tick_step))
 #endif
+			wrk.utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S;
 #if (DEV_SERVICES & SERVICE_PINCODE)
 		if (flash_read_cfg(&pincode, EEP_ID_PCD, sizeof(pincode))
 				!= sizeof(pincode))
@@ -766,6 +744,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 			cfg.flg2.longrange = 0;
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 		}
+#if USE_SYNC_SCAN
+		scan_init();
+#endif
 	} else {
 #if (DEV_SERVICES & SERVICE_PINCODE)
 		pincode = 0;
@@ -784,6 +765,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 		if (hw_ver)
 			flash_write_cfg(&hw_ver, EEP_ID_HWV, sizeof(hw_ver));
 #endif
+		wrk.utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S;
 	}
 #if (DEV_SERVICES & SERVICE_RDS)
 	rds_init();
@@ -793,7 +775,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 #ifdef I2C_GROUP
 	init_i2c();
-	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
+	reg_i2c_speed = (u8)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
 #endif
 	test_config();
 #if (POWERUP_SCREEN) || (DEV_SERVICES & SERVICE_HARD_CLOCK) || (DEV_SERVICES & SERVICE_LE_LR)
@@ -878,6 +860,10 @@ void user_init_deepRetn(void) {//after sleep this will get executed
 	rf_set_power_level_index(cfg.rf_tx_power);
 	blc_ll_recoverDeepRetention();
 	bls_ota_registerStartCmdCb(app_enter_ota_mode);
+#if USE_SYNC_SCAN
+	if(scan.enabled)
+		scan_wakeup();
+#endif
 }
 
 //=========================================================
@@ -885,15 +871,15 @@ void user_init_deepRetn(void) {//after sleep this will get executed
 _attribute_ram_code_
 void main_loop(void) {
 	blt_sdk_main_loop();
-	while (clock_time() -  utc_time_sec_tick > utc_time_tick_step) {
-		utc_time_sec_tick += utc_time_tick_step;
-		utc_time_sec++; // + 1 sec
+	while (clock_time() -  wrk.utc_time_sec_tick > wrk.utc_time_tick_step) {
+		wrk.utc_time_sec_tick += wrk.utc_time_tick_step;
+		wrk.utc_time_sec++; // + 1 sec
 #if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 		if(++rtc.seconds >= 60) {
 			rtc.seconds = 0;
 			if(++rtc.minutes >= 60) {
 				rtc.minutes = 0;
-				rtc_sync_utime = utc_time_sec;
+				rtc_sync_utime = wrk.utc_time_sec;
 			}
 			SET_LCD_UPDATE();
 		}
@@ -928,7 +914,7 @@ void main_loop(void) {
 #if (DEV_SERVICES & SERVICE_18B20)
 		task_my18b20();
 #endif
-		uint32_t new = clock_time();
+		u32 new = clock_time();
 #if (DEV_SERVICES & SERVICE_KEY)
 		if(!get_key2_pressed()) {
 			if(!ext_key.key2pressed) {
@@ -1068,7 +1054,7 @@ void main_loop(void) {
 #endif
 		{
 			if (wrk.ble_connected && blc_ll_getTxFifoNumber() < 9) {
-				// if ble_connected & TxFifo ready
+				// if wrk.ble_connected & TxFifo ready
 				if (wrk.msc.b.send_measure) {
 					wrk.msc.b.send_measure = 0;
 					if (RxTxValueInCCC && wrk.tx_measures) {
@@ -1113,7 +1099,7 @@ void main_loop(void) {
 #if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 			else if(rtc_sync_utime) {
 				rtc_sync_utime = 0;
-				utc_time_sec = rtc_get_utime();
+				wrk.utc_time_sec = rtc_get_utime();
 			}
 #endif // (DEV_SERVICES & SERVICE_HARD_CLOCK)
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20 | SERVICE_PLM))
@@ -1122,7 +1108,7 @@ void main_loop(void) {
 #endif
 			{
 				if(wrk.ble_connected) {
-					if (new - wrk.tim_measure >= measurement_step_time) {
+					if (new - wrk.tim_measure >= wrk.measurement_step_time) {
 						wrk.tim_measure = new;
 						adv_buf.meas_count = 0;
 						wrk.start_measure = 1;
@@ -1162,6 +1148,16 @@ void main_loop(void) {
 				}
 			}
 #endif // #if (DEV_SERVICES & SERVICE_SCREEN)
+#if USE_SYNC_SCAN
+			if (scan.interval
+			&& utc_time_sec - scan.start_time > scan.interval
+			&& adv_buf.ext_adv_init == EXT_ADV_Off // not support extension advertise
+			&& !wrk.ble_connected
+			&& !blta.adv_duraton_en) {
+				scan.start_time = wrk.utc_time_sec;
+				scan_start();
+			}
+#endif
 		}
 #if (DEV_SERVICES & SERVICE_SCREEN)
 #if (USE_EPD)
@@ -1183,6 +1179,12 @@ void main_loop(void) {
 		}
 #endif
 #endif // (DEV_SERVICES & SERVICE_SCREEN)
+
+#if USE_SYNC_SCAN
+		if(scan.start_tik) {
+			scan_task();
+		} else
+#endif
 		bls_pm_setSuspendMask(
 				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
 	}

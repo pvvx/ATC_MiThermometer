@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if (DEV_SERVICES & SERVICE_SCREEN) && (DEVICE_TYPE == DEVICE_ZTH03)
@@ -8,7 +7,7 @@
 #include "i2c.h"
 #include "lcd.h"
 
-RAM uint8_t lcd_i2c_addr;
+RAM u8 lcd_i2c_addr;
 
 #define I2C_TCLK_US	24 // 24 us
 
@@ -42,7 +41,7 @@ RAM uint8_t lcd_i2c_addr;
 */
 
 /* 0,1,2,3,4,5,6,7,8,9,A,b,C,d,E,F*/
-const uint8_t display_numbers[] = {
+const u8 display_numbers[] = {
 		// 76543210
 		0b011110011, // 0
 		0b000000011, // 1
@@ -96,7 +95,7 @@ void soft_i2c_stop(void) {
 	gpio_set_output_en(I2C_SDA_LCD, 0); // SDA set "1"
 }
 
-int soft_i2c_wr_byte(uint8_t b) {
+int soft_i2c_wr_byte(u8 b) {
 	int ret, i = 8;
 	while(i--) {
 		sleep_us(I2C_TCLK_US/2);
@@ -120,7 +119,7 @@ int soft_i2c_wr_byte(uint8_t b) {
 	return ret;
 }
 
-int soft_i2c_send_buf(uint8_t addr, uint8_t * pbuf, int size) {
+int soft_i2c_send_buf(u8 addr, u8 * pbuf, int size) {
 	int ret = 0;
 	soft_i2c_start();
 	ret = soft_i2c_wr_byte(addr);
@@ -135,7 +134,8 @@ int soft_i2c_send_buf(uint8_t addr, uint8_t * pbuf, int size) {
 	soft_i2c_stop();
 	return ret;
 }
-int soft_i2c_send_byte(uint8_t addr, uint8_t b) {
+
+int soft_i2c_send_byte(u8 addr, u8 b) {
 	int ret;
 	soft_i2c_start();
 	ret = soft_i2c_wr_byte(addr);
@@ -146,10 +146,10 @@ int soft_i2c_send_byte(uint8_t addr, uint8_t b) {
 }
 
 #define lcd_send_i2c_byte(a)  soft_i2c_send_byte(lcd_i2c_addr, a)
-#define lcd_send_i2c_buf(b, a)  soft_i2c_send_buf(lcd_i2c_addr, (uint8_t *) b, a)
+#define lcd_send_i2c_buf(b, a)  soft_i2c_send_buf(lcd_i2c_addr, (u8 *) b, a)
 
 #if 1
-const uint8_t lcd_init_cmd[]	=	{
+const u8 lcd_init_cmd[]	=	{
 		// LCD controller initialize:
 		0xea, // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
 		0xd8, // Mode Set (MODE SET): Display enable, 1/3 Bias, power saving
@@ -163,7 +163,7 @@ const uint8_t lcd_init_cmd[]	=	{
 
 #else
 
-const uint8_t lcd_init_cmd[]	=	{
+const u8 lcd_init_cmd[]	=	{
 		// LCD controller initialize:
 		0xea, // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
 		0xd8, // Mode Set (MODE SET): Display enable, 1/3 Bias, power saving
@@ -174,13 +174,13 @@ const uint8_t lcd_init_cmd[]	=	{
 #endif
 
 void init_lcd(void){
-	lcd_i2c_addr = TH03_I2C_ADDR << 1;
+	lcd_i2c_addr = BL55028_I2C_ADDR << 1;
 	//display_cmp_buff[0] = 0;
 	if(cfg.flg2.screen_off) {
 		if(lcd_send_i2c_byte(0xD0) || lcd_send_i2c_byte(0xEA)) // LCD reset
 			lcd_i2c_addr = 0;
 	} else {
-		if(lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd)))
+		if(lcd_send_i2c_buf((u8 *) lcd_init_cmd, sizeof(lcd_init_cmd)))
 			lcd_i2c_addr = 0;
 		else {
 			pm_wait_us(200);
@@ -208,7 +208,7 @@ void send_to_lcd(void){
  * 0xC0 = " ="
  * 0xE0 = "°E" */
 _attribute_ram_code_
-void show_temp_symbol(uint8_t symbol) {
+void show_temp_symbol(u8 symbol) {
 	if (symbol & 0x20)
 		display_buff[3] |= BIT(5);
 	else
@@ -232,7 +232,7 @@ void show_temp_symbol(uint8_t symbol) {
  * 6 = "(-^-)" sad
  * 7 = "(ooo)" */
 _attribute_ram_code_
-void show_smiley(uint8_t state){
+void show_smiley(u8 state){
 	display_buff[3] &= ~0x15;
 	state = (state & 1) | ((state << 1) & 4) | ((state << 2) & 0x10);
 	display_buff[3] |= state;
@@ -256,7 +256,7 @@ void show_battery_symbol(bool state){
 
 /* number in 0.1 (-19995..19995), Show: -1999 .. 1999 */
 _attribute_ram_code_
-__attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
+__attribute__((optimize("-Os"))) void show_big_number_x10(s16 number){
 	display_buff[2] &= BIT(3); // F/C "_"
 	if (number > 19995) {
    		display_buff[0] = LCD_SYM_H; // "H"
@@ -293,7 +293,7 @@ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 
 /* -9 .. 99 */
 _attribute_ram_code_
-__attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
+__attribute__((optimize("-Os"))) void show_small_number(s16 number, bool percent){
 	display_buff[4] &= BIT(3); // connect
 	display_buff[5] = percent? BIT(3) : 0;
 	if (number > 99) {
@@ -331,9 +331,9 @@ void show_reboot_screen(void) {
 #if	USE_DISPLAY_CLOCK
 _attribute_ram_code_
 void show_clock(void) {
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = (tmp / 60) % 24;
+	u32 tmp = wrk.utc_time_sec / 60;
+	u32 min = tmp % 60;
+	u32 hrs = (tmp / 60) % 24;
 	display_buff[0] = 0;
 	display_buff[1] = display_numbers[(hrs / 10) % 10];
 	display_buff[2] = display_numbers[hrs % 10];

@@ -4,7 +4,6 @@
  *  Created on: 02.01.2021
  *      Author: pvvx
  */
-#include <stdint.h>
 #include "tl_common.h"
 #include "stack/ble/ble.h"
 #include "app.h"

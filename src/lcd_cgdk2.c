@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if DEVICE_TYPE == DEVICE_CGDK2
@@ -9,10 +8,10 @@
 #include "lcd.h"
 #include "battery.h"
 
-RAM uint8_t lcd_i2c_addr;
+RAM u8 lcd_i2c_addr;
 
 #define lcd_send_i2c_byte(a)  send_i2c_byte(lcd_i2c_addr, a)
-#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (uint8_t *) b, a)
+#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (u8 *) b, a)
 
 
 /*
@@ -68,7 +67,7 @@ Now define how each digit maps to the segments:
    8-----7-----6
 */
 
-const uint8_t digits[16][DEF_CGDK22_SUMBOL_SIGMENTS + 1] = {
+const u8 digits[16][DEF_CGDK22_SUMBOL_SIGMENTS + 1] = {
     {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0},  // 0
     {2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0},        // 1
     {1, 2, 3, 4, 6, 7, 8, 9, 10, 12, 13, 0, 0, 0},  // 2
@@ -91,12 +90,12 @@ const uint8_t digits[16][DEF_CGDK22_SUMBOL_SIGMENTS + 1] = {
 // define segments
 // the data in the arrays consists of {byte, bit} pairs of each segment
 //----------------------------------
-const uint8_t top_left[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {2, 3, 5, 7, 3, 7, 3, 6, 3, 5, 3, 4, 2, 1, 2, 0, 2, 4, 2, 5, 2, 6, 2, 7, 2, 2};
-const uint8_t top_middle[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {4, 7, 5, 6, 4, 3, 4, 2, 4, 1, 4, 0, 4, 5, 4, 4, 3, 0, 3, 1, 3, 2, 3, 3, 4, 6};
-const uint8_t top_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {0, 6, 17, 3, 17, 2, 17, 1, 17, 0, 5, 5, 0, 4, 0, 0, 0, 1, 0, 2, 0, 3, 0, 7, 0, 5};
-const uint8_t bottom_left[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {6, 7, 8, 3, 6, 3, 6, 2, 6, 1, 6, 0, 6, 5, 6, 4, 5, 0, 5, 1, 5, 2, 5, 3, 6, 6};
-const uint8_t bottom_middle[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {7, 3, 8, 2, 8, 7, 8, 6, 8, 5, 8, 4, 7, 1, 7, 0, 7, 4, 7, 5, 7, 6, 7, 7, 7, 2};
-const uint8_t bottom_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {9, 3, 17, 7, 10, 7, 10, 6, 10, 5, 10, 4, 9, 1, 9, 0, 9, 4, 9, 5, 9, 6, 9, 7, 9, 2};
+const u8 top_left[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {2, 3, 5, 7, 3, 7, 3, 6, 3, 5, 3, 4, 2, 1, 2, 0, 2, 4, 2, 5, 2, 6, 2, 7, 2, 2};
+const u8 top_middle[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {4, 7, 5, 6, 4, 3, 4, 2, 4, 1, 4, 0, 4, 5, 4, 4, 3, 0, 3, 1, 3, 2, 3, 3, 4, 6};
+const u8 top_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {0, 6, 17, 3, 17, 2, 17, 1, 17, 0, 5, 5, 0, 4, 0, 0, 0, 1, 0, 2, 0, 3, 0, 7, 0, 5};
+const u8 bottom_left[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {6, 7, 8, 3, 6, 3, 6, 2, 6, 1, 6, 0, 6, 5, 6, 4, 5, 0, 5, 1, 5, 2, 5, 3, 6, 6};
+const u8 bottom_middle[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {7, 3, 8, 2, 8, 7, 8, 6, 8, 5, 8, 4, 7, 1, 7, 0, 7, 4, 7, 5, 7, 6, 7, 7, 7, 2};
+const u8 bottom_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {9, 3, 17, 7, 10, 7, 10, 6, 10, 5, 10, 4, 9, 1, 9, 0, 9, 4, 9, 5, 9, 6, 9, 7, 9, 2};
 
 /* LCD controller initialize:
 1. 0xea - Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
@@ -104,20 +103,20 @@ const uint8_t bottom_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {9, 3, 17, 7, 10, 7, 
 3. 0xf0 - Blink control (BLKCTL): Off
 4. 0xfc - All pixel control (APCTL): Normal
 */
-//const uint8_t lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc}; // sleep all 16.6 uA
+//const u8 lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc}; // sleep all 16.6 uA
 /* LCD controller initialize
 1. 0xea - Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
 2. 0xf0 - Blink control (BLKCTL): Off
 4. 0xc0 - Mode Set (MODE SET): Display ON ?
 2. 0xbc - Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
 */
-const uint8_t lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // sleep all 9.4 uA
+const u8 lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // sleep all 9.4 uA
 
 /*
-static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
+static void lcd_send_i2c_buf(u8 * dataBuf, u32 dataLen) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
-	uint8_t * p = dataBuf;
+	u8 * p = dataBuf;
 	reg_i2c_id = lcd_i2c_addr;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID;
 	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
@@ -134,13 +133,13 @@ static void lcd_send_i2c_buf(uint8_t * dataBuf, uint32_t dataLen) {
 _attribute_ram_code_
 void send_to_lcd(void){
 	unsigned int buff_index;
-	uint8_t * p = display_buff;
+	u8 * p = display_buff;
 	if(cfg.flg2.screen_off)
 		return;
 	if (lcd_i2c_addr) {
 		if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
-//		reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
+//		reg_i2c_speed = (u8)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
 		reg_i2c_id = lcd_i2c_addr;
 		reg_i2c_adr_dat = 0xE800; // 0xe8 - Set IC Operarion(ICSET): Do not execute Software Reset, Internal oscillator circuit; 0x00 - ADSET
 		reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
@@ -162,13 +161,13 @@ void send_to_lcd(void){
 }
 
 void init_lcd(void){
-	lcd_i2c_addr = (uint8_t) scan_i2c_addr(CGDK2_I2C_ADDR << 1);
-	if (lcd_i2c_addr) { // LCD CGDK2_I2C_ADDR ?
-//		reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
+	lcd_i2c_addr = (u8) scan_i2c_addr(BU9792AFUV_I2C_ADDR << 1);
+	if (lcd_i2c_addr) { // LCD BU9792AFUV/BL55028_I2C_ADDR ?
+//		reg_i2c_speed = (u8)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
 		if(cfg.flg2.screen_off) {
 			lcd_send_i2c_byte(0xEA); // BU9792AFUV reset
 		} else {
-			lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd));
+			lcd_send_i2c_buf((u8 *) lcd_init_cmd, sizeof(lcd_init_cmd));
 			pm_wait_us(200);
 			send_to_lcd();
 		}
@@ -177,7 +176,7 @@ void init_lcd(void){
 
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-static void cgdk22_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
+static void cgdk22_set_digit(u8 *buf, u8 digit, const u8 *segments) {
     // set the segments, there are up to 11 segments in a digit
     int segment_byte;
     int segment_bit;
@@ -206,7 +205,7 @@ static void cgdk22_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segment
  * 0xC0 = " ="
  * 0xE0 = "°E" */
 _attribute_ram_code_
-void show_temp_symbol(uint8_t symbol) {
+void show_temp_symbol(u8 symbol) {
 	if (symbol & 0x20)
 		display_buff[17] |= BIT(6);
 	else
@@ -223,7 +222,7 @@ void show_temp_symbol(uint8_t symbol) {
 
 /* CGDK22 no symbol 'smiley' !
  * =5 -> "---" happy, != 5 -> "    " sad
-_attribute_ram_code_ void show_smiley(uint8_t state){
+_attribute_ram_code_ void show_smiley(u8 state){
 	(void) state;
 //	if (state & 1)
 //		display_buff[x] |= BIT(x);
@@ -265,7 +264,7 @@ void show_ble_symbol(bool state){
 
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
 _attribute_ram_code_
-__attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
+__attribute__((optimize("-Os"))) void show_big_number_x10(s16 number){
 	display_buff[0] = 0;
 	display_buff[1] &= ~(BIT(0));
 	display_buff[2] = 0;
@@ -310,7 +309,7 @@ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 
 /* number in 0.1 (-99..999) -> show:  -9.9 .. 99.9 */
 _attribute_ram_code_
-__attribute__((optimize("-Os"))) void show_small_number_x10(int16_t number, bool percent){
+__attribute__((optimize("-Os"))) void show_small_number_x10(s16 number, bool percent){
 	display_buff[5] &= ~(BIT(0) | BIT(1) | BIT(2) | BIT(3));
 	display_buff[6] = 0;
 	display_buff[7] = 0;
@@ -356,7 +355,7 @@ __attribute__((optimize("-Os"))) void show_small_number_x10(int16_t number, bool
 }
 
 void show_batt_cgdk2(void) {
-	uint16_t battery_level = 0;
+	u16 battery_level = 0;
 #if USE_AVERAGE_BATTERY
 	if (measured_data.average_battery_mv > MIN_VBAT_MV) {
 		battery_level = ((measured_data.average_battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
@@ -402,9 +401,9 @@ void show_reboot_screen(void) {
 #if	USE_DISPLAY_CLOCK
 _attribute_ram_code_
 void show_clock(void) {
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = tmp / 60 % 24;
+	u32 tmp = wrk.utc_time_sec / 60;
+	u32 min = tmp % 60;
+	u32 hrs = tmp / 60 % 24;
 	memset(display_buff, 0, sizeof(display_buff));
 	cgdk22_set_digit(display_buff, min / 10 % 10, bottom_left);
 	cgdk22_set_digit(display_buff, min % 10, bottom_middle);

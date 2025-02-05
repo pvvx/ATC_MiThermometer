@@ -4,7 +4,6 @@
  *  Created on: 05.04.2022
  *      Author: pvvx
  */
-#include <stdint.h>
 #include "tl_common.h"
 #if (DEV_SERVICES & SERVICE_PLM) // USE_SENSOR_PWMRH
 #include "drivers.h"
@@ -44,7 +43,7 @@ void get_adc_rh_ntc_mv(void) {
 }
 
 void calibrate_rh(void) {
-	uint32_t t0, tt;
+	u32 t0, tt;
 
 	rh.tic = 0;
 

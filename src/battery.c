@@ -1,11 +1,10 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
 
 #include "battery.h"
 
-uint8_t adc_hw_initialized = 0;
+u8 adc_hw_initialized = 0;
 #define ADC_BUF_COUNT	8
 
 // Process takes about 120 μs at CPU CLK 24Mhz.
@@ -24,9 +23,9 @@ static void adc_channel_init(ADC_InputPchTypeDef p_ain) {
 
 // Process takes about 260 μs at CPU CLK 24Mhz.
 _attribute_ram_code_
-uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDef
+u16 get_adc_mv(u32 p_ain) { // ADC_InputPchTypeDef
 	volatile unsigned int adc_dat_buf[ADC_BUF_COUNT];
-	uint16_t temp;
+	u16 temp;
 	int i, j;
 	if (adc_hw_initialized != p_ain) {
 		adc_hw_initialized = p_ain;
@@ -45,13 +44,13 @@ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDef
 	adc_reset_adc_module();
 	u32 t0 = clock_time();
 
-	uint16_t adc_sample[ADC_BUF_COUNT]; // = { 0 };
+	u16 adc_sample[ADC_BUF_COUNT]; // = { 0 };
 	u32 adc_average;
 	for (i = 0; i < ADC_BUF_COUNT; i++) {
 		adc_dat_buf[i] = 0;
 	}
 	while (!clock_time_exceed(t0, 25)); //wait at least 2 sample cycle(f = 96K, T = 10.4us)
-	adc_config_misc_channel_buf((uint16_t *) adc_dat_buf, sizeof(adc_dat_buf));
+	adc_config_misc_channel_buf((u16 *) adc_dat_buf, sizeof(adc_dat_buf));
 	dfifo_enable_dfifo2();
 	sleep_us(20);
 	for (i = 0; i < ADC_BUF_COUNT; i++) {
@@ -59,7 +58,7 @@ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDef
 		if (adc_dat_buf[i] & BIT(13)) {
 			adc_sample[i] = 0;
 		} else {
-			adc_sample[i] = ((uint16_t) adc_dat_buf[i] & 0x1FFF);
+			adc_sample[i] = ((u16) adc_dat_buf[i] & 0x1FFF);
 		}
 		if (i) {
 			if (adc_sample[i] < adc_sample[i - 1]) {
@@ -85,8 +84,8 @@ uint16_t get_adc_mv(uint32_t p_ain) { // ADC_InputPchTypeDef
 
 // 2200..3000 mv - 0..100%
 _attribute_ram_code_
-uint8_t get_battery_level(uint16_t battery_mv) {
-	uint8_t battery_level = 0;
+u8 get_battery_level(u16 battery_mv) {
+	u8 battery_level = 0;
 	if (battery_mv < MAX_VBAT_MV) {
 		if (battery_mv > MIN_VBAT_MV) {
 			battery_level = (battery_mv - MIN_VBAT_MV) /

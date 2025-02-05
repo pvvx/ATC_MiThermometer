@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if ((DEVICE_TYPE == DEVICE_CGG1) && (DEVICE_CGG1_ver == 2022))
@@ -53,17 +52,17 @@
 60ff5fff1f7f3fff5fff5fff1f1fff1f00
 */
 #define DEF_EPD_SUMBOL_SIGMENTS	13
-#define DEF_EPD_REFRESH_CNT		255
+//#define DEF_EPD_REFRESH_CNT		255
 //----------------------------------
 // define segments
 // the data in the arrays consists of {byte, bit} pairs of each segment
 //----------------------------------
-const uint8_t top_left[DEF_EPD_SUMBOL_SIGMENTS*2] = {10, 7, 10, 4, 10, 3, 10, 2, 10, 1, 10, 0, 10, 5, 11, 0, 11, 1, 11, 2, 11, 3, 11, 4, 10, 6};
-const uint8_t top_middle[DEF_EPD_SUMBOL_SIGMENTS*2] = {6, 7, 6, 4, 6, 3, 6, 2, 6, 1, 6, 0, 6, 5, 7, 0, 7, 1, 7, 2, 7, 3, 7, 4, 6, 6};
-const uint8_t top_right[DEF_EPD_SUMBOL_SIGMENTS*2] =  {2, 7, 2, 4, 2, 3, 2, 2, 2, 1, 2, 0, 2, 5, 3, 0, 3, 1, 3, 2, 3, 3, 3, 4, 2, 6};
-const uint8_t bottom_left[DEF_EPD_SUMBOL_SIGMENTS*2] = {13, 7, 13, 4, 13, 3, 13, 2, 13, 1, 13, 0, 13, 5, 14, 0, 14, 1, 14, 2, 14, 3, 14, 4, 13, 6};
-const uint8_t bottom_middle[DEF_EPD_SUMBOL_SIGMENTS*2] = {8, 7, 8, 4, 8, 3, 8, 2, 8, 1, 8, 0, 8, 5, 9, 0, 9, 1, 9, 2, 9, 3, 9, 4, 8, 6};
-const uint8_t bottom_right[DEF_EPD_SUMBOL_SIGMENTS*2] =  {0, 7, 0, 4, 0, 3, 0, 2, 0, 1, 0, 0, 0, 5, 1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 0, 6};
+const u8 top_left[DEF_EPD_SUMBOL_SIGMENTS*2] = {10, 7, 10, 4, 10, 3, 10, 2, 10, 1, 10, 0, 10, 5, 11, 0, 11, 1, 11, 2, 11, 3, 11, 4, 10, 6};
+const u8 top_middle[DEF_EPD_SUMBOL_SIGMENTS*2] = {6, 7, 6, 4, 6, 3, 6, 2, 6, 1, 6, 0, 6, 5, 7, 0, 7, 1, 7, 2, 7, 3, 7, 4, 6, 6};
+const u8 top_right[DEF_EPD_SUMBOL_SIGMENTS*2] =  {2, 7, 2, 4, 2, 3, 2, 2, 2, 1, 2, 0, 2, 5, 3, 0, 3, 1, 3, 2, 3, 3, 3, 4, 2, 6};
+const u8 bottom_left[DEF_EPD_SUMBOL_SIGMENTS*2] = {13, 7, 13, 4, 13, 3, 13, 2, 13, 1, 13, 0, 13, 5, 14, 0, 14, 1, 14, 2, 14, 3, 14, 4, 13, 6};
+const u8 bottom_middle[DEF_EPD_SUMBOL_SIGMENTS*2] = {8, 7, 8, 4, 8, 3, 8, 2, 8, 1, 8, 0, 8, 5, 9, 0, 9, 1, 9, 2, 9, 3, 9, 4, 8, 6};
+const u8 bottom_right[DEF_EPD_SUMBOL_SIGMENTS*2] =  {0, 7, 0, 4, 0, 3, 0, 2, 0, 1, 0, 0, 0, 5, 1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 0, 6};
 /*
 Now define how each digit maps to the segments:
           1
@@ -77,7 +76,7 @@ Now define how each digit maps to the segments:
     |     7     |
   8 :-----------: 6
 */
-const uint8_t digits[16][DEF_EPD_SUMBOL_SIGMENTS + 1] = {
+const u8 digits[16][DEF_EPD_SUMBOL_SIGMENTS + 1] = {
     {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0},  // 0
     {2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0},        // 1
     {1, 2, 3, 4, 6, 7, 8, 9, 10, 12, 13, 0, 0, 0},  // 2
@@ -96,18 +95,20 @@ const uint8_t digits[16][DEF_EPD_SUMBOL_SIGMENTS + 1] = {
     {1, 2, 8, 9, 10, 11, 12, 13, 0, 0, 0, 0, 0, 0}  // F
 };
 
-RAM uint8_t stage_lcd;
-//RAM uint8_t flg_lcd_init;
-RAM uint8_t lcd_refresh_cnt;
-RAM uint8_t epd_updated;
+RAM u8 stage_lcd;
+//RAM u8 flg_lcd_init;
+#ifdef 	DEF_EPD_REFRESH_CNT
+RAM u8 lcd_refresh_cnt;
+#endif
+RAM u8 epd_updated;
 //----------------------------------
 // T_LUT_ping, T_LUT_init, T_LUT_work values taken from the actual device with a
 // logic analyzer
 //----------------------------------
-const uint8_t T_LUT_ping[5] = {0x07B, 0x081, 0x0E4, 0x0E7, 0x008};
-const uint8_t T_LUT_init[14] = {0x082, 0x068, 0x050, 0x0E8, 0x0D0, 0x0A8, 0x065, 0x07B, 0x081, 0x0E4, 0x0E7, 0x008, 0x0AC, 0x02B };
-const uint8_t T_LUT_work[9] = {0x082, 0x080, 0x000, 0x0C0, 0x080, 0x080, 0x062, 0x0AC, 0x02B};
-//const uint8_t T_LUT_test[16] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00};
+const u8 T_LUT_ping[5] = {0x07B, 0x081, 0x0E4, 0x0E7, 0x008};
+const u8 T_LUT_init[14] = {0x082, 0x068, 0x050, 0x0E8, 0x0D0, 0x0A8, 0x065, 0x07B, 0x081, 0x0E4, 0x0E7, 0x008, 0x0AC, 0x02B };
+const u8 T_LUT_work[9] = {0x082, 0x080, 0x000, 0x0C0, 0x080, 0x080, 0x062, 0x0AC, 0x02B};
+//const u8 T_LUT_test[16] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00};
 
 #define delay_SPI_end_cycle() sleep_us(2)
 #define delay_EPD_SCL_pulse() sleep_us(2)
@@ -120,7 +121,7 @@ const uint8_t T_LUT_work[9] = {0x082, 0x080, 0x000, 0x0C0, 0x080, 0x080, 0x062, 
  * 0xA0 = "°C"
  * 0xC0 = " ="
  * 0xE0 = "°E" */
-_attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
+_attribute_ram_code_ void show_temp_symbol(u8 symbol) {
 	if (symbol & 0x20)
 		display_buff[4] |= BIT(2) | BIT(3); // "°Г"
 	else
@@ -137,7 +138,7 @@ _attribute_ram_code_ void show_temp_symbol(uint8_t symbol) {
 
 /* CGG1 no symbol 'smiley' !
  * =5 -> "---" happy, != 5 -> "    " sad */
-_attribute_ram_code_ void show_smiley(uint8_t state){
+_attribute_ram_code_ void show_smiley(u8 state){
 	if (state & 1)
 		display_buff[4] |= BIT(4);
 	else
@@ -178,7 +179,7 @@ _attribute_ram_code_ void show_ble_symbol(bool state){
 		display_buff[9] &= ~BIT(6);
 }
 
-_attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(u8 *buf, u8 digit, const u8 *segments) {
     // set the segments, there are up to 11 segments in a digit
     int segment_byte;
     int segment_bit;
@@ -199,7 +200,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void epd_set_digit(
 }
 
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(s16 number){
 	display_buff[2] = 0;
 	display_buff[3] = 0;
 	display_buff[4] &= ~(BIT(5)); // point
@@ -245,7 +246,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_big_number_x10(i
 }
 
 /* number in 0.1 (-99..999) -> show:  -9.9 .. 99.9 */
-_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10(int16_t number, bool percent){
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10(s16 number, bool percent){
 	display_buff[0] = 0;
 	display_buff[1] = 0;
 	display_buff[4] &= ~(BIT(6));
@@ -291,7 +292,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10
 }
 
 void show_batt_cgg1(void) {
-	uint16_t battery_level = 0;
+	u16 battery_level = 0;
 	if (measured_data.battery_mv > MIN_VBAT_MV) {
 		battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
 		if (battery_level > 995)
@@ -302,9 +303,9 @@ void show_batt_cgg1(void) {
 
 #if	USE_DISPLAY_CLOCK
 _attribute_ram_code_ void show_clock(void) {
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = tmp / 60 % 24;
+	u32 tmp = wrk.utc_time_sec / 60;
+	u32 min = tmp % 60;
+	u32 hrs = tmp / 60 % 24;
 	memset(display_buff, 0, sizeof(display_buff));
 	epd_set_digit(display_buff, min / 10 % 10, bottom_left);
 	epd_set_digit(display_buff, min % 10, bottom_middle);
@@ -313,7 +314,7 @@ _attribute_ram_code_ void show_clock(void) {
 }
 #endif // USE_CLOCK
 
-_attribute_ram_code_ __attribute__((optimize("-Os"))) static void transmit(uint8_t cd, uint8_t data_to_send) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) static void transmit(u8 cd, u8 data_to_send) {
     gpio_write(EPD_SCL, LOW);
     gpio_write(EPD_CSB, LOW);
     delay_EPD_SCL_pulse();
@@ -348,7 +349,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void transmit(uint8
     delay_SPI_end_cycle();
 }
 
-_attribute_ram_code_ static void transmit_blk(uint8_t cd, const uint8_t * pdata, size_t size_data) {
+_attribute_ram_code_ static void transmit_blk(u8 cd, const u8 * pdata, size_t size_data) {
 	for (int i = 0; i < size_data; i++)
 		transmit(cd, pdata[i]);
 }
@@ -362,6 +363,7 @@ _attribute_ram_code_ void update_lcd(void){
 		if (memcmp(display_cmp_buff, display_buff, sizeof(display_buff))) {
 			memcpy(display_cmp_buff, display_buff, sizeof(display_buff));
 			lcd_flg.b.send_notify = lcd_flg.b.notify_on; // set flag LCD for send notify
+#ifdef 	DEF_EPD_REFRESH_CNT
 			if (lcd_refresh_cnt) {
 				lcd_refresh_cnt--;
 			} else {
@@ -369,6 +371,7 @@ _attribute_ram_code_ void update_lcd(void){
 //				lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
 //			    epd_updated = 0;
 			}
+#endif
 			stage_lcd = 1;
 		}
 	}
@@ -378,7 +381,9 @@ void init_lcd(void) {
 	// pulse RST_N low for 110 microseconds
     gpio_write(EPD_RST, LOW);
     sleep_us(110);
+#ifdef 	DEF_EPD_REFRESH_CNT
 	lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
+#endif
     stage_lcd = 1;
     epd_updated = 0;
     gpio_write(EPD_RST, HIGH);

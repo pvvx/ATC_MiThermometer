@@ -37,27 +37,27 @@
 #if (DEV_SERVICES & SERVICE_PLM)
 
 typedef struct _thsensor_coef_t {
-	uint32_t val1_k;	// temp_k / current_k
-	uint32_t val2_k;	// humi_k / voltage_k
-	int16_t val1_z;		// temp_z / current_z
-	int16_t val2_z;		// humi_z / voltage_z
+	u32 val1_k;	// temp_k / current_k
+	u32 val2_k;	// humi_k / voltage_k
+	s16 val1_z;		// temp_z / current_z
+	s16 val2_z;		// humi_z / voltage_z
 } sensor_coef_t; // [12]
 
 typedef struct _sensor_def_cfg_t {
 	sensor_coef_t coef;
-	uint32_t measure_timeout;
-	uint8_t sensor_type; // SENSOR_TYPES
+	u32 measure_timeout;
+	u8 sensor_type; // SENSOR_TYPES
 } sensor_def_cfg_t;
 
 typedef struct _sensor_cfg_t {
 	sensor_coef_t coef;
-	uint32_t id;
-	uint8_t i2c_addr;
-	uint8_t sensor_type; // SENSOR_TYPES
+	u32 id;
+	u8 i2c_addr;
+	u8 sensor_type; // SENSOR_TYPES
 	// not saved
 #if SENSOR_SLEEP_MEASURE
-	volatile uint32_t time_measure;
-	uint32_t measure_timeout;
+	volatile u32 time_measure;
+	u32 measure_timeout;
 #endif
 } sensor_cfg_t;
 
@@ -67,16 +67,16 @@ extern sensor_cfg_t sensor_cfg;
 #endif
 
 typedef struct {
-	uint32_t	tic;
-	uint16_t	ubase;
-	uint16_t	rh;
-	uint16_t	ntc;
-	uint16_t	cal_mv;
+	u32	tic;
+	u16	ubase;
+	u16	rh;
+	u16	ntc;
+	u16	cal_mv;
 } rh_t;
 
 extern rh_t rh;
 
-//uint16_t get_adc_rh_mv(void);
+//u16 get_adc_rh_mv(void);
 
 void calibrate_rh(void);
 int	read_sensor_cb(void);

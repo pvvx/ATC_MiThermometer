@@ -12,6 +12,7 @@ $(OUT_PATH)/src/lcd_mjwsd05mmc_en.o \
 $(OUT_PATH)/src/lcd_mho_c122.o \
 $(OUT_PATH)/src/lcd_th03.o \
 $(OUT_PATH)/src/lcd_lktmzl02.o \
+$(OUT_PATH)/src/lcd_zy_zth02pro.o \
 $(OUT_PATH)/src/lcd_zth05z.o \
 $(OUT_PATH)/src/epd_cgg1.o \
 $(OUT_PATH)/src/epd_cgg1n.o \
@@ -38,6 +39,7 @@ $(OUT_PATH)/src/ccm.o \
 $(OUT_PATH)/src/custom_beacon.o \
 $(OUT_PATH)/src/mi_beacon.o \
 $(OUT_PATH)/src/bthome_beacon.o \
+$(OUT_PATH)/src/scanning.o \
 $(OUT_PATH)/src/main.o
 
 

@@ -4,7 +4,6 @@
  *  Created on: 16.02.2021
  *      Author: pvvx
  */
-#include <stdint.h>
 #include "tl_common.h"
 #if USE_MIHOME_BEACON
 #include "app_config.h"
@@ -22,34 +21,34 @@
 
 /* Encrypted mi nonce */
 typedef struct __attribute__((packed)) _mi_beacon_nonce_t{
-    uint8_t  mac[6];
-	uint16_t pid;
+    u8  mac[6];
+	u16 pid;
 	union {
 		struct {
-			uint8_t  cnt;
-			uint8_t  ext_cnt[3];
+			u8  cnt;
+			u8  ext_cnt[3];
 		};
-		uint32_t cnt32;
+		u32 cnt32;
     };
 } mi_beacon_nonce_t, * pmi_beacon_nonce_t;
 
 //// Init data
-// RAM uint8_t bindkey[16];
+// RAM u8 bindkey[16];
 RAM mi_beacon_nonce_t beacon_nonce;
 /// Vars
 typedef struct _mi_beacon_data_t { // out data
-	int16_t temp;	// x0.1 C
-	uint16_t humi;	// x0.1 %
-	uint8_t batt;	// 0..100 %
-	uint8_t stage;
+	s16 temp;	// x0.1 C
+	u16 humi;	// x0.1 %
+	u8 batt;	// 0..100 %
+	u8 stage;
 } mi_beacon_data_t;
 RAM mi_beacon_data_t mi_beacon_data;
 
 typedef struct _summ_data_t { // calk summ data
-	uint32_t	batt; // mv
-	int32_t		temp; // x 0.01 C
-	uint32_t	humi; // x 0.01 %
-	uint32_t 	count;
+	u32	batt; // mv
+	s32	temp; // x 0.01 C
+	u32	humi; // x 0.01 %
+	u32 count;
 } mib_summ_data_t;
 RAM mib_summ_data_t mib_summ_data;
 
@@ -83,9 +82,9 @@ void mi_encrypt_data_beacon(void) {
 	if (++mi_beacon_data.stage > 2) {
 		mi_beacon_data.stage = 0;
 		if(mib_summ_data.count) {
-			mi_beacon_data.temp = ((int16_t)(mib_summ_data.temp/(int32_t)mib_summ_data.count) + 5)/10;
-			mi_beacon_data.humi = ((uint16_t)(mib_summ_data.humi/mib_summ_data.count)  + 5)/10;
-			mi_beacon_data.batt = get_battery_level((uint16_t)(mib_summ_data.batt/mib_summ_data.count));
+			mi_beacon_data.temp = ((s16)(mib_summ_data.temp/(s32)mib_summ_data.count) + 5)/10;
+			mi_beacon_data.humi = ((u16)(mib_summ_data.humi/mib_summ_data.count)  + 5)/10;
+			mi_beacon_data.batt = get_battery_level((u16)(mib_summ_data.batt/mib_summ_data.count));
 			memset(&mib_summ_data, 0, sizeof(mib_summ_data));
 		} else {
 			mi_beacon_data.temp = measured_data.temp_x01;
@@ -145,24 +144,24 @@ void mi_encrypt_data_beacon(void) {
 	p->head.fctrl.word = 0x5858; // 0x5858 version = 5, encrypted, MACInclude, ObjectInclude
 #endif
 	p->head.size = data.size + sizeof(p->head) - sizeof(p->head.size) + sizeof(p->MAC) + sizeof(p->data.id) + sizeof(p->data.size) + sizeof(beacon_nonce.ext_cnt) + 4; //size data + size head + size MAC + size data head + size counter bit8..31 bits + size mic 32 bits - 1
-	uint8_t * pmic = (uint8_t *)p;
+	u8 * pmic = (u8 *)p;
 	pmic += data.size + sizeof(p->head) + sizeof(p->MAC) + sizeof(p->data.id) + sizeof(p->data.size);
 	*pmic++ = beacon_nonce.ext_cnt[0];
 	*pmic++ = beacon_nonce.ext_cnt[1];
 	*pmic++ = beacon_nonce.ext_cnt[2];
-    uint8_t aad = 0x11;
+    u8 aad = 0x11;
 	aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey, // указатель на ключ, аналог от MiHome
-						   (uint8_t*)&beacon_nonce, sizeof(beacon_nonce), // MAC и всякие ID устройства, 32-х битный счетчик
+						   (u8*)&beacon_nonce, sizeof(beacon_nonce), // MAC и всякие ID устройства, 32-х битный счетчик
 						   &aad, sizeof(aad),  // add = 0x11
-						   (uint8_t *)&data, data.size + sizeof(p->data.id) + sizeof(p->data.size), // + size data head,  указатель на шифруемые данные
-						   (uint8_t *)&p->data, // указатель куда писать результат
+						   (u8 *)&data, data.size + sizeof(p->data.id) + sizeof(p->data.size), // + size data head,  указатель на шифруемые данные
+						   (u8 *)&p->data, // указатель куда писать результат
 						   pmic, 4); // указатель куда писать типа подпись-"контрольную сумму" шифра
 }
 #if (DEV_SERVICES & SERVICE_RDS)
 /* n - RDS_TYPES */
-void mi_encrypt_event_beacon(uint8_t n) {
+void mi_encrypt_event_beacon(u8 n) {
 	padv_mi_cr_ev1_t p = (padv_mi_cr_ev1_t)&adv_buf.data;
-	uint8_t * pmic;
+	u8 * pmic;
 	p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 	p->head.UUID = ADV_XIAOMI_UUID16; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
 #if 0
@@ -177,7 +176,7 @@ void mi_encrypt_event_beacon(uint8_t n) {
 	p->head.fctrl.word = 0x5848; // 0x5848 version = 5, encrypted, no MACInclude, ObjectInclude, AuthMode 2
 #endif
 	p->head.dev_id = XIAOMI_DID;
-	p->head.counter = (uint8_t)adv_buf.send_count;
+	p->head.counter = (u8)adv_buf.send_count;
 	if (n == RDS_SWITCH) {
 		p->head.size = sizeof(adv_mi_cr_ev1_t) - sizeof(p->head.size);
 		p->data.id = XIAOMI_DATA_ID_DoorSensor;
@@ -198,12 +197,12 @@ void mi_encrypt_event_beacon(uint8_t n) {
 	*pmic++ = beacon_nonce.ext_cnt[0];
 	*pmic++ = beacon_nonce.ext_cnt[1];
 	*pmic++ = beacon_nonce.ext_cnt[2];
-    uint8_t aad = 0x11;
+    u8 aad = 0x11;
 	aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey,
-						   (uint8_t*)&beacon_nonce, sizeof(beacon_nonce),
+						   (u8*)&beacon_nonce, sizeof(beacon_nonce),
 						   &aad, sizeof(aad),
-						   (uint8_t *)&p->data, adv_buf.data_size - sizeof(p->head) - 7,
-						   (uint8_t *)&p->data,
+						   (u8 *)&p->data, adv_buf.data_size - sizeof(p->head) - 7,
+						   (u8 *)&p->data,
 						   pmic, 4);
 }
 #endif // (DEV_SERVICES & SERVICE_RDS)
@@ -240,14 +239,14 @@ void mi_data_beacon(void) {
 		p->data.size = 1;
 		p->data.t0a.battery_level = measured_data.battery_level; // Battery percentage, Range: 0-100
 	}
-	p->head.counter = (uint8_t)adv_buf.send_count;
+	p->head.counter = (u8)adv_buf.send_count;
 	p->head.size = p->data.size + sizeof(p->head) - sizeof(p->head.size) + sizeof(p->MAC) + sizeof(p->data.id) + sizeof(p->data.size);
 }
 
 #if (DEV_SERVICES & SERVICE_RDS)
 /* Create mi event beacon packet */
 __attribute__((optimize("-Os")))
-void mi_event_beacon(uint8_t n){
+void mi_event_beacon(u8 n){
 	padv_mi_ev1_t p = (padv_mi_ev1_t)&adv_buf.data;
 	p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 	p->head.UUID = ADV_XIAOMI_UUID16; // 16-bit UUID for Members 0xFE95 Xiaomi Inc.
@@ -263,7 +262,7 @@ void mi_event_beacon(uint8_t n){
 	p->head.fctrl.word = 0x5840; // 0x5840 version = 5, not encrypted, no MACInclude, ObjectInclude, AuthMode 2
 #endif
 	p->head.dev_id = XIAOMI_DID;
-	p->head.counter = (uint8_t)adv_buf.send_count;
+	p->head.counter = (u8)adv_buf.send_count;
 	if (n == RDS_SWITCH) {
 		p->head.size = sizeof(adv_mi_ev1_t) - sizeof(p->head.size);
 		p->data.id = XIAOMI_DATA_ID_DoorSensor;

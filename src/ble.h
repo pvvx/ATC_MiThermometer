@@ -1,49 +1,39 @@
-#pragma once
+#ifndef _BLE_H_
+#define _BLE_H_
 
-#include <stdbool.h>
-#include <stdint.h>
 #include "app.h"
 #include "stack/ble/ble.h"
 
 #define BTHOME_UUID16 0xFCD2 // 16-bit UUID Service 0xFCD2 BTHOME
 
-extern uint8_t mac_public[6], mac_random_static[6];
-extern uint8_t ble_name[MAX_DEV_NAME_LEN + 2];
+extern u8 mac_public[6];
+extern u8 mac_random_static[6];
+extern u8 ble_name[MAX_DEV_NAME_LEN + 2];
 
+// adv_buf.ext_adv_init;
 enum {
-	OTA_NONE = 0,
-	OTA_WORK,
-	OTA_WAIT,
-	OTA_EXTENDED
-} OTA_STAGES;
-extern uint8_t ota_is_working; // OTA_STAGES
+	EXT_ADV_Off = 0,	// Legacy
+	EXT_ADV_Coded,		// LE long range (PHY Coded)
+	EXT_ADV_1M			// Extension Advertise (PHY 1M)
+};
 
-enum {
-	CONNECTED_FLG_ENABLE = 0,
-	CONNECTED_FLG_PAR_UPDATE = 1,
-	CONNECTED_FLG_BONDING = 2,
-	CONNECTED_FLG_RESET_OF_DISCONNECT = 7
-} CONNECTED_FLG_BITS;
-extern uint8_t ble_connected; // BIT(CONNECTED_FLG_BITS): bit 0 - connected, bit 1 - conn_param_update, bit 2 - paring success, bit 7 - reset device on disconnect
-
-//extern uint32_t adv_send_count;
+//extern u32 adv_send_count;
 #if (DEV_SERVICES & SERVICE_LE_LR)
 #define ADV_BUFFER_SIZE		(62-3)
-extern u8	ext_adv_init; // flag ext_adv init
 #else
 #define ADV_BUFFER_SIZE		(31-3)
 #endif
 typedef struct _adv_buf_t {
-	uint32_t send_count; // count & id advertise, = beacon_nonce.cnt32
-	uint8_t meas_count;
-	uint8_t call_count; 	// count 1..update_count
-	uint8_t update_count;	// refresh adv_buf.data in next set_adv_data()
+	u32 send_count; // count & id advertise, = beacon_nonce.cnt32
+	u8 meas_count;
+	u8 call_count; 	// count 1..update_count
+	u8 update_count;	// refresh adv_buf.data in next set_adv_data()
 #if (DEV_SERVICES & SERVICE_LE_LR) // support extension advertise
-	uint8_t ext_adv_init; 	// flag ext_adv init
+	u8 ext_adv_init; 	// flag ext_adv init
 #endif
-	uint8_t data_size;		// Advertise data size
-	uint8_t flag[3];		// Advertise type flags
-	uint8_t data[ADV_BUFFER_SIZE];
+	u8 data_size;		// Advertise data size
+	u8 flag[3];		// Advertise type flags
+	u8 data[ADV_BUFFER_SIZE];
 }adv_buf_t;
 extern adv_buf_t adv_buf;
 
@@ -55,7 +45,7 @@ extern u16 anaValueInCCC;
 extern u16 RxTxValueInCCC;
 
 #define SEND_BUFFER_SIZE	(ATT_MTU_SIZE-3) // = 20
-extern uint8_t send_buf[SEND_BUFFER_SIZE];
+extern u8 send_buf[SEND_BUFFER_SIZE];
 extern u8 my_RxTx_Data[sizeof(cfg) + 2];
 
 #if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
@@ -252,3 +242,5 @@ inline void ble_send_cfg(void) {
 	memcpy(&my_RxTx_Data[2], &cfg, sizeof(cfg));
 	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, my_RxTx_Data, sizeof(cfg) + 3);
 }
+
+#endif //_BLE_H_

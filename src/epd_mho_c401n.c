@@ -2,7 +2,6 @@
  * epd_mho_c401n.c
  * Author: kloemi & pvvx
  */
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if DEVICE_TYPE == DEVICE_MHO_C401N
@@ -43,23 +42,23 @@ None: 0.1..0.3, 0.5..0.7, 2.3..2.7, 4.3..4.7, 5.1, 5,3, 5.5, 5.7, 6.1, 6.3, 6.7,
 */
 
 
-RAM uint8_t stage_lcd;
-RAM uint8_t epd_updated;
+RAM u8 stage_lcd;
+RAM u8 epd_updated;
 //#define DEF_EPD_REFRESH_CNT	2048
-//RAM uint16_t lcd_refresh_cnt;
+//RAM u16 lcd_refresh_cnt;
 
-const uint8_t T_LUT_ping[5] = {0x07B, 0x081, 0x0E4, 0x0E7, 0x008};
-const uint8_t T_LUT_init[14] = {0x082, 0x068, 0x050, 0x0E8, 0x0D0, 0x0A8, 0x065, 0x07B, 0x081, 0x0E4, 0x0E7, 0x008, 0x0AC, 0x02B };
-const uint8_t T_LUT_work[9] = {0x082, 0x080, 0x000, 0x0C0, 0x080, 0x080, 0x062, 0x0AC, 0x02B};
+const u8 T_LUT_ping[5] = {0x07B, 0x081, 0x0E4, 0x0E7, 0x008};
+const u8 T_LUT_init[14] = {0x082, 0x068, 0x050, 0x0E8, 0x0D0, 0x0A8, 0x065, 0x07B, 0x081, 0x0E4, 0x0E7, 0x008, 0x0AC, 0x02B };
+const u8 T_LUT_work[9] = {0x082, 0x080, 0x000, 0x0C0, 0x080, 0x080, 0x062, 0x0AC, 0x02B};
 //----------------------------------
 // define segments
 // the data in the arrays consists of {byte, bit} pairs of each segment
 //----------------------------------
-const uint8_t top_left[22] =   { 8, 7,  9, 2,  9, 1,  9, 0,  8, 5,  8, 0,  8, 1,  8, 2,  8, 3,  8, 4,  8, 6};
-const uint8_t top_middle[22] = {10, 7, 11, 2, 11, 1, 11, 0, 10, 5, 10, 0, 10, 1, 10, 2, 10, 3, 10, 4, 10, 6};
-const uint8_t top_right[22] =  {12, 7, 13, 2, 13, 1, 13, 0, 12, 5, 12, 0, 12, 1, 12, 2, 12, 3, 12, 4, 12, 6};
-const uint8_t bottom_left[22] = {1, 7,  2, 2,  2, 1,  2, 0,  1, 5,  1, 0,  1, 1,  1, 2,  1, 3,  1, 4,  1, 6};
-const uint8_t bottom_right[22]= {3, 7,  4, 2,  4, 1,  4, 0,  3, 5,  3, 0,  3, 1,  3, 2,  3, 3,  3, 4,  3, 6};
+const u8 top_left[22] =   { 8, 7,  9, 2,  9, 1,  9, 0,  8, 5,  8, 0,  8, 1,  8, 2,  8, 3,  8, 4,  8, 6};
+const u8 top_middle[22] = {10, 7, 11, 2, 11, 1, 11, 0, 10, 5, 10, 0, 10, 1, 10, 2, 10, 3, 10, 4, 10, 6};
+const u8 top_right[22] =  {12, 7, 13, 2, 13, 1, 13, 0, 12, 5, 12, 0, 12, 1, 12, 2, 12, 3, 12, 4, 12, 6};
+const u8 bottom_left[22] = {1, 7,  2, 2,  2, 1,  2, 0,  1, 5,  1, 0,  1, 1,  1, 2,  1, 3,  1, 4,  1, 6};
+const u8 bottom_right[22]= {3, 7,  4, 2,  4, 1,  4, 0,  3, 5,  3, 0,  3, 1,  3, 2,  3, 3,  3, 4,  3, 6};
 
 // These values closely reproduce times captured with logic analyser
 #define delay_SPI_end_cycle() sleep_us(2)
@@ -79,7 +78,7 @@ Now define how each digit maps to the segments:
   6 :----------- 
 */
 
-const uint8_t digits[16][11] = {
+const u8 digits[16][11] = {
     {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0},  // 0
     {2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0},   // 1
     {1, 2, 3, 5, 6, 7, 8, 10, 11, 0, 0}, // 2
@@ -107,7 +106,7 @@ const uint8_t digits[16][11] = {
  * 0xC0 = " ="
  * 0xE0 = "°E" */
 _attribute_ram_code_
-void show_temp_symbol(uint8_t symbol) {
+void show_temp_symbol(u8 symbol) {
  	if (symbol & 0x20)
 		display_buff[14] |= BIT(4); // "Г", "%", "( )", "."
 	else
@@ -130,7 +129,7 @@ void show_temp_symbol(uint8_t symbol) {
  * 6 = "^-^" sad
  * 7 = "oOo" */
 _attribute_ram_code_
-void show_smiley(uint8_t state){
+void show_smiley(u8 state){
  	// off
 	display_buff[5] &= ~(BIT(2) | BIT(4) | BIT(6)); // do not reset %
 	display_buff[6] = 0;
@@ -196,7 +195,7 @@ void show_connected_symbol(bool state){
 
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-static void epd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
+static void epd_set_digit(u8 *buf, u8 digit, const u8 *segments) {
     // set the segments, there are up to 11 segments in a digit
     int segment_byte;
     int segment_bit;
@@ -219,7 +218,7 @@ static void epd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) 
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-void show_big_number_x10(int16_t number){
+void show_big_number_x10(s16 number){
 	display_buff[8] = 0;
 	display_buff[9] = 0;
 	display_buff[10] = 0;
@@ -266,7 +265,7 @@ void show_big_number_x10(int16_t number){
 /* -9 .. 99 */
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-void show_small_number(int16_t number, bool percent){
+void show_small_number(s16 number, bool percent){
 	display_buff[1] = 0;
 	display_buff[2] = 0;
 	display_buff[3] = 0;
@@ -298,7 +297,7 @@ void show_small_number(int16_t number, bool percent){
 
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
-static void transmit(uint8_t cd, uint8_t data_to_send) {
+static void transmit(u8 cd, u8 data_to_send) {
     gpio_write(EPD_SCL, LOW);
     gpio_write(EPD_CSB, LOW);
     delay_EPD_SCL_pulse();
@@ -334,7 +333,7 @@ static void transmit(uint8_t cd, uint8_t data_to_send) {
 }
 
 _attribute_ram_code_
-static void transmit_blk(uint8_t cd, const uint8_t * pdata, size_t size_data) {
+static void transmit_blk(u8 cd, const u8 * pdata, size_t size_data) {
 	for (int i = 0; i < size_data; i++)
 		transmit(cd, pdata[i]);
 }
@@ -427,9 +426,9 @@ int task_lcd(void) {
 #if	USE_DISPLAY_CLOCK
 _attribute_ram_code_
 void show_clock(void) {
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = tmp / 60 % 24;
+	u32 tmp = wrk.utc_time_sec / 60;
+	u32 min = tmp % 60;
+	u32 hrs = tmp / 60 % 24;
 	memset(display_buff, 0, sizeof(display_buff));
 	epd_set_digit(display_buff, min / 10 % 10, bottom_left);
 	epd_set_digit(display_buff, min % 10, bottom_right);

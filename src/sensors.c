@@ -1,11 +1,10 @@
-#include <stdint.h>
 #include "tl_common.h"
-#include "drivers.h"
-#include "vendor/common/user_config.h"
 #include "app_config.h"
 
 #if (DEV_SERVICES & SERVICE_THS)
 
+#include "drivers.h"
+#include "vendor/common/user_config.h"
 #include "drivers/8258/gpio_8258.h"
 #include "drivers/8258/pm.h"
 
@@ -281,7 +280,7 @@ RAM sensor_cfg_t sensor_cfg;
 
 
 _attribute_ram_code_
-static uint8_t sensor_crc(uint8_t crc) {
+static u8 sensor_crc(u8 crc) {
 	int i;
 	for(i = 8; i > 0; i--) {
 		if (crc & 0x80)
@@ -296,9 +295,9 @@ static uint8_t sensor_crc(uint8_t crc) {
 #if USE_SENSOR_AHT20_30
 
 _attribute_ram_code_
-static uint8_t sensor_crc_buf(uint8_t * msg, int len) {
+static u8 sensor_crc_buf(u8 * msg, int len) {
 	int i;
-	uint8_t crc = 0xff;
+	u8 crc = 0xff;
 	for(i = 0; i < len; i++) {
 		crc = sensor_crc(crc ^ msg[i]);
 	}
@@ -307,23 +306,23 @@ static uint8_t sensor_crc_buf(uint8_t * msg, int len) {
 
 _attribute_ram_code_
 static int start_measure_aht2x(void) {
-	const uint8_t data[3] = {AHT2x_CMD_TMS, AHT2x_DATA1_TMS, AHT2x_DATA2_TMS};
+	const u8 data[3] = {AHT2x_CMD_TMS, AHT2x_DATA1_TMS, AHT2x_DATA2_TMS};
 	// 04000070ac3300
-	return send_i2c_buf(sensor_cfg.i2c_addr, (uint8_t *)data, sizeof(data));
+	return send_i2c_buf(sensor_cfg.i2c_addr, (u8 *)data, sizeof(data));
 }
 
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 static int read_sensor_aht2x(void) {
-	uint32_t _temp;
-	uint8_t data[7];
+	u32 _temp;
+	u8 data[7];
 	// 04000771
 	if(read_i2c_buf(sensor_cfg.i2c_addr, data, sizeof(data)) == 0
 	    && (data[0] & 0x80) == 0
 	    && sensor_crc_buf(data, sizeof(data)) == 0) {
 			_temp = (data[3] & 0x0F) << 16 | (data[4] << 8) | data[5];
-			measured_data.temp = ((uint32_t)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C // 16500 -4000
+			measured_data.temp = ((u32)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C // 16500 -4000
 			_temp = (data[1] << 12) | (data[2] << 4) | (data[3] >> 4);
-			measured_data.humi = ((uint32_t)(_temp * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 % // 10000 -0
+			measured_data.humi = ((u32)(_temp * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 % // 10000 -0
 			if (measured_data.humi < 0) measured_data.humi = 0;
 			else if (measured_data.humi > 9999) measured_data.humi = 9999;
 			measured_data.count++;
@@ -342,14 +341,14 @@ static int read_sensor_aht2x(void) {
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 static int read_sensor_cht8305(void) {
-	uint32_t _temp, i = 3;
-	uint8_t reg_data[4];
+	u32 _temp, i = 3;
+	u8 reg_data[4];
 	while(i--) {
 		if (!read_i2c_buf(sensor_cfg.i2c_addr, reg_data, sizeof(reg_data))) {
 			_temp = (reg_data[0] << 8) | reg_data[1];
-			measured_data.temp = ((uint32_t)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C // 16500 -4000
+			measured_data.temp = ((u32)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C // 16500 -4000
 			_temp = (reg_data[2] << 8) | reg_data[3];
-			measured_data.humi = ((uint32_t)(_temp * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 % // 10000 -0
+			measured_data.humi = ((u32)(_temp * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 % // 10000 -0
 			if (measured_data.humi < 0) measured_data.humi = 0;
 			else if (measured_data.humi > 9999) measured_data.humi = 9999;
 			measured_data.count++;
@@ -368,15 +367,15 @@ static int read_sensor_cht8305(void) {
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 static int read_sensor_cht8215(void) {
-	uint32_t _temp, i = 3;
-	uint8_t reg_data[4];
+	u32 _temp, i = 3;
+	u8 reg_data[4];
 	while(i--) {
 		if ((!read_i2c_byte_addr(sensor_cfg.i2c_addr, CHT8215_REG_TMP, reg_data, 2))
 			&&(!read_i2c_byte_addr(sensor_cfg.i2c_addr, CHT8215_REG_HMD, &reg_data[2], 2))) {
 			_temp = (reg_data[0] << 8) | reg_data[1];
-			measured_data.temp = ((uint32_t)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C // 16500 -4000
+			measured_data.temp = ((u32)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C // 16500 -4000
 			_temp = (reg_data[2] << 8) | reg_data[3];
-			measured_data.humi = ((uint32_t)(_temp * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 % // 10000 -0
+			measured_data.humi = ((u32)(_temp * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 % // 10000 -0
 			if (measured_data.humi < 0) measured_data.humi = 0;
 			else if (measured_data.humi > 9999) measured_data.humi = 9999;
 			measured_data.count++;
@@ -394,20 +393,20 @@ _attribute_ram_code_ __attribute__((optimize("-Os")))
 static int read_sensor_sht30_shtc3_sht4x(void) {
 	int ret = 0;
 	int i;
-	uint16_t _temp;
-	uint16_t _humi;
+	u16 _temp;
+	u16 _humi;
 #ifndef I2C_GROUP
-	uint8_t buf[6];
+	u8 buf[6];
 	i = 256;
 #else
-	uint8_t crc; // calculated checksum
-	uint8_t data;
+	u8 crc; // calculated checksum
+	u8 data;
 	i = 512;
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 		init_i2c();
 #if (I2C_MAX_SPEED > 400000)
-	uint8_t r = reg_i2c_speed;
-	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*I2C_MAX_SPEED)); // 700 kHz
+	u8 r = reg_i2c_speed;
+	reg_i2c_speed = (u8)(CLOCK_SYS_CLOCK_HZ/(4*I2C_MAX_SPEED)); // 700 kHz
 #endif
 #if (DEVICE_TYPE == DEVICE_CGDK2) // SHTC3
 	if(sensor_cfg.id == 0xBDC3)
@@ -494,8 +493,8 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 			if (crc == data && _temp != 0xffff) {
 #endif
 #endif
-				measured_data.temp = ((int32_t)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C //17500 - 4500
-				measured_data.humi = ((uint32_t)(_humi * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 %	   // 10000 -0
+				measured_data.temp = ((s32)(_temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C //17500 - 4500
+				measured_data.humi = ((u32)(_humi * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 %	   // 10000 -0
 				if (measured_data.humi < 0) measured_data.humi = 0;
 				else if (measured_data.humi > 9999) measured_data.humi = 9999;
 				measured_data.count++;
@@ -539,7 +538,7 @@ static int check_sensor(void) {
 	int test_i2c_addr = SHT4x_I2C_ADDR << 1; // or SHT30_I2C_ADDR
 #endif
 #endif
-	uint8_t buf[8];
+	u8 buf[8];
 	sensor_def_cfg_t *ptabinit = NULL;
 	sensor_cfg.sensor_type = TH_SENSOR_NONE;
 #if SENSOR_SLEEP_MEASURE
@@ -549,7 +548,7 @@ static int check_sensor(void) {
 #if USE_SENSOR_SHTC3
 	// cfg.hw_cfg.shtc3 = 0;
 	// Scan I2C addr 0x70
-	if ((sensor_cfg.i2c_addr = (uint8_t) scan_i2c_addr(SHTC3_I2C_ADDR << 1)) != 0) {
+	if ((sensor_cfg.i2c_addr = (u8) scan_i2c_addr(SHTC3_I2C_ADDR << 1)) != 0) {
 		// SHTC3
 		if(!send_i2c_word(SHTC3_I2C_ADDR << 1, SHTC3_WAKEUP)) { //	Wake-up command of the SHTC3 sensor
 			sleep_us(SHTC3_WAKEUP_us);	// 240 us
@@ -570,7 +569,7 @@ static int check_sensor(void) {
 #endif
 #if USE_SENSOR_AHT20_30
 	// Scan I2C addr 0x38
-	 if ((sensor_cfg.i2c_addr = (uint8_t) scan_i2c_addr(AHT2x_I2C_ADDR << 1)) != 0) {
+	 if ((sensor_cfg.i2c_addr = (u8) scan_i2c_addr(AHT2x_I2C_ADDR << 1)) != 0) {
 		// AHT2x..30
 		// pm_wait_us(AHT2x_POWER_TIMEOUT_us);
 		if(!send_i2c_byte(sensor_cfg.i2c_addr, AHT2x_CMD_RST)) { // Soft reset command
@@ -588,7 +587,7 @@ static int check_sensor(void) {
 	 {
 #if (USE_SENSOR_CHT8305 || USE_SENSOR_CHT8215 || USE_SENSOR_SHT4X || USE_SENSOR_SHT30)
 		do {
-			if((sensor_cfg.i2c_addr = (uint8_t) scan_i2c_addr(test_i2c_addr)) != 0) {
+			if((sensor_cfg.i2c_addr = (u8) scan_i2c_addr(test_i2c_addr)) != 0) {
 #if (USE_SENSOR_CHT8305 || USE_SENSOR_CHT8215)
 				if(sensor_cfg.i2c_addr <= (CHT8305_I2C_ADDR_MAX << 1)) {
 					// I2C addr 0x40..0x43
@@ -621,7 +620,7 @@ static int check_sensor(void) {
 #if USE_SENSOR_CHT8215
 						if(sensor_cfg.id == ((CHT8215_VID << 16) | CHT8215_MID)) {
 							//sensor_cfg.sensor_type = TH_SENSOR_CHT8215;
-							if(measurement_step_time >= 5000 * CLOCK_16M_SYS_TIMER_CLK_1MS) { // > 5 sec
+							if(wrk.measurement_step_time >= 5000 * CLOCK_16M_SYS_TIMER_CLK_1MS) { // > 5 sec
 								buf[0] = CHT8215_REG_CRT;
 								buf[1] = 0x03;
 								buf[2] = 0;

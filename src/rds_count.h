@@ -33,28 +33,28 @@ enum {
 } RDS_TYPES;
 
 typedef struct _rds_count_t {
-	uint32_t report_tick; // timer reed switch count report interval (utc_time_sec)
+	u32 report_tick; // timer reed switch count report interval (wrk.utc_time_sec)
 	union {				// rs1 counter pulses
-		uint8_t count1_byte[4];
-		uint16_t count1_short[2];
-		uint32_t count1;
+		u8 count1_byte[4];
+		u16 count1_short[2];
+		u32 count1;
 	};
 /*
 #ifdef GPIO_RDS2
 	union {				// rs2 counter pulses
-		uint8_t count2_byte[4];
-		uint16_t count2_short[2];
-		uint32_t count2;
+		u8 count2_byte[4];
+		u16 count2_short[2];
+		u32 count2;
 	};
 #endif
 */
-	uint8_t event;  // Reed Switch event
+	u8 event;  // Reed Switch event
 } rds_count_t;
 extern rds_count_t rds;		// Reed switch pulse counter
 
 #ifdef GPIO_RDS1
-static inline uint8_t get_rds1_input(void) {
-	uint8_t r = BM_IS_SET(reg_gpio_in(GPIO_RDS1), GPIO_RDS1 & 0xff)? 1 : 0;
+static inline u8 get_rds1_input(void) {
+	u8 r = BM_IS_SET(reg_gpio_in(GPIO_RDS1), GPIO_RDS1 & 0xff)? 1 : 0;
 	if(trg.rds.rs1_invert)
 		r ^= 1;
 	return r;
@@ -71,8 +71,8 @@ static inline void rds1_input_off(void) {
 #endif
 
 #ifdef GPIO_RDS2
-static inline uint8_t get_rds2_input(void) {
-	uint8_t r = BM_IS_SET(reg_gpio_in(GPIO_RDS2), GPIO_RDS2 & 0xff)? 1 : 0;
+static inline u8 get_rds2_input(void) {
+	u8 r = BM_IS_SET(reg_gpio_in(GPIO_RDS2), GPIO_RDS2 & 0xff)? 1 : 0;
 	if(trg.rds.rs2_invert)
 		r ^= 1;
 	return r;

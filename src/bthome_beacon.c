@@ -5,7 +5,6 @@
  *      Author: pvvx
  */
 
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if USE_BTHOME_BEACON
@@ -24,14 +23,6 @@
 
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 
-/* Encrypted bthome nonce */
-typedef struct __attribute__((packed)) _bthome_beacon_nonce_t{
-    uint8_t  mac[6];
-    uint16_t uuid16;	// = 0xfcd2
-    uint8_t  info;		// = 0x41
-	uint32_t cnt32;
-} bthome_beacon_nonce_t, * pbthome_beacon_nonce_t;
-
 RAM bthome_beacon_nonce_t bthome_nonce;
 
 void bthome_beacon_init(void) {
@@ -43,27 +34,27 @@ void bthome_beacon_init(void) {
 // BTHOME adv security
 typedef struct __attribute__((packed)) _adv_bthome_encrypt_t {
 	adv_head_bth_t head; 	// 4 bytes
-	uint8_t info;			// 1 byte
-	uint8_t data[23];		// max 31-3-5 = 23 bytes
+	u8 info;			// 1 byte
+	u8 data[23];		// max 31-3-5 = 23 bytes
 } adv_bthome_encrypt_t, * padv_bthome_encrypt_t;
 
 /* Encrypt bthome data beacon packet */
 _attribute_ram_code_ __attribute__((optimize("-Os")))
-static void bthome_encrypt(uint8_t *pdata, uint32_t data_size) {
+static void bthome_encrypt(u8 *pdata, u32 data_size) {
 	padv_bthome_encrypt_t p = (padv_bthome_encrypt_t)&adv_buf.data;
 	p->head.size = data_size + sizeof(p->head) - sizeof(p->head.size) + sizeof(p->info) + 4 + 4; // + mic + count
 	adv_buf.data_size = p->head.size + 1;
 	p->head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 	p->head.UUID = bthome_nonce.uuid16;
 	p->info = bthome_nonce.info;
-	uint8_t *pmic = &adv_buf.data[data_size + sizeof(p->head) + sizeof(p->info)];
-	*pmic++ = (uint8_t)adv_buf.send_count;
-	*pmic++ = (uint8_t)(adv_buf.send_count>>8);
-	*pmic++ = (uint8_t)(adv_buf.send_count>>16);
-	*pmic++ = (uint8_t)(adv_buf.send_count>>24);
+	u8 *pmic = &adv_buf.data[data_size + sizeof(p->head) + sizeof(p->info)];
+	*pmic++ = (u8)adv_buf.send_count;
+	*pmic++ = (u8)(adv_buf.send_count>>8);
+	*pmic++ = (u8)(adv_buf.send_count>>16);
+	*pmic++ = (u8)(adv_buf.send_count>>24);
 	bthome_nonce.cnt32 = adv_buf.send_count;
 	aes_ccm_encrypt_and_tag((const unsigned char *)&bindkey,
-					   (uint8_t*)&bthome_nonce, sizeof(bthome_nonce),
+					   (u8*)&bthome_nonce, sizeof(bthome_nonce),
 					   NULL, 0,
 					   pdata, data_size,
 					   p->data,
@@ -73,7 +64,7 @@ static void bthome_encrypt(uint8_t *pdata, uint32_t data_size) {
 /* Create encrypted bthome data beacon packet */
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void bthome_encrypt_data_beacon(void) {
-	uint8_t buf[16];
+	u8 buf[16];
 	if (adv_buf.call_count < cfg.measure_interval) {
 		padv_bthome_data1_t p = (padv_bthome_data1_t)&buf;
 		p->b_id = BtHomeID_battery;
@@ -139,8 +130,8 @@ void bthome_encrypt_data_beacon(void) {
 #if (DEV_SERVICES & SERVICE_RDS)
 // n = RDS_TYPES
 _attribute_ram_code_ __attribute__((optimize("-Os")))
-void bthome_encrypt_event_beacon(uint8_t n) {
-	uint8_t buf[16];
+void bthome_encrypt_event_beacon(u8 n) {
+	u8 buf[16];
 	padv_bthome_event1_t p = (padv_bthome_event1_t)&buf;
 	p->o1_id = BtHomeID_opened;
 	p->opened1 = trg.flg.rds1_input;
@@ -164,7 +155,7 @@ void bthome_data_beacon(void) {
 	p->info = BtHomeID_Info;
 	p->p_id = BtHomeID_PacketId;
 	if (adv_buf.call_count < cfg.measure_interval) {
-		p->pid = (uint8_t)adv_buf.send_count;
+		p->pid = (u8)adv_buf.send_count;
 		p->data.b_id = BtHomeID_battery;
 		p->data.battery_level = measured_data.battery_level;
 #if (DEV_SERVICES & SERVICE_18B20)
@@ -196,7 +187,7 @@ void bthome_data_beacon(void) {
 		padv_bthome_ns2_t p = (padv_bthome_ns2_t)&adv_buf.data;
 		adv_buf.call_count = 1;
 		adv_buf.send_count++;
-		p->pid = (uint8_t)adv_buf.send_count;
+		p->pid = (u8)adv_buf.send_count;
 #if (DEV_SERVICES & SERVICE_IUS)
 		p->data.e_id = BtHomeID_energy32;
 		p->data.energy = measured_data.energy; // x mW
@@ -227,13 +218,13 @@ void bthome_data_beacon(void) {
 #if (DEV_SERVICES & SERVICE_RDS)
 // n = RDS_TYPES
 _attribute_ram_code_ __attribute__((optimize("-Os")))
-void bthome_event_beacon(uint8_t n) {
+void bthome_event_beacon(u8 n) {
 	padv_bthome_ns_ev1_t p = (padv_bthome_ns_ev1_t)&adv_buf.data;
 	p->head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 	p->head.UUID = ADV_BTHOME_UUID16;
 	p->info = BtHomeID_Info;
 	p->p_id = BtHomeID_PacketId;
-	p->pid = (uint8_t)adv_buf.send_count;
+	p->pid = (u8)adv_buf.send_count;
 	p->head.size = sizeof(adv_bthome_ns_ev1_t) - sizeof(p->head.size);
 	p->data.o1_id = BtHomeID_opened;
 	p->data.opened1 = trg.flg.rds1_input;

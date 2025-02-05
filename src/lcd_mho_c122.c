@@ -6,7 +6,6 @@
  *
  *  https://github.com/pvvx/ATC_MiThermometer/issues/339
  */
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if DEVICE_TYPE == DEVICE_MHO_C122
@@ -41,10 +40,10 @@
 None: 3.3 ?
 */
 
-RAM uint8_t lcd_i2c_addr;
+RAM u8 lcd_i2c_addr;
 
 #define lcd_send_i2c_byte(a)  send_i2c_byte(lcd_i2c_addr, a)
-#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (uint8_t *) b, a)
+#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (u8 *) b, a)
 
 #define LCD_SYM_H	0b01100111	// "H"
 #define LCD_SYM_i	0b00000100	// "i"
@@ -54,12 +53,12 @@ RAM uint8_t lcd_i2c_addr;
 #define LCD_SYM_BLE	BIT(7)	// BLE connect
 #define LCD_SYM_BAT	BIT(7)	// battery
 
-const uint8_t lcd_init_cmd_b14[] =	{0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
+const u8 lcd_init_cmd_b14[] =	{0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
 								//	{0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6};
-const uint8_t lcd_init_clr_b14[] =	{0x80,0x40,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0};
+const u8 lcd_init_clr_b14[] =	{0x80,0x40,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0};
 
 /* 0,1,2,3,4,5,6,7,8,9,A,b,C,d,E,F*/
-const uint8_t display_numbers[] = {
+const u8 display_numbers[] = {
 		0b11110101, // 0
 		0b01100000, // 1
 		0b10110110, // 2
@@ -76,7 +75,7 @@ const uint8_t display_numbers[] = {
 		0b11100110, // d
 		0b10010111, // E
 		0b00010111};  // F
-const uint8_t display_small_numbers[] = {
+const u8 display_small_numbers[] = {
 		0b01011111, // 0
 		0b00000110, // 1
 		0b00111101, // 2
@@ -97,7 +96,7 @@ const uint8_t display_small_numbers[] = {
 _attribute_ram_code_
 void send_to_lcd(void){
 	unsigned int buff_index;
-	uint8_t * p = display_buff;
+	u8 * p = display_buff;
 	if(cfg.flg2.screen_off)
 		return;
 	if (lcd_i2c_addr) {
@@ -123,14 +122,14 @@ void send_to_lcd(void){
 }
 
 void init_lcd(void){
-	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B14_I2C_ADDR << 1);
+	lcd_i2c_addr = (u8) scan_i2c_addr(B14_I2C_ADDR << 1);
 	if (lcd_i2c_addr) {
 // 		GPIO_PB6 set in app_config.h!
 //		gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 		if(!cfg.flg2.screen_off) {
 			pm_wait_ms(50);
-			lcd_send_i2c_buf((uint8_t *) lcd_init_cmd_b14, sizeof(lcd_init_cmd_b14));
-			lcd_send_i2c_buf((uint8_t *) lcd_init_clr_b14, sizeof(lcd_init_clr_b14));
+			lcd_send_i2c_buf((u8 *) lcd_init_cmd_b14, sizeof(lcd_init_cmd_b14));
+			lcd_send_i2c_buf((u8 *) lcd_init_clr_b14, sizeof(lcd_init_clr_b14));
 		}
 	}
 }
@@ -144,7 +143,7 @@ void init_lcd(void){
  * 0xC0 = " ="
  * 0xE0 = "°E" */
 _attribute_ram_code_
-void show_temp_symbol(uint8_t symbol) {
+void show_temp_symbol(u8 symbol) {
 	display_buff[3] &= ~(BIT(0) | BIT(1) | BIT(2));
 	if (symbol & 0x20)
 		display_buff[3] |= BIT(0);
@@ -163,7 +162,7 @@ void show_temp_symbol(uint8_t symbol) {
  * 6 = "(-^-)" sad
  * 7 = "(ooo)" */
 _attribute_ram_code_
-void show_smiley(uint8_t state){
+void show_smiley(u8 state){
 	display_buff[1] &= ~BIT(3);
 	display_buff[3] &= ~(BIT(5) | BIT(6));
 
@@ -193,7 +192,7 @@ void show_battery_symbol(bool state){
 
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
 _attribute_ram_code_
-__attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
+__attribute__((optimize("-Os"))) void show_big_number_x10(s16 number){
 	display_buff[0] = 0;
 	display_buff[1] &= BIT(3); // Clear digit (except smiley contour)
 	display_buff[2] = 0;
@@ -230,7 +229,7 @@ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 
 /* -9 .. 99 */
 _attribute_ram_code_
-__attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
+__attribute__((optimize("-Os"))) void show_small_number(s16 number, bool percent){
 	display_buff[4] &= LCD_SYM_BLE; //Clear digit (except BLE symbol)
 	display_buff[5] &= LCD_SYM_BAT; //Clear digit (except BAT symbol)
 
@@ -275,9 +274,9 @@ void show_reboot_screen(void) {
 #if	USE_DISPLAY_CLOCK
 _attribute_ram_code_
 void show_clock(void) {
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = tmp / 60 % 24;
+	u32 tmp = wrk.utc_time_sec / 60;
+	u32 min = tmp % 60;
+	u32 hrs = tmp / 60 % 24;
 
 	display_buff[0] = 0;
 	display_buff[1] &= BIT(3); //Clear digit (except smiley contour)

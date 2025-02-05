@@ -1,5 +1,4 @@
 /* Edited by huncrys https://github.com/huncrys */
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if DEVICE_TYPE == DEVICE_MJWSD05MMC_EN
@@ -15,12 +14,12 @@
 #include "battery.h"
 
 #define lcd_send_i2c_byte(a)  send_i2c_byte(lcd_i2c_addr, a)
-#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (uint8_t *) b, a)
+#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (u8 *) b, a)
 
-RAM uint8_t lcd_i2c_addr;
+RAM u8 lcd_i2c_addr;
 RAM lcd_flg_t lcd_flg;
-RAM uint8_t display_buff[LCD_BUF_SIZE];
-RAM uint8_t display_cmp_buff[LCD_BUF_SIZE];
+RAM u8 display_buff[LCD_BUF_SIZE];
+RAM u8 display_cmp_buff[LCD_BUF_SIZE];
 
 
 /* MJWSD05MMC LCD buffer:  byte.bit
@@ -93,7 +92,7 @@ Now define how each digit maps to the segments:
     -----4-----
 */
 
-const uint8_t digits[16][DEF_MJWSD05MMC_SUMBOL_SIGMENTS + 1] = {
+const u8 digits[16][DEF_MJWSD05MMC_SUMBOL_SIGMENTS + 1] = {
     {1, 2, 3, 4, 5, 6, 0, 0}, // 0
     {2, 3, 0, 0, 0, 0, 0, 0}, // 1
     {1, 2, 4, 5, 7, 0, 0, 0}, // 2
@@ -116,8 +115,8 @@ const uint8_t digits[16][DEF_MJWSD05MMC_SUMBOL_SIGMENTS + 1] = {
 // define segments
 // the data in the arrays consists of {byte, bit} pairs of each segment
 //----------------------------------
-//const uint8_t sb_s1_0[2] = {4,0x10};
-const uint8_t sb_s1[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
+//const u8 sb_s1_0[2] = {4,0x10};
+const u8 sb_s1[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
 		{3,0x10, 3,0x20, 3,0x40, 3,0x80, 3,0x08, 3,0x02, 3,0x04},
 		{2,0x10, 2,0x20, 2,0x40, 2,0x80, 2,0x08, 2,0x02, 2,0x04},
 		// "." 13,0x01
@@ -132,16 +131,16 @@ const uint8_t sb_s1[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
 
 // Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday
 // display_buff[4] |= sb_dnd(n)
-const uint8_t sb_dnd[7] = {0x20, 0x40, 0x80, 0x08, 0x04, 0x02, 0x01};
+const u8 sb_dnd[7] = {0x20, 0x40, 0x80, 0x08, 0x04, 0x02, 0x01};
 
-const uint8_t sb_s2[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
+const u8 sb_s2[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
 		{5,0x01, 5,0x02, 5,0x04, 5,0x08, 5,0x80, 5,0x20, 5,0x40},
 		{6,0x01, 6,0x02, 6,0x04, 6,0x08, 6,0x80, 6,0x20, 6,0x40},
 		// "/" 5,0x01
 		{7,0x01, 7,0x02, 7,0x04, 7,0x08, 7,0x80, 7,0x20, 7,0x40},
 		{8,0x01, 8,0x02, 8,0x04, 8,0x08, 8,0x80, 8,0x20, 8,0x40}
 };
-const uint8_t sb_s3[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
+const u8 sb_s3[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
 		{9,0x10, 9,0x20, 9,0x80, 9,0x10, 9,0x10, 8,0x10, 9,0x40},
 		{10,0x10, 10,0x20, 10,0x40, 10,0x80, 9,0x08, 9,0x02, 9,0x04},
 		// ":" 10,0x01
@@ -150,8 +149,8 @@ const uint8_t sb_s3[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
 		{12,0x10, 12,0x20, 12,0x40, 12,0x80, 11,0x08, 11,0x02, 11,0x04}
 };
 
-//const uint8_t sb_s4_0[2] = {12,0x01};
-const uint8_t sb_s4[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
+//const u8 sb_s4_0[2] = {12,0x01};
+const u8 sb_s4[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
 		{13,0x10, 13,0x20, 13,0x40, 13,0x80, 12,0x08, 12,0x02, 12,0x04},
 		{14,0x10, 14,0x20, 14,0x40, 14,0x80, 13,0x08, 13,0x02, 13,0x04},
 		// "." 14,0x01
@@ -167,8 +166,8 @@ const uint8_t sb_s4[4][DEF_MJWSD05MMC_SUMBOL_SIGMENTS*2] = {
  * 0400007c0449
  * 0400007cf3c8 - blink
  */
-//const uint8_t lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // original
-const uint8_t lcd_init_cmd[]	=	{
+//const u8 lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // original
+const u8 lcd_init_cmd[]	=	{
 		// LCD controller initialize:
 		0xea, // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
 		0xf0, // Blink control (BLKCTL): Off
@@ -182,13 +181,13 @@ const uint8_t lcd_init_cmd[]	=	{
 // runtime: 600 us if I2C 450 kHz
 _attribute_ram_code_ void send_to_lcd(void){
 	unsigned int buff_index;
-	uint8_t * p = display_buff;
+	u8 * p = display_buff;
 	if(cfg.flg2.screen_off)
 		return;
 	if (lcd_i2c_addr) {
 		if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
-//		reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
+//		reg_i2c_speed = (u8)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
 		reg_i2c_id = lcd_i2c_addr;
 		// LCD cmd:
 		// 0xe8 - Set IC Operarion(ICSET): Do not execute Software Reset, Internal oscillator circuit;
@@ -222,13 +221,13 @@ void update_lcd(void){
 }
 
 void init_lcd(void){
-	lcd_i2c_addr = (uint8_t) scan_i2c_addr(MJWSD05MMC_LCD_I2C_ADDR << 1);
-	if (lcd_i2c_addr) { // LCD CGDK2_I2C_ADDR ?
-//		reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
+	lcd_i2c_addr = (u8) scan_i2c_addr(BU9792AFUV_I2C_ADDR << 1);
+	if (lcd_i2c_addr) { // LCD BU9792AFUV/BL55028_I2C_ADDR ?
+//		reg_i2c_speed = (u8)(CLOCK_SYS_CLOCK_HZ/(4*400000)); // 400 kHz
 		if(cfg.flg2.screen_off) {
 			lcd_send_i2c_byte(0xEA); // BU9792AFUV reset
 		} else {
-			lcd_send_i2c_buf((uint8_t *) lcd_init_cmd, sizeof(lcd_init_cmd)); // sleep: 15.5 uA
+			lcd_send_i2c_buf((u8 *) lcd_init_cmd, sizeof(lcd_init_cmd)); // sleep: 15.5 uA
 			pm_wait_us(200);
 			//memset(display_buff, 0xff, sizeof(display_buff));
 			send_to_lcd();
@@ -236,7 +235,7 @@ void init_lcd(void){
 	}
 }
 
-_attribute_ram_code_ __attribute__((optimize("-Os"))) static void lcd_set_digit(uint8_t *buf, uint8_t digit, const uint8_t *segments) {
+_attribute_ram_code_ __attribute__((optimize("-Os"))) static void lcd_set_digit(u8 *buf, u8 digit, const u8 *segments) {
     // set the segments, there are up to 11 segments in a digit
     int segment_byte;
     int segment_bit;
@@ -266,7 +265,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) static void lcd_set_digit(
  * 0x07 = "°F"
  * 0x08 = "%"
  * 0x10 = ":" */
-void show_symbol_s1(uint8_t symbol) {
+void show_symbol_s1(u8 symbol) {
 /*	 o 0.4
 	   +--- 0.4
 	   |
@@ -299,7 +298,7 @@ void show_symbol_s1(uint8_t symbol) {
 		display_buff[1] &= ~BIT(0); // ":"
 }
 
-void show_symbol_s3(uint8_t symbol) {
+void show_symbol_s3(u8 symbol) {
 /* o 9.0
     +--- 9.0
     |
@@ -326,7 +325,7 @@ void show_symbol_s3(uint8_t symbol) {
 		display_buff[10] &= ~BIT(0); // ":"
 }
 
-void show_symbol_s4(uint8_t symbol) {
+void show_symbol_s4(u8 symbol) {
 /* o 15.0
      +--- 15.0
      |
@@ -364,7 +363,7 @@ void show_symbol_s4(uint8_t symbol) {
  * 6 = "(-^-)" sad
  * 7 = "(ooo)" */
 
-void show_smiley(uint8_t state){
+void show_smiley(u8 state){
 /*          __ __
 17.5( ^__^    ^   )17.5
       17.6  17.7 */
@@ -439,8 +438,8 @@ static void clear_s4(void) {
  *   999	(9.99)	[ 999 ][  9.99]
  *  9999	(99.99)	[ 9999][ 99.99]
  * 19999	(199.99)[19999][199.99] */
-void show_s1_number_x100(int32_t number, uint8_t atr){
-	uint8_t buf[6] = {0};
+void show_s1_number_x100(s32 number, u8 atr){
+	u8 buf[6] = {0};
 	clear_s1();
 	show_symbol_s1(atr);
 	if (number >= 1999950) {
@@ -540,7 +539,7 @@ void show_s1_number_x100(int32_t number, uint8_t atr){
 }
 
 /* number in 0.1 (-995..1995) show: -99..-9.9..199.9..1999 */
-void show_s1_number_x10(int32_t number, uint8_t atr){
+void show_s1_number_x10(s32 number, u8 atr){
 	clear_s1();
 	show_symbol_s1(atr);
 	if (number > 99995) {
@@ -577,7 +576,7 @@ void show_s1_number_x10(int32_t number, uint8_t atr){
 
 
 /* number in 0.1 (-9995..29995) show: -999..-99.9..299.9..2999 */
-void show_s3_number_x10(int32_t number, uint8_t atr){
+void show_s3_number_x10(s32 number, u8 atr){
 	clear_s3();
 	show_symbol_s3(atr);
 	if (number >= 29995) {
@@ -614,7 +613,7 @@ void show_s3_number_x10(int32_t number, uint8_t atr){
 }
 
 /* number in 0.1 (-99.5 .1999.5) -99..-9.9..199.9..1999 */
-void show_s4_number_x10(int32_t number, uint8_t atr){
+void show_s4_number_x10(s32 number, u8 atr){
 	clear_s4();
 	show_symbol_s4(atr);
 	if (number > 19995) {
@@ -652,7 +651,7 @@ void show_s4_number_x10(int32_t number, uint8_t atr){
 
 void show_clock_s3(void) {
 #if (DEV_SERVICES & SERVICE_HARD_CLOCK)
-	uint8_t hrs = rtc.hours;
+	u8 hrs = rtc.hours;
 	if(cfg.flg.time_am_pm) {
 		if(hrs > 12)
 			hrs -= 12;
@@ -666,9 +665,9 @@ void show_clock_s3(void) {
 	lcd_set_digit(display_buff, rtc.minutes / 10 % 10, sb_s3[2]);
 	lcd_set_digit(display_buff, rtc.minutes % 10, sb_s3[3]);
 #else
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = tmp / 60 % 24;
+	u32 tmp = wrk.utc_time_sec / 60;
+	u32 min = tmp % 60;
+	u32 hrs = tmp / 60 % 24;
 
 	clear_s3();
 	display_buff[10] = BIT(0); // ":"
@@ -684,7 +683,7 @@ void show_clock_s1(void) {
 #if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 	clear_s1();
 	display_buff[1] = BIT(0); // ":"
-	uint8_t hrs = rtc.hours;
+	u8 hrs = rtc.hours;
 	if(cfg.flg.time_am_pm) {
 		if(hrs > 12)
 			hrs -= 12;
@@ -696,9 +695,9 @@ void show_clock_s1(void) {
 	lcd_set_digit(display_buff, rtc.minutes / 10 % 10, sb_s1[2]);
 	lcd_set_digit(display_buff, rtc.minutes % 10, sb_s1[3]);
 #else
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = tmp / 60 % 24;
+	u32 tmp = wrk.utc_time_sec / 60;
+	u32 min = tmp % 60;
+	u32 hrs = tmp / 60 % 24;
 
 	clear_s1();
 	display_buff[1] = BIT(0); // ":"
@@ -710,8 +709,8 @@ void show_clock_s1(void) {
 #endif
 }
 
-void show_data_s2(uint8_t flg) {
-	uint8_t mh, ml, dh, dl;
+void show_data_s2(u8 flg) {
+	u8 mh, ml, dh, dl;
 	clear_s2();
 	display_buff[6] = BIT(4); // "/"
 	display_buff[4] &= BIT(4); // s1: "1"
@@ -738,7 +737,7 @@ void show_data_s2(uint8_t flg) {
 	lcd_set_digit(display_buff, dl, sb_s2[3]);
 }
 
-void show_battery_s1(uint8_t level) {
+void show_battery_s1(u8 level) {
 	clear_s1();
 	display_buff[0] |= BIT(7); // "%"
 	if(level > 99)
@@ -774,8 +773,8 @@ void show_reboot_screen(void) {
 }
 
 _attribute_ram_code_
-uint8_t is_comfort(int16_t t, uint16_t h) {
-	uint8_t ret = LCD_SYM_SMILEY_SAD;
+u8 is_comfort(s16 t, u16 h) {
+	u8 ret = LCD_SYM_SMILEY_SAD;
 	if (t >= cmf.t[0] && t <= cmf.t[1] && h >= cmf.h[0] && h <= cmf.h[1])
 		ret = LCD_SYM_SMILEY_HAPPY;
 	return ret;
@@ -787,8 +786,8 @@ void lcd(void) {
 	if(cfg.flg2.screen_off) {
 		return;
 	}
-	uint8_t screen_type = cfg.flg2.screen_type;
-	if(lcd_flg.chow_ext_ut >= utc_time_sec)
+	u8 screen_type = cfg.flg2.screen_type;
+	if(lcd_flg.chow_ext_ut >= wrk.utc_time_sec)
 		screen_type = SCR_TYPE_EXT;
 	show_ble_symbol(wrk.ble_connected
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)

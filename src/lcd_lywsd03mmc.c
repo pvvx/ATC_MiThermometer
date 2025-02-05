@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #include "app_config.h"
 #if (DEV_SERVICES & SERVICE_SCREEN) && (DEVICE_TYPE == DEVICE_LYWSD03MMC)
@@ -33,10 +32,10 @@
 */
 
 
-RAM uint8_t lcd_i2c_addr;
+RAM u8 lcd_i2c_addr;
 
 #define lcd_send_i2c_byte(a)  send_i2c_byte(lcd_i2c_addr, a)
-#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (uint8_t *) b, a)
+#define lcd_send_i2c_buf(b, a)  send_i2c_buf(lcd_i2c_addr, (u8 *) b, a)
 
 /* t,H,h,L,o,i  0xe2,0x67,0x66,0xe0,0xC6,0x40 */
 #define LCD_SYM_H	0x67	// "H"
@@ -47,16 +46,16 @@ RAM uint8_t lcd_i2c_addr;
 #define LCD_SYM_BLE	0x10	// connect
 #define LCD_SYM_BAT	0x08	// battery
 
-const uint8_t lcd_init_cmd_b14[] =	{0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
+const u8 lcd_init_cmd_b14[] =	{0x80,0x3B,0x80,0x02,0x80,0x0F,0x80,0x95,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x88,0x80,0x19,0x80,0x28,0x80,0xE3,0x80,0x11};
 								//	{0x80,0x40,0xC0,byte1,0xC0,byte2,0xC0,byte3,0xC0,byte4,0xC0,byte5,0xC0,byte6};
-const uint8_t lcd_init_clr_b14[] =	{0x80,0x40,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0};
+const u8 lcd_init_clr_b14[] =	{0x80,0x40,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0,0xC0,0};
 
 /* Test cmd ():
  * 0400007ceaa49cacbcf0fcc804ffffffff,
  * 0400007c0449
  * 0400007cf3c8 - blink
  */
-const uint8_t lcd_init_b19[]	=	{
+const u8 lcd_init_b19[]	=	{
 		0xea, // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
 		0xa4, // Display control (DISCTL): Normal mode, FRAME flip, Power save mode 1
 //		0x9c, // Address set (ADSET): 0x1C ?
@@ -75,20 +74,38 @@ const uint8_t lcd_init_b19[]	=	{
 };
 
 typedef struct __attribute__((packed)) _dma_uart_buf_t {
-	volatile uint32_t dma_len;
-	uint32_t head;
-	uint8_t start;
-	uint8_t data[6];
-	uint8_t chk;
-	uint8_t end;
+	volatile u32 dma_len;
+	u32 head;
+	u8 start;
+	u8 data[6];
+	u8 chk;
+	u8 end;
 } dma_uart_buf_t;
 
 RAM dma_uart_buf_t utxb;
 
 /* 0,1,2,3,4,5,6,7,8,9,A,b,C,d,E,F*/
-const uint8_t display_numbers[] = {0xf5,0x05,0xd3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7, 0x77,0xe6,0xf0,0xc7,0xf2,0x72};
+const u8 display_numbers[] = {
+	//76543210
+	0b11110101, // 0  0xf5
+	0b00000101, // 1  0x05
+	0b11010011, // 2  0xd3
+	0b10010111, // 3  0x97
+	0b00100111, // 4  0x27
+	0b10110110, // 5  0xb6
+	0b11110110, // 6  0xf6
+	0b00010101, // 7  0x15
+	0b11110111, // 8  0xf7
+	0b10110111, // 9  0xb7
+	0b01110111, // A  0x77
+	0b11100110, // b  0xe6
+	0b11110000, // C  0xf0
+	0b11000111, // d  0xc7
+	0b11110010, // E  0xf2
+	0b01110010  // F  0x72
+};
 
-static _attribute_ram_code_ uint8_t reverse(uint8_t revByte) {
+static _attribute_ram_code_ u8 reverse(u8 revByte) {
    revByte = (revByte & 0xF0) >> 4 | (revByte & 0x0F) << 4;
    revByte = (revByte & 0xCC) >> 2 | (revByte & 0x33) << 2;
    revByte = (revByte & 0xAA) >> 1 | (revByte & 0x55) << 1;
@@ -111,10 +128,17 @@ static _attribute_ram_code_ uint8_t reverse(uint8_t revByte) {
 #define bwpc 9
 #endif
 
-//extern uint8_t ota_is_working;
-
 _attribute_ram_code_
-void lcd_send_uart(void) {
+void lcd_send_uart(u8 *p) {
+	// B1.5, B1.6 (UART LCD)
+	utxb.data[5] = *p++;
+	utxb.data[4] = *p++;
+	utxb.data[3] = *p++;
+	utxb.data[2] = *p++;
+	utxb.data[1] = *p++;
+	utxb.data[0] = *p;
+	utxb.chk = utxb.data[0]^utxb.data[1]^utxb.data[2]^utxb.data[3]^utxb.data[4]^utxb.data[5];
+	utxb.dma_len = sizeof(utxb) - sizeof(utxb.dma_len);
 	// init uart
 	reg_clk_en0 |= FLD_CLK0_UART_EN;
 	///reg_clk_en1 |= FLD_CLK1_DMA_EN;
@@ -149,11 +173,10 @@ void lcd_send_uart(void) {
 	reg_uart_clk_div = 0;
 }
 
-
 _attribute_ram_code_
 void send_to_lcd(void){
 	unsigned int buff_index;
-	uint8_t * p = display_buff;
+	u8 * p = display_buff;
 	if(cfg.flg2.screen_off)
 		return;
 	if (lcd_i2c_addr) {
@@ -165,7 +188,7 @@ void send_to_lcd(void){
 		}
 		if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 			// B1.4, B1.7, B2.0
-			reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*700000)); // 700 kHz
+			reg_i2c_speed = (u8)(CLOCK_SYS_CLOCK_HZ/(4*700000)); // 700 kHz
 			reg_i2c_id = lcd_i2c_addr;
 			reg_i2c_adr_dat = 0x4080;
 			reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO;
@@ -231,40 +254,31 @@ void send_to_lcd(void){
 		}
 		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	} else {
-		// B1.5, B1.6 (UART LCD)
-		utxb.data[5] = *p++;
-		utxb.data[4] = *p++;
-		utxb.data[3] = *p++;
-		utxb.data[2] = *p++;
-		utxb.data[1] = *p++;
-		utxb.data[0] = *p;
-		utxb.chk = utxb.data[0]^utxb.data[1]^utxb.data[2]^utxb.data[3]^utxb.data[4]^utxb.data[5];
-		utxb.dma_len = sizeof(utxb) - sizeof(utxb.dma_len);
-		lcd_send_uart();
+		lcd_send_uart(p);
 	}
 }
 
-//const uint8_t lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // sleep all 9.4 uA
+//const u8 lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // sleep all 9.4 uA
 
 void init_lcd(void){
-	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B14_I2C_ADDR << 1);
+	lcd_i2c_addr = (u8) scan_i2c_addr(B14_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // B1.4, B1.7, B2.0
 // 		GPIO_PB6 set in app_config.h!
 //		gpio_setup_up_down_resistor(GPIO_PB6, PM_PIN_PULLUP_10K); // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 		if(!cfg.flg2.screen_off) {
 			pm_wait_ms(50);
-			lcd_send_i2c_buf((uint8_t *) lcd_init_cmd_b14, sizeof(lcd_init_cmd_b14));
-			lcd_send_i2c_buf((uint8_t *) lcd_init_clr_b14, sizeof(lcd_init_clr_b14));
+			lcd_send_i2c_buf((u8 *) lcd_init_cmd_b14, sizeof(lcd_init_cmd_b14));
+			lcd_send_i2c_buf((u8 *) lcd_init_clr_b14, sizeof(lcd_init_clr_b14));
 		}
 		return;
 	}
-	lcd_i2c_addr = (uint8_t) scan_i2c_addr(B19_I2C_ADDR << 1);
+	lcd_i2c_addr = (u8) scan_i2c_addr(B19_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // B1.9
 		if(cfg.flg2.screen_off) {
 			lcd_send_i2c_byte(0xEA); // BU9792AFUV reset
 		} else {
-			lcd_send_i2c_buf((uint8_t *) lcd_init_b19, sizeof(lcd_init_b19));
-			lcd_send_i2c_buf((uint8_t *) lcd_init_b19, sizeof(lcd_init_b19));
+			lcd_send_i2c_buf((u8 *) lcd_init_b19, sizeof(lcd_init_b19));
+			lcd_send_i2c_buf((u8 *) lcd_init_b19, sizeof(lcd_init_b19));
 		}
 		return;
 	}
@@ -274,6 +288,8 @@ void init_lcd(void){
 	utxb.start = 0xAA;
 	// utxb.data = {0};
 	utxb.end = 0x55;
+	memset(display_buff, 0, sizeof(display_buff));
+	lcd_send_uart(display_buff);
 }
 
 /* 0x00 = "  "
@@ -285,7 +301,7 @@ void init_lcd(void){
  * 0xC0 = " ="
  * 0xE0 = "°E" */
 _attribute_ram_code_
-void show_temp_symbol(uint8_t symbol) {
+void show_temp_symbol(u8 symbol) {
 	display_buff[2] &= ~0xE0;
 	display_buff[2] |= symbol & 0xE0;
 }
@@ -299,7 +315,7 @@ void show_temp_symbol(uint8_t symbol) {
  * 6 = "(-^-)" sad
  * 7 = "(ooo)" */
 _attribute_ram_code_
-void show_smiley(uint8_t state){
+void show_smiley(u8 state){
 	display_buff[2] &= ~0x07;
 	display_buff[2] |= state & 0x07;
 }
@@ -322,7 +338,7 @@ void show_battery_symbol(bool state){
 
 /* number in 0.1 (-995..19995), Show: -99 .. -9.9 .. 199.9 .. 1999 */
 _attribute_ram_code_
-__attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
+__attribute__((optimize("-Os"))) void show_big_number_x10(s16 number){
 //	display_buff[4] = point?0x08:0x00;
 	if (number > 19995) {
    		display_buff[3] = 0;
@@ -360,7 +376,7 @@ __attribute__((optimize("-Os"))) void show_big_number_x10(int16_t number){
 
 /* -9 .. 99 */
 _attribute_ram_code_
-__attribute__((optimize("-Os"))) void show_small_number(int16_t number, bool percent){
+__attribute__((optimize("-Os"))) void show_small_number(s16 number, bool percent){
 	display_buff[1] = display_buff[1] & 0x08; // and battery
 	display_buff[0] = percent?0x08:0x00;
 	if (number > 99) {
@@ -399,9 +415,9 @@ void show_reboot_screen(void) {
 #if	USE_DISPLAY_CLOCK
 _attribute_ram_code_
 void show_clock(void) {
-	uint32_t tmp = utc_time_sec / 60;
-	uint32_t min = tmp % 60;
-	uint32_t hrs = tmp / 60 % 24;
+	u32 tmp = wrk.utc_time_sec / 60;
+	u32 min = tmp % 60;
+	u32 hrs = tmp / 60 % 24;
 	display_buff[0] = display_numbers[min % 10];
 	display_buff[1] = display_numbers[min / 10 % 10];
 	display_buff[2] = 0;

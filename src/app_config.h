@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _APP_CONFIG_H_
+#define _APP_CONFIG_H_
+
 
 #if defined(__cplusplus)
 extern "C" {
@@ -30,7 +32,6 @@ extern "C" {
 // HW_VER_LYWSD03MMC_B15 = 10
 #define DEVICE_MHO_C122		11	// LCD display MHO_C122
 #define DEVICE_MJWSD05MMC_EN	12  // LCD (en) display MJWSD05MMC
-
 //---
 #define DEVICE_TB03F  		16	// DIY, TB-03F-Kit module + INA226 or MY18B20
 #define DEVICE_TS0201   	17	// ZigBee TS0201, analog: IH-K009
@@ -57,7 +58,7 @@ extern "C" {
 #define DEVICE_ZYZTH01		38  // development is not completed! Tuya ZY-ZTH02Pro Zigbee LCD, 2 x AAA, SHT30/CHT832x
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_ZYZTH02
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
@@ -84,6 +85,8 @@ extern "C" {
 #define SERVICE_PLM			0x00100000	// use PWM-RH and NTC
 #define SERVICE_BUTTON		0x00200000	// брелок-кнопка
 #define SERVICE_FINDMY		0x00400000	// FindMy
+#define SERVICE_SCANTIM		0x40000000	// Scan Time (develop, test only!)
+#define SERVICE_EXTENDED	0x80000000  //
 
 /* minimal DEV_SERVICES:
 #define DEV_SERVICES ( SERVICE_OTA \ // OTA enable
@@ -1933,7 +1936,7 @@ extern "C" {
 #endif
 
 
-#elif (DEVICE_TYPE == DEVICE_ZYZTH02) || (DEVICE_TYPE == DEVICE_ZYZTH01)
+#elif (DEVICE_TYPE == DEVICE_ZYZTH02)
 
 // TLSR8258
 // GPIO_PA0 - free "RXD2" (Reed Switch, input)
@@ -2025,6 +2028,100 @@ extern "C" {
 #define PA0_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA0 RDS1_PULLUP
 
+#elif (DEVICE_TYPE == DEVICE_ZYZTH01)
+
+// TLSR8258
+// GPIO_PA0 - free "RXD2" (Reed Switch, input)
+// GPIO_PA1 - free "TXD2"
+// GPIO_PA7 - SWS, (debug TX)
+// GPIO_PB1 - free "TXD1"
+// GPIO_PB4 - KEY
+// GPIO_PB5 - free "P34" (R1 to VCC)
+// GPIO_PB6 - free
+// GPIO_PB7 - free "RXD1"
+// GPIO_PC0 - free "PC0"
+// GPIO_PC1 - free
+// GPIO_PC2 - free "LED"
+// GPIO_PC3 - SCL  "SCL"
+// GPIO_PC4 - +BAT R11/R13
+// GPIO_PD2 - SDA  "SDA"
+// GPIO_PD3 - free
+// GPIO_PD4 - free
+// GPIO_PD7 - free
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+)
+
+#define ZIGBEE_TUYA_OTA 	1
+
+#define USE_EPD				0 // min update time ms
+
+#define USE_SENSOR_CHT8305		1
+#define USE_SENSOR_CHT8215		0
+#define USE_SENSOR_AHT20_30		1
+#define USE_SENSOR_SHT4X		1
+#define USE_SENSOR_SHTC3		1
+#define USE_SENSOR_SHT30		1
+
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define I2C_MAX_SPEED 		200000 // 700 kHz
+#define I2C_SCL 			GPIO_PC3
+#define PC3_INPUT_ENABLE	1
+#define PC3_DATA_OUT		0
+#define PC3_OUTPUT_ENABLE	0
+//#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
+#define I2C_SDA 			GPIO_PD2
+#define PD2_INPUT_ENABLE	1
+#define PD2_DATA_OUT		0
+#define PD2_OUTPUT_ENABLE	0
+//#define PULL_WAKEUP_SRC_PD2	PM_PIN_PULLUP_10K
+
+#define GPIO_KEY2			GPIO_PB4
+#define PB4_INPUT_ENABLE	1
+#define PB4_DATA_OUT		0
+#define PB4_OUTPUT_ENABLE	0
+#define PB4_FUNC			AS_GPIO
+//#define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLUP_1M
+
+#define GPIO_LED			GPIO_PC2
+#define PC2_INPUT_ENABLE	1
+#define PC2_DATA_OUT		1
+#define PC2_OUTPUT_ENABLE	0
+#define PC2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLDOWN_100K
+
+#define GPIO_TRG			GPIO_PA1	// mark "TXD2"
+#define PA1_INPUT_ENABLE	1
+#define PA1_DATA_OUT		0
+#define PA1_OUTPUT_ENABLE	0
+#define PA1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA1	PM_PIN_PULLDOWN_100K
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_1M
+#define GPIO_RDS1 			GPIO_PA0	// mark "RXD2",  Reed Switch
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA0 RDS1_PULLUP
+
 
 #else // DEVICE_TYPE
 #error ("DEVICE_TYPE = ?")
@@ -2055,6 +2152,14 @@ extern "C" {
 #endif
 
 #define USE_DISPLAY_CLOCK 	1 // = 1 display clock, = 0 smile blinking
+
+#ifndef USE_SYNC_SCAN
+#if (DEV_SERVICES & SERVICE_SCANTIM)
+#define USE_SYNC_SCAN		1 // develop, test!
+#else
+#define USE_SYNC_SCAN		0
+#endif
+#endif
 
 #ifndef USE_ATC_BEACON
 #define USE_ATC_BEACON		1
@@ -2142,3 +2247,6 @@ enum{
 #if defined(__cplusplus)
 }
 #endif
+
+#endif //_APP_CONFIG_H_
+

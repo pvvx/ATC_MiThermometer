@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "tl_common.h"
 #ifdef I2C_GROUP
 #include "drivers.h"
@@ -29,9 +28,9 @@ void init_i2c(void) {
 int scan_i2c_addr(int address) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 		init_i2c();
-	uint8_t r = reg_i2c_speed;
-	reg_i2c_speed = (uint8_t)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
-	reg_i2c_id = (uint8_t) address;
+	u8 r = reg_i2c_speed;
+	reg_i2c_speed = (u8)(CLOCK_SYS_CLOCK_HZ/(4*100000)); // 100 kHz
+	reg_i2c_id = (u8) address;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_STOP;
 	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	reg_i2c_speed = r;
@@ -39,7 +38,7 @@ int scan_i2c_addr(int address) {
 }
 
 /* send_i2c_byte() return: NAK (=0 - send ok) */
-int send_i2c_byte(uint8_t i2c_addr, uint8_t cmd) {
+int send_i2c_byte(u8 i2c_addr, u8 cmd) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
 	reg_i2c_id = i2c_addr;
@@ -50,7 +49,7 @@ int send_i2c_byte(uint8_t i2c_addr, uint8_t cmd) {
 }
 
 /* send_i2c_word() return: NAK (=0 - send ok) */
-int send_i2c_word(uint8_t i2c_addr, uint16_t cmd) {
+int send_i2c_word(u8 i2c_addr, u16 cmd) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
 	reg_i2c_id = i2c_addr;
@@ -61,11 +60,11 @@ int send_i2c_word(uint8_t i2c_addr, uint16_t cmd) {
 }
 
 /* send_i2c_buf() return: NAK (=0 - send ok) */
-int send_i2c_buf(uint8_t i2c_addr, uint8_t * dataBuf, uint32_t dataLen) {
+int send_i2c_buf(u8 i2c_addr, u8 * dataBuf, u32 dataLen) {
 	int err = 0;
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
-	uint8_t * p = dataBuf;
+	u8 * p = dataBuf;
 	reg_i2c_id = i2c_addr;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID;
 	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
@@ -89,13 +88,13 @@ int send_i2c_buf(uint8_t i2c_addr, uint8_t * dataBuf, uint32_t dataLen) {
 #if (DEV_SERVICES & SERVICE_HARD_CLOCK)
 _attribute_ram_code_
 #endif
-int read_i2c_byte_addr(uint8_t i2c_addr, uint8_t reg_addr, uint8_t * dataBuf, uint32_t dataLen) {
+int read_i2c_byte_addr(u8 i2c_addr, u8 reg_addr, u8 * dataBuf, u32 dataLen) {
 	int ret = -1;
 	int size = dataLen;
-	uint8_t *p = dataBuf;
+	u8 *p = dataBuf;
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
-	//uint8_t r = irq_disable();
+	//u8 r = irq_disable();
 	reg_i2c_id = i2c_addr;
 	reg_i2c_adr = reg_addr;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR;
@@ -127,13 +126,13 @@ int read_i2c_byte_addr(uint8_t i2c_addr, uint8_t reg_addr, uint8_t * dataBuf, ui
 }
 
 _attribute_ram_code_
-int read_i2c_buf(uint8_t i2c_addr, uint8_t * dataBuf, uint32_t dataLen) {
+int read_i2c_buf(u8 i2c_addr, u8 * dataBuf, u32 dataLen) {
 	int ret = -1;
 	int size = dataLen;
-	uint8_t *p = dataBuf;
+	u8 *p = dataBuf;
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
-	//uint8_t r = irq_disable();
+	//u8 r = irq_disable();
 	reg_i2c_id = i2c_addr | FLD_I2C_WRITE_READ_BIT;
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID; // | FLD_I2C_CMD_READ_ID;
     while(reg_i2c_status & FLD_I2C_CMD_BUSY);
@@ -158,15 +157,15 @@ int read_i2c_buf(uint8_t i2c_addr, uint8_t * dataBuf, uint32_t dataLen) {
 /* Universal I2C/SMBUS read-write transaction
  * wrlen = 0..127 !
  * return NAK (=0 - ok) */
-int I2CBusUtr(void * outdata, i2c_utr_t * tr, uint32_t wrlen) {
-	uint8_t * pwrdata = (uint8_t *) &tr->wrdata;
-	uint8_t * poutdata = (uint8_t *) outdata;
-	uint32_t cntstart = wrlen - (tr->mode & 0x7f);
-	uint32_t rdlen = tr->rdlen & 0x7f;
+int I2CBusUtr(void * outdata, i2c_utr_t * tr, u32 wrlen) {
+	u8 * pwrdata = (u8 *) &tr->wrdata;
+	u8 * poutdata = (u8 *) outdata;
+	u32 cntstart = wrlen - (tr->mode & 0x7f);
+	u32 rdlen = tr->rdlen & 0x7f;
 
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
-	uint8_t r = irq_disable();
+	u8 r = irq_disable();
 
 	reg_i2c_id = *pwrdata++; // or (wrlen == 0 && rdlen)
 	reg_i2c_ctrl = FLD_I2C_CMD_START | FLD_I2C_CMD_ID;
@@ -253,7 +252,7 @@ void soft_i2c_stop(void) {
 	gpio_set_output_en(I2C_SDA, 0); // SDA set "1"
 }
 
-int soft_i2c_wr_byte(uint8_t b) {
+int soft_i2c_wr_byte(u8 b) {
 	int ret, i = 8;
 	while(i--) {
 		sleep_us16(I2C_TCLK_US/2);
@@ -277,8 +276,8 @@ int soft_i2c_wr_byte(uint8_t b) {
 	return ret;
 }
 
-uint8_t soft_i2c_rd_byte(int ack) {
-	uint8_t ret = 0, i = 8;
+u8 soft_i2c_rd_byte(int ack) {
+	u8 ret = 0, i = 8;
 	gpio_set_output_en(I2C_SDA, 0); // SDA set "1"
 	while(i--) {
 		sleep_us16(I2C_TCLK_US);
@@ -309,7 +308,7 @@ int scan_i2c_addr(int addr) {
 	return ret;
 }
 
-int send_i2c_byte(uint8_t addr, uint8_t b) {
+int send_i2c_byte(u8 addr, u8 b) {
 	int ret;
 	soft_i2c_start();
 	ret = soft_i2c_wr_byte(addr);
@@ -319,21 +318,21 @@ int send_i2c_byte(uint8_t addr, uint8_t b) {
 	return ret;
 }
 
-int send_i2c_word(uint8_t addr, unsigned short w) {
+int send_i2c_word(u8 addr, unsigned short w) {
 	int ret;
 	soft_i2c_start();
 	ret = soft_i2c_wr_byte(addr);
 	if(ret == 0) {
-		ret = soft_i2c_wr_byte((uint8_t)(w));
+		ret = soft_i2c_wr_byte((u8)(w));
 		if(ret == 0)
-			ret = soft_i2c_wr_byte((uint8_t) (w >> 8));
+			ret = soft_i2c_wr_byte((u8) (w >> 8));
 	}
 	soft_i2c_stop();
 	return ret;
 }
 
 
-int read_i2c_byte(uint8_t addr) {
+int read_i2c_byte(u8 addr) {
 	int ret = -1;
 	soft_i2c_start();
 	if(soft_i2c_wr_byte(addr | 1) == 0)
@@ -342,7 +341,7 @@ int read_i2c_byte(uint8_t addr) {
 	return ret;
 }
 
-int send_i2c_buf(uint8_t addr, uint8_t * pbuf, uint32_t size) {
+int send_i2c_buf(u8 addr, u8 * pbuf, u32 size) {
 	int ret = 0;
 	soft_i2c_start();
 	ret = soft_i2c_wr_byte(addr);
@@ -358,7 +357,7 @@ int send_i2c_buf(uint8_t addr, uint8_t * pbuf, uint32_t size) {
 	return ret;
 }
 
-int read_i2c_buf(uint8_t addr, uint8_t * pbuf, uint32_t size) {
+int read_i2c_buf(u8 addr, u8 * pbuf, u32 size) {
 	int ret = -1;
 	soft_i2c_start();
 	if(soft_i2c_wr_byte(addr | 1) == 0) {
@@ -372,7 +371,7 @@ int read_i2c_buf(uint8_t addr, uint8_t * pbuf, uint32_t size) {
 	return ret;
 }
 
-int read_i2c_byte_addr(uint8_t addr, uint8_t reg_addr, uint8_t * pbuf, uint32_t size) {
+int read_i2c_byte_addr(u8 addr, u8 reg_addr, u8 * pbuf, u32 size) {
 	int ret = -1;
 	soft_i2c_start();
 	if(soft_i2c_wr_byte(addr | 1) == 0) {
@@ -382,6 +381,43 @@ int read_i2c_byte_addr(uint8_t addr, uint8_t reg_addr, uint8_t * pbuf, uint32_t 
 				pbuf++;
 			}
 			ret = 0;
+		}
+	}
+	soft_i2c_stop();
+	return ret;
+}
+
+/* Universal I2C/SMBUS read-write transaction
+ * wrlen = 0..127 !
+ * return NAK (=0 - ok) */
+int I2CBusUtr(void * outdata, i2c_utr_t * tr, u32 wrlen) {
+	u8 * pwrdata = (u8 *) &tr->wrdata;
+	u8 * poutdata = (u8 *) outdata;
+	u32 cntstart = wrlen - (tr->mode & 0x7f);
+	u32 rdlen = tr->rdlen & 0x7f;
+	int ret;
+	soft_i2c_start();
+	ret = soft_i2c_wr_byte(*pwrdata++);
+	while(ret == 0 && wrlen) {
+		// write data
+		ret = soft_i2c_wr_byte(*pwrdata++);
+
+		if(--wrlen == cntstart && ret == 0) { // + send start & id
+			if(tr->mode & 0x80) {
+				soft_i2c_stop();
+				sleep_us16(I2C_TCLK_US);
+			}
+			soft_i2c_start();
+			ret = soft_i2c_wr_byte(tr->wrdata[0]);
+		}
+	}
+	if(ret == 0) {
+		while(rdlen) {
+			if(--rdlen == 0 && (tr->rdlen & 0x80) == 0)
+				*poutdata = soft_i2c_rd_byte(1);
+			else
+				*poutdata = soft_i2c_rd_byte(0);
+			poutdata++;
 		}
 	}
 	soft_i2c_stop();

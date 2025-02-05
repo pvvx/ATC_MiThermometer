@@ -87,7 +87,7 @@ static const u8 my_ManCharVal[5] = {
 };
 static const u8 my_FirmStr[] = {"github.com/pvvx"};
 #if USE_FLASH_SERIAL_UID
-RAM uint8_t my_SerialStr[20]; // "556202-C86013-123456"
+RAM u8 my_SerialStr[20]; // "556202-C86013-123456"
 #endif
 
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
@@ -230,7 +230,7 @@ static const u8 my_ManStr[] = {"Sonoff"};
 static const u8 my_ModelStr[] = {"LZ02"};
 static const u8 my_HardStr[4] = {"V1.1"};
 #if !USE_FLASH_SERIAL_UID
-static const u8 my_SerialStr[] = {"0000-0000-0000-0008"}; // "0000-0000-0000-00000"
+static const u8 my_SerialStr[] = {"0000-0000-0000-0009"}; // "0000-0000-0000-00000"
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Tuya"};
@@ -239,7 +239,17 @@ static const u8 my_ManStr[] = {"Tuya"};
 static const u8 my_ModelStr[] = {"ZTH5"};
 static const u8 my_HardStr[4] = {"V1.1"};
 #if !USE_FLASH_SERIAL_UID
-static const u8 my_SerialStr[] = {"0000-0000-0000-0008"}; // "0000-0000-0000-00000"
+static const u8 my_SerialStr[] = {"0000-0000-0000-0011"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"Tuya"};
+
+#elif DEVICE_TYPE == DEVICE_ZYZTH01
+
+static const u8 my_ModelStr[] = {"ZY01"};
+static const u8 my_HardStr[4] = {"V1.1"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-0012"}; // "0000-0000-0000-00000"
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Tuya"};
@@ -249,7 +259,7 @@ static const u8 my_ManStr[] = {"Tuya"};
 static const u8 my_ModelStr[] = {"ZY02"};
 static const u8 my_HardStr[4] = {"V1.1"};
 #if !USE_FLASH_SERIAL_UID
-static const u8 my_SerialStr[] = {"0000-0000-0000-0008"}; // "0000-0000-0000-00000"
+static const u8 my_SerialStr[] = {"0000-0000-0000-0013"}; // "0000-0000-0000-00000"
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Tuya"};
@@ -498,8 +508,8 @@ RAM attribute_t my_Attributes[] = {
 
 void my_att_init(void) {
 #if USE_FLASH_SERIAL_UID
-	uint8_t buf[16];
-	uint8_t *p = my_SerialStr;
+	u8 buf[16];
+	u8 *p = my_SerialStr;
 	// Read SoC ID, version
 	buf[0] = REG_ADDR8(0x7f);
 	buf[1] = REG_ADDR8(0x7e);
