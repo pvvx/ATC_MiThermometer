@@ -67,7 +67,7 @@ Access to github is already slowing down. Most Internet information resources ha
 | Tuya ZigBee<br>[ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) |
 |:--:|
 | <img src="https://pvvx.github.io/ZY-ZTH02Pro/img/zyzth02p.jpg" alt="ZY-ZTH02Pro" width="200"/> |
-| [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
+| Zigbee OTA |
 | BLE |
 
 * Thermometers without display
