@@ -64,9 +64,9 @@ Access to github is already slowing down. Most Internet information resources ha
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 | | [Not recommended for purchase!](https://github.com/pvvx/ZigbeeTLc/issues/129) | | modification required |
 
-| [ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) |
+| Tuya ZigBee<br>[ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) |
 |:--:|
-| <img src="https://pvvx.github.io/ZY-ZTH02Pro/img/zyzth02p.jpg" alt="ZY-ZTH02Pro" width="120"/> |
+| <img src="https://pvvx.github.io/ZY-ZTH02Pro/img/zyzth02p.jpg" alt="ZY-ZTH02Pro" width="200"/> |
 | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | BLE |
 
