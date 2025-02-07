@@ -4,7 +4,7 @@
 make -s -j PROJECT_NAME=ATC%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_LYWSD03MMC"
 @if not exist "ATC%SWVER%.bin" goto :error
 @python3 utils\zb_bin_ota.py -m0x1141 -i0x0203 -v0x99993001 -s"Zigbee ver:devis to BLE" ATC%SWVER%.bin zigbee_ota\ATC%SWVER%
-@python3 utils\zb_bin_ota.py -m56085 -i0x0203 -v0x99993001 -s"Zigbee ver:devis to BLE" ATC%SWVER%.bin zigbee_ota\ATC%SWVER%
+@python3 utils\zb_bin_ota.py -m0xDB15 -i0x0203 -v0x99993001 -s"Zigbee ver:devis to BLE" ATC%SWVER%.bin zigbee_ota\ATC%SWVER%
 @del /Q "BTH%SWVER%.bin"
 make -s -j PROJECT_NAME=BTH%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MJWSD05MMC"
 @if not exist "BTH%SWVER%.bin" goto :error

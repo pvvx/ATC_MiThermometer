@@ -323,7 +323,6 @@ __attribute__((optimize("-Os"))) void show_big_number_x10(s16 number){
 /* -9 .. 99 */
 _attribute_ram_code_
 __attribute__((optimize("-Os"))) void show_small_number(s16 number, bool percent){
-//	display_buff[5] = 0;
 	display_buff[6] = percent? BIT(0) : 0;
 	if (number > 99) {
 		display_buff[5] |= LCD_SYM_H; // "H"
@@ -335,7 +334,8 @@ __attribute__((optimize("-Os"))) void show_small_number(s16 number, bool percent
 		if (number < 0) {
 			number = -number;
 			display_buff[5] = BIT(2); // "-"
-		}
+		} else
+			display_buff[5] = 0;
 		if (number > 9) display_buff[5] = display_numbers[number / 10 % 10];
 		display_buff[6] |= display_numbers[number %10];
 	}
