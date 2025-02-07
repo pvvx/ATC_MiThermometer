@@ -41,7 +41,7 @@ Access to github is already slowing down. Most Internet information resources ha
 
 ![b2z.gif](https://github.com/pvvx/TLB2Z/blob/master/web/b2z.gif)
 
-* Support [BLETHR](https://github.com/pvvx/BLETHR) (Receiving and displaying data from an external thermometer BTHome on Xiaomi LYWSD03MMC):
+* Support [BLETHR](https://github.com/pvvx/BLETHR) (Receiving and displaying data from an external thermometer operating in the BTHome v2 format on the display of another BLE thermometer):
 
 ![blethr.jpg](https://raw.githubusercontent.com/pvvx/pvvx.github.io/refs/heads/master/blethr/img/blethr.jpg)
 
