@@ -79,6 +79,13 @@ Access to github is already slowing down. Most Internet information resources ha
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc)<br>[BZdevice](https://github.com/pvvx/BZdevice) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |  BLE |
 | | | | modification required | |
 
+
+| Tuya ZigBee<br> [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) |
+|:--:|
+| <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> |
+| Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
+| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
+
 * Tuya devices (SOC PHY62x2)
 
 | Tuya devices on [SoC PHY62x2](https://github.com/pvvx/THB2)<br> 7 types | 

@@ -26,6 +26,10 @@
 | 0x0224 | [HS09](https://pvvx.github.io/TS0201_TZ3000_1twfmkcc) TS0201_TZ3000_1twfmkcc |
 | 0x0225 | [ZY-ZTH02](https://github.com/pvvx/ZigbeeTLc/issues/128#issuecomment-2608399413) TS0201_TZ3000_v1w2k9dd without LCD |
 | 0x0226 | [ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) TS0201_TZ3000_v1w2k9dd LCD |
+| 0x0225 | [ZY-ZTH02](https://pvvx.github.io/ZY-ZTH02) TS0201_TZ3000_v1w2k9dd without LCD |
+| 0x0226 | [ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) TS0201_TZ3000_v1w2k9dd LCD | 
+| 0x0227 | [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) |
+
 
 * [Full table](https://github.com/pvvx/pvvx.github.io/blob/master/README.md)
 
