@@ -88,7 +88,7 @@ Access to github is already slowing down. Most Internet information resources ha
 
 * Tuya devices (SOC PHY62x2)
 
-| Tuya devices on [SoC PHY62x2](https://github.com/pvvx/THB2)<br> 7 types | 
+| Tuya devices on [SoC PHY62x2](https://github.com/pvvx/THB2)<br> 9 types | 
 |:--:|
 | <img src="https://pvvx.github.io/ATC_MiThermometer/img/phy62x2.jpg" alt="Tuya PHY62x2" width="120"/> |
 | [PHY62x2BTHome](https://pvvx.github.io/THB2/web/PHY62x2BTHome.html) |
