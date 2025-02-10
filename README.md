@@ -76,7 +76,7 @@ Access to github is already slowing down. Most Internet information resources ha
 |:--:|:--:|:--:|:--:|:--:|
 | <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TH03Z/img/TH03Z.jpg" width="100"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth01/img/ZTH01.jpg" width="100"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth02/img/zth02.jpg" width="80"/> |  <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/refs/heads/master/ZY-ZTH02/img/ZY-ZTH02.jpg" width="100"/> |
 | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator,<br>Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator,<br>Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator,<br>Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator,<br>Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
-| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc)<br>[BZdevice](https://github.com/pvvx/BZdevice) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |  BLE |
+| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc)<br>[BZdevice](https://github.com/pvvx/BZdevice) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |  BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 | | | | modification required | |
 
 
@@ -88,7 +88,7 @@ Access to github is already slowing down. Most Internet information resources ha
 
 * Tuya devices (SOC PHY62x2)
 
-| Tuya devices on [SoC PHY62x2](https://github.com/pvvx/THB2)<br> 7 types | 
+| Tuya devices on [SoC PHY62x2](https://github.com/pvvx/THB2)<br> 9 types | 
 |:--:|
 | <img src="https://pvvx.github.io/ATC_MiThermometer/img/phy62x2.jpg" alt="Tuya PHY62x2" width="120"/> |
 | [PHY62x2BTHome](https://pvvx.github.io/THB2/web/PHY62x2BTHome.html) |
