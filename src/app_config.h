@@ -55,10 +55,11 @@ extern "C" {
 #define DEVICE_CB3S			35  // development is not completed! TS0041_TZ3000_fa9mlvja, Tuya ZigBee "Smart Button"
 #define DEVICE_HS09			36  // development is not completed! TS0201_TZ3000_1twfmkcc: Tuya ZigBee "Smart Humidity Sensor"
 #define DEVICE_ZYZTH02		37  // Tuya ZY-ZTH02 Zigbee, 2 x AAA, SHT30/CHT832x
-#define DEVICE_ZYZTH01		38  // development is not completed! Tuya ZY-ZTH02Pro Zigbee LCD, 2 x AAA, SHT30/CHT832x
+#define DEVICE_ZYZTH01		38  // Tuya ZY-ZTH02Pro Zigbee LCD, 2 x AAA, SHT30/CHT832x
+#define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_ZG_227Z
 #endif
 
 // supported services by the device (bits)
@@ -1425,7 +1426,7 @@ extern "C" {
 #define PC0_DATA_OUT		1
 #define PC0_OUTPUT_ENABLE	0
 #define PC0_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_1M
+//#define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_1M
 
 #define GPIO_TRG			GPIO_PD2
 #define PD2_INPUT_ENABLE	1
@@ -2121,6 +2122,92 @@ extern "C" {
 #define PA0_OUTPUT_ENABLE	0
 #define PA0_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA0 RDS1_PULLUP
+
+#elif (DEVICE_TYPE == DEVICE_ZG_227Z)
+
+// TLSR8253F512ET32 512K Flash
+// GPIO_PA7 - SWS, free, (debug TX)
+// GPIO_PB1 - TX
+// GPIO_PC2 - LED
+// GPIO_PB6 - gSensor
+// GPIO_PB7 - RX
+// GPIO_PD4 - KEY
+// GPIO_PC3 - SDA
+// GPIO_PC4 - SCL
+
+#define DEV_SERVICES ( SERVICE_OTA \
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+)
+
+#define ZIGBEE_TUYA_OTA 	1
+#define USE_EPD				0 // min update time ms
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
+#define USE_SENSOR_AHT20_30		1
+#define USE_SENSOR_SHT4X		0
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		0
+
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8253F512ET32
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define I2C_MAX_SPEED 		200000 // 700 kHz
+#define I2C_SCL 			GPIO_PC4
+#define PC4_INPUT_ENABLE	1
+#define PC4_DATA_OUT		0
+#define PC4_OUTPUT_ENABLE	0
+#define PULL_WAKEUP_SRC_PC4	PM_PIN_PULLUP_10K
+
+#define I2C_SDA 			GPIO_PC3
+#define PC3_INPUT_ENABLE	1
+#define PC3_DATA_OUT		0
+#define PC3_OUTPUT_ENABLE	0
+#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
+
+#define GPIO_KEY2			GPIO_PD4
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD4	PM_PIN_PULLUP_10K
+
+#define GPIO_LED			GPIO_PC2
+#define LED_ON				0
+#define PC2_INPUT_ENABLE	1
+#define PC2_DATA_OUT		1
+#define PC2_OUTPUT_ENABLE	0
+#define PC2_FUNC			AS_GPIO
+//#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_1M
+
+#define GPIO_TRG			GPIO_PB1
+#define PB1_INPUT_ENABLE	1
+#define PB1_DATA_OUT		0
+#define PB1_OUTPUT_ENABLE	0
+#define PB1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_1M
+#define GPIO_RDS1 			GPIO_PB7
+#define PB7_INPUT_ENABLE	1
+#define PB7_DATA_OUT		0
+#define PB7_OUTPUT_ENABLE	0
+#define PB7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB7 RDS1_PULLUP
 
 
 #else // DEVICE_TYPE

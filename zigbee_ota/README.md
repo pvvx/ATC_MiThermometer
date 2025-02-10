@@ -64,3 +64,10 @@ db15-0203-99993001-ATC_vxx.zigbee
 1002-0203-60993001-ZYZTH02PBLE_xxx.zigbee Tuya ZY-ZTH02P Zigbee to BLE
 
 * Index file: zyzth02p_tuya2ble.json
+
+### ZG-227Z From Tuya Zigbee firmware to BLE:
+
+1286-0203-10983001-ZG227ZBLE_xxx.zigbee Tuya ZG-227Z Zigbee to BLE
+
+* Index file: zg227z_tuya2ble.json
+

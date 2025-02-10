@@ -64,8 +64,9 @@
 #define DEVICE_ZTH05Z		33  // Tuya ZTH05ZTUv12 Zigbee LCD, AHT30, CR2032
 #define DEVICE_CB3S			35  // development is not completed! TS0041_TZ3000_fa9mlvja, Tuya ZigBee "Smart Button"
 #define DEVICE_HS09			36  // development is not completed! TS0201_TZ3000_1twfmkcc: Tuya ZigBee "Smart Humidity Sensor"
-#define DEVICE_ZYZTH02		37  // development is not completed! Tuya ZY-ZTH02 Zigbee, 2 x AAA, SHT30/CHT832x
-#define DEVICE_ZYZTH01		38  // development is not completed! Tuya ZY-ZTH02Pro Zigbee LCD, 2 x AAA, SHT30/CHT832x
+#define DEVICE_ZYZTH02		37  // Tuya ZY-ZTH02 Zigbee, 2 x AAA, SHT30/CHT832x
+#define DEVICE_ZYZTH01		38  // Tuya ZY-ZTH02Pro Zigbee LCD, 2 x AAA, SHT30/CHT832x
+#define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 
 
 #if 0 // not used in this code!

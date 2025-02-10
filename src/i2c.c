@@ -408,7 +408,7 @@ int I2CBusUtr(void * outdata, i2c_utr_t * tr, u32 wrlen) {
 				sleep_us16(I2C_TCLK_US);
 			}
 			soft_i2c_start();
-			ret = soft_i2c_wr_byte(tr->wrdata[0]);
+			ret = soft_i2c_wr_byte(tr->wrdata[0] | 1);
 		}
 	}
 	if(ret == 0) {
