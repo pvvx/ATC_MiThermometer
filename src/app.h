@@ -113,8 +113,13 @@ typedef struct __attribute__((packed)) _cfg_t {
 	s8 temp_offset; // Set temp offset, -12,5 - +12,5 °C (-125..125)
 	s8 humi_offset; // Set humi offset, -12,5 - +12,5 % (-125..125)
 #else
-	u8 flg3;	// reserved
-	u8 flg4;	// reserved
+
+	struct __attribute__((packed)) {
+		u8 adv_interval_delay	: 4; // 0..15,  in 0.625 ms, a pseudo-random value in the range from 0 to X ms is added to a fixed advInterval so that advertising events change over time.
+		u8 reserved				: 3;
+		u8 not_day_of_week		: 1; // do not display day of week (MJWSD05MMC)
+	} flg3;
+	u8 event_adv_cnt;		// min value = 5
 #endif
 	u8 advertising_interval; // multiply by 62.5 for value in ms (1..160,  62.5 ms .. 10 sec)
 	u8 measure_interval; // measure_interval = advertising_interval * x (2..25)
@@ -280,6 +285,7 @@ typedef struct _work_flg_t {
 			u8 th_sensor_read	: 1;
 		} b; // bits-flags measurements completed
 	} msc; // flags measurements completed
+	u8 adv_interval_delay; // adv interval + rand delay in 0.625 ms // = 10 or 0
 } work_flg_t;
 extern work_flg_t wrk;
 

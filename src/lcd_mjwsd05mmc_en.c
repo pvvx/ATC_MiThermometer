@@ -873,7 +873,7 @@ void lcd(void) {
 		else
 			show_smiley(LCD_SYM_SMILEY_NONE);
 	}
-	show_data_s2(cfg.flg3);
+	show_data_s2(cfg.flg3.not_day_of_week);
 }
 
 

@@ -73,6 +73,8 @@ const cfg_t def_cfg = {
 		.flg.advertising_type = ADV_TYPE_DEFAULT,
 		.rf_tx_power = RF_POWER_P0p04dBm, // RF_POWER_P3p01dBm,
 		.connect_latency = DEF_CONNECT_LATENCY, // (49+1)*1.25*16 = 1000 ms
+		.event_adv_cnt = 6,
+		.flg3.adv_interval_delay = 10,
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		.advertising_interval = 80, // multiply by 62.5 ms = 5 sec
 		.flg.comfort_smiley = true,
@@ -406,12 +408,16 @@ void test_config(void) {
 		else if (cfg.rf_tx_power > RF_POWER_P10p46dBm)
 			cfg.rf_tx_power = RF_POWER_P10p46dBm;
 	}
+	if (cfg.event_adv_cnt < 6) {
+		cfg.event_adv_cnt = 6;
+	}
 	if (cfg.flg.tx_measures)
 		wrk.tx_measures = 0xff; // always notify
 	if (cfg.advertising_interval == 0) // 0 ?
 		cfg.advertising_interval = 1; // 1*62.5 = 62.5 ms
 	else if (cfg.advertising_interval > 160) // max 160 : 160*62.5 = 10000 ms
 		cfg.advertising_interval = 160; // 160*62.5 = 10000 ms
+	wrk.adv_interval_delay = cfg.flg3.adv_interval_delay;
 	wrk.adv_interval = cfg.advertising_interval * 100; // Tadv_interval = adv_interval * 62.5 ms , adv_interval in 0.625 ms
 
 	// measurement_step_time = adv_interval * 62.5 * measure_interval, max 250 sec

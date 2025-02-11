@@ -56,9 +56,9 @@ extern u8 my_SerialStr[20];
 #define DEF_CON_INERVAL		16 // in 1.25 ms -> 16*1.25 = 20 ms
 #define DEF_CON_LAT_INERVAL	1000 // in 1 ms -> 1 sec
 #define DEF_CONNECT_LATENCY (((int)(DEF_CON_LAT_INERVAL*100)/(int)(DEF_CON_INERVAL * 125))-1) // = 49, (49+1)*1.25*16 = 1000 ms)
+
 #define CONNECTABLE_ADV_INERVAL 1600 //x0.625 ms = 1 sec
-// advDelay - a pseudo-random value in the range from 0 to 10 ms is added to a fixed advInterval so that advertising events change over time.
-#define ADV_DELAY 10 //x0.625 ms = 6.25 ms
+#define EXT_ADV_INTERVAL ADV_INTERVAL_50MS // event adv interval
 
 typedef struct
 {

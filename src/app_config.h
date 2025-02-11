@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x50	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x51	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 
@@ -59,7 +59,7 @@ extern "C" {
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_ZG_227Z
+#define DEVICE_TYPE			DEVICE_ZYZTH02
 #endif
 
 // supported services by the device (bits)

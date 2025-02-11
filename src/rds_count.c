@@ -156,7 +156,7 @@ static void start_ext_adv(void) {
 #if (DEV_SERVICES & SERVICE_LE_LR)
 	if (adv_buf.ext_adv_init != EXT_ADV_Off) { // support extension advertise
 		set_rds_adv_data();
-		blta.adv_duraton_en = EXT_ADV_COUNT;
+		blta.adv_duraton_en = cfg.event_adv_cnt;
 		adv_buf.data_size = 0; // flag adv_buf.send_count++ over adv.event
 		ll_ext_adv_t *p = (ll_ext_adv_t *)&app_adv_set_param;
 		// patch: set time next ext.adv = 0
@@ -172,7 +172,7 @@ static void start_ext_adv(void) {
 				BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 		set_rds_adv_data();
 		adv_buf.data_size = 0; // flag adv_buf.send_count++ over adv.event
-		bls_ll_setAdvDuration(EXT_ADV_INTERVAL*EXT_ADV_COUNT*625+33, 1);
+		bls_ll_setAdvDuration(EXT_ADV_INTERVAL*625*cfg.event_adv_cnt+33, 1);
 		blta.adv_interval = 0; // system tick
 		bls_ll_setAdvEnable(BLC_ADV_ENABLE);  // adv enable
 	}
