@@ -1,10 +1,10 @@
 [
     {
         "fileVersion": 26750977,
-        "fileSize": 80946,
+        "fileSize": 80818,
         "manufacturerCode": 4417,
         "imageType": 54179,
-        "sha512": "3ce255c7413646ba77b5140869644cb0b15d27ad4a338bcf972789935d001d720e9f589afd56f187d921e7091f642dc3284a413f4c0258642198425a4a5fc6ad",
-        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-d3a3-01983001-LKTMZL02BLE_v50.zigbee"
+        "sha512": "b68ad80cef61cebcb590053ed2a056116f3b9500e804727e493d5a04279d0c7d614e2eef60cca67b651fbaed44dccb9d8fc4dd9556ec22c2662e8126671995f3",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-d3a3-01983001-LKTMZL02BLE_v51.zigbee"
     }
 ]
