@@ -620,10 +620,10 @@ static void suspend_enter_cb(u8 e, u8 *p, int n) {
 
 #if USE_AVERAGE_BATTERY
 //--- check battery
-#define BAT_AVERAGE_COUNT	32
+#define BAT_AVERAGE_COUNT_SHL	9 // 4,5,6,7,8,9,10,11,12 -> 16,32,64,128,256,512,1024,2048,4096
 RAM struct {
 	u32	buf_sum;
-	u8	count;
+	u32	count;
 } bat_average;
 #endif
 
@@ -636,11 +636,12 @@ void check_battery(void) {
 #if USE_AVERAGE_BATTERY
 	bat_average.buf_sum += measured_data.battery_mv;
 	bat_average.count++;
-	measured_data.average_battery_mv = bat_average.buf_sum / bat_average.count;
-	measured_data.battery_level = get_battery_level(measured_data.average_battery_mv);
-	if(bat_average.count >= BAT_AVERAGE_COUNT) {
-		bat_average.buf_sum >>= 1;
-		bat_average.count >>= 1;
+	if(bat_average.count >= (1<<BAT_AVERAGE_COUNT_SHL)) {
+		measured_data.average_battery_mv = bat_average.buf_sum >> BAT_AVERAGE_COUNT_SHL;
+		bat_average.buf_sum -= (bat_average.buf_sum >> BAT_AVERAGE_COUNT_SHL);
+		bat_average.count--;
+	} else {
+		measured_data.average_battery_mv = bat_average.buf_sum / bat_average.count;
 	}
 #else
 	measured_data.battery_level = get_battery_level(measured_data.battery_mv);

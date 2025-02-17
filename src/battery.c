@@ -95,3 +95,5 @@ u8 get_battery_level(u16 battery_mv) {
 		battery_level = 100;
 	return battery_level;
 }
+
+

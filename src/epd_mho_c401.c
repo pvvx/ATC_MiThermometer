@@ -331,7 +331,9 @@ _attribute_ram_code_ void update_lcd(void){
 	}
 }
 
-_attribute_ram_code_ __attribute__((optimize("-Os"))) int task_lcd(void) {
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+int task_lcd(void) {
 	if(cfg.flg2.screen_off) {
 		stage_lcd = 0;
 		return stage_lcd;

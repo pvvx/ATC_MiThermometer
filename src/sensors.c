@@ -655,30 +655,24 @@ static int check_sensor(void) {
 					}
 #endif // USE_SENSOR_SHT4X
 #if USE_SENSOR_SHT30
-#if USE_SENSOR_SHT4X
-					if(!ptabinit)
-#endif // USE_SENSOR_SHT4X
-					{
-						// SHT30/GXHT3x/CHT832x
-						if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_SOFT_RESET)) { // Soft reset command
-							sleep_us(SHT30_SOFT_RESET_us);
-							// clear status reg
-							// send_i2c_word(sensor_cfg.i2c_addr, SHT30_CLR_STATUS);
-							// read status reg
-							if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_RD_STATUS)
-							&& !read_i2c_buf(sensor_cfg.i2c_addr, buf, 3)
-							&& buf[2] == sensor_crc(buf[1] ^ sensor_crc(buf[0] ^ 0xff))) {
-								//if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_HIMEASURE)) { // start measure T/H
-									sensor_cfg.id = (0x0030 << 16) | (buf[0] << 8) | buf[1];
-									ptabinit = (sensor_def_cfg_t *)&def_thcoef_sht30;
-								//}
-								break;
-							}
+					// SHT30/GXHT3x/CHT832x
+					if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_SOFT_RESET)) { // Soft reset command
+						sleep_us(SHT30_SOFT_RESET_us);
+						// clear status reg
+						// send_i2c_word(sensor_cfg.i2c_addr, SHT30_CLR_STATUS);
+						// read status reg
+						if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_RD_STATUS)
+						&& !read_i2c_buf(sensor_cfg.i2c_addr, buf, 3)
+						&& buf[2] == sensor_crc(buf[1] ^ sensor_crc(buf[0] ^ 0xff))) {
+							//if(!send_i2c_word(sensor_cfg.i2c_addr, SHT30_HIMEASURE)) { // start measure T/H
+								sensor_cfg.id = (0x0030 << 16) | (buf[0] << 8) | buf[1];
+								ptabinit = (sensor_def_cfg_t *)&def_thcoef_sht30;
+							//}
+							break;
 						}
 					}
 #endif // USE_SENSOR_SHT30
 				}
-				break;
 			}
 			test_i2c_addr += 2;
 		} while(test_i2c_addr <= (SHT4x_I2C_ADDR_MAX << 1));
