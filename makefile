@@ -16,7 +16,6 @@ ifneq ($(TEL_PATH)/components/drivers/8258/gpio_8258.c, $(wildcard $(TEL_PATH)/c
 $(error "Please check SDK Path and set TEL_PATH.")
 endif
 
-PYTHON ?= python3
 TL_Check = $(PROJECT_PATH)/../utils/tl_check_fw.py
 zb_OTA = $(PROJECT_PATH)/../utils/zigbee_ota.py
 
@@ -24,9 +23,11 @@ COMPILEOS = $(shell uname -o)
 LINUX_OS = GNU/Linux
 
 ifeq ($(COMPILEOS),$(LINUX_OS))
+	PYTHON ?= python3
 	TOOLS_PATH := $(TEL_PATH)/tools/linux/
 	TC32_PATH := $(TOOLS_PATH)tc32/bin/
 else
+	PYTHON ?= python
 	TOOLS_PATH := $(TEL_PATH)/tools/windows/
 ifeq ($(TOOLS_PATH)tc32/bin/tc32-elf-gcc.exe, $(wildcard $(TOOLS_PATH)tc32/bin/tc32-elf-gcc.exe))
 	TC32_PATH := $(TOOLS_PATH)tc32/bin/
