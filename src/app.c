@@ -643,6 +643,7 @@ void check_battery(void) {
 	} else {
 		measured_data.average_battery_mv = bat_average.buf_sum / bat_average.count;
 	}
+	measured_data.battery_level = get_battery_level(measured_data.average_battery_mv);
 #else
 	measured_data.battery_level = get_battery_level(measured_data.battery_mv);
 #endif
