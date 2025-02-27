@@ -713,7 +713,7 @@ static void show_data_s2(u8 flg) {
 	clear_s2();
 	display_buff[5] = BIT(0); // "/"
 	display_buff[4] &= BIT(4); // s1: "1"
-	if((flg & MASK_FLG3_WEEKDAY) == 0) {
+	if(!flg) {
 		display_buff[4] |= sb_dnd[rtc.weekday];
 	}
 
