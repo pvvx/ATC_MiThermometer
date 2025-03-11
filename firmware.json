@@ -1,6 +1,6 @@
 {"version": 73, "betaver": 80, 
-"zbjson": "https://raw.githubusercontent.com/pvvx/ZigbeeTLc/master/firmware.json",
-"zbdjson": "https://raw.githubusercontent.com/pvvx/ZBdevices/master/firmware.json",
+"zbjson": "https://raw.githubusercontent.com/pvvx/ZigbeeTLc/master/firmware_z.json",
+"zbdjson": "https://raw.githubusercontent.com/pvvx/ZigbeeTLc/master/firmware_zb.json",
 "custom":[
 "ATC_v50.bin",
 "MHO_C401_v50.bin",
