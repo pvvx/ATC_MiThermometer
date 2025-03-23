@@ -554,7 +554,7 @@ void read_sensors(void) {
 			set_trigger_out();
 #endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
-			if (cfg.averaging_measurements)
+			if ((!wrk.ota_is_working) && cfg.averaging_measurements)
 				write_memo();
 #endif
 #if (DEV_SERVICES & SERVICE_BINDKEY) && USE_MIHOME_BEACON
