@@ -64,11 +64,11 @@ Access to github is already slowing down. Most Internet information resources ha
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 | | [Not recommended for purchase!](https://github.com/pvvx/ZigbeeTLc/issues/129) | | modification required |
 
-| Tuya ZigBee<br>[ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) |
-|:--:|
-| <img src="https://pvvx.github.io/ZY-ZTH02Pro/img/zyzth02p.jpg" alt="ZY-ZTH02Pro" width="200"/> |
-| Zigbee OTA |
-| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
+| Tuya ZigBee<br>[ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) | [MJWSD06MMC](https://pvvx.github.io/MJWSD06MMC) |
+|:--:|:--:|
+| <img src="https://pvvx.github.io/ZY-ZTH02Pro/img/zyzth02p.jpg" alt="ZY-ZTH02Pro" width="200"/> |<img src="https://pvvx.github.io/MJWSD06MMC/img/MJWSD06MMC.jpg" alt="MJWSD06MMC" width="200"/> |
+| Zigbee OTA | Programmer |
+| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE |
 
 * Thermometers without display
 
@@ -289,7 +289,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.8 | Reorganization of program code. Combining code with "BLE_THSensor". [Option added](https://github.com/pvvx/ATC_MiThermometer/issues/571): One MY18B20 on PD2 TS0201S1, ZTH01S1; Two MY18B20 on PD2 and PD4 TS0201S2, ZTH01S2. Temperature from MY18B20 is transmitted in BTHome format. |
 |     4.9 | Added "[Tuya TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/)", "[LKTMZL02](https://pvvx.github.io/LKTMZL02)", "[ZTH05](https://pvvx.github.io/TS0601_TZE204)" |
 |     5.0 | Fix EPD processing, add soft I2C. Added "[ZY-ZTH02](https://github.com/pvvx/ZigbeeTLc/issues/128), [ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro), [ZG-227Z](https://github.com/pvvx/ZigbeeTLc/issues/161)" |
-|     5.1 | Added settings: "pseudo-random value in the range from 0 to X ms is added to the fixed advInterval so that ad events change over time", "number of transmitted beacons per event". Changed calculation of average battery voltage. |
+|     5.1 | Added settings: "pseudo-random value in the range from 0 to X ms is added to the fixed advInterval so that ad events change over time", "number of transmitted beacons per event". Changed calculation of average battery voltage. Added MJWSD06MMC. |
 
 ## Applications
 
