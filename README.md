@@ -229,6 +229,7 @@ You can directly update/flash the firmware without downloading the binaries belo
 
 The download of the appropriate firmware for your device will be presented automatically in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). Downloading files from this repository is not required.
 
+* [BLE OTA bin firmware files](https://github.com/pvvx/ATC_MiThermometer/tree/master/bin)
 * [Zigbee OTA firmware files for recovery in BLE](https://github.com/pvvx/ATC_MiThermometer/tree/master/zigbee_ota)
 
 **Original Manufacturer Firmware Version**

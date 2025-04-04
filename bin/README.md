@@ -3,12 +3,12 @@
 
 | HW ID | Zigbee Image Type | Device | BLE FW Name |
 |--|--|--|--|
-|  0 | 0x0200 | LYWSD03MMC-B1.4 | ATC |
+|  0 | 0x0200 =0x020A | LYWSD03MMC-B1.4 | ATC |
 |  1 | 0x0201 | [MHO-C401(old)](https://pvvx.github.io/MHO_C401) | MHO_C401 |
 |  2 | 0x0202 | [CGG1-M(2020,2021)](https://pvvx.github.io/CGG1) | CGG1 |
-|  3 | 0x0203 | LYWSD03MMC-B1.9 | ATC |
-|  4 | 0x0204 | LYWSD03MMC-B1.6 | ATC |
-|  5 | 0x0205 | LYWSD03MMC-B1.7[B2.0] | ATC |
+|  3 | 0x0203 =0x020A | LYWSD03MMC-B1.9 | ATC |
+|  4 | 0x0204 =0x020A | LYWSD03MMC-B1.6 | ATC |
+|  5 | 0x0205 =0x020A | LYWSD03MMC-B1.7[B2.0] | ATC |
 |  6 | 0x0206 | [CGDK2](https://pvvx.github.io/CGDK2) | CGDK2 |
 |  7 | 0x0207 | [CGG1-M(2022)](https://pvvx.github.io/CGG1_2022) | CGG1M |
 |  8 | 0x0208 | [MHO-C401(2022)](https://pvvx.github.io/MHO_C401N) | MHO_C401N |
@@ -17,7 +17,7 @@
 | 11 | 0x020B | [MHO-C122](https://pvvx.github.io/MHO_C122) | MHO_C122 |
 | 12 | 0x020C | [MJWSD05MMC(en)](https://pvvx.github.io/MJWSD05MMC) | BTE |
 | 13 | 0x020D | [MJWSD06MMC](https://pvvx.github.io/MJWSD06MMC) | MJ6 |
-| 14..15 | 0x020E..0x020F | BLE reserved | |
+| 14..15 | 0x020E,0x020F | BLE reserved | |
 | 16 | 0x0210 | TB03F | TB03F | 
 | 17 | 0x0211 | TS0201 [TS0201_TZ3000](https://pvvx.github.io/TS0201_TZ3000) | TS0201 |
 | 18 | 0x0212 | TNKS | TNKS |
