@@ -28,6 +28,8 @@
 
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 #define measured_val0	measured_data.pressure
+#elif USE_SENSOR_INA3221
+#define measured_val0	measured_data.voltage[0]
 #else
 #define measured_val0	measured_data.battery_mv
 #endif
@@ -42,17 +44,28 @@
 #define measured_val1	measured_data.xtemp[0]
 #define measured_val2	measured_data.xtemp[1]
 #elif (DEV_SERVICES & SERVICE_IUS)
+#if USE_SENSOR_INA3221
+#define measured_val1	measured_data.current[1]
+#define measured_val2	measured_data.current[0]
+#else
 #define measured_val1	measured_data.current
 #define measured_val2	measured_data.voltage
 #endif
+#endif
 
 typedef struct _summ_data_t {
+#if USE_SENSOR_INA3221
+	u32	val0; //
+	s32	val1; //
+	s32	val2; //
+#else
 	u32	val0; // battery_mv; // mV
-	s32		val1; // temp, temp1, ; // x 0.01 C
+	s32	val1; // temp, temp1, ; // x 0.01 C
 #if ((DEV_SERVICES & SERVICE_THS) == 0) && (DEV_SERVICES & SERVICE_18B20) && (USE_SENSOR_MY18B20 == 2)
-	s32		val2; // temp2, current; // x 0.01 C, x ? mA
+	s32	val2; // temp2, current; // x 0.01 C, x ? mA
 #else
 	u32	val2; // humi, voltage; // x 0.01 %, x ? mV
+#endif
 #endif
 	u32 	count;
 } summ_data_t;
@@ -222,12 +235,18 @@ void write_memo(void) {
 			return;
 		if(wrk.ble_connected && bls_pm_getSystemWakeupTick() - clock_time() < 125*CLOCK_16M_SYS_TIMER_CLK_1MS)
 			return;
+#if	USE_SENSOR_INA3221
+		mblk.val0 = (s16)(summ_data.val0/summ_data.count);
+		mblk.val1 = (s16)(summ_data.val1/summ_data.count);
+		mblk.val2 = (s16)(summ_data.val2/summ_data.count);
+#else
 		mblk.val0 = (u16)(summ_data.val0/summ_data.count);
 		mblk.val1 = (s16)(summ_data.val1/(s32)summ_data.count);
 #if ((DEV_SERVICES & SERVICE_THS) == 0) && (DEV_SERVICES & SERVICE_18B20) && (USE_SENSOR_MY18B20 == 2)
 		mblk.val2 = (s16)(summ_data.val2/summ_data.count);  // temperature
 #else
 		mblk.val2 = (u16)(summ_data.val2/summ_data.count); // humidity
+#endif
 #endif
 		memset(&summ_data, 0, sizeof(summ_data));
 	}

@@ -40,7 +40,9 @@ enum {
 	IU_SENSOR_HX71X,	// 10
 	IU_SENSOR_PWMRH,	// 11
 	IU_SENSOR_NTC,		// 12
-	TH_SENSOR_TYPE_MAX // 13
+	IU_SENSOR_INA3221,	// 13
+	IU_SENSOR_SCD41,	// 14
+	TH_SENSOR_TYPE_MAX // 15
 } TH_SENSOR_TYPES;
 
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
@@ -53,17 +55,30 @@ typedef struct _thsensor_coef_t {
 } sensor_coef_t; // [12]
 
 typedef struct _sensor_def_cfg_t {
+#if USE_SENSOR_INA3221
+	sensor_coef_t coef[3];
+#else
 	sensor_coef_t coef;
+#endif
+#if SENSOR_SLEEP_MEASURE
 	u32 measure_timeout;
+#endif
 	u8 sensor_type; // SENSOR_TYPES
 } sensor_def_cfg_t;
 
 typedef struct _sensor_cfg_t {
+#if USE_SENSOR_INA3221
+	sensor_coef_t coef[3];
+#else
 	sensor_coef_t coef;
+#endif
 	u32 id;
 	u8 i2c_addr;
 	u8 sensor_type; // SENSOR_TYPES
-	// not saved
+// not saved
+#if USE_SENSOR_SCD41
+	u32 wait_tik;
+#endif
 #if SENSOR_SLEEP_MEASURE
 	volatile u32 time_measure;
 	u32 measure_timeout;

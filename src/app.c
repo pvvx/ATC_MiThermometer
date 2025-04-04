@@ -39,6 +39,9 @@
 #if USE_SYNC_SCAN
 #include "scanning.h"
 #endif
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#include "ens160.h"
+#endif
 
 void app_enter_ota_mode(void);
 
@@ -165,11 +168,19 @@ const cfg_t def_cfg = {
 #endif
 #elif (DEVICE_TYPE == DEVICE_TB03F)
 		.flg2.adv_flags = true,
+		.hw_ver = DEVICE_TYPE,
+#if USE_SENSOR_INA3221
+		.advertising_interval = 69, // multiply by 62.5 ms = 4312.5 sec  (замер 12767.232 ms)
+		.measure_interval = 3, // * advertising_interval = 12.9375 sec
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 139, // * measure_interval = 12.9375 * 139 = 1798.3125 sec = 29.971875 minutes
+#endif
+#else
 		.advertising_interval = 34, // multiply by 62.5 ms = 2.125 sec
 		.measure_interval = 4, // * advertising_interval = 8500 sec
-		.hw_ver = DEVICE_TYPE,
 #if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 212, // * measure_interval = 8.5 * 212 = 1802 sec = 30 minutes
+#endif
 #endif
 #elif (DEVICE_TYPE == DEVICE_TS0201) || (DEVICE_TYPE == DEVICE_TH03Z) || (DEVICE_TYPE == DEVICE_ZTH01) || (DEVICE_TYPE == DEVICE_ZTH02)
 		.flg2.adv_flags = true,
@@ -252,6 +263,17 @@ const cfg_t def_cfg = {
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 
+#elif DEVICE_TYPE == DEVICE_MJWSD06MMC
+		.flg2.adv_flags = true,
+		.advertising_interval = 80, // multiply by 62.5 ms = 5 sec
+		.flg.comfort_smiley = true,
+		.measure_interval = 4, // * advertising_interval = 20 sec
+		.min_step_time_update_lcd = 49, //x0.05 sec,   2.45 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
+#endif
+
 #else
 #error "DEVICE_TYPE = ?"
 #endif
@@ -311,7 +333,7 @@ void set_hw_version(void) {
 #if	USE_DEVICE_INFO_CHR_UUID
 #else
 	u8 my_HardStr[4];
-#endif
+#endif // USE_DEVICE_INFO_CHR_UUID
 	u8 hwver = 0;
 	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 //		if (cfg.hw_cfg.shtc3) { // sensor SHTC3 ?
@@ -348,9 +370,9 @@ void set_hw_version(void) {
 	my_HardStr[3] = id2hwver[hwver & 7];
 	cfg.hw_ver = hwver;
 	flash_write_cfg(&my_HardStr, EEP_ID_HWV, sizeof(my_HardStr));
-#else
+#else // (DEV_SERVICES & SERVICE_SCREEN)
 	cfg.hw_ver = DEVICE_TYPE;
-#endif
+#endif // (DEV_SERVICES & SERVICE_SCREEN)
 	return;
 #elif DEVICE_TYPE == DEVICE_MHO_C401
 	cfg.hw_ver = HW_VER_MHO_C401;
@@ -370,7 +392,7 @@ void set_hw_version(void) {
 	cfg.hw_ver = HW_VER_MJWSD05MMC_EN;
 #elif DEVICE_TYPE == DEVICE_MHO_C122
 	cfg.hw_ver = HW_VER_MHO_C122;
-#elif DEVICE_TYPE > HW_VER_EXTENDED
+#elif DEVICE_TYPE < HW_VER_EXTENDED
 	cfg.hw_ver = DEVICE_TYPE;
 #else
 	cfg.hw_ver = HW_VER_EXTENDED;
@@ -423,6 +445,9 @@ void test_config(void) {
 	// measurement_step_time = adv_interval * 62.5 * measure_interval, max 250 sec
 	if (cfg.measure_interval < 2)
 		cfg.measure_interval = 2; // T = cfg.measure_interval * advertising_interval_ms (ms),  Tmin = 1 * 1*62.5 = 62.5 ms / 1 * 160 * 62.5 = 10000 ms
+#if USE_SENSOR_SCD41
+	wrk.measurement_step_time = wrk.adv_interval * (625 * sys_tick_per_us) - 256;
+#else
 	wrk.measurement_step_time = wrk.adv_interval * (u32)cfg.measure_interval;
 	// test overflow 250 sec
 	u32 tmp = 400000 - wrk.adv_interval; // 250000000us/6250=400000
@@ -432,7 +457,7 @@ void test_config(void) {
 	}
 	wrk.measurement_step_time *= (625 * sys_tick_per_us);
 	wrk.measurement_step_time -= 256; // us
-
+#endif
 	if(cfg.connect_latency > DEF_CONNECT_LATENCY
 #if USE_AVERAGE_BATTERY
 			&& measured_data.average_battery_mv < LOW_VBAT_MV)
@@ -480,6 +505,7 @@ void test_config(void) {
 }
 
 void low_vbat(void) {
+#if (DEVICE_TYPE != DEVICE_MJWSD06MMC)
 #if (DEV_SERVICES & SERVICE_SCREEN)
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 	show_low_bat();
@@ -504,7 +530,11 @@ void low_vbat(void) {
 #endif // USE_EPD
 #endif // DEVICE_TYPE == DEVICE_MJWSD05MMC
 #endif // (DEV_SERVICES & SERVICE_SCREEN)
-	go_sleep(120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
+#else
+	send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
+	send_i2c_byte(0x3E << 1, 0xD0);
+#endif
+	go_sleep(180u * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 3 minutes
 }
 
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20 | SERVICE_PLM))
@@ -550,11 +580,17 @@ void read_sensors(void) {
 			// TODO: measured_data.humi_x1 = (measured_data.xtemp[1] + 50)/ 100;
 #endif
 #endif
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if !USE_ENS160_INT
+			if (!read_ens160())
+#endif
+				set_th_ens160(measured_data.temp, measured_data.humi);
+#endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 			set_trigger_out();
 #endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
-			if ((!wrk.ota_is_working) && cfg.averaging_measurements)
+			if (!wrk.ota_is_working && cfg.averaging_measurements)
 				write_memo();
 #endif
 #if (DEV_SERVICES & SERVICE_BINDKEY) && USE_MIHOME_BEACON
@@ -597,23 +633,20 @@ _attribute_ram_code_
 static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
 #if (DEV_SERVICES & SERVICE_RDS)
-	if(trg.rds.type1 != RDS_NONE)
-		cpu_set_gpio_wakeup(GPIO_RDS1, BM_IS_SET(reg_gpio_in(GPIO_RDS1), GPIO_RDS1 & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
-//	else
-//		cpu_set_gpio_wakeup(GPIO_RDS1, Level_Low, 0);  // pad wakeup deepsleep disable
+	cpu_set_gpio_wakeup(GPIO_RDS1, BM_IS_SET(reg_gpio_in(GPIO_RDS1), GPIO_RDS1 & 0xff)? Level_Low : Level_High, trg.rds.type1 != RDS_NONE);  // pad wakeup deepsleep enable
 #ifdef GPIO_RDS2
-	if(trg.rds.type2 != RDS_NONE)
-		cpu_set_gpio_wakeup(GPIO_RDS2, BM_IS_SET(reg_gpio_in(GPIO_RDS2), GPIO_RDS2 & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
-//	else
-//		cpu_set_gpio_wakeup(GPIO_RDS2, Level_Low, 0);  // pad wakeup deepsleep disable
+	cpu_set_gpio_wakeup(GPIO_RDS2, BM_IS_SET(reg_gpio_in(GPIO_RDS2), GPIO_RDS2 & 0xff)? Level_Low : Level_High, trg.rds.type2 != RDS_NONE);  // pad wakeup deepsleep enable
 #endif
 #endif
 #if (USE_SENSOR_HX71X && SENSOR_HX71X_WAKEAP)
 	cpu_set_gpio_wakeup(GPIO_HX71X_DOUT, Level_Low, wrk.ble_connected == 0);  // pad wakeup deepsleep enable
 #endif
+#if USE_ENS160_INT
+	cpu_set_gpio_wakeup(GPIO_ENS160_INT, Level_High, ens160.mode == ENS160_MODE_STANDARD);  // pad wakeup deepsleep enable
+#endif
 #if (DEV_SERVICES & SERVICE_KEY)
 	cpu_set_gpio_wakeup(GPIO_KEY2, BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff)? Level_Low : Level_High, 1);  // pad wakeup deepsleep enable
-#endif // (DEV_SERVICES & SERVICE_KEY)
+#endif
 	bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
 #endif // (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
@@ -638,7 +671,7 @@ void check_battery(void) {
 	bat_average.count++;
 	if(bat_average.count >= (1<<BAT_AVERAGE_COUNT_SHL)) {
 		measured_data.average_battery_mv = bat_average.buf_sum >> BAT_AVERAGE_COUNT_SHL;
-		bat_average.buf_sum -= (bat_average.buf_sum >> BAT_AVERAGE_COUNT_SHL);
+		bat_average.buf_sum -= measured_data.average_battery_mv;
 		bat_average.count--;
 	} else {
 		measured_data.average_battery_mv = bat_average.buf_sum / bat_average.count;
@@ -653,14 +686,17 @@ __attribute__((optimize("-Os")))
 static void start_tst_battery(void) {
 	measured_data.battery_mv = get_battery_mv();
 	if (measured_data.battery_mv < MIN_VBAT_MV) { // 2.2V
-#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD06MMC)
 		// Set sleep power < 1 uA
 		send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
+#if (DEVICE_TYPE == DEVICE_MJWSD06MMC)
+		send_i2c_byte(0x3E << 1, 0xD0);
+#endif
 #elif (DEVICE_TYPE == DEVICE_ZTH03) || (DEVICE_TYPE == DEVICE_LKTMZL02)
 extern int soft_i2c_send_byte(u8 addr, u8 b);
 		soft_i2c_send_byte(0x3E << 1, 0xD0);
 #endif
-		go_sleep(120 * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 2 minutes
+		go_sleep(180u * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 3 minutes
 	}
 #if USE_AVERAGE_BATTERY
 	bat_average.buf_sum = measured_data.battery_mv;
@@ -822,6 +858,10 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) || (USE_SENSOR_HX71X)
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
 #endif
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+	//pm_wait_ms(50);
+	init_ens160();
+#endif
 	// start_tst_battery(); // step 2
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
 	init_sensor();
@@ -908,6 +948,19 @@ void main_loop(void) {
 	if(sensor_cfg.time_measure && (clock_time() - sensor_cfg.time_measure > sensor_cfg.measure_timeout))
 		WakeupLowPowerCb(0);
 #endif
+#if (DEV_SERVICES & SERVICE_RDS)
+#ifndef GPIO_RDS2
+		if(trg.rds.type1 != RDS_NONE) // rds: switch or counter
+#endif
+			rds_task();
+#endif // (DEV_SERVICES & SERVICE_RDS)
+#if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
+	hx71x_task();
+#endif
+#if USE_ENS160_INT
+	if (gpio_read(GPIO_ENS160_INT))
+		read_ens160();
+#endif
 	if (wrk.ota_is_working) {
 #if (DEV_SERVICES & SERVICE_OTA_EXT)
 		if(wrk.ota_is_working == OTA_EXTENDED) {
@@ -921,15 +974,6 @@ void main_loop(void) {
 		}
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN);
 	} else {
-#if (DEV_SERVICES & SERVICE_RDS)
-#ifndef GPIO_RDS2
-		if(trg.rds.type1 != RDS_NONE) // rds: switch or counter
-#endif
-			rds_task();
-#endif
-#if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
-		hx71x_task();
-#endif
 #if (DEV_SERVICES & SERVICE_18B20)
 		task_my18b20();
 #endif
@@ -953,8 +997,8 @@ void main_loop(void) {
 				gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLUP_10K);
 #else
 				gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLDOWN_100K);
-#endif
-#endif
+#endif // LED_ON
+#endif // (DEV_SERVICES & SERVICE_LED)
 			}
 			else {
 				if(new - ext_key.key_pressed_tik1 > 1750*CLOCK_16M_SYS_TIMER_CLK_1MS) {
@@ -976,15 +1020,15 @@ void main_loop(void) {
 					gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLDOWN_100K);
 #else
 					gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLUP_1M);
-#endif
-#endif
+#endif // LED_ON
+#endif // (DEV_SERVICES & SERVICE_LED)
 				}
 #ifdef GPIO_KEY1
 				if(new - ext_key.key_pressed_tik2 > 5*CLOCK_16M_SYS_TIMER_CLK_1S) {
 					if((reg_gpio_in(GPIO_KEY1) & (GPIO_KEY1 & 0xff))==0)
 #else
 				if(new - ext_key.key_pressed_tik2 > 7*CLOCK_16M_SYS_TIMER_CLK_1S) {
-#endif
+#endif // GPIO_KEY1
 						set_default_cfg();
 #if (DEV_SERVICES & SERVICE_RDS) || (DEV_SERVICES & SERVICE_TH_TRG)
 					trg.flg.key_pressed = 0;
@@ -996,7 +1040,7 @@ void main_loop(void) {
 					gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLUP_10K);
 #else
 					gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLDOWN_100K);
-#endif
+#endif // LED_ON
 #endif
 				}
 			}
@@ -1063,7 +1107,7 @@ void main_loop(void) {
 			wrk.start_measure = 0;
 			check_battery();
 			read_sensors();
-#if (DEV_SERVICES & SERVICE_TH_THS) && (!USE_SENSOR_SHTC3)
+#if (DEV_SERVICES & SERVICE_THS) && (!USE_SENSOR_SHTC3) && !USE_SENSOR_SCD41
 			start_measure_sensor_deep_sleep();
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
@@ -1178,27 +1222,6 @@ void main_loop(void) {
 			}
 #endif
 		}
-#if (DEV_SERVICES & SERVICE_SCREEN)
-#if (USE_EPD)
-		if (stage_lcd) {
-			if (task_lcd()) {
-				if(!gpio_read(EPD_BUSY)) {
-					cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable
-#if !((DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) || (USE_SENSOR_HX71X))
-					bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
-#endif
-				} else {
-					cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
-					bls_pm_setSuspendMask(SUSPEND_DISABLE);
-					return;
-				}
-			} else {
-				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
-			}
-		}
-#endif
-#endif // (DEV_SERVICES & SERVICE_SCREEN)
-
 #if USE_SYNC_SCAN
 		if(scan.start_tik) {
 			scan_task();
@@ -1207,4 +1230,24 @@ void main_loop(void) {
 		bls_pm_setSuspendMask(
 				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
 	}
+#if (DEV_SERVICES & SERVICE_SCREEN)
+#if (USE_EPD)
+	if (stage_lcd) {
+		if (task_lcd()) {
+			if(!gpio_read(EPD_BUSY)) {
+				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 1);  // pad high wakeup deepsleep enable
+#if !((DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) || (USE_SENSOR_HX71X))
+				bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
+#endif
+			} else {
+				cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
+				bls_pm_setSuspendMask(SUSPEND_DISABLE);
+				return;
+			}
+		} else {
+			cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
+		}
+	}
+#endif
+#endif // (DEV_SERVICES & SERVICE_SCREEN)
 }

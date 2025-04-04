@@ -18,8 +18,106 @@
 #if (DEV_SERVICES & SERVICE_RDS)
 #include "rds_count.h"
 #endif
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#include "ens160.h"
+#endif
 #include "bthome_beacon.h"
 #include "ccm.h"
+
+_attribute_ram_code_ __attribute__((optimize("-Os")))
+static u32 set_bthome_data1(padv_bthome_data1_t p) {
+		p->b_id = BtHomeID_battery;
+		p->battery_level = measured_data.battery_level;
+#if (DEV_SERVICES & SERVICE_18B20)
+		p->t1_id = BtHomeID_temperature;
+		p->temperature1 = measured_data.xtemp[0]; // x0.01 C
+#if	(USE_SENSOR_MY18B20 == 2)
+		p->t2_id = BtHomeID_temperature;
+		p->temperature2 = measured_data.xtemp[1]; // x0.01 C
+#endif
+#endif
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
+		p->t_id = BtHomeID_temperature;
+		p->temperature = measured_data.temp; // x0.01 C
+		p->h_id = BtHomeID_humidity;
+		p->humidity = measured_data.humi; // x0.01 %
+#endif
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+		p->u_co2 = BtHomeID_co2;
+		p->co2 = ens160.co2;
+		p->u_tv = BtHomeID_tvoc;
+		p->tvoc = ens160.tvoc;
+#endif
+#if defined(USE_SENSOR_SCD41) && USE_SENSOR_SCD41
+		p->u_co2 = BtHomeID_co2;
+		p->co2 = measured_data.co2;
+#endif
+#if (DEV_SERVICES & SERVICE_PRESSURE)
+		p->l_id = BtHomeID_volume32;
+		p->volume = measured_data.pressure * 10UL; // 0.001 L
+#endif
+#if (DEV_SERVICES & SERVICE_IUS)
+#if USE_SENSOR_INA3221
+		p->u_id0 = BtHomeID_voltage;
+		p->voltage0 = measured_data.voltage[0]; // x mV
+		p->u_id1 = BtHomeID_voltage;
+		p->voltage1 = measured_data.voltage[1]; // x mV
+		p->u_id2 = BtHomeID_voltage;
+		p->voltage2 = measured_data.voltage[2]; // x mV
+#else
+		p->u_id = BtHomeID_voltage;
+		p->voltage = measured_data.voltage; // x mV
+		p->i_id = BtHomeID_current_i16;
+		p->current = measured_data.current; // x mA
+#endif
+
+#endif
+		return sizeof(adv_bthome_data1_t);
+}
+
+_attribute_ram_code_ __attribute__((optimize("-Os")))
+static u32 set_bthome_data2(padv_bthome_data2_t p) {
+#if (DEV_SERVICES & SERVICE_IUS)
+#if USE_SENSOR_INA3221
+		p->i_id0 = BtHomeID_current_i16;
+		p->current0 = measured_data.current[0]; // x mA
+		p->i_id1 = BtHomeID_current_i16;
+		p->current1 = measured_data.current[1]; // x mA
+		p->i_id2 = BtHomeID_current_i16;
+		p->current2 = measured_data.current[2]; // x mA
+#else
+		p->e_id = BtHomeID_power_i32;
+		p->energy = measured_data.energy; // x 0.1uW
+#endif
+#else
+		p->v_id = BtHomeID_voltage;
+#if USE_AVERAGE_BATTERY
+		p->battery_mv = measured_data.average_battery_mv; // x mV
+#else
+		p->battery_mv = measured_data.battery_mv; // x mV
+#endif
+#endif
+#if (DEV_SERVICES & SERVICE_TH_TRG)
+		p->s_id = BtHomeID_switch; //0x10
+		p->swtch = trg.flg.trg_output;
+#endif
+#if (DEV_SERVICES & SERVICE_RDS)
+		p->o1_id = BtHomeID_opened; //0x11
+		p->opened1 = trg.flg.rds1_input;
+#ifdef GPIO_RDS2
+		p->o2_id = BtHomeID_opened; //0x11
+		p->opened2 = trg.flg.rds2_input;
+#endif
+#endif
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+		p->u_vld = BtHomeID_heat;
+		p->vaidity = (ens160.status & 0x0C) == 0;
+		p->u_aqi = BtHomeID_count8;
+		p->aqi = ens160.aqi;
+
+#endif
+		return sizeof(adv_bthome_data2_t);
+}
 
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 
@@ -65,69 +163,92 @@ static void bthome_encrypt(u8 *pdata, u32 data_size) {
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void bthome_encrypt_data_beacon(void) {
 	u8 buf[16];
-	if (adv_buf.call_count < cfg.measure_interval) {
-		padv_bthome_data1_t p = (padv_bthome_data1_t)&buf;
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+	if(!ens160.flg) {
+		padv_bthome_def_t p = (padv_bthome_def_t)p;
+		p->pid = (u8)adv_buf.send_count;
+		p->head.size = sizeof(adv_bthome_def_t) - sizeof(p->head.size);
 		p->b_id = BtHomeID_battery;
 		p->battery_level = measured_data.battery_level;
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
-		p->t_id = BtHomeID_temperature;
-		p->temperature = measured_data.temp; // x0.01 C
+		adv_buf.data_size = sizeof(adv_bthome_def_t);
+	} else
 #endif
-#if (DEV_SERVICES & SERVICE_18B20)
-		p->t1_id = BtHomeID_temperature;
-		p->temperature1 = measured_data.xtemp[0]; // x0.01 C
-#if	(USE_SENSOR_MY18B20 == 2)
-		p->t2_id = BtHomeID_temperature;
-		p->temperature2 = measured_data.xtemp[1]; // x0.01 C
+//	if (adv_buf.call_count < cfg.measure_interval) {
+#if USE_SENSOR_INA3221 || USE_SENSOR_SCD41 || USE_SENSOR_INA226
+	if (++adv_buf.call_count & 1)
+#else
+	if (adv_buf.call_count & 1)
 #endif
-#endif
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
-		p->h_id = BtHomeID_humidity;
-		p->humidity = measured_data.humi; // x0.01 %
-#endif
-#if (DEV_SERVICES & SERVICE_PRESSURE)
-		p->l_id = BtHomeID_volume32;
-		p->volume = measured_data.pressure * 10UL; // 0.001 L
-#endif
-#if (DEV_SERVICES & SERVICE_IUS)
-		p->u_id = BtHomeID_voltage;
-		p->voltage = measured_data.voltage; // x mV
-		p->i_id = BtHomeID_current;
-		p->current = measured_data.current; // x mA
-#endif
-		bthome_encrypt(buf, sizeof(adv_bthome_data1_t));
+	{
+		bthome_encrypt(buf, set_bthome_data1((padv_bthome_data1_t)&buf));
 	} else {
-		adv_buf.call_count = 1;
-		adv_buf.send_count++;
-		padv_bthome_data2_t p = (padv_bthome_data2_t)&buf;
-#if (DEV_SERVICES & SERVICE_IUS)
-		p->e_id = BtHomeID_energy32;
-		p->energy = measured_data.energy; // x mW
+		bthome_encrypt(buf, set_bthome_data2((padv_bthome_data2_t)&buf));
+	}
+}
+
+#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
+
+_attribute_ram_code_ __attribute__((optimize("-Os")))
+void bthome_data_beacon(void) {
+	padv_bthome_ns1_t p = (padv_bthome_ns1_t)&adv_buf.data;
+	p->head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+	p->head.UUID = ADV_BTHOME_UUID16;
+	p->info = BtHomeID_Info;
+	p->p_id = BtHomeID_PacketId;
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+	if(!ens160.flg) {
+		padv_bthome_def_t p = (padv_bthome_def_t)p;
+		p->pid = (u8)adv_buf.send_count;
+		p->head.size = sizeof(adv_bthome_def_t) - sizeof(p->head.size);
+		p->b_id = BtHomeID_battery;
+		p->battery_level = measured_data.battery_level;
+		adv_buf.data_size = sizeof(adv_bthome_def_t);
+	} else
+#endif
+//	if (adv_buf.call_count < cfg.measure_interval) {
+#if USE_SENSOR_INA3221 || USE_SENSOR_SCD41 || USE_SENSOR_INA226
+	if (++adv_buf.call_count & 1)
 #else
-		p->v_id = BtHomeID_voltage;
-#if USE_AVERAGE_BATTERY
-		p->battery_mv = measured_data.average_battery_mv; // x mV
-#else
-		p->battery_mv = measured_data.battery_mv; // x mV
+	if (adv_buf.call_count & 1)
 #endif
-#endif
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-		p->s_id = BtHomeID_switch;
-		p->swtch = trg.flg.trg_output;
-#endif
-#if (DEV_SERVICES & SERVICE_RDS)
-		p->o1_id = BtHomeID_opened;
-		p->opened1 = trg.flg.rds1_input;
-#ifdef GPIO_RDS2
-		p->o2_id = BtHomeID_opened;
-		p->opened2 = trg.flg.rds2_input;
-#endif
-#endif
-		bthome_encrypt(buf, sizeof(adv_bthome_data2_t));
+	{
+		p->pid = (u8)adv_buf.send_count;
+		set_bthome_data1(&p->data);
+		p->head.size = sizeof(adv_bthome_ns1_t) - sizeof(p->head.size);
+		adv_buf.data_size = sizeof(adv_bthome_ns1_t);
+	} else {
+		padv_bthome_ns2_t p = (padv_bthome_ns2_t)&adv_buf.data;
+		p->pid = (u8)adv_buf.send_count;
+		set_bthome_data2(&p->data);
+		p->head.size = sizeof(adv_bthome_ns2_t) - sizeof(p->head.size);
+		adv_buf.data_size = sizeof(adv_bthome_ns2_t);
 	}
 }
 
 #if (DEV_SERVICES & SERVICE_RDS)
+// n = RDS_TYPES
+_attribute_ram_code_ __attribute__((optimize("-Os")))
+void bthome_event_beacon(u8 n) {
+	padv_bthome_ns_ev1_t p = (padv_bthome_ns_ev1_t)&adv_buf.data;
+	p->head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
+	p->head.UUID = ADV_BTHOME_UUID16;
+	p->info = BtHomeID_Info;
+	p->p_id = BtHomeID_PacketId;
+	p->pid = (u8)adv_buf.send_count;
+	p->head.size = sizeof(adv_bthome_ns_ev1_t) - sizeof(p->head.size);
+
+	p->data.o1_id = BtHomeID_opened;
+	p->data.opened1 = trg.flg.rds1_input;
+#ifdef GPIO_RDS2
+	p->data.o2_id = BtHomeID_opened;
+	p->data.opened2 = trg.flg.rds2_input;
+#endif
+	p->data.c_id = BtHomeID_count32;
+	p->data.counter = rds.count1;
+
+	adv_buf.data_size = sizeof(adv_bthome_ns_ev1_t);
+}
+#if (DEV_SERVICES & SERVICE_BINDKEY)
 // n = RDS_TYPES
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void bthome_encrypt_event_beacon(u8 n) {
@@ -143,99 +264,8 @@ void bthome_encrypt_event_beacon(u8 n) {
 	p->counter = rds.count1;
 	bthome_encrypt(buf, sizeof(adv_bthome_event1_t));
 }
-#endif
+#endif //(DEV_SERVICES & SERVICE_BINDKEY)
 
-#endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
-
-_attribute_ram_code_ __attribute__((optimize("-Os")))
-void bthome_data_beacon(void) {
-	padv_bthome_ns1_t p = (padv_bthome_ns1_t)&adv_buf.data;
-	p->head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-	p->head.UUID = ADV_BTHOME_UUID16;
-	p->info = BtHomeID_Info;
-	p->p_id = BtHomeID_PacketId;
-	if (adv_buf.call_count < cfg.measure_interval) {
-		p->pid = (u8)adv_buf.send_count;
-		p->data.b_id = BtHomeID_battery;
-		p->data.battery_level = measured_data.battery_level;
-#if (DEV_SERVICES & SERVICE_18B20)
-		p->data.t1_id = BtHomeID_temperature;
-		p->data.temperature1 = measured_data.xtemp[0]; // x0.01 C
-#if	(USE_SENSOR_MY18B20 == 2)
-		p->data.t2_id = BtHomeID_temperature;
-		p->data.temperature2 = measured_data.xtemp[1]; // x0.01 C
-#endif
-#endif
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
-		p->data.t_id = BtHomeID_temperature;
-		p->data.temperature = measured_data.temp; // x0.01 C
-		p->data.h_id = BtHomeID_humidity;
-		p->data.humidity = measured_data.humi; // x0.01 %
-#endif
-#if (DEV_SERVICES & SERVICE_PRESSURE)
-		p->data.l_id = BtHomeID_volume32;
-		p->data.volume = measured_data.pressure * 10UL; // 0.001 L
-#endif
-#if (DEV_SERVICES & SERVICE_IUS)
-		p->data.u_id = BtHomeID_voltage;
-		p->data.voltage = measured_data.voltage; // x mV
-		p->data.i_id = BtHomeID_current;
-		p->data.current = measured_data.current; // x mA
-#endif
-		p->head.size = sizeof(adv_bthome_ns1_t) - sizeof(p->head.size);
-	} else {
-		padv_bthome_ns2_t p = (padv_bthome_ns2_t)&adv_buf.data;
-		adv_buf.call_count = 1;
-		adv_buf.send_count++;
-		p->pid = (u8)adv_buf.send_count;
-#if (DEV_SERVICES & SERVICE_IUS)
-		p->data.e_id = BtHomeID_energy32;
-		p->data.energy = measured_data.energy; // x mW
-#else
-		p->data.v_id = BtHomeID_voltage;
-#if USE_AVERAGE_BATTERY
-		p->data.battery_mv = measured_data.average_battery_mv; // x mV
-#else
-		p->data.battery_mv = measured_data.battery_mv; // x mV
-#endif
-#endif
-#if (DEV_SERVICES & SERVICE_TH_TRG)
-		p->data.s_id = BtHomeID_switch;
-		p->data.swtch = trg.flg.trg_output;
-#endif
-#if (DEV_SERVICES & SERVICE_RDS)
-		p->data.o1_id = BtHomeID_opened;
-		p->data.opened1 = trg.flg.rds1_input;
-#ifdef GPIO_RDS2
-		p->data.o2_id = BtHomeID_opened;
-		p->data.opened2 = trg.flg.rds2_input;
-#endif
-#endif
-		p->head.size = sizeof(adv_bthome_ns2_t) - sizeof(p->head.size);
-	}
-}
-
-#if (DEV_SERVICES & SERVICE_RDS)
-// n = RDS_TYPES
-_attribute_ram_code_ __attribute__((optimize("-Os")))
-void bthome_event_beacon(u8 n) {
-	padv_bthome_ns_ev1_t p = (padv_bthome_ns_ev1_t)&adv_buf.data;
-	p->head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
-	p->head.UUID = ADV_BTHOME_UUID16;
-	p->info = BtHomeID_Info;
-	p->p_id = BtHomeID_PacketId;
-	p->pid = (u8)adv_buf.send_count;
-	p->head.size = sizeof(adv_bthome_ns_ev1_t) - sizeof(p->head.size);
-	p->data.o1_id = BtHomeID_opened;
-	p->data.opened1 = trg.flg.rds1_input;
-#ifdef GPIO_RDS2
-	p->data.o2_id = BtHomeID_opened;
-	p->data.opened2 = trg.flg.rds2_input;
-#endif
-	p->data.c_id = BtHomeID_count32;
-	p->data.counter = rds.count1;
-	adv_buf.data_size = sizeof(adv_bthome_ns_ev1_t);
-}
-#endif
+#endif //(DEV_SERVICES & SERVICE_RDS)
 
 #endif // USE_BTHOME_BEACON

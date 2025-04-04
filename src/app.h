@@ -206,13 +206,21 @@ typedef struct _measured_data_t {
 	s16		temp; // x 0.01 C
 	s16		humi; // x 0.01 %
 #elif (DEV_SERVICES & SERVICE_IUS)
+#if USE_SENSOR_INA3221
+	s16		current[3]; // x 0.1 mA
+	u16		voltage[3]; // x 1 mV
+#else
 	s16		current; // x 0.1 mA
-	u16	voltage; // x 1 mV
+	u16		voltage; // x 1 mV
+#endif
 #endif
 	u16 	count;
 	// end send part (MEASURED_MSG_SIZE)
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 	u16	pressure;
+#endif
+#if USE_SENSOR_SCD41
+	u16		co2; // ppm
 #endif
 #if (DEV_SERVICES & SERVICE_18B20)
 	s16		xtemp[USE_SENSOR_MY18B20]; // x 0.01 C
@@ -221,20 +229,24 @@ typedef struct _measured_data_t {
 	u16	battery_mv; // mV
 #endif
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_18B20 | SERVICE_PLM))
-	s16 	temp_x01; 		// x 0.1 C
+	s16 temp_x01; 		// x 0.1 C
 #endif
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
-	s16		humi_x01; 		// x 0.1 %
+	s16	humi_x01; 		// x 0.1 %
 	u8 	humi_x1; 		// x 1 %
 #endif
 	u8 	battery_level;	// 0..100% (average_battery_mv)
-#if (DEV_SERVICES & SERVICE_IUS)
-	u32    energy;
+#if (DEV_SERVICES & SERVICE_IUS) && USE_SENSOR_INA226
+	s32 energy;
 #endif
 } measured_data_t;  // save max 18 bytes
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
-#define  MEASURED_MSG_SIZE  8
+#if USE_SENSOR_INA3221
+#define  MEASURED_MSG_SIZE  16
 #else
+#define  MEASURED_MSG_SIZE  8
+#endif
+#else // !(DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
 #define  MEASURED_MSG_SIZE  4
 #endif
 extern measured_data_t measured_data;

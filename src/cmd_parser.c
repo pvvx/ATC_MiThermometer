@@ -617,7 +617,7 @@ void cmd_parser(void * p) {
 			send_buf[1] = 0;
 #endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_LKTMZL02) || (DEVICE_TYPE == DEVICE_ZTH05Z) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_ZYZTH01))
+#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_LKTMZL02) || (DEVICE_TYPE == DEVICE_ZTH05Z) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_ZYZTH01) || (DEVICE_TYPE == DEVICE_MJWSD06MMC))
 			send_buf[2] = lcd_i2c_addr;
 #else
 			send_buf[2] = 1;	// SPI
@@ -659,7 +659,22 @@ void cmd_parser(void * p) {
 			}
 #endif
 #if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
-		} else if (cmd == CMD_ID_CFS) {	// Get/Set sensor config
+		} else if (cmd == CMD_ID_CFS || cmd == CMD_ID_KZ2 || cmd == CMD_ID_KZ3) {	// Get/Set sensor config
+#if USE_SENSOR_INA3221
+			olen = 0;
+			if(cmd == CMD_ID_KZ2)
+				olen = 1;
+			else if(cmd == CMD_ID_KZ3)
+				olen = 2;
+			if (--len > sizeof(sensor_cfg.coef[0]))
+				len = sizeof(sensor_cfg.coef[0]);
+			if (len) {
+				memcpy(&sensor_cfg.coef[olen], &req->dat[1], len);
+				flash_write_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef));
+			}
+			memcpy(&send_buf[1], &sensor_cfg.coef[olen], sizeof(sensor_cfg.coef[0]));
+			memcpy(&send_buf[1 + sizeof(sensor_cfg.coef[0])], &sensor_cfg.id, 6);
+#else
 			if (--len > sizeof(sensor_cfg.coef))
 				len = sizeof(sensor_cfg.coef);
 			if (len) {
@@ -667,6 +682,7 @@ void cmd_parser(void * p) {
 				flash_write_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef));
 			}
 			memcpy(&send_buf[1], &sensor_cfg, sensor_cfg_send_size);
+#endif
 			olen = sensor_cfg_send_size + 1;
 		} else if (cmd == CMD_ID_CFS_DEF) {	// Get/Set default sensor config
 			memset(&sensor_cfg, 0, sensor_cfg_send_size);

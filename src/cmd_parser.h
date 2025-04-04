@@ -30,6 +30,8 @@ enum {
 	CMD_ID_CFB20_DEF = 0x28, // Set default sensor MY18B20 config
 	CMD_ID_RH		= 0x29, // Get/Set sensor RH config
 	CMD_ID_RH_CAL	= 0x2A, // Calibrate sensor RH
+	CMD_ID_KZ2 		= 0x2b, // Get/Set sensor KZ2 config
+	CMD_ID_KZ3 		= 0x2c, // Get/Set sensor KZ3 config
 	CMD_ID_MEASURE  = 0x33, // Start/stop notify measures in connection mode
 	CMD_ID_LOGGER   = 0x35, // Read memory measures
 	CMD_ID_CLRLOG	= 0x36, // Clear memory measures

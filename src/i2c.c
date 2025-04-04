@@ -48,7 +48,8 @@ int send_i2c_byte(u8 i2c_addr, u8 cmd) {
 	return (reg_i2c_status & FLD_I2C_NAK);
 }
 
-/* send_i2c_word() return: NAK (=0 - send ok) */
+/* send_i2c_word() return: NAK (=0 - send ok)
+* cmd - [0:7] addr, [8:16] cmd -> send: [addr], [7:0], [15:8] */
 int send_i2c_word(u8 i2c_addr, u16 cmd) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
@@ -58,6 +59,19 @@ int send_i2c_word(u8 i2c_addr, u16 cmd) {
 	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	return (reg_i2c_status & FLD_I2C_NAK);
 }
+
+/* send_i2c_addr_word() return: NAK (=0 - send ok)
+ * ra_w - [0:7] addr, [8:24] word -> send: [addr], [7:0], [15:8], [23:16] */
+int send_i2c_addr_word(u8 i2c_addr, u32 ra_w) {
+	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
+			init_i2c();
+	reg_i2c_id = i2c_addr;
+	reg_i2c_dat_ctrl = (ra_w & 0x00ffffff)
+	| ((FLD_I2C_CMD_START | FLD_I2C_CMD_ID | FLD_I2C_CMD_ADDR | FLD_I2C_CMD_DO | FLD_I2C_CMD_DI | FLD_I2C_CMD_STOP) << 24);
+	while (reg_i2c_status & FLD_I2C_CMD_BUSY);
+	return (reg_i2c_status & FLD_I2C_NAK);
+}
+
 
 /* send_i2c_buf() return: NAK (=0 - send ok) */
 int send_i2c_buf(u8 i2c_addr, u8 * dataBuf, u32 dataLen) {

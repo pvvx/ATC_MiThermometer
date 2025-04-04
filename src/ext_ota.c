@@ -175,6 +175,8 @@ static const u8 _mi_hw_vers[] = "F2.0-JY-LB-TMDZ-HW--";
 static const u8 _mi_hw_vers[] = "F1.0-CFMK-LB-ZCXTJ--";
 #elif (DEVICE_TYPE == DEVICE_MHO_C401)
 static const u8 _mi_hw_vers[] = "G-19-000000000000000";
+#elif (DEVICE_TYPE == DEVICE_MJWSD06MMC)
+//static const u8 _mi_hw_vers[] = "F3.0-4-FY-LB-S-G-TM-";
 #else
 #error "Define MI_HW_VER_FADDR & _mi_hw_vers!"
 #endif
@@ -184,7 +186,7 @@ u32 get_mi_hw_version(void) {
 	flash_read_page(MI_HW_SAVE_FADDR, sizeof(hw[0]), (unsigned char *) &hw);
 	if(hw[0] == 0xffffffff) {
 		flash_read_page(MI_HW_VER_FADDR, sizeof(hw), (unsigned char *) &hw);
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD06MMC)
 		if ((hw[0] & 0xf0fff0ff) != 0x302E3056)
 #elif (DEVICE_TYPE == DEVICE_LYWSD03MMC)
 		if ((hw[0] & 0xf0fff0ff) != 0x302E3042)

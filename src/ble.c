@@ -195,13 +195,23 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 #if USE_SYNC_SCAN
 		scan.enabled = 0; // stop scan
 #endif
+#if USE_SENSOR_SCD41
+		wrk.start_measure = 1;
+#else
 		if(++adv_buf.meas_count >= cfg.measure_interval) {
 			adv_buf.meas_count = 0;
 			wrk.start_measure = 1;
 		}
+#endif
 		if(wrk.msc.b.th_sensor_read) { // th sensor work
-			if (wrk.msc.b.update_adv) { // new measured_data ?
+			if (wrk.msc.b.update_adv) {
+				// new measured_data
 				wrk.msc.b.update_adv = 0;
+#if USE_SENSOR_INA3221 || USE_SENSOR_SCD41 || USE_SENSOR_INA226
+				adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
+			}
+			set_adv_data();
+#else
 				adv_buf.call_count = 1; // count 1..cfg.measure_interval
 				adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
 				adv_buf.update_count = 0;
@@ -214,6 +224,7 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 				if (++adv_buf.call_count > adv_buf.update_count) // refresh adv_buf.data ?
 					set_adv_data();
 			}
+#endif
 		} else { // th sensor bad
 			adv_buf.data_size = 0;
 			load_adv_data();
@@ -523,6 +534,11 @@ void ble_set_name(void) {
 		ble_name[3] = 'G';
 		ble_name[4] = '2';
 		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_MJWSD06MMC
+		ble_name[2] = 'M';
+		ble_name[3] = 'J';
+		ble_name[4] = '6';
+		ble_name[5] = '_';
 #else
 		ble_name[2] = 'A';
 		ble_name[3] = 'T';
@@ -777,6 +793,11 @@ void ble_send_measures(void) {
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 	*p++ = trg.flg_byte;
 	len++;
+#endif
+#if USE_SENSOR_SCD41
+	*p++ = (u8)measured_data.co2;
+	*p++ = (u8)(measured_data.co2 >> 8);
+	len += 2;
 #endif
 #if (DEV_SERVICES & SERVICE_RDS)
 	*p++ = rds.count1_byte[0];

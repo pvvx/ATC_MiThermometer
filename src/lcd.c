@@ -26,7 +26,7 @@
 //RAM u32 tim_last_chow; // timer show lcd >= 1.5 sec
 
 RAM lcd_flg_t lcd_flg;
-#if	(DEVICE_TYPE == DEVICE_ZTH03) || (DEVICE_TYPE == DEVICE_ZYZTH01)
+#if	(DEVICE_TYPE == DEVICE_ZTH03) || (DEVICE_TYPE == DEVICE_ZYZTH01) || (DEVICE_TYPE == DEVICE_MJWSD06MMC)
 RAM u8 display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE+1];
 #else
 RAM u8 display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
@@ -37,7 +37,7 @@ _attribute_ram_code_
 void update_lcd(void){
 	if(cfg.flg2.screen_off)
 		return;
-#if	(DEVICE_TYPE == DEVICE_ZTH03) || (DEVICE_TYPE == DEVICE_ZYZTH01)
+#if	(DEVICE_TYPE == DEVICE_ZTH03) || (DEVICE_TYPE == DEVICE_ZYZTH01) || (DEVICE_TYPE == DEVICE_MJWSD06MMC)
 	if (memcmp(&display_cmp_buff[1], &display_buff, sizeof(display_buff))) {
 		memcpy(&display_cmp_buff[1], &display_buff, sizeof(display_buff));
 		send_to_lcd();

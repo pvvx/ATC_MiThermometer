@@ -9,8 +9,9 @@ $(OUT_PATH)/src/lcd_lywsd03mmc.o \
 $(OUT_PATH)/src/lcd_cgdk2.o \
 $(OUT_PATH)/src/lcd_mjwsd05mmc.o \
 $(OUT_PATH)/src/lcd_mjwsd05mmc_en.o \
+$(OUT_PATH)/src/lcd_mjwsd06mmc.o \
 $(OUT_PATH)/src/lcd_mho_c122.o \
-$(OUT_PATH)/src/lcd_th03.o \
+$(OUT_PATH)/src/lcd_zth03.o \
 $(OUT_PATH)/src/lcd_lktmzl02.o \
 $(OUT_PATH)/src/lcd_zy_zth02pro.o \
 $(OUT_PATH)/src/lcd_zth05z.o \
@@ -19,7 +20,10 @@ $(OUT_PATH)/src/epd_cgg1n.o \
 $(OUT_PATH)/src/epd_mho_c401.o \
 $(OUT_PATH)/src/epd_mho_c401n.o \
 $(OUT_PATH)/src/sensors.o \
+$(OUT_PATH)/src/ens160.o \
+$(OUT_PATH)/src/scd41.o \
 $(OUT_PATH)/src/ina226.o \
+$(OUT_PATH)/src/ina3221.o \
 $(OUT_PATH)/src/my18b20.o \
 $(OUT_PATH)/src/hx71x.o \
 $(OUT_PATH)/src/rtc_pcf85163.o \

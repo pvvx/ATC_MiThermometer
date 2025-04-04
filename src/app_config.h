@@ -32,6 +32,7 @@ extern "C" {
 // HW_VER_LYWSD03MMC_B15 = 10
 #define DEVICE_MHO_C122		11	// LCD display MHO_C122
 #define DEVICE_MJWSD05MMC_EN	12  // LCD (en) display MJWSD05MMC
+#define DEVICE_MJWSD06MMC	13  // LCD display MJWSD06MMC
 //---
 #define DEVICE_TB03F  		16	// DIY, TB-03F-Kit module + INA226 or MY18B20
 #define DEVICE_TS0201   	17	// ZigBee TS0201, analog: IH-K009
@@ -59,7 +60,7 @@ extern "C" {
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_ZTH03
 #endif
 
 // supported services by the device (bits)
@@ -86,7 +87,9 @@ extern "C" {
 #define SERVICE_PLM			0x00100000	// use PWM-RH and NTC
 #define SERVICE_BUTTON		0x00200000	// брелок-кнопка
 #define SERVICE_FINDMY		0x00400000	// FindMy
-#define SERVICE_SCANTIM		0x40000000	// Scan Time (develop, test only!)
+#define SERVICE_SCANTIM		0x00800000	// Scan Time (develop, test only!)
+#define SERVICE_ZIGBEE		0x01000000	// BZ-version
+#define SERVICE_PIR			0x02000000	// use PIR sensor
 #define SERVICE_EXTENDED	0x80000000  //
 
 /* minimal DEV_SERVICES:
@@ -609,8 +612,8 @@ extern "C" {
 #define PB0_FUNC			AS_GPIO
 
 #define I2C_MAX_SPEED 		700000 // 700 kHz
-#define I2C_SCL 			GPIO_PC0
-#define I2C_SDA 			GPIO_PC1
+#define I2C_SCL 			GPIO_PC1
+#define I2C_SDA 			GPIO_PC0
 #define I2C_GROUP 			I2C_GPIO_GROUP_C0C1
 #define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
@@ -1056,125 +1059,7 @@ extern "C" {
 #define PB7_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB7 RDS1_PULLUP
 
-#elif DEVICE_TYPE == DEVICE_ZTH01
-
-// GPIO_PB1 - TX
-// GPIO_PB4 - KEY
-// GPIO_PB5 - LED
-// GPIO_PB7 - RX
-// GPIO_PC2 - SDA
-// GPIO_PC3 - SCL
-// GPIO_PD2 - * MY18B20 1
-// GPIO_PD4 - * MY18B20 2
-
-#ifndef USE_SENSOR_MY18B20
-#define USE_SENSOR_MY18B20	0
-#endif
-
-#if USE_SENSOR_MY18B20
-#define DEV_SERVICES ( SERVICE_OTA\
-		| SERVICE_OTA_EXT \
-		| SERVICE_PINCODE \
-		| SERVICE_BINDKEY \
-		| SERVICE_HISTORY \
-		| SERVICE_LE_LR \
-		| SERVICE_THS \
-		| SERVICE_RDS \
-		| SERVICE_KEY \
-		| SERVICE_TIME_ADJUST \
-		| SERVICE_TH_TRG \
-		| SERVICE_LED \
-		| SERVICE_18B20 \
-)
-#else
-#define DEV_SERVICES ( SERVICE_OTA\
-		| SERVICE_OTA_EXT \
-		| SERVICE_PINCODE \
-		| SERVICE_BINDKEY \
-		| SERVICE_HISTORY \
-		| SERVICE_LE_LR \
-		| SERVICE_THS \
-		| SERVICE_RDS \
-		| SERVICE_KEY \
-		| SERVICE_TIME_ADJUST \
-		| SERVICE_TH_TRG \
-		| SERVICE_LED \
-)
-#endif
-
-#define ZIGBEE_TUYA_OTA 	1
-#define USE_EPD				0 // min update time ms
-
-#define USE_SENSOR_CHT8305		1
-#define USE_SENSOR_CHT8215		0
-#define USE_SENSOR_AHT20_30		1
-#define USE_SENSOR_SHT4X		1
-#define USE_SENSOR_SHTC3		1
-#define USE_SENSOR_SHT30		1
-
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
-#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
-#define PB0_INPUT_ENABLE	1
-#define PB0_DATA_OUT		1
-#define PB0_OUTPUT_ENABLE	1
-#define PB0_FUNC			AS_GPIO
-
-#define I2C_MAX_SPEED 		200000 // 700 kHz
-#define I2C_SCL 			GPIO_PC3
-#define I2C_SDA 			GPIO_PC2
-#define I2C_GROUP 			I2C_GPIO_GROUP_C2C3
-#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
-#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
-
-#define GPIO_KEY2			GPIO_PB4
-#define PB4_INPUT_ENABLE	1
-#define PB4_DATA_OUT		0
-#define PB4_OUTPUT_ENABLE	0
-#define PB4_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLUP_1M
-
-#define GPIO_LED			GPIO_PB5
-#define PB5_INPUT_ENABLE	1
-#define PB5_DATA_OUT		1
-#define PB5_OUTPUT_ENABLE	0
-#define PB5_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB5	PM_PIN_PULLDOWN_100K
-
-#define GPIO_TRG			GPIO_PB1	// mark "TX"
-#define PB1_INPUT_ENABLE	1
-#define PB1_DATA_OUT		0
-#define PB1_OUTPUT_ENABLE	0
-#define PB1_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
-
-#define RDS1_PULLUP			PM_PIN_PULLUP_1M
-#define GPIO_RDS1 			GPIO_PB7	// mark "RX",  Reed Switch
-#define PB7_INPUT_ENABLE	1
-#define PB7_DATA_OUT		0
-#define PB7_OUTPUT_ENABLE	0
-#define PB7_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB7 RDS1_PULLUP
-
-#if USE_SENSOR_MY18B20
-
-#define GPIO_ONEWIRE1		GPIO_PD2
-#define PD2_INPUT_ENABLE	1
-#define PD2_DATA_OUT		0
-#define PD2_OUTPUT_ENABLE	0
-#define PD2_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PDD2	PM_PIN_PULLDOWN_100K
-
-#if USE_SENSOR_MY18B20 == 2
-#define GPIO_ONEWIRE2		GPIO_PD4
-#define PD4_INPUT_ENABLE	1
-#define PD4_DATA_OUT		0
-#define PD4_OUTPUT_ENABLE	0
-#define PD4_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PD4	PM_PIN_PULLDOWN_100K
-#endif
-#endif
-
-#elif DEVICE_TYPE == DEVICE_ZTH02
+#elif (DEVICE_TYPE == DEVICE_ZTH01) || (DEVICE_TYPE == DEVICE_ZTH02)
 
 // GPIO_PB1 - TX
 // GPIO_PB4 - KEY
@@ -1350,8 +1235,8 @@ extern "C" {
 #define PB0_FUNC			AS_GPIO
 
 #define I2C_MAX_SPEED 		200000 // 200 kHz
-#define I2C_SCL 			GPIO_PC0
-#define I2C_SDA 			GPIO_PC1
+#define I2C_SCL 			GPIO_PC1
+#define I2C_SDA 			GPIO_PC0
 #define I2C_GROUP 			I2C_GPIO_GROUP_C0C1
 #define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
@@ -1376,8 +1261,6 @@ extern "C" {
 #define PA1_OUTPUT_ENABLE	0
 #define PA1_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA1	PM_PIN_PULLDOWN_100K
-
-#define USE_RDS_WAKEAP		0
 
 #define RDS1_PULLUP			PM_PIN_PULLUP_10K
 #define GPIO_RDS1			GPIO_PD3	// Reed Switch "Full", input
@@ -1521,12 +1404,16 @@ extern "C" {
 // GPIO_PC2 - LED B
 // GPIO_PC3 - LED R
 // GPIO_PC4 - LED G
-// GPIO_PD2 - free
+// GPIO_PD2 - free, cooler on/off
 // GPIO_PD3 - free, used RDS1 Upper level sensor
 // GPIO_PD4 - free, used RDS2 Lower level sensor
 // GPIO_PD7 - free
 
-#define USE_SENSOR_MY18B20		2 // 0 - Off, 1 - 1 sensor, 2 - 2 sensors
+#define USE_SENSOR_MY18B20		0 // 0 - Off, 1 - 1 sensor, 2 - 2 sensors
+#define USE_SENSOR_INA226		0
+#define USE_SENSOR_INA3221		0
+#define USE_SENSOR_ENS160		0
+#define USE_SENSOR_SCD41		1
 
 #if USE_SENSOR_MY18B20
 #define DEV_SERVICES ( SERVICE_OTA\
@@ -1543,9 +1430,40 @@ extern "C" {
 		| SERVICE_LED \
 		| SERVICE_18B20 \
 )
-#else
+#elif USE_SENSOR_ENS160 || USE_SENSOR_SCD41
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_TH_TRG \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_LED \
+)
+
 #define SENSOR_SLEEP_MEASURE 	0
-#define USE_SENSOR_INA226		1
+
+#define GPIO_ENS160_INT		GPIO_PD4
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD4 PM_PIN_PULLUP_10K
+
+#define GPIO_COOLER			GPIO_PD3
+#define PD3_INPUT_ENABLE	1
+#define PD3_DATA_OUT		0
+#define PD3_OUTPUT_ENABLE	0
+#define PD3_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD3 PM_PIN_PULLDOWN_100K
+
+#elif USE_SENSOR_INA226 || USE_SENSOR_INA3221
+
+#define SENSOR_SLEEP_MEASURE 	0
 #define DEV_SERVICES ( SERVICE_OTA\
 		| SERVICE_OTA_EXT \
 		| SERVICE_PINCODE \
@@ -1553,30 +1471,26 @@ extern "C" {
 		| SERVICE_HISTORY \
 		| SERVICE_LE_LR \
 		| SERVICE_TH_TRG \
-		| SERVICE_RDS \
 		| SERVICE_KEY \
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_LED \
 		| SERVICE_IUS \
 )
-//| SERVICE_TH_TRG
-// | SERVICE_THS
 #endif
-
 
 #define USE_EPD					0 // min update time ms
 
-#define USE_SENSOR_CHT8305		0
-#define USE_SENSOR_CHT8215		0
+#define USE_SENSOR_CHT8305		1
+#define USE_SENSOR_CHT8215		1
 #define USE_SENSOR_AHT20_30		1
-#define USE_SENSOR_SHT4X		0 //1
-#define USE_SENSOR_SHTC3		0
-#define USE_SENSOR_SHT30		0
+#define USE_SENSOR_SHT4X		1
+#define USE_SENSOR_SHTC3		0	// = 0!
+#define USE_SENSOR_SHT30		1
 
-#define USE_CUSTOM_BEACON	0
+#define USE_CUSTOM_BEACON	0	// = 0!
 #define USE_BTHOME_BEACON	1 	// = 1 BTHome v2 https://bthome.io/
-#define USE_MIHOME_BEACON	0 	// = 1 Compatible with MiHome beacon
-#define USE_ATC_BEACON		0
+#define USE_MIHOME_BEACON	0 	// = 0!
+#define USE_ATC_BEACON		0	// = 0!
 
 #define SHL_ADC_VBAT		1  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
@@ -1585,8 +1499,8 @@ extern "C" {
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
 
-#define I2C_SCL 			GPIO_PC0
-#define I2C_SDA 			GPIO_PC1
+#define I2C_SCL 			GPIO_PC1
+#define I2C_SDA 			GPIO_PC0
 #define I2C_GROUP 			I2C_GPIO_GROUP_C0C1
 #define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
@@ -1605,14 +1519,23 @@ extern "C" {
 #define PB4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLDOWN_100K
 
+#if USE_SENSOR_INA3221
+#define GPIO_TRG			GPIO_PC2
+#define PC2_INPUT_ENABLE	1
+#define PC2_DATA_OUT		0
+#define PC2_OUTPUT_ENABLE	0
+#define PC2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLDOWN_100K
+#else
 #define GPIO_TRG			GPIO_PA1
 #define PA1_INPUT_ENABLE	1
 #define PA1_DATA_OUT		0
 #define PA1_OUTPUT_ENABLE	0
 #define PA1_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA1	PM_PIN_PULLDOWN_100K
+#endif
 
-#define USE_RDS_WAKEAP		0
+#if (DEV_SERVICES & SERVICE_RDS)
 
 #define RDS1_PULLUP			PM_PIN_PULLUP_10K
 #define GPIO_RDS1			GPIO_PD3	// Reed Switch "Full", input
@@ -1629,6 +1552,8 @@ extern "C" {
 #define PD4_OUTPUT_ENABLE	0
 #define PD4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PD4 RDS2_PULLUP
+
+#endif
 
 #if USE_SENSOR_MY18B20
 
@@ -1996,9 +1921,30 @@ extern "C" {
 // GPIO_PC4 - +BAT R11/R13
 // GPIO_PD2 - SDA  "SDA"
 // GPIO_PD3 - free
-// GPIO_PD4 - free
-// GPIO_PD7 - free
-#define DEV_SERVICES ( SERVICE_OTA \
+// GPIO_PD4 - * MY18B20 1
+// GPIO_PD7 - * MY18B20 2
+
+#ifndef USE_SENSOR_MY18B20
+#define USE_SENSOR_MY18B20	0
+#endif
+
+#if USE_SENSOR_MY18B20
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+		| SERVICE_18B20 \
+)
+#else
+#define DEV_SERVICES ( SERVICE_OTA\
 		| SERVICE_OTA_EXT \
 		| SERVICE_PINCODE \
 		| SERVICE_BINDKEY \
@@ -2011,6 +1957,7 @@ extern "C" {
 		| SERVICE_TH_TRG \
 		| SERVICE_LED \
 )
+#endif
 
 #define ZIGBEE_TUYA_OTA 	1
 #define USE_EPD				0 // min update time ms
@@ -2069,6 +2016,26 @@ extern "C" {
 #define PA0_OUTPUT_ENABLE	0
 #define PA0_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA0 RDS1_PULLUP
+
+#if USE_SENSOR_MY18B20
+
+#define GPIO_ONEWIRE1		GPIO_PD4
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD4	PM_PIN_PULLDOWN_100K
+
+#if USE_SENSOR_MY18B20 == 2
+#define GPIO_ONEWIRE2		GPIO_PD7
+#define PD7_INPUT_ENABLE	1
+#define PD7_DATA_OUT		0
+#define PD7_OUTPUT_ENABLE	0
+#define PD7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLDOWN_100K
+#endif
+
+#endif // USE_SENSOR_MY18B20
 
 #elif (DEVICE_TYPE == DEVICE_ZYZTH01)
 
@@ -2250,6 +2217,88 @@ extern "C" {
 #define PB7_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB7 RDS1_PULLUP
 
+#elif DEVICE_TYPE == DEVICE_MJWSD06MMC
+/* Original Flash markup:
+  0x00000 Old Firmware bin
+  0x20000 OTA New bin storage Area
+  0x74000 Pair & Security info (CFG_ADR_BIND)?
+  0x76000 MAC address (CFG_ADR_MAC)
+  0x77000 Customize freq_offset adjust cap value (CUST_CAP_INFO_ADDR)
+  0x78000 Mijia key-code (blt.3.1ks7k7p8ocg00, bindkey, ...)
+  0x7D000 SerialStr: "V1.3F3.0-4-FY-LB-S-G-TM-"
+  0x80000 End Flash (FLASH_SIZE)
+ */
+//#define MI_HW_VER_FADDR 0x7D000 // Mi HW version (DEVICE_LYWSD03MMC)
+// TLSR8251F512ET24
+// GPIO_PA5 - DM, free, pcb mark "A5" (KEY)
+// GPIO_PA6 - DP, free, pcb mark "A6" (RDS)
+// GPIO_PA7 - SWS, free, pcb mark "S" (debug TX)
+// GPIO_PB6 - free, pcb mark "PB6"
+// GPIO_PB7 - free, pcb mark "R" (Reed Switch, input)
+// GPIO_PC2 - SDA, used I2C, pcb mark "SDA"
+// GPIO_PC3 - SCL, used I2C, pcb mark "SCK"
+// GPIO_PC4 - Vbat (+V-R/RC-GND)
+// GPIO_PD2 - KEY to GND
+// GPIO_PD7 - free, pcb mark "T" (Trigger, output)
+#define DEV_SERVICES ( SERVICE_OTA \
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_KEY \
+		| SERVICE_RDS \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_MI_KEYS \
+)
+
+#define USE_EPD				0 // min update time ms
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
+#define USE_SENSOR_AHT20_30		0
+#define USE_SENSOR_SHT4X		1
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		0
+
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define I2C_MAX_SPEED 		400000 // 400 kHz (LCD AIP31620)
+#define I2C_SDA 			GPIO_PC2
+#define I2C_SCL 			GPIO_PC3
+#define I2C_GROUP 			I2C_GPIO_GROUP_C2C3
+//#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
+//#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
+
+#define GPIO_TRG			GPIO_PD7	// Trigger, output
+#define PD7_INPUT_ENABLE	1
+#define PD7_DATA_OUT		0
+#define PD7_OUTPUT_ENABLE	0
+#define PD7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLDOWN_100K
+
+#define GPIO_KEY2			GPIO_PD2	// key "Connect", input
+#define PD2_INPUT_ENABLE	1
+#define PD2_DATA_OUT		0
+#define PD2_OUTPUT_ENABLE	0
+#define PD2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD2 PM_PIN_PULLUP_1M
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_1M
+#define GPIO_RDS1			GPIO_PB7	// Reed Switch, input
+#define PB7_INPUT_ENABLE	1
+#define PB7_DATA_OUT		0
+#define PB7_OUTPUT_ENABLE	0
+#define PB7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB7 RDS1_PULLUP
 
 #else // DEVICE_TYPE
 #error ("DEVICE_TYPE = ?")

@@ -1,7 +1,7 @@
 #include "tl_common.h"
 #include "app_config.h"
 
-#if (DEV_SERVICES & SERVICE_THS)
+#if (DEV_SERVICES & SERVICE_THS) && !USE_SENSOR_SCD41
 
 #include "drivers.h"
 #include "vendor/common/user_config.h"
@@ -689,6 +689,9 @@ static int check_sensor(void) {
 	} else
 		sensor_cfg.i2c_addr = 0;
 	// no i2c sensor ? sensor_cfg.i2c_addr = 0
+#if !SENSOR_SLEEP_MEASURE
+	start_measure_sensor_deep_sleep();
+#endif
 	return sensor_cfg.i2c_addr;
 }
 
@@ -697,6 +700,9 @@ void init_sensor(void) {
 	send_i2c_byte(0, 0x06); // Reset command using the general call address
 	sleep_us(SHTC3_WAKEUP_us);	// 240 us
 	check_sensor();
+#if !SENSOR_SLEEP_MEASURE
+	pm_wait_ms(80);
+#endif
 }
 
 _attribute_ram_code_ __attribute__((optimize("-Os")))

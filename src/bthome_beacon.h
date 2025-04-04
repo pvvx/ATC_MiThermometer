@@ -20,13 +20,13 @@
 typedef enum {
 	BtHomeID_PacketId = 0,			//0x00, uint8
 	BtHomeID_battery = 0x01,		//0x01, uint8, %
-	BtHomeID_temperature = 0x02,	//0x02, sint16, 0.01 °C
+	BtHomeID_temperature = 0x02,	//0x02, int16, 0.01 °C
 	BtHomeID_humidity = 0x03,		//0x03, uint16, 0.01 %
 	BtHomeID_pressure = 0x04,		//0x04, uint24, 0.01 hPa
 	BtHomeID_illuminance = 0x05,	//0x05, uint24, 0.01 lux
 	BtHomeID_weight	= 0x06,			//0x06, uint16, 0.01 kg
 	BtHomeID_weight_lb = 0x07,      //0x07, uint16, 0.01 lb
-	BtHomeID_dewpoint = 0x08,		//0x08, sint16, 0.01 °C
+	BtHomeID_dewpoint = 0x08,		//0x08, int16, 0.01 °C
 	BtHomeID_count8 = 0x09,			//0x09,	uint8
 	BtHomeID_energy24 = 0x0a,		//0x0A, uint24, 0.001 kWh
 	BtHomeID_power24 = 0x0b,		//0x0B, uint24, 0.01 W
@@ -81,7 +81,7 @@ typedef enum {
 	BtHomeID_dimmer = 0x3c,			//0x3c, uint16 ?, =1 rotate left 3 steps, ... https://bthome.io/format/
 	BtHomeID_count16 = 0x3d,		//0x3d, uint16
 	BtHomeID_count32 = 0x3e,		//0x3e, uint32
-	BtHomeID_rotation = 0x3f,		//0x3f, sint16, 0.1
+	BtHomeID_rotation = 0x3f,		//0x3f, int16, 0.1
 	BtHomeID_distance_mm  = 0x40,	//0x40, uint16, mm
 	BtHomeID_distance_m = 0x41,		//0x41, uint16, m, 0.1
 	BtHomeID_duration = 0x42,		//0x42, uint24, 0.01
@@ -102,7 +102,19 @@ typedef enum {
 	BtHomeID_acceleration = 0x51,	//0x51, uint16, 0.001
 	BtHomeID_gyroscope = 0x52,		//0x52, uint16, 0.001
 	BtHomeID_text = 0x53,			//0x53, size uint8, uint8[]
-	BtHomeID_raw = 0x54				//0x54, size uint8, uint8[]
+	BtHomeID_raw = 0x54,			//0x54, size uint8, uint8[]
+	BtHomeID_volume_storage = 0x55, //0x55, uint32, 0.001 L
+	BtHomeID_conductivity = 0x56,	//0x56, uint16, µS/cm
+	BtHomeID_temperature8 = 0x57,   //0x57, int8, C
+	BtHomeID_temperature035 = 0x58, //0x57, int8, 0.35 C
+	BtHomeID_count_i8 = 0x59,		//0x59, int8
+	BtHomeID_count_i16 = 0x5A,		//0x5A, int16
+	BtHomeID_count_i32 = 0x5b,		//0x5b, int32
+	BtHomeID_power_i32 = 0x5c,		//0x5c, int32, 0.01 W
+	BtHomeID_current_i16 = 0x5d,	//0x5d, int16, 0.001 A
+	BtHomeID_direction = 0x5e,		//0x5e, uint16, 0.01 °
+	BtHomeID_precipitation =0x5f,	//0x5f, uint16, mm
+	BtHomeID_channel = 0x60			//0x60, int8,
 } BtHomeIDs_e;
 
 typedef struct __attribute__((packed)) _adv_bthome_t {
@@ -163,34 +175,70 @@ typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 	u32	volume; // x 0.001 l
 #endif
 #if (DEV_SERVICES & SERVICE_IUS)
+#if USE_SENSOR_INA3221
+	u8	u_id0;	// BtHomeID_voltage
+	u16	voltage0; // x 0.001 V
+	u8	u_id1;	// BtHomeID_voltage
+	u16	voltage1; // x 0.001 V
+	u8	u_id2;	// BtHomeID_voltage
+	u16	voltage2; // x 0.001 V
+#else
 	u8	u_id;	// BtHomeID_voltage
 	u16	voltage; // x 0.001 V
-	u8	i_id; 	// BtHomeID_current
-	u16	current; // x 0.001 A
+	u8	i_id; 	// BtHomeID_current_i16
+	s16	current; // x 0.001 A
+#endif
+#endif
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+	u8 u_co2;	// BtHomeID_co2
+	u16 co2;
+	u8 u_tv;	// BtHomeID_tvoc
+	u16 tvoc;
+#endif
+#if defined(USE_SENSOR_SCD41) && USE_SENSOR_SCD41
+	u8 u_co2;	// BtHomeID_co2
+	u16 co2;
 #endif
 } adv_bthome_data1_t, * padv_bthome_data1_t; // max 15 bytes!
 
 typedef struct __attribute__((packed)) _adv_bthome_data2_t {
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+	u8 u_aqi;	// BtHomeID_count8 0x09
+	u8 aqi;
+#endif
 #if (DEV_SERVICES & SERVICE_IUS)
 #else
-	u8	v_id;	// = BtHomeID_voltage
+	u8	v_id;	// = BtHomeID_voltage 0x0c
 	u16	battery_mv; // mV
 #endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
-	u8	s_id;	// = BtHomeID_switch
+	u8	s_id;	// = BtHomeID_switch 0x10
 	u8	swtch;
 #endif
 #if (DEV_SERVICES & SERVICE_RDS)
-	u8	o1_id;	// = BtHomeID_opened
+	u8	o1_id;	// = BtHomeID_opened 0x11
 	u8	opened1;
 #ifdef GPIO_RDS2
 	u8	o2_id;	// = BtHomeID_opened
 	u8	opened2;
 #endif
 #endif
+#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+	u8 u_vld;	// BtHomeID_heat 0x1d
+	u8 vaidity;
+#endif
 #if (DEV_SERVICES & SERVICE_IUS)
-	u8	e_id; // BtHomeID_energy32
-	u32	energy; // x 0.001 W
+#if USE_SENSOR_INA3221
+	u8	i_id0; 	// BtHomeID_current_i16
+	s16	current0; // x 0.001 A
+	u8	i_id1; 	// BtHomeID_current_i16
+	s16	current1; // x 0.001 A
+	u8	i_id2; 	// BtHomeID_current_i16
+	s16	current2; // x 0.001 A
+#else
+	u8	e_id; // BtHomeID_power_i32 0x5c
+	s32	energy; // x 0.001 W
+#endif
 #endif
 } adv_bthome_data2_t, * padv_bthome_data2_t; // max 15 bytes!
 
@@ -204,6 +252,17 @@ typedef struct __attribute__((packed)) _adv_bthome_event1_t {
 	u8	c_id;	// = BtHomeID_count32
 	u32	counter;
 } adv_bthome_event1_t, * padv_bthome_event1_t; // max 15 bytes!
+
+
+// BTHOME default, no security
+typedef struct __attribute__((packed)) _adv_bthome_def_t {
+	adv_head_bth_t head;
+	u8	info;	// = 0x40 BtHomeID_Info
+	u8	p_id;	// = BtHomeID_PacketId
+	u8	pid;	// PacketId (measurement count)
+	u8	b_id;	// = BtHomeID_battery
+	u8	battery_level; // 0..100 %
+} adv_bthome_def_t, * padv_bthome_def_t;
 
 // BTHOME data1, no security
 typedef struct __attribute__((packed)) _adv_bthome_ns1_t {

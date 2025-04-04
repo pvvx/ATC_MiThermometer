@@ -48,7 +48,8 @@ extern u16 RxTxValueInCCC;
 extern u8 send_buf[SEND_BUFFER_SIZE];
 extern u8 my_RxTx_Data[sizeof(cfg) + 2];
 
-#if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+#if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
+// #if (DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 extern u8 my_HardStr[4];
 extern u8 my_SerialStr[20];
 #endif

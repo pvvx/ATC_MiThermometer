@@ -5,6 +5,7 @@
 #define init_i2c() soft_i2c_stop()
 #else
 void init_i2c();
+int send_i2c_addr_word(u8 i2c_addr, u32 ra_w);
 #endif
 //void send_i2c(u8 device_id, u8 *buffer, int dataLen);
 int scan_i2c_addr(int address);

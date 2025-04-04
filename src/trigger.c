@@ -16,10 +16,17 @@
 
 const trigger_t def_trg = {
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20))
+#if USE_SENSOR_INA3221
+		.temp_threshold = 1000, // 1A
+		.humi_threshold = 20650, // 20.65V
+		.temp_hysteresis = 0, // disable
+		.humi_hysteresis = -150,  // enable, 20.5/20.8V
+#else
 		.temp_threshold = 2100, // 21 °C
 		.humi_threshold = 5000, // 50 %
 		.temp_hysteresis = -55, // enable, -0.55 °C
 		.humi_hysteresis = 0,  // disable
+#endif
 #endif
 #if (DEV_SERVICES & SERVICE_RDS)
 		.rds_time_report = 3600, // 1 hours
@@ -57,8 +64,13 @@ void test_trg_on(void) {
 #define measured_val1	measured_data.xtemp[0]
 #define measured_val2	measured_data.xtemp[1]
 #elif (DEV_SERVICES & SERVICE_IUS)
+#if USE_SENSOR_INA3221
+#define measured_val1	measured_data.current[1]
+#define measured_val2	measured_data.voltage[1]
+#else
 #define measured_val1	measured_data.current
 #define measured_val2	measured_data.voltage
+#endif
 #elif (DEV_SERVICES & SERVICE_PLM)
 #define measured_val1	measured_data.temp
 #define measured_val2	measured_data.humi
