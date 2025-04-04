@@ -80,7 +80,7 @@ Access to github is already slowing down. Most Internet information resources ha
 | <img src="https://pvvx.github.io/TS0201_TZ3000/img/ts0201.jpg" width="120"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TH03Z/img/TH03Z.jpg" width="100"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth01/img/ZTH01.jpg" width="100"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/master/TS0601_TZE200_zth02/img/zth02.jpg" width="80"/> |  <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/refs/heads/master/ZY-ZTH02/img/ZY-ZTH02.jpg" width="100"/> |
 | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator,<br>Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator,<br>Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator,<br>Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator,<br>Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |  BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
-| | | | modification required | |
+| | | modification required | modification required | |
 |TS0201_vNN.bin | TH03Z_vNN.bin | ZTH01_vNN.bin | ZTH02_vNN.bin | ZYZTH02_vNN.bin |
 
 
@@ -235,21 +235,21 @@ The download of the appropriate firmware for your device will be presented autom
 
 In case you want to go back to the original firmware, you can download them here:
 
-* [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0109](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin) (HW: B1.4 only)
-* [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0130](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin) (HW: B1.4..B2.0)
-* [Xiaomi MJWSD05MMC(ch) Original Firmware v2.0.0_0026](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MJWSD05MMC_v2.0.0_0026.bin) (HW: V2.3)
-* [Xiaomi MJWSD05MMC(en) Original Firmware v2.0.0_0005](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MJWSD05MMC_en_2.0.0_0005.bin) (HW: V2.3)
-* [MiaoMiaoCe Technology (Beijing) Co., Ltd. MHO-C122 Original Firmware (Tuya)](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_MHO_C122_tuya.bin)
-* [Xiaomi MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
-* [Xiaomi and Azarton MHO_C401 Original Firmware v1.0.0_0016](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0016.bin)
-* [Xiaomi SJWS01LM Original Firmware v1.1.1_0018](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_SJWS01LM_1.1.1_0018.bin)
-* [Qingping CGG1-M 2020-2021 Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1_v1.0.1_0093.bin)
-* [Qingping CGG1-M 2022 Original Firmware v2.2.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGG1M_v2.2.1.bin)
-* [Qingping CGPR1 Original Firmware v1.1.1_0228](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGPR1_v1.1.1_0228.bin)
-* [Qingping CGDK2 Original Firmware v1.1.1_0210](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGDK2_v1.1.1_0210.bin)
-* [Qingping CGDK2 Original Firmware v1.1.1_0217](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGDK2_v1.1.1_0217.bin)
-* [Qingping CGDK2 Original Firmware v1.1.1_0223](https://github.com/pvvx/ATC_MiThermometer/raw/master/Original_OTA_CGDK2_v1.1.1_0223.bin)
-* [Zigbee TH03](https://github.com/pvvx/ATC_MiThermometer/raw/master/1286-0202-10033607-TH03_Tuya_OTA.zigbee)
+* [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0109](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0109.bin) (HW: B1.4 only)
+* [Xiaomi LYWSD03MMC Original Firmware v1.0.0_0130](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin) (HW: B1.4..B2.0)
+* [Xiaomi MJWSD05MMC(ch) Original Firmware v2.0.0_0026](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_Xiaomi_MJWSD05MMC_v2.0.0_0026.bin) (HW: V2.3)
+* [Xiaomi MJWSD05MMC(en) Original Firmware v2.0.0_0005](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_Xiaomi_MJWSD05MMC_en_2.0.0_0005.bin) (HW: V2.3)
+* [MiaoMiaoCe Technology (Beijing) Co., Ltd. MHO-C122 Original Firmware (Tuya)](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_MHO_C122_tuya.bin)
+* [Xiaomi MHO-C401 Original Firmware v1.0.0_0010](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin)
+* [Xiaomi and Azarton MHO_C401 Original Firmware v1.0.0_0016](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0016.bin)
+* [Xiaomi SJWS01LM Original Firmware v1.1.1_0018](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_SJWS01LM_1.1.1_0018.bin)
+* [Qingping CGG1-M 2020-2021 Original Firmware v1.0.1_0093](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_CGG1_v1.0.1_0093.bin)
+* [Qingping CGG1-M 2022 Original Firmware v2.2.1](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_CGG1M_v2.2.1.bin)
+* [Qingping CGPR1 Original Firmware v1.1.1_0228](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_CGPR1_v1.1.1_0228.bin)
+* [Qingping CGDK2 Original Firmware v1.1.1_0210](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_CGDK2_v1.1.1_0210.bin)
+* [Qingping CGDK2 Original Firmware v1.1.1_0217](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_CGDK2_v1.1.1_0217.bin)
+* [Qingping CGDK2 Original Firmware v1.1.1_0223](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/Original_OTA_CGDK2_v1.1.1_0223.bin)
+* [Zigbee TH03](https://github.com/pvvx/ATC_MiThermometer/raw/master/bin/Original/1286-0202-10033607-TH03_Tuya_OTA.zigbee)
 
 ### Firmware version history
 
