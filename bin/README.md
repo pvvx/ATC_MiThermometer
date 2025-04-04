@@ -13,7 +13,7 @@
 |  7 | 0x0207 | [CGG1-M(2022)](https://pvvx.github.io/CGG1_2022) | CGG1M |
 |  8 | 0x0208 | [MHO-C401(2022)](https://pvvx.github.io/MHO_C401N) | MHO_C401N |
 |  9 | 0x0209 | [MJWSD05MMC(ch)](https://pvvx.github.io/MJWSD05MMC) | BTH |
-| 10 | 0x020A | LYWSD03MMC-B1.5 | ATC |
+| 10 | 0x020A | LYWSD03MMC-B1.5[All HW] | ATC |
 | 11 | 0x020B | [MHO-C122](https://pvvx.github.io/MHO_C122) | MHO_C122 |
 | 12 | 0x020C | [MJWSD05MMC(en)](https://pvvx.github.io/MJWSD05MMC) | BTE |
 | 13 | 0x020D | [MJWSD06MMC](https://pvvx.github.io/MJWSD06MMC) | MJ6 |
