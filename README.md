@@ -10,7 +10,7 @@ _The download of the appropriate firmware for your device will be presented auto
 _Alternative firmware and configurator from ATC1441 (variant ATC_Thermometer.bin) can be found here: [atc1441/ATC_MiThermometer](https://github.com/atc1441/ATC_MiThermometer)._
 _Custom firmware is not supported in MiHome. But it is possible to work LYWSD03MMC with 'Xiaomi Gateway 3' by first registering in MiHome on the official firmware, flashing to custom firmware with restoring the binding key from MiHome, replacing the device name with "LYWSD03MMC" and setting the advertising type to "MIJIA (MiHome)" marked "encrypted"._<br>
 
-_Support for Zigbee firmware is in the [ZigbeeTLc](https://github.com/pvvx/ZigbeeTLc) repository._<br>
+_Support for ZigbeeTLc and ZBdevice firmware is in the [ZigbeeTLc](https://github.com/pvvx/ZigbeeTLc) ([ZigbeeTLc](https://github.com/pvvx/ZigbeeTLc/blob/master/ZBdevices.md)) repository._<br>
 
 _Support for BLE-Zigbee firmware is in the [BZdevice](https://github.com/pvvx/BZdevice) repository._<br>
 
@@ -500,6 +500,8 @@ For CGG1, MHO_C401, CGDK2, MJWSD05MMC, a button on the case is used.
 It is possible to solder a reed switch on the LYWSD03MMC board to the pins marked "P8" (GPIO PA6) and GND.
 
 ![RS_LYWSD03MMC_1.jpg](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout/RS_LYWSD03MMC_1.jpg)
+
+[Reed switch: additional information](https://github.com/pvvx/ATC_MiThermometer/issues/632#issuecomment-2783067934)
 
 The button on the body can turn the light on and off when creating a scenario in an external program...
 
