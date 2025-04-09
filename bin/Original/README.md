@@ -3,6 +3,7 @@
 * Xiaomi LYWSD03MMC Original Firmware v1.0.0_0130 (HW: B1.4..B2.0)
 * Xiaomi MJWSD05MMC(ch) Original Firmware v2.0.0_0026 (HW: V2.3)
 * Xiaomi MJWSD05MMC(en) Original Firmware v2.0.0_0005 (HW: V2.3)
+* Xiaomi MJWSD06MMC Original Firmware v2.1.1_0009 (HW: U1.3)
 * MiaoMiaoCe Technology (Beijing) Co., Ltd. MHO-C122 Original Firmware (Tuya)
 * Xiaomi MHO-C401 Original Firmware v1.0.0_0010
 * Xiaomi and Azarton MHO_C401 Original Firmware v1.0.0_0016
