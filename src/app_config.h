@@ -60,7 +60,7 @@ extern "C" {
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_ZTH03
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
@@ -1413,7 +1413,8 @@ extern "C" {
 #define USE_SENSOR_INA226		0
 #define USE_SENSOR_INA3221		0
 #define USE_SENSOR_ENS160		0
-#define USE_SENSOR_SCD41		1
+#define USE_SENSOR_SCD41		0
+#define USE_SENSOR_BME280		1
 
 #if USE_SENSOR_MY18B20
 #define DEV_SERVICES ( SERVICE_OTA\
@@ -1475,6 +1476,23 @@ extern "C" {
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_LED \
 		| SERVICE_IUS \
+)
+
+#elif USE_SENSOR_BME280
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+		| SERVICE_PRESSURE \
 )
 #endif
 
@@ -2355,6 +2373,57 @@ extern "C" {
 #elif (USE_CUSTOM_BEACON || USE_MIHOME_BEACON || USE_ATC_BEACON) && defined(GPIO_RDS2)
 #warning "Cusrom or ATC or MiHome beacon not support RDS2!"
 #endif
+
+#ifndef USE_SENSOR_CHT8305
+#define USE_SENSOR_CHT8305	0
+#endif
+#ifndef USE_SENSOR_AHT20_30
+#define USE_SENSOR_AHT20_30	0
+#endif
+#ifndef USE_SENSOR_SHT4X
+#define USE_SENSOR_SHT4X	0
+#endif
+#ifndef USE_SENSOR_SHTC3
+#define USE_SENSOR_SHTC3	0
+#endif
+#ifndef USE_SENSOR_SHT30
+#define USE_SENSOR_SHT30	0
+#endif
+#ifndef USE_SENSOR_HX71X
+#define USE_SENSOR_HX71X	0
+#endif
+#ifndef USE_SENSOR_BME280
+#define USE_SENSOR_BME280	0
+#endif
+#ifndef USE_SENSOR_INA226
+#define	USE_SENSOR_INA226	0
+#endif
+#ifndef USE_SENSOR_INA3221
+#define	USE_SENSOR_INA3221	0
+#endif
+#ifndef USE_SENSOR_ENS160
+#define	USE_SENSOR_ENS160	0
+#endif
+#ifndef USE_SENSOR_SCD41
+#define	USE_SENSOR_SCD41	0
+#endif
+#ifndef USE_SENSOR_BME280
+#define USE_SENSOR_BME280	0
+#endif
+#ifndef USE_SENSOR_PWMRH
+#define	USE_SENSOR_PWMRH	0
+#endif
+
+#define USE_SENSOR_HT (USE_SENSOR_CHT8305 | USE_SENSOR_AHT20_30 | USE_SENSOR_SHT4X | USE_SENSOR_SHTC3 | USE_SENSOR_SHT30)
+
+#if USE_SENSOR_HX71X && USE_SENSOR_BME280
+#error "Only 1 sensor!"
+#endif
+
+#if (USE_SENSOR_INA226 + USE_SENSOR_INA3221 + USE_SENSOR_SCD41 + USE_SENSOR_BME280) > 1
+#error "Only 1 sensor!"
+#endif
+
 
 /* Special DIY version - Voltage Logger:
  * Temperature 0..36.00 = ADC pin PB7 input 0..3.6V, LYWSD03MMC pcb mark "B1"

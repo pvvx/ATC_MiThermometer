@@ -1082,7 +1082,7 @@ void main_loop(void) {
 			check_battery();
 			start_measure_sensor_deep_sleep();
 			sensor_cfg.time_measure = clock_time() | 1;
-#if (DEV_SERVICES & SERVICE_PRESSURE)
+#if (DEV_SERVICES & SERVICE_PRESSURE) && USE_SENSOR_HX71X
 			measured_data.pressure = hx71x_get_volume();
 #endif
 			if(cfg.flg.lp_measures == 0

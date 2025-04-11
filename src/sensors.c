@@ -1,7 +1,7 @@
 #include "tl_common.h"
 #include "app_config.h"
 
-#if (DEV_SERVICES & SERVICE_THS) && !USE_SENSOR_SCD41
+#if (DEV_SERVICES & SERVICE_THS) && !USE_SENSOR_SCD41 && !USE_SENSOR_BME280
 
 #include "drivers.h"
 #include "vendor/common/user_config.h"

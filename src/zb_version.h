@@ -52,6 +52,7 @@
 #define DEVICE_MJWSD05MMC	 9  // LCD (ch) display MJWSD05MMC
 #define DEVICE_MHO_C122   	11	// LCD display MHO_C122
 #define DEVICE_MJWSD05MMC_EN 12  // LCD (en) display MJWSD05MMC
+#define DEVICE_MJWSD06MMC   13  // LCD display MJWSD06MMC
 #define DEVICE_TB03F		16  // DIY TB-03F-Kit + INA226
 #define DEVICE_TS0201   	17	// ZigBee TS0201, analog: IH-K009
 #define DEVICE_TNK01		18  // DIY, PB-03F module, Water tank controller

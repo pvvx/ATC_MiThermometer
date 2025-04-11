@@ -53,8 +53,13 @@ static u32 set_bthome_data1(padv_bthome_data1_t p) {
 		p->co2 = measured_data.co2;
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
+#if defined(USE_SENSOR_HX71X) && USE_SENSOR_HX71X
 		p->l_id = BtHomeID_volume32;
 		p->volume = measured_data.pressure * 10UL; // 0.001 L
+#else
+		p->p_id = BtHomeID_pressure;
+		p->pressure = measured_data.pressure; // 0.01 hPa
+#endif
 #endif
 #if (DEV_SERVICES & SERVICE_IUS)
 #if USE_SENSOR_INA3221

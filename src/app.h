@@ -217,8 +217,12 @@ typedef struct _measured_data_t {
 	u16 	count;
 	// end send part (MEASURED_MSG_SIZE)
 #if (DEV_SERVICES & SERVICE_PRESSURE)
+#if defined(USE_SENSOR_BME280) && USE_SENSOR_BME280
+	u32	pressure;
+#else
 	u16	pressure;
 #endif
+#endif // (DEV_SERVICES & SERVICE_PRESSURE)
 #if USE_SENSOR_SCD41
 	u16		co2; // ppm
 #endif

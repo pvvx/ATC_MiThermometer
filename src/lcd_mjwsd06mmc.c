@@ -103,6 +103,10 @@ const u8 display_small_numbers[] = {
 #define lcd_send_i2c_byte(a)	send_i2c_byte(lcd_i2c_addr, a)
 #define lcd_send_i2c_buf(b, a)	send_i2c_buf(lcd_i2c_addr, (u8 *) b, a)
 
+// original:
+// AC F0 FC C8 00 00 00 00
+// 00 00 0F 5F 51 CF BB 6B
+// 60
 const u8 lcd_init_cmd[]	=	{
 		// LCD controller initialize:
 		0xea, // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit

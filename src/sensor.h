@@ -1,6 +1,10 @@
 #ifndef _SENSORS_H_
 #define _SENSORS_H_
 
+#if defined(USE_SENSOR_BME280) && USE_SENSOR_BME280
+#include "bme280.h"
+#endif
+
 #define AHT2x_I2C_ADDR			0x38
 #define CHT8305_I2C_ADDR		0x40
 #define CHT8305_I2C_ADDR_MAX	0x43
@@ -42,10 +46,13 @@ enum {
 	IU_SENSOR_NTC,		// 12
 	IU_SENSOR_INA3221,	// 13
 	IU_SENSOR_SCD41,	// 14
-	TH_SENSOR_TYPE_MAX // 15
+	IU_SENSOR_BME280,	// 15
+	TH_SENSOR_TYPE_MAX // 16
 } TH_SENSOR_TYPES;
 
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
+
+#if !USE_SENSOR_BME280
 
 typedef struct _thsensor_coef_t {
 	u32 val1_k;	// temp_k / current_k
@@ -87,6 +94,8 @@ typedef struct _sensor_cfg_t {
 
 extern sensor_cfg_t sensor_cfg;
 #define sensor_cfg_send_size 18 //max 19
+
+#endif // !USE_SENSOR_BME280
 
 void init_sensor(void);
 void start_measure_sensor_deep_sleep(void);
