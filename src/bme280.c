@@ -86,7 +86,7 @@ void init_sensor(void) {
 				break;
 			} else if((buf[0] & 1) == 0) {
 #else
-				sleep_us(128); // pm_wait_ms(2)?
+				pm_wait_ms(2); //?
 #endif
 				if(!send_i2c_word(sensor_cfg.i2c_addr, (BME280_SET_CTRL_HUMI << 8) | BME280_RA_CTRL_HUMI)
 				&& !send_i2c_word(sensor_cfg.i2c_addr, (BME280_SET_CTRL_MEAS << 8) | BME280_RA_CTRL_MEAS)
@@ -136,7 +136,6 @@ int read_sensor_cb(void) {
 					measured_data.humi = (u16)BME280_compensate_H(adc, &sensor_cfg) + sensor_cfg.coef.val2_z;
 					adc = (reg.press[0] << 12) | (reg.press[1] << 4) | (reg.press[2] >> 4);
 					measured_data.pressure = BME280_compensate_P(adc, &sensor_cfg);
-					memcpy(&sensor_cfg.coef.val1_k, &reg, 8);
 					return 1;
 				}
 #if ENABLE_TEST_REG_STATUS
