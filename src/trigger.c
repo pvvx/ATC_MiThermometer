@@ -55,14 +55,22 @@ void test_trg_on(void) {
 }
 #endif
 
-
-
 #if (DEV_SERVICES & SERVICE_THS)
+#if USE_SENSOR_HT && USE_SENSOR_MY18B20
+#define measured_val1	measured_data.temp
+#define measured_val2	measured_data.xtemp[0]
+#else
 #define measured_val1	measured_data.temp
 #define measured_val2	measured_data.humi
+#endif
 #elif (DEV_SERVICES & SERVICE_18B20)
+#if USE_SENSOR_HT && USE_SENSOR_MY18B20 == 1 
+#define measured_val1	measured_data.temp
+#define measured_val2	measured_data.xtemp[0]
+#else
 #define measured_val1	measured_data.xtemp[0]
 #define measured_val2	measured_data.xtemp[1]
+#endif
 #elif (DEV_SERVICES & SERVICE_IUS)
 #if USE_SENSOR_INA3221
 #define measured_val1	measured_data.current[1]
