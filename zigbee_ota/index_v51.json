@@ -81,6 +81,14 @@
     },
     {
         "fileVersion": 2576953345,
+        "fileSize": 81570,
+        "manufacturerCode": 4417,
+        "imageType": 525,
+        "sha512": "5070c6393db60f2feefa4701bed1ca8df224d99bdc07c6406c12e3e5a044d92c31da2f26abbb47b95d7e1bfd3d7f6225b693192cdc09374095b0d331231b7590",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-020d-99993001-MJ6_v51.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
         "fileSize": 76610,
         "manufacturerCode": 4417,
         "imageType": 528,

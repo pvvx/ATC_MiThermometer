@@ -198,6 +198,7 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 #if USE_SENSOR_SCD41
 		wrk.start_measure = 1;
 #else
+		// counter of advertising broadcasts until the start of the next measurement
 		if(++adv_buf.meas_count >= cfg.measure_interval) {
 			adv_buf.meas_count = 0;
 			wrk.start_measure = 1;
@@ -214,13 +215,16 @@ int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 #else
 				adv_buf.call_count = 1; // count 1..cfg.measure_interval
 				adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
-				adv_buf.update_count = 0;
+				adv_buf.update_count = 0; // refresh adv_buf.data in next set_adv_data()
 				set_adv_data();
 			} else {
 #if (DEV_SERVICES & SERVICE_RDS)
 				if (!adv_buf.data_size) // flag adv_buf.send_count++ over adv.event
 					adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32
 #endif
+				// ++adv_buf.call_count increase the counter of data iteration in advertising
+				// adv_buf.update_count == 0xff -> next call only at next measurement
+				// adv_buf.update_count == 0 -> refresh adv_buf.data in next set_adv_data()
 				if (++adv_buf.call_count > adv_buf.update_count) // refresh adv_buf.data ?
 					set_adv_data();
 			}

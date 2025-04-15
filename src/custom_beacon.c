@@ -64,7 +64,7 @@ void pvvx_encrypt_data_beacon(void) {
 	enc_beacon_nonce_t cbn;
 	adv_cust_data_t data;
 	u8 aad = 0x11;
-	adv_buf.update_count = -1; // next call if next measured
+	adv_buf.update_count = -1; // next call only at next measurement
 	p->head.size = sizeof(adv_cust_enc_t) - 1;
 	p->head.uid = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT; // 16-bit UUID
 	p->head.UUID = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian) (or 0x181C 'User Data'?)

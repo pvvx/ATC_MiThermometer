@@ -1173,7 +1173,7 @@ void main_loop(void) {
 				if(wrk.ble_connected) {
 					if (new - wrk.tim_measure >= wrk.measurement_step_time) {
 						wrk.tim_measure = new;
-						adv_buf.meas_count = 0;
+						adv_buf.meas_count = 0; // counter of advertising broadcasts until the start of the next measurement
 						wrk.start_measure = 1;
 					}
 				}

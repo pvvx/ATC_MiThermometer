@@ -25,9 +25,9 @@ enum {
 #endif
 typedef struct _adv_buf_t {
 	u32 send_count; // count & id advertise, = beacon_nonce.cnt32
-	u8 meas_count;
-	u8 call_count; 	// count 1..update_count
-	u8 update_count;	// refresh adv_buf.data in next set_adv_data()
+	u8 meas_count; // counter of advertising broadcasts until the start of the next measurement (0..cfg.measure_interval)
+	u8 call_count; 	// = 0..cfg.measure_interval, counter of data iteration in advertising
+	u8 update_count;	// flag: = 0 -> refresh adv_buf.data in next set_adv_data(), = 0xff -> next call set_adv_data() only at next measurement
 #if (DEV_SERVICES & SERVICE_LE_LR) // support extension advertise
 	u8 ext_adv_init; 	// flag ext_adv init
 #endif

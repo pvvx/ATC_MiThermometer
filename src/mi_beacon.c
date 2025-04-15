@@ -78,7 +78,7 @@ void mi_beacon_summ(void) {
 __attribute__((optimize("-Os")))
 void mi_encrypt_data_beacon(void) {
 	beacon_nonce.cnt32 = adv_buf.send_count;
-	adv_buf.update_count = -1; // next call if next measured
+	adv_buf.update_count = -1; // next call only at next measurement
 	if (++mi_beacon_data.stage > 2) {
 		mi_beacon_data.stage = 0;
 		if(mib_summ_data.count) {
