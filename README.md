@@ -33,7 +33,7 @@ Access to github is already slowing down. Most Internet information resources ha
 * **Adjustable correction offsets** and **Comfort zones**
 * Support for 4 beacon formats: Xiaomi, ATC, Custom, BTHome v2 and encrypted options. Legacy and  Extended Advertisements.
 * Adjustable RF TX Power (-20..+10dB) & Bluetooth advertising interval. +3..+10 dB require a more powerful power supply.
-* DIY improvements - relay control by temperature or humidity, transmission of the reed switch status - open / closed or pulse counter
+* DIY improvements - relay control by temperature or humidity, transmission of the reed switch status - open / closed or pulse counter. And more [DIY projects](https://github.com/pvvx/ATC_MiThermometer/issues/638)
 * Firmware download support for [Zigbee](https://github.com/pvvx/ZigbeeTLc)
 * Flashing third party Zigbee OTA files.
 * Support for connecting [external MY18B20 sensors](https://github.com/pvvx/ATC_MiThermometer/issues/571) to a device (TS0201, ZTH01) with 2xAAA batteries
