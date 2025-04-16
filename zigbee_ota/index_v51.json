@@ -41,10 +41,10 @@
     },
     {
         "fileVersion": 2576953345,
-        "fileSize": 83234,
+        "fileSize": 83202,
         "manufacturerCode": 4417,
         "imageType": 520,
-        "sha512": "a7409b5705d5629fdc7ef5b06a098de3ad3b50af8ff45adc99bf3da42661e455e0922c22d8279b1b283006a158cfa121e5e0b6eb644c3cdc326e9c49b6b8bbf9",
+        "sha512": "13447687d7b26ca5eb6ad9c81266eadb057a9e07d89514da990314133a7d348d5ea87126165e5f5716873c1432c38ffd4b06df21c8880699c149abb79b4e364a",
         "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0208-99993001-MHO_C401N_v51.zigbee"
     },
     {
