@@ -304,10 +304,9 @@ void cmd_parser(void * p) {
 		} else if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
 			if(len >= 2)
 				wrk.tx_measures = req->dat[1];
-			else {
-				wrk.msc.b.send_measure = 1;
+			else
 				wrk.tx_measures = 1;
-			}
+			wrk.msc.b.send_measure = 1;
 			send_buf[1] = wrk.tx_measures;
 			olen = 2;
 #if (DEV_SERVICES & SERVICE_SCREEN)

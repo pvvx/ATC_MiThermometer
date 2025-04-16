@@ -142,14 +142,14 @@ void show_smiley(u8 state){
 	switch(state & 3) {
 		case 1: // "uuu"
 			display_buff[5] |= BIT(4); // " u " happy
-			display_buff[6] |= BIT(5); // "u u"
+			display_buff[6] |= BIT(4); // "u u"
 			break;
 		case 2: // "^^^" sad
 			display_buff[6] |= BIT(0) | BIT(6); // "^ ^"
 			break;
 		case 3: // "o_o"
 			display_buff[5] |= BIT(6); // " - "
-			display_buff[6] |= BIT(5) | BIT(6); // "o o"
+			display_buff[6] |= BIT(4) | BIT(6); // "o o"
 			break;
 	}
 }
