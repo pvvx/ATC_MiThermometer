@@ -6,9 +6,8 @@
 extern "C" {
 #endif
 
-#define VERSION 0x51	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x52	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
-
 
 // DevID:
 #ifndef DEVICE_CGG1_ver
@@ -60,7 +59,7 @@ extern "C" {
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_MJWSD06MMC
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
@@ -491,8 +490,11 @@ extern "C" {
 		| SERVICE_RDS \
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_TH_TRG \
+		| SERVICE_SCANTIM \
 		| SERVICE_MI_KEYS \
 )
+
+// add | SERVICE_SCANTIM
 
 #define USE_EPD				0 // min update time ms
 
@@ -1395,10 +1397,10 @@ extern "C" {
 // GPIO_PA1 - free, used TRG
 // GPIO_PA7 - SWS, used KEY
 // GPIO_PB1 - free
-// GPIO_PB4 - LED E
-// GPIO_PB5 - LED W
-// GPIO_PB6 - free, 1-wire "1" MY18B20
-// GPIO_PB7 - free, 1-wire "2" MY18B20
+// GPIO_PB4 - LED E [SDM0+]
+// GPIO_PB5 - LED W [SDM0-]
+// GPIO_PB6 - free, 1-wire "1" MY18B20 [SDM1+]
+// GPIO_PB7 - free, 1-wire "2" MY18B20 [SDM1-]
 // GPIO_PC0 - SDA, used I2C
 // GPIO_PC1 - SCL, used I2C
 // GPIO_PC2 - LED B
@@ -1413,8 +1415,24 @@ extern "C" {
 #define USE_SENSOR_INA226		0
 #define USE_SENSOR_INA3221		0
 #define USE_SENSOR_ENS160		0
-#define USE_SENSOR_SCD41		0
-#define USE_SENSOR_BME280		1
+#define USE_SENSOR_SCD41		1
+#define USE_SENSOR_BME280		0
+
+#define USE_SDM_OUT	0 // Enable Sigma-Delta Modulation DAC, Set work only if use SCD41/ENS160
+
+#if USE_SDM_OUT
+//#define GPIO_SDM_P0 GPIO_PB4		// SDM-DAC0 Out P
+//#define GPIO_SDM_N0 GPIO_PB5		// SDM-DAC0 Out N
+#define GPIO_SDM_P1 GPIO_PB6		// SDM-DAC1 Out P
+#define PB6_DATA_OUT		0
+#define PB6_OUTPUT_ENABLE	1
+#define PB6_FUNC			AS_GPIO
+
+#define GPIO_SDM_N1 GPIO_PB7		// SDM-DAC1 Out N
+#define PB7_DATA_OUT		1
+#define PB7_OUTPUT_ENABLE	1
+#define PB7_FUNC			AS_GPIO
+#endif
 
 #if USE_SENSOR_MY18B20
 #define DEV_SERVICES ( SERVICE_OTA\
@@ -1523,12 +1541,21 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
 
+#if 1 // =1 if Debug SWire
+#define GPIO_KEY2			GPIO_PA0
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLUP_10K
+#else
 #define GPIO_KEY2			GPIO_PA7
 #define PA7_INPUT_ENABLE	1
 #define PA7_DATA_OUT		0
 #define PA7_OUTPUT_ENABLE	0
 #define PA7_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA7	PM_PIN_PULLUP_10K
+#endif
 
 #define GPIO_LED			GPIO_PB4 // (LED E)
 #define PB4_INPUT_ENABLE	1
@@ -1574,6 +1601,10 @@ extern "C" {
 #endif
 
 #if USE_SENSOR_MY18B20
+
+#if USE_SDM_OUT
+#error "USE_SENSOR_MY18B20 & USE_SDM_OUT!"
+#endif
 
 #define GPIO_ONEWIRE1		GPIO_PB6
 #define PB6_INPUT_ENABLE	1
@@ -2332,6 +2363,15 @@ extern "C" {
 
 #ifndef SENSOR_SLEEP_MEASURE
 #define SENSOR_SLEEP_MEASURE	1
+#endif
+
+#if USE_SDM_OUT
+#define SET_NO_SLEEP_MODE	SUSPEND_DISABLE
+#define SENSOR_SLEEP_MEASURE	0
+//#define GPIO_SDM_P0 GPIO_PB4		// SDM-DAC0 Out P
+//#define GPIO_SDM_N0 GPIO_PB5		// SDM-DAC0 Out N
+//#define GPIO_SDM_P1 GPIO_PB6		// SDM-DAC1 Out P
+//#define GPIO_SDM_N1 GPIO_PB7		// SDM-DAC1 Out N
 #endif
 
 #ifndef USE_SENSOR_HX71X

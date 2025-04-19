@@ -37,6 +37,9 @@ enum {
 
 #define ADV_TYPE_DEFAULT	ADV_TYPE_BTHOME
 
+// cfg.flg
+#define MASK_FLG_LP_MSR	   0x80 // lp_measures
+
 // cfg.flg2
 #define MASK_FLG2_REBOOT	0x60
 #define MASK_FLG2_SCR_OFF	0x80
@@ -48,20 +51,20 @@ enum {
 typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
 		u8 advertising_type	: 2; // 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - BTHome
-		u8 comfort_smiley		: 1;
+		u8 comfort_smiley	: 1;
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		u8 x100				: 1;
 #else
 		u8 show_time_smile	: 1; // if USE_CLOCK: = 0 - smile, =1 time, else: blinking on/off
 #endif
-		u8 temp_F_or_C			: 1;
+		u8 temp_F_or_C		: 1;
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
-		u8 time_am_pm			: 1;
+		u8 time_am_pm		: 1;
 #else
-		u8 show_batt_enabled	: 1;
+		u8 show_batt_enabled : 1;
 #endif
-		u8 tx_measures			: 1; // Send all measurements in connected mode
-		u8 lp_measures			: 1; // Sensor measurements in "Low Power" mode
+		u8 tx_measures		: 1; // Send all measurements in connected mode
+		u8 lp_measures		: 1; // Sensor measurements in "Low Power" mode
 	} flg;
 	struct __attribute__((packed)) {
 	/* ==================

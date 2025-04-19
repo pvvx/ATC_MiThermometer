@@ -31,6 +31,13 @@
 #if (USE_SENSOR_HX71X)
 #include "hx71x.h"
 #endif
+#if (DEV_SERVICES & SERVICE_SCANTIM)
+#include "scanning.h"
+#endif
+#if USE_SDM_OUT
+#include "sdm_out.h"
+#endif
+
 
 #define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (u32)faddr, len, (u8 *)pbuf)
 
@@ -271,6 +278,7 @@ void cmd_parser(void * p) {
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*) p;
 	u32 len = req->l2cap - 3;
 	if (len) {
+		len--;
 		u8 cmd = req->dat[0];
 		send_buf[0] = cmd;
 		send_buf[1] = 0; // no err
@@ -302,7 +310,7 @@ void cmd_parser(void * p) {
 			p->services = DEV_SERVICES;
 			olen = sizeof(dev_id_t);
 		} else if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
-			if(len >= 2)
+			if(len >= 1)
 				wrk.tx_measures = req->dat[1];
 			else
 				wrk.tx_measures = 1;
@@ -311,8 +319,8 @@ void cmd_parser(void * p) {
 			olen = 2;
 #if (DEV_SERVICES & SERVICE_SCREEN)
 		} else if (cmd == CMD_ID_EXTDATA) { // Show ext. small and big number
-			if (--len > sizeof(ext)) len = sizeof(ext);
 			if (len) {
+				if (len > sizeof(ext)) len = sizeof(ext);
 				memcpy(&ext, &req->dat[1], len);
 				if(ext.vtime_sec == 0xffff)
 					lcd_flg.chow_ext_ut = 0xffffffff;
@@ -328,8 +336,11 @@ void cmd_parser(void * p) {
 #endif // DEV_SERVICES & SERVICE_SCREEN
 		} else if (cmd == CMD_ID_CFG) { // Get/set config
 			u8 tmp = ((volatile u8 *)&cfg.flg2)[0];
-			if (--len > sizeof(cfg)) len = sizeof(cfg);
+#if	USE_SENSOR_SCD41
+			u8 tst2 = ((volatile u8 *)&cfg.flg)[0];
+#endif
 			if (len) {
+				if (len > sizeof(cfg)) len = sizeof(cfg);
 				memcpy(&cfg, &req->dat[1], len);
 #if (DEV_SERVICES & SERVICE_SCREEN)
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
@@ -345,6 +356,11 @@ void cmd_parser(void * p) {
 			if(tmp & MASK_FLG2_SCR_OFF)
 				init_lcd();
 #endif // DEV_SERVICES & SERVICE_SCREEN
+#if	USE_SENSOR_SCD41
+			tst2 ^= ((volatile u8 *)&cfg.flg)[0];
+			if(tst2 & MASK_FLG_LP_MSR) // lp_measures on/off
+				init_sensor();
+#endif
 			ev_adv_timeout(0, 0, 0);
 			if(tmp & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
 				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
@@ -366,9 +382,10 @@ void cmd_parser(void * p) {
 			ble_send_cfg();
 #if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
 		} else if (cmd == CMD_ID_TRG) { // Get/set trg data
-			if (--len > sizeof(trg))	len = sizeof(trg);
-			if (len)
+			if (len) {
+				if (len > sizeof(trg))	len = sizeof(trg);
 				memcpy(&trg, &req->dat[1], len);
+			}
 #if (DEV_SERVICES & SERVICE_RDS)
 			//rds.type = trg.rds.type;
 			rds_init();
@@ -377,17 +394,17 @@ void cmd_parser(void * p) {
 			test_trg_on();
 			ble_send_trg();
 		} else if (cmd == CMD_ID_TRG_OUT) { // Set trg out
-			if (len > 1)
+			if (len)
 				trg.flg.trg_output = req->dat[1] != 0;
 			ble_send_trg_flg();
 #endif // #if (DEV_SERVICES & SERVICE_TH_TRG) || (DEV_SERVICES & SERVICE_RDS)
 #if (DEV_SERVICES & SERVICE_MI_KEYS)
 		} else if (cmd == CMD_ID_DEV_MAC) { // Get/Set mac
-			if (len == 2 && req->dat[1] == 0) { // default MAC
+			if (len == 1 && req->dat[1] == 0) { // default MAC
 				flash_erase_mac_sector(FLASH_MIMAC_ADDR);
 				blc_initMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
 				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
-			} else if (len == sizeof(mac_public)+2 && req->dat[1] == sizeof(mac_public)) {
+			} else if (len == sizeof(mac_public)+1 && req->dat[1] == sizeof(mac_public)) {
 				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))) {
 					memcpy(mac_public, &req->dat[2], sizeof(mac_public));
 					mac_random_static[0] = mac_public[0];
@@ -398,7 +415,7 @@ void cmd_parser(void * p) {
 					blc_newMacAddress(FLASH_MIMAC_ADDR, mac_public, mac_random_static);
 					wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
-			} else	if (len == sizeof(mac_public)+2+2 && req->dat[1] == sizeof(mac_public)+2) {
+			} else	if (len == sizeof(mac_public)+2+1 && req->dat[1] == sizeof(mac_public)+2) {
 				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))
 						|| mac_random_static[3] != req->dat[2+6]
 						|| mac_random_static[4] != req->dat[2+7] ) {
@@ -417,11 +434,11 @@ void cmd_parser(void * p) {
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
 #else
 		} else if (cmd == CMD_ID_DEV_MAC) { // Get/Set mac
-			if (len == 2 && req->dat[1] == 0) { // default MAC
+			if (len == 1 && req->dat[1] == 0) { // default MAC
 				flash_erase_mac_sector(CFG_ADR_MAC);
 				blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
-			} else if (len == sizeof(mac_public)+2 && req->dat[1] == sizeof(mac_public)) {
+			} else if (len == sizeof(mac_public)+1 && req->dat[1] == sizeof(mac_public)) {
 				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))) {
 					memcpy(mac_public, &req->dat[2], sizeof(mac_public));
 					mac_random_static[0] = mac_public[0];
@@ -432,7 +449,7 @@ void cmd_parser(void * p) {
 					blc_newMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 					wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 				}
-			} else	if (len == sizeof(mac_public)+2+2 && req->dat[1] == sizeof(mac_public)+2) {
+			} else	if (len == sizeof(mac_public)+2+1 && req->dat[1] == sizeof(mac_public)+2) {
 				if (memcmp(mac_public, &req->dat[2], sizeof(mac_public))
 						|| mac_random_static[3] != req->dat[2+6]
 						|| mac_random_static[4] != req->dat[2+7] ) {
@@ -454,7 +471,7 @@ void cmd_parser(void * p) {
 
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 		} else if (cmd == CMD_ID_BKEY) { // Get/set beacon bindkey
-			if (len == sizeof(bindkey) + 1) {
+			if (len == sizeof(bindkey)) {
 				memcpy(bindkey, &req->dat[1], sizeof(bindkey));
 				flash_write_cfg(&bindkey, EEP_ID_KEY, sizeof(bindkey));
 				bindkey_init();
@@ -479,9 +496,9 @@ void cmd_parser(void * p) {
 #endif // (DEV_SERVICES & SERVICE_MI_KEYS)
 #if (DEV_SERVICES & SERVICE_SCREEN)
 		} else if (cmd == CMD_ID_LCD_DUMP) { // Get/set lcd buf
-			if (--len > sizeof(display_buff))
-				len = sizeof(display_buff);
 			if (len) {
+				if (len > sizeof(display_buff))
+					len = sizeof(display_buff);
 				memcpy(display_buff, &req->dat[1], len);
 				lcd_flg.b.ext_data_buf = 1; // update_lcd();
 				lcd_flg.update = 1;	// SET_LCD_UPDATE();
@@ -491,13 +508,13 @@ void cmd_parser(void * p) {
 			}
 			ble_send_lcd();
 		} else if (cmd == CMD_ID_LCD_FLG) { // Start/stop notify lcd dump and ...
-			 if (len > 1)
+			 if (len)
 				 lcd_flg.all_flg = req->dat[1];
 			 send_buf[1] = lcd_flg.all_flg;
  			 olen = 2;
 #endif // DEV_SERVICES & SERVICE_SCREEN
 #if (DEV_SERVICES & SERVICE_PINCODE)
-		} else if (cmd == CMD_ID_PINCODE && len > 4) { // Set new pinCode 0..999999
+		} else if (cmd == CMD_ID_PINCODE && len > 3) { // Set new pinCode 0..999999
 			u32 old_pincode = pincode;
 			u32 new_pincode = req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16) | (req->dat[4]<<24);
 			if (pincode != new_pincode) {
@@ -514,15 +531,16 @@ void cmd_parser(void * p) {
 #endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
 		} else if (cmd == CMD_ID_COMFORT) { // Get/set comfort parameters
-			if (--len > sizeof(cfg)) len = sizeof(cmf);
-			if (len)
+			if (len) {
+				if (len > sizeof(cmf)) len = sizeof(cmf);
 				memcpy(&cmf, &req->dat[1], len);
+			}
 			flash_write_cfg(&cmf, EEP_ID_CMF, sizeof(cmf));
 			ble_send_cmf();
 #endif
 		} else if (cmd == CMD_ID_DNAME) { // Get/Set device name
-			if (--len > MAX_DEV_NAME_LEN) len = MAX_DEV_NAME_LEN;
 			if (len) {
+				if (len > MAX_DEV_NAME_LEN) len = MAX_DEV_NAME_LEN;
 				flash_write_cfg(&req->dat[1], EEP_ID_DVN, (req->dat[1] != 0)? len : 0);
 				ble_set_name();
 				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
@@ -531,19 +549,19 @@ void cmd_parser(void * p) {
 			olen = ble_name[0];
 #if (DEV_SERVICES & SERVICE_MI_KEYS)
 		} else if (cmd == CMD_ID_MI_DNAME) { // Mi key: DevNameId
-			if (len == MI_KEYDNAME_SIZE + 1)
+			if (len == MI_KEYDNAME_SIZE)
 				store_mi_keys(MI_KEYDNAME_SIZE, MI_KEYDNAME_ID, &req->dat[1]);
 			get_mi_keys(MI_KEY_STAGE_DNAME);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
 		} else if (cmd == CMD_ID_MI_TBIND) { // Mi keys: Token & Bind
-			if (len == MI_KEYTBIND_SIZE + 1)
+			if (len == MI_KEYTBIND_SIZE)
 				store_mi_keys(MI_KEYTBIND_SIZE, MI_KEYTBIND_ID, &req->dat[1]);
 			get_mi_keys(MI_KEY_STAGE_TBIND);
 			mi_key_stage = MI_KEY_STAGE_WAIT_SEND;
 #endif // (DEV_SERVICES & SERVICE_MI_KEYS)
 		} else if (cmd == CMD_ID_UTC_TIME) { // Get/set utc time
-			if (--len > sizeof(wrk.utc_time_sec)) len = sizeof(wrk.utc_time_sec);
 			if (len) {
+				if (len > sizeof(wrk.utc_time_sec)) len = sizeof(wrk.utc_time_sec);
 				memcpy(&wrk.utc_time_sec, &req->dat[1], len);
 #if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 				utc_set_time_sec = wrk.utc_time_sec;
@@ -562,7 +580,7 @@ void cmd_parser(void * p) {
 #endif
 #if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 		} else if (cmd == CMD_ID_TADJUST) { // Get/set adjust time clock delta (in 1/16 us for 1 sec)
-			if (len > 2) {
+			if (len > 1) {
 				s16 delta = req->dat[1] | (req->dat[2] << 8);
 				wrk.utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S + delta;
 				flash_write_cfg(&wrk.utc_time_tick_step, EEP_ID_TIM, sizeof(wrk.utc_time_tick_step));
@@ -571,11 +589,11 @@ void cmd_parser(void * p) {
 			olen = sizeof(wrk.utc_time_tick_step) + 1;
 #endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
-		} else if (cmd == CMD_ID_LOGGER && len > 2) { // Read memory measures
+		} else if (cmd == CMD_ID_LOGGER && len > 1) { // Read memory measures
 			rd_memo.cnt = req->dat[1] | (req->dat[2] << 8);
 			if (rd_memo.cnt) {
 				rd_memo.saved = memo;
-				if (len > 4)
+				if (len > 3)
 					rd_memo.cur = req->dat[3] | (req->dat[4] << 8);
 				else
 					rd_memo.cur = 0;
@@ -588,7 +606,7 @@ void cmd_parser(void * p) {
 				olen = 2;
 			}
 #endif
-		} else if (cmd == CMD_ID_MTU && len > 1) { // Request Mtu Size Exchange
+		} else if (cmd == CMD_ID_MTU && len) { // Request Mtu Size Exchange
 			if (req->dat[1] >= ATT_MTU_SIZE)
 				send_buf[1] = blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, req->dat[1]);
 			else
@@ -597,14 +615,14 @@ void cmd_parser(void * p) {
 		} else if (cmd == CMD_ID_REBOOT) { // Set Reboot on disconnect
 			wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 			olen = 2;
-		} else if (cmd == CMD_ID_SET_OTA) { // Set OTA address and size
+		} else if (cmd == CMD_ID_SET_OTA) { // Get/Set OTA address and size
 #if (DEV_SERVICES & SERVICE_OTA_EXT)  // Compatible BigOTA
 			u32 ota_addr, ota_size;
-			if (len > 8) {
+			if (len > 7) {
 				memcpy(&ota_addr, &req->dat[1], 4);
 				memcpy(&ota_size, &req->dat[5], 4);
 				send_buf[1] = check_ext_ota(ota_addr, ota_size);
-			} // else send_buf[1] = 0;
+			}
 #endif
 			memcpy(&send_buf[2], &ota_program_offset, 4);
 			memcpy(&send_buf[2+4], &ota_firmware_size_k, 4);
@@ -665,18 +683,18 @@ void cmd_parser(void * p) {
 				olen = 1;
 			else if(cmd == CMD_ID_KZ3)
 				olen = 2;
-			if (--len > sizeof(sensor_cfg.coef[0]))
-				len = sizeof(sensor_cfg.coef[0]);
 			if (len) {
+				if (len > sizeof(sensor_cfg.coef[0]))
+					len = sizeof(sensor_cfg.coef[0]);
 				memcpy(&sensor_cfg.coef[olen], &req->dat[1], len);
 				flash_write_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef));
 			}
 			memcpy(&send_buf[1], &sensor_cfg.coef[olen], sizeof(sensor_cfg.coef[0]));
 			memcpy(&send_buf[1 + sizeof(sensor_cfg.coef[0])], &sensor_cfg.id, 6);
 #else
-			if (--len > sizeof(sensor_cfg.coef))
-				len = sizeof(sensor_cfg.coef);
 			if (len) {
+				if (len > sizeof(sensor_cfg.coef))
+					len = sizeof(sensor_cfg.coef);
 				memcpy(&sensor_cfg.coef, &req->dat[1], len);
 				flash_write_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef));
 			}
@@ -694,9 +712,9 @@ void cmd_parser(void * p) {
 #endif
 #if (DEV_SERVICES & SERVICE_18B20)
 		} else if (cmd == CMD_ID_CFB20) {	// Get/Set sensor MY18B20 config
-			if (--len > sizeof(my18b20.coef))
-				len = sizeof(my18b20.coef);
 			if (len) {
+				if (len > sizeof(my18b20.coef))
+					len = sizeof(my18b20.coef);
 				memcpy(&my18b20.coef, &req->dat[1], len);
 				flash_write_cfg(&my18b20.coef, EEP_ID_CMY, sizeof(my18b20.coef));
 			}
@@ -711,8 +729,9 @@ void cmd_parser(void * p) {
 #endif
 #if USE_SENSOR_HX71X
 		} else if (cmd == CMD_ID_HXC) { // Get/set HX71X config
-			if (--len > sizeof(hx71x.cfg))	len = sizeof(hx71x.cfg);
 			if (len) {
+				if (len > sizeof(hx71x.cfg))
+					len = sizeof(hx71x.cfg);
 				memcpy(&hx71x.cfg, &req->dat[1], len);
 				flash_write_cfg(&hx71x.cfg, EEP_ID_HXC, sizeof(hx71x.cfg));
 			}
@@ -728,18 +747,42 @@ void cmd_parser(void * p) {
 			memcpy(&send_buf[1], &rh, sizeof(rh) + 4);
 			olen = sizeof(rh) + 1;
 #endif
+#if (DEV_SERVICES & SERVICE_SCANTIM)
+		} else if (cmd == CMD_ID_SCAN_CFG) { // Get/Set Scan Config parameters
+			if (len) {
+				scan_stop(); // stop scan
+				if (len > sizeof(scan.cfg))
+					len = sizeof(scan.cfg);
+				memcpy(&scan.cfg, &req->dat[1], len);
+				flash_write_cfg(&scan.cfg, EEP_ID_SCN, sizeof(scan.cfg));
+			}
+			memcpy(&send_buf[1], &scan.cfg, sizeof(scan.cfg));
+			olen = sizeof(scan.cfg) + 1;
+#endif
+#if USE_SDM_OUT
+		} else if (cmd == CMD_ID_DAC_CFG) { // Set SDMDAC config
+			if (len) {
+				if (len > sizeof(sdmdac.cfg))
+					len = sizeof(sdmdac.cfg);
+				memcpy(&sdmdac.cfg, &req->dat[1], len);
+				flash_write_cfg(&sdmdac.cfg, EEP_ID_DAC, sizeof(sdmdac.cfg));
+				init_dac();
+			}
+			memcpy(&send_buf[1], &sdmdac, sizeof(sdmdac));
+			olen = sizeof(sdmdac) + 1;
+#endif
 		} else if (cmd == CMD_ID_FLASH_ID) { // Get Flash JEDEC ID
 			flash_read_id(&send_buf[1]); // Read flash UID
 			olen = 1 + 3;
 
 		// Debug commands (unsupported in different versions!):
 
-		} else if (cmd == CMD_ID_EEP_RW && len > 2) {
+		} else if (cmd == CMD_ID_EEP_RW && len > 1) {
 			send_buf[1] = req->dat[1];
 			send_buf[2] = req->dat[2];
 			olen = req->dat[1] | (req->dat[2] << 8);
-			if(len > 3) {
-				flash_write_cfg(&req->dat[3], olen, len - 3);
+			if(len > 2) {
+				flash_write_cfg(&req->dat[3], olen, len - 2);
 			}
 			s16 i = flash_read_cfg(&send_buf[3], olen, SEND_BUFFER_SIZE - 3);
 			if(i < 0) {
@@ -747,7 +790,7 @@ void cmd_parser(void * p) {
 				olen = 2;
 			} else
 				olen = i + 3;
-		} else if (cmd == CMD_ID_DEBUG && len > 3) { // test/debug
+		} else if (cmd == CMD_ID_DEBUG && len > 2) { // test/debug
 			_flash_read((req->dat[1] | (req->dat[2]<<8) | (req->dat[3]<<16)), 18, &send_buf[4]);
 			memcpy(send_buf, &req->dat, 4);
 			olen = 18+4;
@@ -759,7 +802,7 @@ void cmd_parser(void * p) {
 			wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 #if USE_RH_SENSOR
 		} else if (cmd == 0xDF) {
-			if(len > 1) {
+			if(len) {
 				get_adc_rh_mv();
 			} else {
 				calibrate_rh();

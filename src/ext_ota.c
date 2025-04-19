@@ -17,6 +17,7 @@
 #include "ext_ota.h"
 
 #define OTA1_FADDR 0x00000
+#define OTA1_FADDR_ID (OTA1_FADDR + 8)
 #define OTA2_FADDR 0x20000
 #define SIZE_LOW_OTA OTA2_FADDR
 #define OTA2_FADDR_ID (OTA2_FADDR + 8)
@@ -237,40 +238,37 @@ u32 check_sector_clear(u32 addr) {
 			flash_erase_sector(faddr & (~(FLASH_SECTOR_SIZE-1)));
 			break;
 		}
-		faddr += 1024;
+		faddr += FLASH_SECTOR_SIZE/4;
 	}
 	return efaddr;
 }
 
 void ota_result_cb(int result) {
 	u32 boot_id;
-	if(result == OTA_SUCCESS) {
+	if(result == OTA_SUCCESS && wrk.ota_is_working == OTA_WAIT) {
 		// clear the "bootable" identifier on the current work segment
-		flash_read_page(OTA2_FADDR_ID, sizeof(boot_id), (unsigned char *) &boot_id);
-		if(boot_id == ID_BOOTABLE) {
-			boot_id = 0;
-			flash_write_page(OTA2_FADDR_ID, 1, (unsigned char *) &boot_id);
-		}
+		boot_id = 0;
+		flash_write_page(OTA1_FADDR_ID, 1, (unsigned char *) &boot_id);
+		flash_write_page(OTA2_FADDR_ID, 1, (unsigned char *) &boot_id);
 	}
 }
 
 /*
  * Input:
- *  ota_addr (0x40000)
- *  ota_size in kB
+ *  ota_addr >= 0x400000
+ *  ota_size > 4 and < 208 (in kB)
  */
 u8 check_ext_ota(u32 ota_addr, u32 ota_size) {
 	if(wrk.ota_is_working == OTA_EXTENDED)
 		return EXT_OTA_BUSY;
 	if(wrk.ota_is_working)
 		return EXT_OTA_WORKS;
-	if(ota_addr < 0x40000 && ota_size <= ota_firmware_size_k)
+	if(ota_addr < BIG_OTA2_FADDR && ota_size <= 128)
 		return EXT_OTA_OK;
 	if(ota_size >= 208
 		|| ota_size < 4
-		|| ota_addr & (FLASH_SECTOR_SIZE-1))
+		|| (ota_addr & (FLASH_SECTOR_SIZE-1)))
 		return EXT_OTA_ERR_PARM;
-	SHOW_OTA_SCREEN();
 	wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT);
 	wrk.ota_is_working = OTA_EXTENDED; // flag ext.ota
 	ext_ota.start_addr = ota_addr;
@@ -278,47 +276,46 @@ u8 check_ext_ota(u32 ota_addr, u32 ota_size) {
 	ext_ota.ota_size = (ota_size + 3) & 0xfffffc;
 	bls_ota_registerResultIndicateCb(ota_result_cb);
 	bls_pm_setManualLatency(3);
+	SHOW_OTA_SCREEN();
 	return EXT_OTA_BUSY;
 }
 
 void clear_ota_area(void) {
-	union {
-		u8 b[24];
-		struct __attribute__((packed)) {
-			u16 id_ok;
-			u32 start_addr;
-			u32 ota_size;
-		} msg;
-	} buf;
+	struct __attribute__((packed)) {
+		u16 id_ok;
+		u32 start_addr;
+		u32 ota_size;
+	} msg;
 //	if(bls_pm_getSystemWakeupTick() - clock_time() < 512*CLOCK_16M_SYS_TIMER_CLK_1MS)
 //		return;
 	if(bls_ll_requestConnBrxEventDisable() < 256 || ext_ota.check_addr == 0)
 		return;
 	if (ext_ota.check_addr >= ext_ota.start_addr + (ext_ota.ota_size << 10)) {
-#if 0 // (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_LYWSD03MMC)
-			check_sector_clear(MI_HW_VER_FADDR);
-			flash_write_page(MI_HW_VER_FADDR, sizeof(my_HardStr), (unsigned char *)my_HardStr);
-			flash_write_page(MI_HW_VER_FADDR + sizeof(my_HardStr), sizeof(my_SerialStr), (unsigned char *)my_SerialStr);
-#endif
 			ota_firmware_size_k = ext_ota.ota_size;
 			ota_program_offset = ext_ota.start_addr;
-			buf.msg.id_ok = (EXT_OTA_READY << 8) + CMD_ID_SET_OTA;
-			buf.msg.start_addr = ext_ota.start_addr;
-			buf.msg.ota_size = ext_ota.ota_size;
-			wrk.ota_is_working = OTA_WAIT; // flag ext.ota wait
-			ext_ota.check_addr = 0;
+			msg.id_ok = (EXT_OTA_READY << 8) + CMD_ID_SET_OTA;
+			msg.start_addr = ext_ota.start_addr;
+			msg.ota_size = ext_ota.ota_size;
+			if(bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *)&msg, sizeof(msg)) == BLE_SUCCESS) {
+				ext_ota.check_addr = 0;
+				wrk.ota_is_working = OTA_WAIT; // flag ext.ota wait
+			}
 	}
 	else  {
 			bls_ll_disableConnBrxEvent();
 			ext_ota.check_addr = check_sector_clear(ext_ota.check_addr);
 			bls_ll_restoreConnBrxEvent();
-			buf.msg.id_ok = (EXT_OTA_EVENT << 8) + CMD_ID_SET_OTA;
-			buf.msg.start_addr = ext_ota.check_addr;
-			buf.msg.ota_size = 0;
+			msg.id_ok = (EXT_OTA_EVENT << 8) + CMD_ID_SET_OTA;
+			msg.start_addr = ext_ota.check_addr;
+			msg.ota_size = 0;
+			bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *)&msg, sizeof(msg));
 	}
-	bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *)&buf.msg, sizeof(buf.msg));
+#ifdef	SET_NO_SLEEP_MODE
+	bls_pm_setSuspendMask(SET_NO_SLEEP_MODE);
+#else
 	bls_pm_setSuspendMask(
-			SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN); // MCU_STALL);
+			SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
+#endif
 }
 
 #endif // (DEV_SERVICES & SERVICE_OTA_EXT)

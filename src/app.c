@@ -42,6 +42,10 @@
 #if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
 #include "ens160.h"
 #endif
+#if USE_SDM_OUT
+#include "sdm_out.h"
+#endif
+
 
 void app_enter_ota_mode(void);
 
@@ -562,7 +566,7 @@ void read_sensors(void) {
 #elif (DEV_SERVICES & SERVICE_18B20)
 		if (my18b20.rd_ok)
 #endif
-#endif
+#endif // (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 		{
 #ifdef CHL_ADC1 // DIY version only!
 			measured_data.temp = get_adc_mv(CHL_ADC1);
@@ -586,6 +590,9 @@ void read_sensors(void) {
 #endif
 				set_th_ens160(measured_data.temp, measured_data.humi);
 #endif
+#if USE_SDM_OUT
+			set_dac();
+#endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 			set_trigger_out();
 #endif
@@ -597,6 +604,7 @@ void read_sensors(void) {
 			if ((cfg.flg.advertising_type == ADV_TYPE_MI) && cfg.flg2.adv_crypto)
 				mi_beacon_summ();
 #endif
+			wrk.msc.all_flgs = 0xff;
 		}
 #if (DEV_SERVICES & SERVICE_RDS)
 		if (trg.rds.type1 == RDS_NONE) {
@@ -609,8 +617,7 @@ void read_sensors(void) {
 			rds2_input_off();
 		}
 #endif
-#endif
-		wrk.msc.all_flgs = 0xff;
+#endif // (DEV_SERVICES & SERVICE_RDS)
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		SET_LCD_UPDATE();
 #endif
@@ -620,7 +627,7 @@ void read_sensors(void) {
 	bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 #endif
 }
-#endif
+#endif // (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20 | SERVICE_PLM))
 
 _attribute_ram_code_
 static void suspend_exit_cb(u8 e, u8 *p, int n) {
@@ -628,7 +635,7 @@ static void suspend_exit_cb(u8 e, u8 *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
-#if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)   || (USE_SENSOR_HX71X && SENSOR_HX71X_WAKEAP)
+#if !defined(SET_NO_SLEEP_MODE) && ( DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)   || (USE_SENSOR_HX71X && SENSOR_HX71X_WAKEAP)
 _attribute_ram_code_
 static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
@@ -799,9 +806,6 @@ void user_init_normal(void) {//this will get executed one time after power up
 			cfg.flg2.longrange = 0;
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 		}
-#if USE_SYNC_SCAN
-		scan_init();
-#endif
 	} else {
 #if (DEV_SERVICES & SERVICE_PINCODE)
 		pincode = 0;
@@ -822,6 +826,12 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 		wrk.utc_time_tick_step = CLOCK_16M_SYS_TIMER_CLK_1S;
 	}
+#if USE_SYNC_SCAN
+	scan_init();
+#endif
+#if USE_SDM_OUT
+	init_dac();
+#endif
 #if (DEV_SERVICES & SERVICE_RDS)
 	rds_init();
 #endif
@@ -856,7 +866,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	init_ble();
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) || (USE_SENSOR_HX71X)
+#if !defined(SET_NO_SLEEP_MODE)
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
+#endif
 #endif
 #if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
 	//pm_wait_ms(50);
@@ -972,7 +984,11 @@ void main_loop(void) {
 			if ((wrk.ble_connected & BIT(CONNECTED_FLG_PAR_UPDATE))==0)
 				bls_pm_setManualLatency(0);
 		}
+#ifdef	SET_NO_SLEEP_MODE
+		bls_pm_setSuspendMask(SET_NO_SLEEP_MODE);
+#else
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN);
+#endif
 	} else {
 #if (DEV_SERVICES & SERVICE_18B20)
 		task_my18b20();
@@ -1212,8 +1228,8 @@ void main_loop(void) {
 			}
 #endif // #if (DEV_SERVICES & SERVICE_SCREEN)
 #if USE_SYNC_SCAN
-			if (scan.interval
-			&& utc_time_sec - scan.start_time > scan.interval
+			if (scan.cfg.interval
+			&& wrk.utc_time_sec - scan.start_time > scan.cfg.interval
 			&& adv_buf.ext_adv_init == EXT_ADV_Off // not support extension advertise
 			&& !wrk.ble_connected
 			&& !blta.adv_duraton_en) {
@@ -1227,8 +1243,12 @@ void main_loop(void) {
 			scan_task();
 		} else
 #endif
+#ifdef	SET_NO_SLEEP_MODE
+		bls_pm_setSuspendMask(SET_NO_SLEEP_MODE);
+#else
 		bls_pm_setSuspendMask(
 				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
+#endif
 	}
 #if (DEV_SERVICES & SERVICE_SCREEN)
 #if (USE_EPD)

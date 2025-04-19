@@ -13,13 +13,14 @@
 #include "vendor/common/blt_common.h"
 #include "app.h"
 #include "lcd.h"
+#include "flash_eep.h"
 #include "scanning.h"
 #include "bthome_beacon.h"
 #if SCAN_USE_BINDKEY
 #include "ccm.h"
 #endif
 
-#warning "USE_SYNC_SCAN - Test only!"
+//#warning "USE_SYNC_SCAN - Test only!"
 
 
 #if !(DEV_SERVICES & SERVICE_RDS)
@@ -126,8 +127,8 @@ void filter_bthome_ad(padv_bthome_t p, u8 * pmac) {
 		while(len > 0) {
 			if(ps->type < sizeof(tblBTHome)) {
 				if(ps->type == BtHomeID_timestamp) { // in 1 sec
-					wrk.utc_time_sec = ps->data_uw + scan.localt;
-#if (DEV_SERVICES & SERVICE_SCREEN)
+					wrk.utc_time_sec = ps->data_uw; // + scan.cfg.localt;
+#if 0 //(DEV_SERVICES & SERVICE_SCREEN)
 				} else if(ps->type == BtHomeID_raw) { // Show ext. small and big number
 					size = ps->data_ub[0];
 					if (size <= sizeof(ext)) {
@@ -137,9 +138,9 @@ void filter_bthome_ad(padv_bthome_t p, u8 * pmac) {
 						else {
 							lcd_flg.chow_ext_ut = wrk.utc_time_sec + ext.vtime_sec;
 							if(ext.vtime_sec >= 128)
-								scan.interval = ext.vtime_sec - 8;
+								scan.cfg.interval = ext.vtime_sec - 8;
 							else
-								scan.interval = 120;
+								scan.cfg.interval = 120;
 						}
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 						SET_LCD_UPDATE();
@@ -194,7 +195,7 @@ int scanning_event_callback(u32 h, u8 *p, int n) {
 			if (p[0] == HCI_SUB_EVT_LE_ADVERTISING_REPORT) { // ADV packet
 				//after controller is set to scan state, it will report all the adv packet it received by this event
 				event_adv_report_t *pa = (event_adv_report_t *) p;
-				if(memcmp(scan.MAC, pa->mac, sizeof(scan.MAC)) == 0) {
+				if(memcmp(scan.cfg.MAC, pa->mac, sizeof(scan.cfg.MAC)) == 0) {
 					blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 					scan.start_tik = 0; // разрешить sleep
 					u32 adlen = pa->len;
@@ -249,15 +250,20 @@ void scan_wakeup(void) {
 // scan init
 //////////////////////////////////////////////////////////
 void scan_init(void) {
+
+	if(flash_read_cfg(&scan.cfg, EEP_ID_SCN, sizeof(scan.cfg)) != sizeof(scan.cfg))
+		memset(&scan.cfg, 0, sizeof(scan.cfg));
+#if SCAN_DEBUG
 	// Test values:
-	scan.interval = 30; // 12*60*60;
-	scan.localt = 3*60*60;
-	scan.MAC[0] = 0x01;
-	scan.MAC[1] = 0x02;
-	scan.MAC[2] = 0x03;
-	scan.MAC[3] = 0x04;
-	scan.MAC[4] = 0x05;
-	scan.MAC[5] = 0x06;
+	scan.cfg.interval = 30; // 12*60*60;
+	scan.cfg.MAC[0] = 0x01;
+	scan.cfg.MAC[1] = 0x02;
+	scan.cfg.MAC[2] = 0x03;
+	scan.cfg.MAC[3] = 0x04;
+	scan.cfg.MAC[4] = 0x05;
+	scan.cfg.MAC[5] = 0x06;
+#endif
+	scan_stop();
 }
 
 //////////////////////////////////////////////////////////
@@ -277,9 +283,9 @@ void scan_start(void) {
 	p->head.UUID = ADV_BTHOME_UUID16;
 	p->info = BtHomeID_Info;
 	p->p_id = BtHomeID_PacketId;
-	p->pid = (uint8_t)adv_buf.send_count;
+	p->pid = (u8)adv_buf.send_count;
 	p->t_id = BtHomeID_timestamp;
-	p->time = wrk.utc_time_sec - scan.localt;
+	p->time = wrk.utc_time_sec; // - scan.cfg.localt;
 	adv_buf.data_size = sizeof(adv_bthome_ns_scan_t);
 	adv_buf.update_count = 0; // refresh adv_buf.data in next set_adv_data()
 	load_adv_data();
@@ -300,7 +306,11 @@ void scan_task(void) {
 	if(tt > 9*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 		blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // остановить сканирование
 		scan.start_tik = 0;
+#ifdef SET_NO_SLEEP_MODE
+		bls_pm_setSuspendMask(SET_NO_SLEEP_MODE);
+#else
 		bls_pm_setSuspendMask(SUSPEND_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_ADV);
+#endif
 	} else {
 		bls_pm_setSuspendMask(SUSPEND_DISABLE);
 	}

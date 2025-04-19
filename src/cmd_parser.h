@@ -21,6 +21,7 @@ enum {
 	CMD_ID_MI_CLR	= 0x17, // Delete all mi keys
 	CMD_ID_BKEY		= 0x18, // Get/Set beacon bindkey in EEP
 	CMD_ID_COMFORT  = 0x20, // Get/Set comfort parameters
+	CMD_ID_SCAN_CFG = 0x21, // Get/Set Scan Config parameters
 	CMD_ID_EXTDATA  = 0x22, // Get/Set show ext. data
 	CMD_ID_UTC_TIME = 0x23, // Get/Set utc time (if USE_CLOCK = 1)
 	CMD_ID_TADJUST  = 0x24, // Get/Set adjust time clock delta (in 1/16 us for 1 sec)
@@ -43,6 +44,7 @@ enum {
 	CMD_ID_CFG_DEF  = 0x56,	// Set default device config
 	CMD_ID_LCD_DUMP = 0x60, // Get/Set lcd buf
 	CMD_ID_LCD_FLG  = 0x61, // Start/Stop notify lcd dump and ...
+	CMD_ID_DAC_CFG	= 0x68, // Get/Set SDMDAC config
 	CMD_ID_PINCODE  = 0x70, // Set new PinCode 0..999999
 	CMD_ID_MTU		= 0x71, // Request Mtu Size Exchange (23..255)
 	CMD_ID_REBOOT	= 0x72, // Set Reboot on disconnect

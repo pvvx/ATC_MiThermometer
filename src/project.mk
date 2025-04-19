@@ -28,6 +28,7 @@ $(OUT_PATH)/src/my18b20.o \
 $(OUT_PATH)/src/hx71x.o \
 $(OUT_PATH)/src/rtc_pcf85163.o \
 $(OUT_PATH)/src/bme280.o \
+$(OUT_PATH)/src/sdm_out.o \
 $(OUT_PATH)/src/trigger.o \
 $(OUT_PATH)/src/rds_count.o \
 $(OUT_PATH)/src/app_att.o \
