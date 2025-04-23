@@ -219,6 +219,10 @@ typedef struct __attribute__((packed)) _adv_bthome_data2_t {
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 	u8	s_id;	// = BtHomeID_switch 0x10
 	u8	swtch;
+#ifdef	GPIO_TRG2
+	u8	s_id2;	// = BtHomeID_switch 0x10
+	u8	swtch2;
+#endif
 #endif
 #if (DEV_SERVICES & SERVICE_RDS)
 	u8	o1_id;	// = BtHomeID_opened 0x11

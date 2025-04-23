@@ -204,10 +204,11 @@ static void epd_set_digit(u8 *buf, u8 digit, const u8 *segments) {
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void show_big_number_x10(s16 number){
+	display_buff[7] &= ~BIT(4); // "1"
 	display_buff[8] = 0;
 	display_buff[9] = 0;
 	display_buff[10] = 0;
-	display_buff[11] = 0; //"_"
+	display_buff[11] = 0;
 	display_buff[12] = 0;
 	display_buff[13] = 0;
 	if (number > 19995) {
@@ -326,11 +327,12 @@ static void transmit_blk(u8 cd, const u8 * pdata, size_t size_data) {
 void init_lcd(void) {
 	// pulse RST_N low for 110 microseconds
     gpio_write(EPD_RST, LOW);
-	display_buff[15] = 0;
 //	lcd_refresh_cnt = DEF_EPD_REFRESH_CNT;
     stage_lcd = 1;
     epd_updated = 0;
     sleep_us(110);
+	memset(display_buff, 0, sizeof(display_buff));
+	memset(display_cmp_buff, 0, sizeof(display_cmp_buff));
     gpio_write(EPD_RST, HIGH);
     bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 }
@@ -393,7 +395,7 @@ int task_lcd(void) {
 				stage_lcd = 2;
 				// EPD_BUSY: ~1000 ms
 			}
-			// sleep_us(200); // Waiting for EPD BUSY to be setting?
+			sleep_us(200); // Waiting for EPD BUSY to be setting?
 			break;
 		case 4: // Update, stage 4
 			transmit(0, 0x0AE);

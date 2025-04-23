@@ -59,7 +59,7 @@ extern "C" {
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_TB03F
 #endif
 
 // supported services by the device (bits)
@@ -1413,9 +1413,9 @@ extern "C" {
 
 #define USE_SENSOR_MY18B20		0 // 0 - Off, 1 - 1 sensor, 2 - 2 sensors
 #define USE_SENSOR_INA226		0
-#define USE_SENSOR_INA3221		0
+#define USE_SENSOR_INA3221		1
 #define USE_SENSOR_ENS160		0
-#define USE_SENSOR_SCD41		1
+#define USE_SENSOR_SCD41		0
 #define USE_SENSOR_BME280		0
 
 #define USE_SDM_OUT	0 // Enable Sigma-Delta Modulation DAC, Set work only if use SCD41/ENS160
@@ -1571,6 +1571,13 @@ extern "C" {
 #define PC2_OUTPUT_ENABLE	0
 #define PC2_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLDOWN_100K
+
+#define GPIO_TRG2			GPIO_PA1
+#define PA1_INPUT_ENABLE	1
+#define PA1_DATA_OUT		0
+#define PA1_OUTPUT_ENABLE	0
+#define PA1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA1	PM_PIN_PULLDOWN_100K
 #else
 #define GPIO_TRG			GPIO_PA1
 #define PA1_INPUT_ENABLE	1

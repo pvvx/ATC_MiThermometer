@@ -17,10 +17,18 @@
 const trigger_t def_trg = {
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20))
 #if USE_SENSOR_INA3221
-		.temp_threshold = 1000, // 1A
-		.humi_threshold = 20650, // 20.65V
-		.temp_hysteresis = 0, // disable
-		.humi_hysteresis = -150,  // enable, 20.5/20.8V
+#ifdef	GPIO_TRG2
+		.temp_threshold = 20800, // 20.80V
+		.humi_threshold = 20850, // 20.80V
+		.temp_hysteresis = -100, // enable, 20.70/20.90V
+		.humi_hysteresis = -50,  // enable, 20.8/20.90V
+#else
+		.temp_threshold = 20800, // 20.80V
+		.humi_threshold = 1000, // 1A
+		.temp_hysteresis = -100, // enable, 20.70/20.90V
+		.humi_hysteresis = 0,  // disable
+#endif
+
 #else
 		.temp_threshold = 2100, // 21 °C
 		.humi_threshold = 5000, // 50 %
@@ -51,7 +59,12 @@ void test_trg_on(void) {
 	} else {
 		trg.flg.trigger_on = false;
 	}
+#ifdef	GPIO_TRG2
+	gpio_setup_up_down_resistor(GPIO_TRG, trg.flg.temp_out_on ? PM_PIN_PULLUP_10K : PM_PIN_PULLDOWN_100K);
+	gpio_setup_up_down_resistor(GPIO_TRG2, trg.flg.humi_out_on ? PM_PIN_PULLUP_10K : PM_PIN_PULLDOWN_100K);
+#else
 	gpio_setup_up_down_resistor(GPIO_TRG, trg.flg.trg_output ? PM_PIN_PULLUP_10K : PM_PIN_PULLDOWN_100K);
+#endif
 }
 #endif
 
@@ -73,12 +86,17 @@ void test_trg_on(void) {
 #endif
 #elif (DEV_SERVICES & SERVICE_IUS)
 #if USE_SENSOR_INA3221
-#define measured_val1	measured_data.current[1]
+#ifdef	GPIO_TRG2
+#define measured_val1	measured_data.voltage[1]
 #define measured_val2	measured_data.voltage[1]
+#else
+#define measured_val2	measured_data.voltage[1]
+#define measured_val1	measured_data.current[1]
+#endif
 #else
 #define measured_val1	measured_data.current
 #define measured_val2	measured_data.voltage
-#endif
+#endif // USE_SENSOR_INA3221
 #elif (DEV_SERVICES & SERVICE_PLM)
 #define measured_val1	measured_data.temp
 #define measured_val2	measured_data.humi

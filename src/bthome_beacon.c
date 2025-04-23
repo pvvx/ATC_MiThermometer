@@ -103,8 +103,15 @@ static u32 set_bthome_data2(padv_bthome_data2_t p) {
 #endif
 #endif
 #if (DEV_SERVICES & SERVICE_TH_TRG)
+#ifdef	GPIO_TRG2
+		p->s_id = BtHomeID_switch; //0x10
+		p->swtch = trg.flg.temp_out_on;
+		p->s_id2 = BtHomeID_switch; //0x10
+		p->swtch2 = trg.flg.humi_out_on;
+#else
 		p->s_id = BtHomeID_switch; //0x10
 		p->swtch = trg.flg.trg_output;
+#endif
 #endif
 #if (DEV_SERVICES & SERVICE_RDS)
 		p->o1_id = BtHomeID_opened; //0x11

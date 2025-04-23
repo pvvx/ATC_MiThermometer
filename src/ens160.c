@@ -183,12 +183,11 @@ int read_ens160(void) {
 					ens160.tvoc_sum -= ens160.tvoc;
 				}
 #endif
-#if 1 //def GPIO_COOLER
+				ens160.flg = 0xff;
+#ifdef GPIO_COOLER
 				gpio_setup_up_down_resistor(GPIO_COOLER, (ens160.aqi < 3) ? PM_PIN_PULLDOWN_100K : PM_PIN_PULLUP_10K);
 #endif
-				ens160.flg = 0xff;
 				cpu_set_gpio_wakeup(GPIO_ENS160_INT, Level_High, 1);  // pad wakeup deepsleep enable
-				//bls_pm_setWakeupSource(PM_WAKEUP_PAD | PM_WAKEUP_TIMER);  // gpio pad wakeup suspend/deepsleep
 				return 1;
 			}
 		}
