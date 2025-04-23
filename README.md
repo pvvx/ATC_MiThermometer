@@ -93,7 +93,7 @@ Access to github is already slowing down. Most Internet information resources ha
 
 * Tuya devices (SOC PHY62x2)
 
-| Tuya devices on [SoC PHY62x2](https://github.com/pvvx/THB2)<br> 9 types | 
+| Tuya devices on [SoC PHY62x2](https://github.com/pvvx/THB2)<br> More than a dozen types | 
 |:--:|
 | <img src="https://pvvx.github.io/ATC_MiThermometer/img/phy62x2.jpg" alt="Tuya PHY62x2" width="120"/> |
 | [PHY62x2BTHome](https://pvvx.github.io/THB2/web/PHY62x2BTHome.html) |
@@ -296,6 +296,7 @@ In case you want to go back to the original firmware, you can download them here
 |     4.9 | Added "[Tuya TH03](https://pvvx.github.io/TS0201_TZ3000_TH03/)", "[LKTMZL02](https://pvvx.github.io/LKTMZL02)", "[ZTH05](https://pvvx.github.io/TS0601_TZE204)" |
 |     5.0 | Fix EPD processing, add soft I2C. Added "[ZY-ZTH02](https://github.com/pvvx/ZigbeeTLc/issues/128), [ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro), [ZG-227Z](https://github.com/pvvx/ZigbeeTLc/issues/161)" |
 |     5.1 | Added settings: "pseudo-random value in the range from 0 to X ms is added to the fixed advInterval so that ad events change over time", "number of transmitted beacons per event". Changed calculation of average battery voltage. Added MJWSD06MMC. |
+|     5.2 | Beta ver: Fix symbol "1" MHO-C401N |
 
 ## Applications
 
