@@ -13,6 +13,7 @@
 | 0x020A | All [LYWSD03MMC](https://pvvx.github.io/ATC_MiThermometer) |
 | 0x020B | [MHO-C122](https://pvvx.github.io/MHO_C122) |
 | 0x020C | [MJWSD05MMC (en)](https://pvvx.github.io/MJWSD05MMC) |
+| 0x020D | [MJWSD06MMC](https://pvvx.github.io/MJWSD06MMC) |
 | 0x0210 | TB-03F |
 | 0x0211 | TS0201 [TS0201_TZ3000](https://pvvx.github.io/TS0201_TZ3000) |
 | 0x0211 | TNK01 |
