@@ -519,19 +519,19 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
-#define GPIO_TRG			GPIO_PD2	// Trigger, output
-#define PD2_INPUT_ENABLE	1
-#define PD2_DATA_OUT		0
-#define PD2_OUTPUT_ENABLE	0
-#define PD2_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PD2	PM_PIN_PULLDOWN_100K
-
-#define GPIO_KEY2			GPIO_PA5	// key "Connect", input, pcb mark "P8"
+#define GPIO_TRG			GPIO_PA5	// Trigger, output, pcb mark "reset"
 #define PA5_INPUT_ENABLE	1
 #define PA5_DATA_OUT		0
 #define PA5_OUTPUT_ENABLE	0
 #define PA5_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PA5 PM_PIN_PULLUP_1M
+#define PULL_WAKEUP_SRC_PA5	PM_PIN_PULLDOWN_100K
+
+#define GPIO_KEY2			GPIO_PD2
+#define PD2_INPUT_ENABLE	1
+#define PD2_DATA_OUT		0
+#define PD2_OUTPUT_ENABLE	0
+#define PD2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD2 PM_PIN_PULLUP_1M
 
 #define RDS1_PULLUP			PM_PIN_PULLUP_1M
 #define GPIO_RDS1			GPIO_PA6	// Reed Switch, input, pcb mark "P8"
