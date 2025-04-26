@@ -59,7 +59,7 @@ extern "C" {
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_TB03F
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
@@ -519,14 +519,14 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
-#define GPIO_TRG			GPIO_PD2	// Trigger, output
-#define PD2_INPUT_ENABLE	1
-#define PD2_DATA_OUT		0
-#define PD2_OUTPUT_ENABLE	0
-#define PD2_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PD2	PM_PIN_PULLDOWN_100K
+#define GPIO_TRG			GPIO_PC4	// Trigger, output
+#define PC4_INPUT_ENABLE	1
+#define PC4_DATA_OUT		0
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC4	PM_PIN_PULLDOWN_100K
 
-#define GPIO_KEY2			GPIO_PA5	// key "Connect", input, pcb mark "P8"
+#define GPIO_KEY2			GPIO_PA5	// key "Connect", input, pcb mark "reset"
 #define PA5_INPUT_ENABLE	1
 #define PA5_DATA_OUT		0
 #define PA5_OUTPUT_ENABLE	0
@@ -555,6 +555,7 @@ extern "C" {
 #endif
 
 #if DIY_ADC_TO_TH // Special version: Humidity 0..36 = ADC pin PC4 input 0..3.6В, pcb mark "P9"
+#warning "Conflict with GPIO_TRG - reassign to different GPIOs!"
 #define CHL_ADC2 			9	// C4P
 #define GPIO_ADC2 			GPIO_PC4	// ADC input, pcb mark "P9"
 #define PC4_OUTPUT_ENABLE	0

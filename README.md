@@ -434,7 +434,7 @@ UUID 0x181A - size 19: Custom extended format in 0.01 units (all data little-end
    uint16_t    battery_mv;     // mV
    uint8_t     battery_level;  // 0..100 %
    uint8_t     counter;        // measurement count
-   uint8_t     flags;  // GPIO_TRG pin (marking "reset" on circuit board) flags: 
+   uint8_t     flags;  // GPIO_TRG pin (marking "P9" on circuit board) flags: 
                        // bit0: Reed Switch, input
                        // bit1: GPIO_TRG pin output value (pull Up/Down)
                        // bit2: Output GPIO_TRG pin is controlled according to the set parameters
@@ -471,9 +471,9 @@ UUID 0x181A - size 19: Custom extended format in 0.01 units (all data little-end
 + Primary Service (0x1F10):
  * Characteristic UUID [0x1F1F](https://github.com/pvvx/ATC_MiThermometer#primary-service-uuid-0x1f10-characteristic-uuid-0x1f1f) - Notify, frame id 0x33 (configuring or making a request): temperature x0.01C, humidity x0.01%, battery charge level 0..100%, battery voltage in mV, GPIO-pin flags and triggers.
 
-### Temperature or humidity trigger (GPIO PA5 LYWSD03MMC label on the "reset" pin)
+### Temperature or humidity trigger (GPIO PC4 LYWSD03MMC label on the "P9" pin)
 
-Xiaomi LYWSD03MMC has a PCB soldering test point. Available without disassembling the case and [marked "Reset"](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout). 
+Xiaomi LYWSD03MMC has a PCB soldering test point. Available without disassembling the case and [marked "P9"](https://github.com/pvvx/ATC_MiThermometer/tree/master/BoardPinout). 
 Use as a trigger output with adjustable temperature and / or humidity hysteresis. 
 Hysteresis and thresholds are set in TelinkMiFlasher.html. The output status is displayed in the advertising package.
 
