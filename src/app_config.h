@@ -440,21 +440,6 @@ extern "C" {
 #define PC2_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLDOWN_100K
 
-#if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB5 input 0..3.6В
-#define CHL_ADC1 			6	// B5P
-#define GPIO_ADC1 			GPIO_PB5	// ADC1 input
-#define PB5_OUTPUT_ENABLE	0
-#define PB5_FUNC			AS_ADC
-#endif
-
-#if DIY_ADC_TO_TH // Special version: Humidity 0..36 = ADC pin PB6 input 0..3.6В
-#define CHL_ADC2 			7	// B6P
-#define GPIO_ADC2 			GPIO_PB6	// ADC2 input
-#define PB6_OUTPUT_ENABLE	0
-#define PB6_DATA_STRENGTH	0
-#define PB6_FUNC			AS_GPIO
-#endif
-
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 /* Original Flash markup:
   0x00000 Old Firmware bin
@@ -472,11 +457,11 @@ extern "C" {
 // GPIO_PA6 - DP, free, pcb mark "P8" (RDS)
 // GPIO_PA7 - SWS, free, pcb mark "P14", (debug TX)
 // GPIO_PB6 - used LCD, set "1"
-// GPIO_PB7 - free, pcb mark "B1" (ADC1)
+// GPIO_PB7 - free, pcb mark "B1" (TRG2)
 // GPIO_PC2 - SDA, used I2C, pcb mark "P12"
 // GPIO_PC3 - SCL, used I2C, pcb mark "P15"
-// GPIO_PC4 - free, pcb mark "P9" (ADC2)
-// GPIO_PD2 - CS/PWM, free (TRG)
+// GPIO_PC4 - free, pcb mark "P9" (TRG)
+// GPIO_PD2 - CS/PWM, free
 // GPIO_PD7 - free [B1.4], UART TX LCD [B1.6], pcb mark "P7"
 #define DEV_SERVICES ( SERVICE_OTA \
 		| SERVICE_OTA_EXT \
@@ -519,12 +504,21 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
-#define GPIO_TRG			GPIO_PC4	// Trigger, output
+#define GPIO_TRG			GPIO_PC4	// Trigger1, output, pcb mark "P9"
 #define PC4_INPUT_ENABLE	1
 #define PC4_DATA_OUT		0
 #define PC4_OUTPUT_ENABLE	0
 #define PC4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC4	PM_PIN_PULLDOWN_100K
+
+#if 0 // =1 - Enabling separate outputs for temperature and humidity
+#define GPIO_TRG2			GPIO_PB1	// Trigger2, output, pcb mark "B1"
+#define PB1_INPUT_ENABLE	1
+#define PB1_DATA_OUT		0
+#define PB1_OUTPUT_ENABLE	0
+#define PB1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
+#endif
 
 #define GPIO_KEY2			GPIO_PA5	// key "Connect", input, pcb mark "reset"
 #define PA5_INPUT_ENABLE	1
