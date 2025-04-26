@@ -504,6 +504,8 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_10K
 #define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
 
+#if (DEV_SERVICES & SERVICE_TH_TRG)
+
 #define GPIO_TRG			GPIO_PC4	// Trigger1, output, pcb mark "P9"
 #define PC4_INPUT_ENABLE	1
 #define PC4_DATA_OUT		0
@@ -512,13 +514,32 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC4	PM_PIN_PULLDOWN_100K
 
 #if 0 // =1 - Enabling separate outputs for temperature and humidity
-#define GPIO_TRG2			GPIO_PB1	// Trigger2, output, pcb mark "B1"
-#define PB1_INPUT_ENABLE	1
-#define PB1_DATA_OUT		0
-#define PB1_OUTPUT_ENABLE	0
-#define PB1_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
+#define GPIO_TRG2			GPIO_PB7	// Trigger2, output, pcb mark "B1"
+#define PB7_INPUT_ENABLE	1
+#define PB7_DATA_OUT		0
+#define PB7_OUTPUT_ENABLE	0
+#define PB7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB7	PM_PIN_PULLDOWN_100K
 #endif
+
+#else // (DEV_SERVICES & SERVICE_TH_TRG)
+
+#if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
+
+#define CHL_ADC1 			8	// B7P
+#define GPIO_ADC1 			GPIO_PB7	// ADC input, pcb mark "B1"
+#define PB7_OUTPUT_ENABLE	0
+#define PB7_FUNC			AS_ADC
+
+#define CHL_ADC2 			9	// C4P
+#define GPIO_ADC2 			GPIO_PC4	// ADC input, pcb mark "P9"
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_DATA_STRENGTH	0
+#define PC4_FUNC			AS_GPIO
+
+#endif
+
+#endif // (DEV_SERVICES & SERVICE_TH_TRG)
 
 #define GPIO_KEY2			GPIO_PA5	// key "Connect", input, pcb mark "reset"
 #define PA5_INPUT_ENABLE	1
@@ -540,22 +561,6 @@ extern "C" {
 //#define PD7_FUNC			AS_UART
 
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
-
-#if DIY_ADC_TO_TH // Special version: Temperature 0..36 = ADC pin PB7 input 0..3.6В, pcb mark "B1"
-#define CHL_ADC1 			8	// B7P
-#define GPIO_ADC1 			GPIO_PB7	// ADC input, pcb mark "B1"
-#define PB7_OUTPUT_ENABLE	0
-#define PB7_FUNC			AS_ADC
-#endif
-
-#if DIY_ADC_TO_TH // Special version: Humidity 0..36 = ADC pin PC4 input 0..3.6В, pcb mark "P9"
-#warning "Conflict with GPIO_TRG - reassign to different GPIOs!"
-#define CHL_ADC2 			9	// C4P
-#define GPIO_ADC2 			GPIO_PC4	// ADC input, pcb mark "P9"
-#define PC4_OUTPUT_ENABLE	0
-#define PC4_DATA_STRENGTH	0
-#define PC4_FUNC			AS_GPIO
-#endif
 
 #elif DEVICE_TYPE == DEVICE_CGDK2
 
