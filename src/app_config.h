@@ -57,6 +57,11 @@ extern "C" {
 #define DEVICE_ZYZTH02		37  // Tuya ZY-ZTH02 Zigbee, 2 x AAA, SHT30/CHT832x
 #define DEVICE_ZYZTH01		38  // Tuya ZY-ZTH02Pro Zigbee LCD, 2 x AAA, SHT30/CHT832x
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
+//#define DEVICE_TS0202_PIR1	40 // Tuya TS0202_TZ3000_6ygjfyll PIR
+//#define DEVICE_TS0202_PIR2	41 // Tuya TS0202_TZ3040_bb6xaihh PIR
+//#define DEVICE_MINTAGF2		42 // https://github.com/pvvx/THB2
+
+//#define TEST_PLM1 			1  // TB03F My Plant monitor
 
 #ifndef DEVICE_TYPE
 #define DEVICE_TYPE			DEVICE_LYWSD03MMC
@@ -1298,28 +1303,19 @@ extern "C" {
 
 #elif DEVICE_TYPE == DEVICE_PLM1
 
-// TLSR8250F512ET32 (BT3L Tuya module ECF-SGS01-A rev1.3)
-
-// GPIO_PB1 - NTC_OFF
-// GPIO_PB4 - PWM
-// GPIO_PB5 - RH_IN
-// GPIO_PB7 - NTC_IN
-// GPIO_PA0 - KEY
-// GPIO_PC0 - LED
-
 #define DEV_SERVICES ( SERVICE_OTA\
 		| SERVICE_OTA_EXT \
 		| SERVICE_PINCODE \
 		| SERVICE_BINDKEY \
 		| SERVICE_HISTORY \
 		| SERVICE_LE_LR \
-		| SERVICE_RDS \
 		| SERVICE_KEY \
 		| SERVICE_TIME_ADJUST \
-		| SERVICE_TH_TRG \
 		| SERVICE_LED \
 		| SERVICE_PLM \
 )
+//| SERVICE_RDS
+//| SERVICE_TH_TRG
 
 #define USE_EPD				0 // min update time ms
 
@@ -1338,6 +1334,68 @@ extern "C" {
 #define PB0_DATA_OUT		1
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
+
+#ifdef TEST_PLM1  // My PLM
+
+#define GPIO_KEY2			GPIO_PD4
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD4	PM_PIN_PULLUP_10K
+
+#define GPIO_LED			GPIO_PD2
+#define LED_ON				0
+#define PD2_INPUT_ENABLE	1
+#define PD2_DATA_OUT		1
+#define PD2_OUTPUT_ENABLE	0
+#define PD2_FUNC			AS_GPIO
+
+#define GPIO_TRG			GPIO_PC3
+#define PC3_INPUT_ENABLE	1
+#define PC3_DATA_OUT		0
+#define PC3_OUTPUT_ENABLE	0
+#define PC3_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLDOWN_100K
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_10K
+#define GPIO_RDS1 			GPIO_PD7
+#define PD7_INPUT_ENABLE	1
+#define PD7_DATA_OUT		0
+#define PD7_OUTPUT_ENABLE	0
+#define PD7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD7 RDS1_PULLUP
+
+#define USE_SENSOR_PWMRH	1
+// PWM
+#define PWM_PIN			GPIO_PC1
+#define AS_PWMx			AS_PWM0
+#define PWM_ID			PWM0_ID
+// ADC
+#define GPIO_RHI		GPIO_PB5
+#define CHNL_RHI		6 //B5P
+
+#define USE_SENSOR_NTC	1
+#define USE_AVERAGE_TH_SHL  3  // 1<<3 = 8
+
+#define GPIO_NTC_IN		GPIO_PB4
+#define CHNL_NTC		5 //B4P
+#define GPIO_NTC_OFF	GPIO_PB1
+#define PB1_INPUT_ENABLE	1
+#define PB1_DATA_OUT		0
+#define PB1_OUTPUT_ENABLE	0
+#define PB1_FUNC			AS_GPIO
+
+#else
+
+// TLSR8250F512ET32 (BT3L Tuya module ECF-SGS01-A rev1.3)
+
+// GPIO_PB1 - NTC_OFF
+// GPIO_PB4 - PWM
+// GPIO_PB5 - RH_IN
+// GPIO_PB7 - NTC_IN
+// GPIO_PA0 - KEY
+// GPIO_PC0 - LED
 
 #define GPIO_KEY2			GPIO_PA0
 #define PA0_INPUT_ENABLE	1
@@ -1388,7 +1446,11 @@ extern "C" {
 #define PB1_OUTPUT_ENABLE	0
 #define PB1_FUNC			AS_GPIO
 
-#define USE_AVERAGE_BATTERY 0
+#endif
+
+#define USE_AVERAGE_BATTERY 1  // =0 - Off, =1 - On
+#define USE_AVERAGE_TH_SHL  3  // 1<<3 = 8
+
 
 #elif DEVICE_TYPE == DEVICE_TB03F
 

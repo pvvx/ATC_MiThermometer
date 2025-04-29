@@ -16,7 +16,15 @@ static void adc_channel_init(ADC_InputPchTypeDef p_ain) {
 	adc_set_state_length(240, 0, 10);
 	analog_write(anareg_adc_res_m, RES14 | FLD_ADC_EN_DIFF_CHN_M);
 	adc_set_ain_chn_misc(p_ain, GND);
+#if 0 //(DEV_SERVICES & SERVICE_PLM)
+	//adc_set_vref_vbat_divider(ADC_VBAT_DIVIDER_OFF);
+	if(p_ain == SHL_ADC_VBAT)
+		adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_1P2V);
+	else
+		adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_1P2V);
+#else
 	adc_set_ref_voltage(ADC_MISC_CHN, ADC_VREF_1P2V);
+#endif
 	adc_set_tsample_cycle_chn_misc(SAMPLING_CYCLES_6);
 	adc_set_ain_pre_scaler(ADC_PRESCALER_1F8);
 }
@@ -74,11 +82,18 @@ u16 get_adc_mv(u32 p_ain) { // ADC_InputPchTypeDef
 	dfifo_disable_dfifo2();
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4]
-			+ adc_sample[5]) / 4;
+				+ adc_sample[5]);
+#if (DEV_SERVICES & SERVICE_PLM)
+	if(p_ain != SHL_ADC_VBAT)
+		return adc_average;
+	else
+		return (adc_average * 1175) >> 12; // adc_vref default: 1175 (mV)
+#else
 #if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 	return (adc_average * 1686) >> 10; // adc_vref default: 1175 (mV)
 #else
 	return (adc_average * 1175) >> 10; // adc_vref default: 1175 (mV)
+#endif
 #endif
 }
 

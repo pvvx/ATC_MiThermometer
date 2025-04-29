@@ -224,7 +224,7 @@ int I2CBusUtr(void * outdata, i2c_utr_t * tr, u32 wrlen) {
 	irq_restore(r);
 	return ret;
 }
-#else
+#elif defined(I2C_SCL) &&  defined(I2C_SDA)
 
 #include "drivers.h"
 #include "vendor/common/user_config.h"

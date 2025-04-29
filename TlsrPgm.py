@@ -16,7 +16,7 @@ import io
 
 __progname__ = 'TLSR82xx TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '31.10.23'
+__version__ = '27.04.25'
 
 DEFAULT_UART_BAUD = 230400
 
@@ -130,6 +130,7 @@ class TLSRPGM:
 	CMD_SWIRE_FIFO_READ = 11
 	CMD_SWIRE_FIFO_FWRITE = 12
 	CMD_FLASH_WRRD = 13
+	CMD_FLASH_RDCRC = 14 # FW ver >= 0.0.0.3
 
 	CMDF_GET_VERSION = 0
 	CMDF_MCU_REBOOT = 1
@@ -176,6 +177,7 @@ class TLSRPGM:
 	]
 
 	pgm_version = 0
+	pgm_ver_int = 0
 	pgm_cid = 0
 	pgm_pwr = 1
 
@@ -297,6 +299,7 @@ class TLSRPGM:
 			print('\rError[%d] Read PGM Version and Config!' % self.err)
 			return False
 		self.pgm_version = [data[5], data[4]]
+		self.pgm_ver_int = (data[5] << 8) | data[4]
 		(self.pgm_cid, self.pgm_pwr, self.pgm_swdiv, self.pgm_swaddrlen) = struct.unpack('<HBBB', data[6:11])
 		self.pgm_swbuf = data[11:17]
 		if self.pgm_cid == 0 and self.pgm_ver == 0:
@@ -714,7 +717,7 @@ class TLSRPGM:
 		return self.WaitingFlashReady(3000)
 	# Write Blocks Flash from stream
 	def WriteBlockFlash(self, stream, offset = 0, size = 0, erase = True):
-		wrsize = 0x100
+		wrsize = 0x100 # Flash write max 256 bytes
 		cnt_err = self.ERR_RETRY_COUNT
 		if erase and (offset & (self.FLASH_SECTOR_SIZE-1)) != 0:
 			erasec = offset & (0xffffff^(self.FLASH_SECTOR_SIZE-1))
@@ -763,6 +766,12 @@ class TLSRPGM:
 						else:
 							if not self.WaitingFlashReady():
 								return False
+							if self.pgm_ver_int >= 0x0003:
+								#print('\rGet CRC16 Flash record in 0x%06x...' % offset, end = '')
+								rdata = self.command(struct.pack('<BBHH', self.CMD_FLASH_RDCRC, offset & 0xff, (offset>>8) & 0xffff, wrsize), 6)
+								if rdata == None or rdata[2:4] != crc16(data, len(data)):
+									print('\rFlash CRC16 check error in block at 0x%06x!' % offset)
+									return False
 							cnt_err = self.ERR_RETRY_COUNT
 						break
 					break

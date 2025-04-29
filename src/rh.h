@@ -43,21 +43,26 @@ typedef struct _thsensor_coef_t {
 	s16 val2_z;		// humi_z / voltage_z
 } sensor_coef_t; // [12]
 
+/*
 typedef struct _sensor_def_cfg_t {
 	sensor_coef_t coef;
 	u32 measure_timeout;
 	u8 sensor_type; // SENSOR_TYPES
 } sensor_def_cfg_t;
+*/
 
 typedef struct _sensor_cfg_t {
 	sensor_coef_t coef;
 	u32 id;
 	u8 i2c_addr;
 	u8 sensor_type; // SENSOR_TYPES
-	// not saved
-#if SENSOR_SLEEP_MEASURE
-	volatile u32 time_measure;
-	u32 measure_timeout;
+	// not saved, send for debug
+	s16 adc_rh;
+	s16 adc_ntc;
+#ifdef USE_AVERAGE_TH_SHL
+	u16 cnt_summ;
+	u32 summ_rh;
+	s32 summ_ntc;
 #endif
 } sensor_cfg_t;
 
@@ -66,19 +71,9 @@ extern sensor_cfg_t sensor_cfg;
 
 #endif
 
-typedef struct {
-	u32	tic;
-	u16	ubase;
-	u16	rh;
-	u16	ntc;
-	u16	cal_mv;
-} rh_t;
-
-extern rh_t rh;
-
-//u16 get_adc_rh_mv(void);
-
-void calibrate_rh(void);
+void init_sensor(void);
+int calibrate_rh_0(void);
+int calibrate_rh_100(void);
 int	read_sensor_cb(void);
 
 #endif /* RH_H_ */

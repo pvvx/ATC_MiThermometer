@@ -786,7 +786,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 				!= FEEP_SAVE_SIZE_TRG)
 			memcpy(&trg, &def_trg, FEEP_SAVE_SIZE_TRG);
 #endif
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 		if (flash_read_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef))
 				!= sizeof(sensor_cfg.coef))
 			memset(&sensor_cfg.coef, 0, sizeof(sensor_cfg.coef));
@@ -875,14 +875,11 @@ void user_init_normal(void) {//this will get executed one time after power up
 	init_ens160();
 #endif
 	// start_tst_battery(); // step 2
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 	init_sensor();
 #endif
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
 	hx71x_get_data(HX71XMODE_A128); // Start measure
-#endif
-#if (DEV_SERVICES & SERVICE_PLM)
-	calibrate_rh();
 #endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
 	memo_init();

@@ -293,8 +293,9 @@ void cmd_parser(void * p) {
 			p->hw_version = DEVICE_TYPE;
 #endif
 			p->sw_version = VERSION;
-#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 			p->dev_spec_data = sensor_cfg.sensor_type;
+
 #else
 			p->dev_spec_data = TH_SENSOR_NONE;
 #endif
@@ -306,6 +307,8 @@ void cmd_parser(void * p) {
 #else
 			p->dev_spec_data |= IU_SENSOR_MY18B20 << 8;
 #endif
+#elif (DEV_SERVICES & SERVICE_PLM)
+			p->dev_spec_data = IU_SENSOR_NTC;
 #endif
 			p->services = DEV_SERVICES;
 			olen = sizeof(dev_id_t);
@@ -675,9 +678,9 @@ void cmd_parser(void * p) {
 				olen = 2;
 			}
 #endif
-#if (DEV_SERVICES & SERVICE_THS) || (DEV_SERVICES & SERVICE_IUS)
-		} else if (cmd == CMD_ID_CFS || cmd == CMD_ID_KZ2 || cmd == CMD_ID_KZ3) {	// Get/Set sensor config
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 #if USE_SENSOR_INA3221
+		} else if (cmd == CMD_ID_CFS || cmd == CMD_ID_KZ2 || cmd == CMD_ID_KZ3) {	// Get/Set sensor config
 			olen = 0;
 			if(cmd == CMD_ID_KZ2)
 				olen = 1;
@@ -692,6 +695,7 @@ void cmd_parser(void * p) {
 			memcpy(&send_buf[1], &sensor_cfg.coef[olen], sizeof(sensor_cfg.coef[0]));
 			memcpy(&send_buf[1 + sizeof(sensor_cfg.coef[0])], &sensor_cfg.id, 6);
 #else
+		} else if (cmd == CMD_ID_CFS) {	// Get/Set sensor config
 			if (len) {
 				if (len > sizeof(sensor_cfg.coef))
 					len = sizeof(sensor_cfg.coef);
@@ -740,12 +744,19 @@ void cmd_parser(void * p) {
 #endif
 #if (DEV_SERVICES & SERVICE_PLM)
 		} else if (cmd == CMD_ID_RH) { // Get/Set sensor RH config
-			memcpy(&send_buf[1], &rh, sizeof(rh) + 4);
-			olen = sizeof(rh) + 1;
+			if (len) {
+				if(req->dat[1] == 100)
+					send_buf[1] = calibrate_rh_100();
+				else if(req->dat[1] == 0)
+					send_buf[1] = calibrate_rh_0();
+				else
+					send_buf[1] = 0xff; // Error cmd
+			} else send_buf[1] = 2;
+			memcpy(&send_buf[2], &sensor_cfg.adc_rh, 4);
+			olen = 5 + 1;
 		} else if (cmd == CMD_ID_RH_CAL) { // Calibrate sensor RH
-			calibrate_rh();
-			memcpy(&send_buf[1], &rh, sizeof(rh) + 4);
-			olen = sizeof(rh) + 1;
+			memcpy(&send_buf[1], &sensor_cfg.adc_rh, 4);
+			olen = 4 + 1;
 #endif
 #if (DEV_SERVICES & SERVICE_SCANTIM)
 		} else if (cmd == CMD_ID_SCAN_CFG) { // Get/Set Scan Config parameters

@@ -247,13 +247,13 @@ typedef struct _measured_data_t {
 	s32 energy;
 #endif
 } measured_data_t;  // save max 18 bytes
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 #if USE_SENSOR_INA3221
 #define  MEASURED_MSG_SIZE  16
 #else
 #define  MEASURED_MSG_SIZE  8
 #endif
-#else // !(DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
+#else // !(DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 #define  MEASURED_MSG_SIZE  4
 #endif
 extern measured_data_t measured_data;
