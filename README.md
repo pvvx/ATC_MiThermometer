@@ -84,12 +84,12 @@ Access to github is already slowing down. Most Internet information resources ha
 |TS0201_vNN.bin | TH03Z_vNN.bin | ZTH01_vNN.bin | ZTH02_vNN.bin | ZYZTH02_vNN.bin |
 
 
-| Tuya ZigBee<br> [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) |
-|:--:|
-| <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> |
-| Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
-| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
-| ZG227Z_vNN.bin |
+| Tuya ZigBee<br> [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) | Tuya BLE ["Plant monitor" SGS01](https://pvvx.github.io/PLANT-MON/) |
+|:--:|:--:|
+| <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> | <img src="hhttps://pvvx.github.io/PLANT-MON/img/sgs01.jpg" width="40"/> |
+| Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | modification required |
+| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE |
+| ZG227Z_vNN.bin | PLM1_vNN.bin |
 
 * Tuya devices (SOC PHY62x2)
 
