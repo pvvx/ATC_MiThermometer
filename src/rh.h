@@ -57,12 +57,12 @@ typedef struct _sensor_cfg_t {
 	u8 i2c_addr;
 	u8 sensor_type; // SENSOR_TYPES
 	// not saved, send for debug
-	s16 adc_rh;
-	s16 adc_ntc;
+	u16 adc_rh;
+	u16 adc_ntc;
 #ifdef USE_AVERAGE_TH_SHL
 	u16 cnt_summ;
 	u32 summ_rh;
-	s32 summ_ntc;
+	u32 summ_ntc;
 #endif
 } sensor_cfg_t;
 

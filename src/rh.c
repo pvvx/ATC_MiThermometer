@@ -26,21 +26,24 @@
 
 
 const sensor_coef_t rh_ntc_def = {
-		.val1_k = 322200, // 410000, 1300; 418000, 1180; 435000, 300 ; 432500, 400 ; 430000, 500
-		.val1_z = 12000,
+		.val1_k = 75000,
+		.val1_z = 80,
 		.val2_k = DEF_PWM_TIK,
 		.val2_z = DEF_ADC_RH0
 };
 
 RAM sensor_cfg_t sensor_cfg;
 
-/*  R1(T1): 10кОм(25°С), Ra: 10кОм  */
+/*  NTC1: 10k (25°С), R: 10k  */
 const u16 ntc_table[] = {
-	64318, 63883, 63320, 62603, 61703, 60592, 59239, 57627,
-	55730, 53555, 51096, 48390, 45463, 42378, 39187, 35963,
-	32768, 29661, 26690, 23900, 21309, 18937, 16784, 14849,
-	13122, 11587, 10232, 9037, 7988, 7068, 6261, 5554,
-	4935, 4393, 3917, 3499, 3132
+//	-45		-40		-35		-30		-25		-20		-15		-10
+	63320,	62603,	61703,	60592,	59239,	57627,	55730,	53555,
+//	-5		0		+5		+10		+15		+20		+25		+30
+	51096,	48390,	45463,	42378,	39187,	35963,	32768,	29661,
+//	+35		+40		+45		+50		+55		+60		+65		+70
+	26690,	23900,	21309,	18937,	16784,	14849,	13122,	11587,
+//	+75		+80		+85		+90		+95		+100
+	10232,	9037,	7988,	7068,	6261,	5554
 };
 
 #define NTC_TABLE_IDX_MAX ((sizeof(ntc_table) / sizeof(ntc_table[0])) - 1)
@@ -49,14 +52,12 @@ const u16 ntc_table[] = {
 #define NTC_TABLE_T_MAX 	10000 // x0.01C, ntc_table[NTC_TABLE_IDX_MAX]
 #define NTC_TABLE_T_STEP 	500 // x0.01C
 
-// Функция вычисляет значение температуры в десятых долях градусов Цельсия
-// в зависимости от суммарного значения АЦП.
 s16 calc_temperature(u16 adc_val) {
 	int i = 0;
-	u16 d = ntc_table[0];
+	u16 d = ntc_table[0]; // -45C
 	u16 m;
-	s16 t = NTC_TABLE_T_MIN - NTC_TABLE_T_STEP;
-	// Проверка выхода за пределы и граничных значений
+	s16 t = NTC_TABLE_T_MIN; // -50C
+
 	if (adc_val <= ntc_table[NTC_TABLE_IDX_MAX]) {
 		return NTC_TABLE_T_MAX;
 	}
@@ -65,17 +66,17 @@ s16 calc_temperature(u16 adc_val) {
 	}
 
 	while (i < NTC_TABLE_IDX_MAX) {
-		i++;
-		m = d; // = ntc_table[i-1]
-		t += NTC_TABLE_T_STEP;
+		++i;
+		m = d; // old table value = ntc_table[i-1]
 		d = ntc_table[i];
-		if(adc_val >= d)
+		t += NTC_TABLE_T_STEP;	// +5C
+		if(adc_val >= d) // adc >= ntc_table[i]
 			break;
 	};
 	m -= d; // ntc_table[i-1] - ntc_table[i]
 	d = adc_val - d; // adc - ntc_table[i]
 	if (d) {
-		t -= (u32)(NTC_TABLE_T_STEP * d + (m >> 1)) / m;
+		t -= (u32)(((u32)NTC_TABLE_T_STEP * (u32)d) + (u32)(m >> 1)) / (u32)m;
 	}
 	return t;
 }
@@ -106,85 +107,96 @@ static void stop_pwm(void) {
 
 u32 get_adc_rh_ntc(void) {
 	u32 k, t0;
-	u32 adc_rh;
-	s32 adc_ntc;
+	u32 adc_uint;
+	s32 adc_int;
 	gpio_set_output_en(GPIO_NTC_OFF, 1); // NTC power on
 
 	start_pwm();
 
-	t0 = clock_time();
+	t0 = clock_time(); // save start time
 
-	measured_data.battery_mv = get_battery_mv();
+	measured_data.battery_mv = get_battery_mv(); // measure battery (in mV)
 
-	adc_rh = get_adc_mv(CHNL_NTC);  // 100 at 250C, 1651 : at 22C
+	adc_uint = get_adc_mv(CHNL_NTC);  // measure ntc, adc value x4
 
-	gpio_set_output_en(GPIO_NTC_OFF, 0); // NTC power off (on..off 500 us)
+	gpio_set_output_en(GPIO_NTC_OFF, 0); // NTC power off (on..off interval ~500 us)
 
-	// coefficient for ADC NTC to the current supply voltage
-	adc_rh <<= 16;
-	adc_rh /= measured_data.battery_mv;
+	// Get the ratio of voltage from NTC to battery voltage (* 1.1474609375)
+	adc_uint <<= 14;
+	adc_uint /= measured_data.battery_mv; // = adc / bat
 
 #ifdef USE_AVERAGE_TH_SHL
-	sensor_cfg.summ_ntc += adc_rh;
+	// Calculate the average value from (1<<USE_AVERAGE_TH_SHL) measurements
+	sensor_cfg.summ_ntc += adc_uint;
 	sensor_cfg.cnt_summ++;
 	if(sensor_cfg.cnt_summ >= (1<<USE_AVERAGE_TH_SHL)) {
-		adc_rh = sensor_cfg.summ_ntc >> USE_AVERAGE_TH_SHL;
-		sensor_cfg.summ_ntc -= adc_rh;
+		adc_uint = sensor_cfg.summ_ntc >> USE_AVERAGE_TH_SHL;
+		sensor_cfg.summ_ntc -= adc_uint;
 	} else {
-		adc_rh = sensor_cfg.summ_ntc / sensor_cfg.cnt_summ;
+		adc_uint = sensor_cfg.summ_ntc / sensor_cfg.cnt_summ;
 	}
 #endif
-	adc_rh = adc_rh * sensor_cfg.coef.val1_k;
-	adc_rh >>= 16;
-	adc_ntc = adc_rh + sensor_cfg.coef.val1_z;
-	if(adc_ntc > 0xffff)
-		adc_ntc = 0xffff;
-	else if (adc_ntc < 0)
-		adc_ntc = 0;
+	// adc_uint = 0..0xffff
+	// Bring the ratio of the measurement to the table values
+	adc_uint = adc_uint * sensor_cfg.coef.val1_k;
+	adc_uint >>= 16;
+	adc_int = (s32)adc_uint + (s32)sensor_cfg.coef.val1_z;
+	// Limit value test
+	if(adc_int > 0xffff)
+		adc_int = 0xffff;
+	else if (adc_int < 0)
+		adc_int = 0;
 
-	sensor_cfg.adc_ntc = adc_ntc;
+	sensor_cfg.adc_ntc = adc_int; // save final NTC ADC NTC measurement
 
+	// Waiting for the end of the sensor capacitor charging interval
 	while (clock_time() - t0 < sensor_cfg.coef.val2_k);
 
-	adc_rh = get_adc_mv(CHNL_RHI);
+	adc_uint = get_adc_mv(CHNL_RHI); // measure rh, adc value x4
 
+	// measure battery (in mV)
 	k = measured_data.battery_mv + get_battery_mv(); // start + end battery_mv = 2 x Ubat
 
-	stop_pwm();
+	stop_pwm(); // PMM Off
 
 	// coefficient for ADC RH to the current supply voltage
 	k = ((DEF_U_POWER - U_DIODE) << 17) / (k - (U_DIODE*2));
 
-	adc_rh = (adc_rh * k) >> 16;
+	adc_uint = (adc_uint * k) >> 16;
 
-	sensor_cfg.adc_rh = adc_rh;
+	sensor_cfg.adc_rh = adc_uint; // save final RH ADC measurement
 
 #ifdef USE_AVERAGE_TH_SHL
-	sensor_cfg.summ_rh += adc_rh;
+	// Calculate the average value from (1<<USE_AVERAGE_TH_SHL) measurements
+	sensor_cfg.summ_rh += adc_uint;
 	if(sensor_cfg.cnt_summ >= (1<<USE_AVERAGE_TH_SHL)) {
-		adc_rh = sensor_cfg.summ_rh >> USE_AVERAGE_TH_SHL;
-		sensor_cfg.summ_rh -= adc_rh;
+		adc_uint = sensor_cfg.summ_rh >> USE_AVERAGE_TH_SHL;
+		sensor_cfg.summ_rh -= adc_uint;
 		sensor_cfg.cnt_summ--;
 	} else {
-		adc_rh = sensor_cfg.summ_rh / sensor_cfg.cnt_summ;
+		adc_uint = sensor_cfg.summ_rh / sensor_cfg.cnt_summ;
 	}
 #endif
-
+	// maximum value to calculate 0% RH
 	k = VAL_RH0 + sensor_cfg.coef.val2_z; // max ADC value  (= 0%)
 
-	if(adc_rh <= sensor_cfg.coef.val2_z)
-		adc_rh = 10000; // 100.00%
-	else if(adc_rh >= k)
-		adc_rh = 0; // 0%
+	// Limit value test
+	if(adc_uint <= sensor_cfg.coef.val2_z)
+		adc_uint = 10000; // 100.00%
+	else if(adc_uint >= k)
+		adc_uint = 0; // 0%
 	else {
-		adc_rh = k - adc_rh;
-		adc_rh = (((adc_rh * adc_rh) >> 11) * adc_rh) >> 11;
-		if(adc_rh < 0)
-			adc_rh = 0; // 0%
-		else if(adc_rh > 10000)
-			adc_rh = 10000; // 100.00%
+		// Get the reciprocal value
+		adc_uint = k - adc_uint;
+		// Raise the value to the power of 3 (adc_int^3, (3475*3475*3475)>>22 = 10004)
+		adc_int = (((adc_uint * adc_uint) >> 11) * adc_uint) >> 11;
+		// Limit value test
+		if(adc_uint < 0)
+			adc_uint = 0; // 0%
+		else if(adc_uint > 10000)
+			adc_uint = 10000; // 100.00%
 	}
-	return adc_rh;
+	return adc_uint;
 }
 
 #ifdef USE_AVERAGE_TH_SHL

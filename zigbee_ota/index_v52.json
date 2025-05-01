@@ -137,10 +137,10 @@
     },
     {
         "fileVersion": 2576953345,
-        "fileSize": 74194,
+        "fileSize": 74178,
         "manufacturerCode": 4417,
         "imageType": 541,
-        "sha512": "c468be67a98686e90a50352fca913eb912367497438eac7bd031418f0364e43de52f3468fd33ee1316b0cbc0e4f6d5c07f239dad0463f5dc9cd09992704e063c",
+        "sha512": "28360e7f132ea20e7324a9013b869393f952d5eea73ee8264b40bc2dad37bb4c4aeeaa1dece16cb7809140f89b4f95fc801dba18e879c7ddadc8052241764955",
         "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021d-99993001-TB_PLM_v52.zigbee"
     },
     {
