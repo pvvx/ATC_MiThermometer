@@ -71,6 +71,9 @@ extern sensor_cfg_t sensor_cfg;
 
 #endif
 
+#ifdef USE_AVERAGE_TH_SHL
+void clr_rh_summ(void);
+#endif
 void init_sensor(void);
 int calibrate_rh_0(void);
 int calibrate_rh_100(void);

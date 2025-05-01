@@ -13,10 +13,10 @@
 #include "app.h"
 #include "flash_eep.h"
 
-#define DEF_PWM_TIK		50000 // DEF_PWM_TIK/CLOCK_16M_SYS_TIMER_CLK_1US = 3125 us, for С = 47 nF
+#define DEF_PWM_TIK		54000 // DEF_PWM_TIK/CLOCK_16M_SYS_TIMER_CLK_1US = 4000 us, for С = 47 nF
 #define DEF_U_POWER		3100 // 3300 mV
 #define U_DIODE			1350 // sensor_cfg.coef.val1_z //  Diode Voltage drop at 8 MHz (mV). Using a diode marked "T4"
-#define DEF_ADC_RH0		900  // ADC value at 100% and supply voltage 3.300V
+#define DEF_ADC_RH0		1150 // ADC value at 100% and supply voltage 3.300V
 #define VAL_RH0			3475 // The cube root of 41943040000 is: 3474.454549241, (3475*3475*3475)>>22 = 10004
 
 #define TIM_PWM_MAX		(7 * CLOCK_16M_SYS_TIMER_CLK_1MS) // min time PWM
@@ -26,8 +26,8 @@
 
 
 const sensor_coef_t rh_ntc_def = {
-		.val1_k = 430000, // 435000, 300 ; 432500, 400 ; 430000, 500
-		.val1_z = 500,
+		.val1_k = 410000, // 410000, 1300; 418000, 1180; 435000, 300 ; 432500, 400 ; 430000, 500
+		.val1_z = 1300,
 		.val2_k = DEF_PWM_TIK,
 		.val2_z = DEF_ADC_RH0
 };
@@ -116,13 +116,13 @@ u32 get_adc_rh_ntc(void) {
 
 	measured_data.battery_mv = get_battery_mv();
 
-	sensor_cfg.adc_ntc = get_adc_mv(CHNL_NTC);  // 100 at 250C, 1651 : at 22C
+	adc_rh = get_adc_mv(CHNL_NTC);  // 100 at 250C, 1651 : at 22C
 
 	gpio_set_output_en(GPIO_NTC_OFF, 0); // NTC power off (on..off 500 us)
 
 	// coefficient for ADC NTC to the current supply voltage
-	k = (DEF_U_POWER << 16) / measured_data.battery_mv;
-	adc_rh = (u32)(sensor_cfg.adc_ntc * k) >> 16;
+	adc_rh = sensor_cfg.adc_ntc << 16;
+	adc_rh /= measured_data.battery_mv;
 
 #ifdef USE_AVERAGE_TH_SHL
 	sensor_cfg.summ_ntc += adc_rh;
@@ -134,7 +134,8 @@ u32 get_adc_rh_ntc(void) {
 		adc_rh = sensor_cfg.summ_ntc / sensor_cfg.cnt_summ;
 	}
 #endif
-	adc_rh = ((adc_rh * sensor_cfg.coef.val1_k) >> 16);
+	adc_rh = adc_rh * sensor_cfg.coef.val1_k;
+	adc_rh >>= 16;
 	adc_ntc = adc_rh + sensor_cfg.coef.val1_z;
 	if(adc_ntc > 0xffff)
 		adc_ntc = 0xffff;
@@ -147,16 +148,16 @@ u32 get_adc_rh_ntc(void) {
 
 	adc_rh = get_adc_mv(CHNL_RHI);
 
-	k = measured_data.battery_mv + get_battery_mv();
+	k = measured_data.battery_mv + get_battery_mv(); // start + end battery_mv = 2 x Ubat
 
 	stop_pwm();
 
-	k >>= 1;
-
 	// coefficient for ADC RH to the current supply voltage
-	k = ((DEF_U_POWER - U_DIODE) << 16) / (k - U_DIODE);
+	k = ((DEF_U_POWER - U_DIODE) << 17) / (k - (U_DIODE*2));
 
 	adc_rh = (adc_rh * k) >> 16;
+
+	sensor_cfg.adc_rh = adc_rh;
 
 #ifdef USE_AVERAGE_TH_SHL
 	sensor_cfg.summ_rh += adc_rh;
@@ -168,8 +169,6 @@ u32 get_adc_rh_ntc(void) {
 		adc_rh = sensor_cfg.summ_rh / sensor_cfg.cnt_summ;
 	}
 #endif
-
-	sensor_cfg.adc_rh = adc_rh;
 
 	k = VAL_RH0 + sensor_cfg.coef.val2_z; // max ADC value  (= 0%)
 
@@ -188,6 +187,16 @@ u32 get_adc_rh_ntc(void) {
 	return adc_rh;
 }
 
+#ifdef USE_AVERAGE_TH_SHL
+void clr_rh_summ(void) {
+	sensor_cfg.summ_ntc = 0;
+	sensor_cfg.summ_rh = 0;
+	sensor_cfg.cnt_summ = 0;
+}
+#else
+#define clr_rh_summ()
+#endif
+
 static void	discharge_c_rh(void) {
 	gpio_set_func(PWM_PIN, AS_GPIO);
 	gpio_setup_up_down_resistor(GPIO_RHI, PM_PIN_PULLDOWN_100K);
@@ -201,6 +210,7 @@ int calibrate_rh_0(void) {
 	if(sensor_cfg.adc_rh >= ADC_RH0_MIN && sensor_cfg.adc_rh <= ADC_RH0_MAX) {
 		sensor_cfg.coef.val2_z = sensor_cfg.adc_rh;
 		flash_write_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef));
+		clr_rh_summ();
 		return 0;
 	}
 	return 1;
@@ -236,12 +246,14 @@ int calibrate_rh_100(void) {
 	if(tt > TIM_PWM_MIN && tt < TIM_PWM_MAX) {
 		sensor_cfg.coef.val2_k = tt;
 		flash_write_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef));
+		clr_rh_summ();
 		return 0;
 	}
 	return 1;
 }
 
 void init_sensor(void) {
+	clr_rh_summ();
 	if(sensor_cfg.coef.val1_k == 0) {
 		memcpy(&sensor_cfg.coef, &rh_ntc_def, sizeof(sensor_cfg.coef));
 	}

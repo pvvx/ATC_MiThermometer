@@ -57,8 +57,9 @@ static u32 set_bthome_data1(padv_bthome_data1_t p) {
 		p->l_id = BtHomeID_volume32;
 		p->volume = measured_data.pressure * 10UL; // 0.001 L
 #else
-		p->p_id = BtHomeID_pressure;
-		p->pressure = measured_data.pressure; // 0.01 hPa
+		p->p_id = BtHomeID_pressure24;
+		p->pressure_lo = measured_data.pressure; // 0.01 hPa
+		p->pressure_hi = measured_data.pressure>>16; // 0.01 hPa
 #endif
 #endif
 #if (DEV_SERVICES & SERVICE_IUS)

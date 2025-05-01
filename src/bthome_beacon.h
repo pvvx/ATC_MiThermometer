@@ -22,7 +22,7 @@ typedef enum {
 	BtHomeID_battery = 0x01,		//0x01, uint8, %
 	BtHomeID_temperature = 0x02,	//0x02, int16, 0.01 °C
 	BtHomeID_humidity = 0x03,		//0x03, uint16, 0.01 %
-	BtHomeID_pressure = 0x04,		//0x04, uint24, 0.01 hPa / mbar ?
+	BtHomeID_pressure24 = 0x04,		//0x04, uint24, 0.01 hPa / mbar ?
 	BtHomeID_illuminance = 0x05,	//0x05, uint24, 0.01 lux
 	BtHomeID_weight	= 0x06,			//0x06, uint16, 0.01 kg
 	BtHomeID_weight_lb = 0x07,      //0x07, uint16, 0.01 lb
@@ -176,7 +176,8 @@ typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 	u32	volume; // x 0.001 l
 #else
 	u8	p_id;	// BtHomeID_pressure
-	u32	pressure; // x 0.01 hPa
+	u16	pressure_lo; // x 0.01 hPa
+	u8 pressure_hi;
 #endif
 #endif
 #if (DEV_SERVICES & SERVICE_IUS)

@@ -603,7 +603,7 @@ void cmd_parser(void * p) {
 				bls_pm_setManualLatency(0);
 			} else
 				bls_pm_setManualLatency(cfg.connect_latency);
-		} else if (cmd == CMD_ID_CLRLOG && len > 2) { // Clear memory measures
+		} else if (cmd == CMD_ID_CLRLOG && len > 1) { // Clear memory measures
 			if (req->dat[1] == 0x12 && req->dat[2] == 0x34) {
 				clear_memo();
 				olen = 2;
@@ -751,7 +751,12 @@ void cmd_parser(void * p) {
 					send_buf[1] = calibrate_rh_0();
 				else
 					send_buf[1] = 0xff; // Error cmd
-			} else send_buf[1] = 2;
+			} else {
+//#ifdef USE_AVERAGE_TH_SHL
+				//clr_rh_summ();
+//#endif
+				send_buf[1] = 2;
+			}
 			memcpy(&send_buf[2], &sensor_cfg.adc_rh, 4);
 			olen = 5 + 1;
 		} else if (cmd == CMD_ID_RH_CAL) { // Calibrate sensor RH

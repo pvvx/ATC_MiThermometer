@@ -1376,7 +1376,6 @@ extern "C" {
 #define CHNL_RHI		6 //B5P
 
 #define USE_SENSOR_NTC	1
-#define USE_AVERAGE_TH_SHL  3  // 1<<3 = 8
 
 #define GPIO_NTC_IN		GPIO_PB4
 #define CHNL_NTC		5 //B4P
@@ -1449,7 +1448,7 @@ extern "C" {
 #endif
 
 #define USE_AVERAGE_BATTERY 1  // =0 - Off, =1 - On
-#define USE_AVERAGE_TH_SHL  3  // 1<<3 = 8
+#define USE_AVERAGE_TH_SHL  2  // 1<<2 = 4, 1<<3 = 8, ...
 
 
 #elif DEVICE_TYPE == DEVICE_TB03F
@@ -1472,13 +1471,24 @@ extern "C" {
 // GPIO_PD3 - free, used RDS1 Upper level sensor
 // GPIO_PD4 - free, used RDS2 Lower level sensor
 // GPIO_PD7 - free
-
+#ifndef USE_SENSOR_MY18B20
 #define USE_SENSOR_MY18B20		0 // 0 - Off, 1 - 1 sensor, 2 - 2 sensors
+#endif
+#ifndef USE_SENSOR_INA226
 #define USE_SENSOR_INA226		0
-#define USE_SENSOR_INA3221		1
+#endif
+#ifndef USE_SENSOR_INA3221
+#define USE_SENSOR_INA3221		0
+#endif
+#ifndef USE_SENSOR_ENS160
 #define USE_SENSOR_ENS160		0
+#endif
+#ifndef USE_SENSOR_SCD41
 #define USE_SENSOR_SCD41		0
+#endif
+#ifndef USE_SENSOR_BME280
 #define USE_SENSOR_BME280		0
+#endif
 
 #define USE_SDM_OUT	0 // Enable Sigma-Delta Modulation DAC, Set work only if use SCD41/ENS160
 
@@ -1511,6 +1521,7 @@ extern "C" {
 		| SERVICE_LED \
 		| SERVICE_18B20 \
 )
+
 #elif USE_SENSOR_ENS160 || USE_SENSOR_SCD41
 
 #define DEV_SERVICES ( SERVICE_OTA\
@@ -1573,6 +1584,21 @@ extern "C" {
 		| SERVICE_TH_TRG \
 		| SERVICE_LED \
 		| SERVICE_PRESSURE \
+)
+#else
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
 )
 #endif
 
