@@ -16,7 +16,7 @@
 #define DEF_PWM_TIK		54000 // DEF_PWM_TIK/CLOCK_16M_SYS_TIMER_CLK_1US = 4000 us, for С = 47 nF
 #define DEF_U_POWER		3100 // 3300 mV
 #define U_DIODE			1350 // sensor_cfg.coef.val1_z //  Diode Voltage drop at 8 MHz (mV). Using a diode marked "T4"
-#define DEF_ADC_RH0		1150 // ADC value at 100% and supply voltage 3.300V
+#define DEF_ADC_RH0		1180 // ADC value at 100% and supply voltage 3.300V
 #define VAL_RH0			3475 // The cube root of 41943040000 is: 3474.454549241, (3475*3475*3475)>>22 = 10004
 
 #define TIM_PWM_MAX		(7 * CLOCK_16M_SYS_TIMER_CLK_1MS) // min time PWM
@@ -26,8 +26,8 @@
 
 
 const sensor_coef_t rh_ntc_def = {
-		.val1_k = 410000, // 410000, 1300; 418000, 1180; 435000, 300 ; 432500, 400 ; 430000, 500
-		.val1_z = 1300,
+		.val1_k = 322200, // 410000, 1300; 418000, 1180; 435000, 300 ; 432500, 400 ; 430000, 500
+		.val1_z = 12000,
 		.val2_k = DEF_PWM_TIK,
 		.val2_z = DEF_ADC_RH0
 };
@@ -121,7 +121,7 @@ u32 get_adc_rh_ntc(void) {
 	gpio_set_output_en(GPIO_NTC_OFF, 0); // NTC power off (on..off 500 us)
 
 	// coefficient for ADC NTC to the current supply voltage
-	adc_rh = sensor_cfg.adc_ntc << 16;
+	adc_rh <<= 16;
 	adc_rh /= measured_data.battery_mv;
 
 #ifdef USE_AVERAGE_TH_SHL

@@ -20,6 +20,10 @@ make -s -j PROJECT_NAME=%FW_NAME% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TB03F -DUSE_S
 @del /Q "%FW_NAME%.bin"
 make -s -j PROJECT_NAME=%FW_NAME% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TB03F -DUSE_SENSOR_INA3221=1"
 @if not exist "%FW_NAME%.bin" goto :error
+@set FW_NAME=TB_PLM%SWVER%
+@del /Q "%FW_NAME%.bin"
+make -s -j PROJECT_NAME=%FW_NAME% POJECT_DEF="-DDEVICE_TYPE=DEVICE_PLM1 -DTEST_PLM1=1"
+@if not exist "%FW_NAME%.bin" goto :error
 @exit
 :error
 echo "Error!"
