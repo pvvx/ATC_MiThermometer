@@ -4,7 +4,7 @@
         "fileSize": 79554,
         "manufacturerCode": 4417,
         "imageType": 54179,
-        "sha512": "e336bd95b15ffae09da4e388d8e5f2214cbff264ef74358e716fac20b2dd1b972f8f1d611371e0b9e04f79030043e4591bc0a849e2f24bf2d816bc59a191f710",
+        "sha512": "dea6f945f598bfee5004d42bd373f5b738c0d15dec6e24e2f7f7f8c5b9f09b491401053125f094f101c53337d3df979464e6100cc28a371d4b549ffedd5a2b69",
         "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-d3a3-01983001-TS0201BLE_v52.zigbee"
     }
 ]
