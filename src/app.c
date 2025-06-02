@@ -378,28 +378,14 @@ void set_hw_version(void) {
 	cfg.hw_ver = DEVICE_TYPE;
 #endif // (DEV_SERVICES & SERVICE_SCREEN)
 	return;
-#elif DEVICE_TYPE == DEVICE_MHO_C401
-	cfg.hw_ver = HW_VER_MHO_C401;
 #elif DEVICE_TYPE == DEVICE_CGG1
 #if DEVICE_CGG1_ver == 2022
 	cfg.hw_ver = HW_VER_CGG1_2022;
 #else
 	cfg.hw_ver = HW_VER_CGG1;
-#endif
-#elif DEVICE_TYPE == DEVICE_CGDK2
-	cfg.hw_ver = HW_VER_CGDK2;
-#elif DEVICE_TYPE == DEVICE_MHO_C401N
-	cfg.hw_ver = HW_VER_MHO_C401_2022;
-#elif DEVICE_TYPE == DEVICE_MJWSD05MMC
-	cfg.hw_ver = HW_VER_MJWSD05MMC;
-#elif DEVICE_TYPE == DEVICE_MJWSD05MMC_EN
-	cfg.hw_ver = HW_VER_MJWSD05MMC_EN;
-#elif DEVICE_TYPE == DEVICE_MHO_C122
-	cfg.hw_ver = HW_VER_MHO_C122;
-#elif DEVICE_TYPE < HW_VER_EXTENDED
-	cfg.hw_ver = DEVICE_TYPE;
+#endif // DEVICE_CGG1_ver
 #else
-	cfg.hw_ver = HW_VER_EXTENDED;
+	cfg.hw_ver = DEVICE_TYPE;
 #endif
 }
 
