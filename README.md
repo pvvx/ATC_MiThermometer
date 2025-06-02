@@ -68,7 +68,7 @@ Access to github is already slowing down. Most Internet information resources ha
 
 | Tuya ZigBee<br>[ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) | Tuya ZigBee<br>[ZY-ZTH03Pro](https://pvvx.github.io/TS0201_TZ3000_v1w2k9dd) | [MJWSD06MMC](https://pvvx.github.io/MJWSD06MMC) |
 |:--:|:--:|:--:|
-| <img src="https://pvvx.github.io/ZY-ZTH02Pro/img/zyzth02p.jpg" alt="ZY-ZTH02Pro" width="200"/> | | <img src="https://pvvx.github.io/TS0201_TZ3000_v1w2k9dd/img/zy-zth03pro.jpg" alt="ZY-ZTH03Pro" width="200"/> | <img src="https://pvvx.github.io/MJWSD06MMC/img/MJWSD06MMC.jpg" alt="MJWSD06MMC" width="200"/> |
+| <img src="https://pvvx.github.io/ZY-ZTH02Pro/img/zyzth02p.jpg" alt="ZY-ZTH02Pro" width="200"/> | <img src="https://pvvx.github.io/TS0201_TZ3000_v1w2k9dd/img/zy-zth03pro.jpg" alt="ZY-ZTH03Pro" width="200"/> | <img src="https://pvvx.github.io/MJWSD06MMC/img/MJWSD06MMC.jpg" alt="MJWSD06MMC" width="200"/> |
 | Zigbee OTA | Zigbee OTA | Programmer |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 | ZYZTH02P_vNN.bin | ZYZTH02P_vNN.bin | MJ6_vNN.bin |
