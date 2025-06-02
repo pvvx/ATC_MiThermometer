@@ -22,15 +22,6 @@ DEFAULT_UART_BAUD = 230400
 
 FLASH_SECTOR_SIZE = 4096
 
-class FatalError(RuntimeError):
-	def __init__(self, message):
-		RuntimeError.__init__(self, message)
-
-	@staticmethod
-	def WithResult(message, result):
-		message += " (result was %s)" % hexify(result)
-		return FatalError(message)
-
 def signal_handler(signal, frame):
 	print()
 	print('Keyboard Break!')

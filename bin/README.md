@@ -40,5 +40,5 @@
 | 35 | 0x0223 | [CB3S](https://pvvx.github.io/TS0041_TZ3000_fa9mlvja) TS0041_TZ3000_fa9mlvja | CB3S |
 | 36 | 0x0224 | [HS09](https://pvvx.github.io/TS0201_TZ3000_1twfmkcc) TS0201_TZ3000_1twfmkcc | HS09 |
 | 37 | 0x0225 | [ZY-ZTH02](https://pvvx.github.io/ZY-ZTH02) TS0201_TZ3000_v1w2k9dd without LCD | ZYZTH02 |
-| 38 | 0x0226 | [ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) TS0201_TZ3000_v1w2k9dd LCD | ZYZTH02P |
+| 38 | 0x0226 | [ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro), [ZY-ZTH03Pro](https://pvvx.github.io/TS0201_TZ3000_v1w2k9dd) TS0201_TZ3000_v1w2k9dd LCD | ZYZTH02P |
 | 39 | 0x0227 | [ZG-227Z](https://pvvx.github.io/ZG-227Z) TS0601_TZE200_a8sdabtg | ZG227Z |
