@@ -59,7 +59,7 @@ typedef enum {
 
 const sensor_def_cfg_t def_thcoef_scd41 = {
 		.coef.val1_k = 17500, // temp_k
-		.coef.val1_z = -4500, // temp_z
+		.coef.val1_z = 122, // temp_z - use SCD4X_SET_TEMPERATURE_OFFSET_RAW_CMD_ID
 		.coef.val2_k = 10000, // humi_k
 		.coef.val2_z = 0, // humi_z
 #if SENSOR_SLEEP_MEASURE
@@ -133,10 +133,20 @@ void init_sensor(void) {
 	if (sensor_cfg.i2c_addr) {
 		if (!read_regs16_scd41(SCD4X_GET_SENSOR_VARIANT_RAW_CMD_ID, (u8 *)&sensor_cfg.id, 1)) {
 			int ret = 0;
-			if(cfg.flg.lp_measures)
-				ret = write_cmd_scd41(SCD4X_START_LOW_POWER_PERIODIC_MEASUREMENT_CMD_ID); // measurement 30 sec, Average 3.4 mA 3.3V
-			else
-				ret = write_cmd_scd41(SCD4X_START_PERIODIC_MEASUREMENT_CMD_ID); // measurement 5 sec, Average 17.5 mA 3.3V
+			u32 toff = 0;
+			if(sensor_cfg.coef.val1_k)
+				toff = ((u32)sensor_cfg.coef.val1_z << 16) / sensor_cfg.coef.val1_k;
+			ret = write_regs16_scd41(SCD4X_SET_TEMPERATURE_OFFSET_RAW_CMD_ID, (u16) toff); // Setting temperature offset 0
+			sleep_us(1000);
+			if(cfg.flg.lp_measures) {
+				if(!ret) {
+					ret = write_cmd_scd41(SCD4X_START_LOW_POWER_PERIODIC_MEASUREMENT_CMD_ID); // measurement 30 sec, Average 3.4 mA 3.3V
+				}
+			} else {
+				if(!ret) {
+					ret = write_cmd_scd41(SCD4X_START_PERIODIC_MEASUREMENT_CMD_ID); // measurement 5 sec, Average 17.5 mA 3.3V
+				}
+			}
 			if(!ret) {
 				sensor_cfg.wait_tik = clock_time();
 				sensor_def_cfg_t * ptabinit = (sensor_def_cfg_t *)&def_thcoef_scd41;
@@ -170,7 +180,7 @@ int read_sensor_cb(void) {
 				sensor_cfg.wait_tik = clock_time();
 				if(!read_regs16_scd41(SCD4X_READ_MEASUREMENT_RAW_CMD_ID, (u8 *)&m.co2, 3)) {
 					measured_data.co2 = m.co2;
-					measured_data.temp = ((s32)(m.temp * sensor_cfg.coef.val1_k) >> 16) + sensor_cfg.coef.val1_z; // x 0.01 C //17500 - 4500
+					measured_data.temp = ((s32)(m.temp * sensor_cfg.coef.val1_k) >> 16) - 4500; // x 0.01 C //17500 - 4500
 					measured_data.humi = ((u32)(m.humi * sensor_cfg.coef.val2_k) >> 16) + sensor_cfg.coef.val2_z; // x 0.01 %	   // 10000 -0
 					if (measured_data.humi < 0)
 						measured_data.humi = 0;

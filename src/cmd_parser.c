@@ -700,7 +700,16 @@ void cmd_parser(void * p) {
 				if (len > sizeof(sensor_cfg.coef))
 					len = sizeof(sensor_cfg.coef);
 				memcpy(&sensor_cfg.coef, &req->dat[1], len);
+#if	USE_SENSOR_SCD41
+				if(sensor_cfg.coef.val1_z < 0)
+					sensor_cfg.coef.val1_z = 0;
+				else if(sensor_cfg.coef.val1_z > 2000)
+					sensor_cfg.coef.val1_z = 2000;
+#endif
 				flash_write_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef));
+#if	USE_SENSOR_SCD41
+				init_sensor();
+#endif
 			}
 			memcpy(&send_buf[1], &sensor_cfg, sensor_cfg_send_size);
 #endif

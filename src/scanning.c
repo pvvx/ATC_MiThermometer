@@ -255,8 +255,8 @@ void scan_init(void) {
 		memset(&scan.cfg, 0, sizeof(scan.cfg));
 #if SCAN_DEBUG
 	// Test values:
-	scan.cfg.interval = 30; // 12*60*60;
-	scan.cfg.MAC[0] = 0x01;
+	scan.cfg.interval = 30; // 30 sec for test
+	scan.cfg.MAC[0] = 0x01; // test MAC
 	scan.cfg.MAC[1] = 0x02;
 	scan.cfg.MAC[2] = 0x03;
 	scan.cfg.MAC[3] = 0x04;
