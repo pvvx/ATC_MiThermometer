@@ -294,6 +294,8 @@ In case you want to go back to the original firmware, you can download them here
 |     5.0 | Fix EPD processing, add soft I2C. Added "[ZY-ZTH02](https://github.com/pvvx/ZigbeeTLc/issues/128), [ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro), [ZG-227Z](https://github.com/pvvx/ZigbeeTLc/issues/161)" |
 |     5.1 | Added settings: "pseudo-random value in the range from 0 to X ms is added to the fixed advInterval so that ad events change over time", "number of transmitted beacons per event". Changed calculation of average battery voltage. Added MJWSD06MMC. |
 |     5.2 | Fix symbol "1" MHO-C401N, fix command "Delete all records", correct fw numbers. Added PLM1 |
+|     --- |  |
+|     6.0 | Starting with version 6.0, support for non-standard and unregistered in Bluetooth SIG UUIDs and BLE advertising formats will be discontinued. Only [BTHome ver 2](https://bthome.io/) will be supported! |
 
 ## Applications
 
