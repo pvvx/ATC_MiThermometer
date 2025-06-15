@@ -112,6 +112,104 @@ static _attribute_ram_code_ u8 reverse(u8 revByte) {
    return revByte;
 }
 
+#define LCD_B16_SPI 	0
+#if LCD_B16_SPI
+
+#define CLK_DELAY_US	24 // 48 -> 10 kHz
+#define GPIO_LCD_CLK GPIO_PD7
+#define GPIO_LCD_SDO GPIO_PB7
+
+_attribute_ram_code_
+void lcd_send_spi_byte(u8 b) {
+	u32 x = b;
+	for(int i = 0; i < 8; i++) {
+		BM_CLR(reg_gpio_out(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // CLK down
+		if(x & 0x01)
+			BM_SET(reg_gpio_out(GPIO_LCD_SDO), GPIO_LCD_SDO & 0xff); // data "1"
+		else
+			BM_CLR(reg_gpio_out(GPIO_LCD_SDO), GPIO_LCD_SDO & 0xff); // data "0"
+		sleep_us(CLK_DELAY_US);
+		BM_SET(reg_gpio_out(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // CLK Up
+		sleep_us(CLK_DELAY_US);
+		x >>= 1;
+	}
+	sleep_us(CLK_DELAY_US);
+}
+
+_attribute_ram_code_
+void lcd_send_spi(u8 *p) {
+	// B1.5, B1.6 (UART LCD)
+	utxb.data[5] = *p++;
+	utxb.data[4] = *p++;
+	utxb.data[3] = *p++;
+	utxb.data[2] = *p++;
+	utxb.data[1] = *p++;
+	utxb.data[0] = *p;
+	utxb.chk = utxb.data[0]^utxb.data[1]^utxb.data[2]^utxb.data[3]^utxb.data[4]^utxb.data[5];
+
+	u8 * pd = &utxb.start;
+	do {
+		lcd_send_spi_byte(*pd++);
+	} while(pd <= &utxb.end);
+
+	// Set end out "1"
+	BM_SET(reg_gpio_out(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff);
+	BM_SET(reg_gpio_out(GPIO_LCD_SDO), GPIO_LCD_SDO & 0xff);
+}
+
+#if 0 /* Hardware SPI
+ *
+ * Minimum SPI Clock Frequencies:
+ SYS CLK: 16MHz -  SPI: 62.5 kHz
+ SYS CLK: 24MHz -  SPI: 93.75 kHz
+ SYS CLK: 32MHz -  SPI: 125 kHz
+ SYS CLK: 48MHz -  SPI: 187.5 kHz */
+#define SPI_DIV_CLK		0x7F
+/* SPI Mode:
+ bit0: CPOL-Clock Polarity
+ bit1: CPHA-Clock Phase
+ MODE0: CPOL = 0 , CPHA =0
+ MODE1: CPOL = 0 , CPHA =1
+ MODE2: CPOL = 1 , CPHA =0
+ MODE3: CPOL = 1 , CPHA =1 */
+#define SPI_MODE	3
+
+_attribute_ram_code_
+void lcd_send_spi(u8 *p) {
+	// B1.5, B1.6 (UART LCD)
+	utxb.data[5] = *p++;
+	utxb.data[4] = *p++;
+	utxb.data[3] = *p++;
+	utxb.data[2] = *p++;
+	utxb.data[1] = *p++;
+	utxb.data[0] = *p;
+	utxb.chk = utxb.data[0]^utxb.data[1]^utxb.data[2]^utxb.data[3]^utxb.data[4]^utxb.data[5];
+
+	reg_clk_en0 |= FLD_CLK0_SPI_EN;//enable spi clock
+	// bit0~bit6 set spi clock ; spi clock=system clock/((DivClock+1)*2)
+	// bit7 enables spi function mode
+	reg_spi_sp = SPI_DIV_CLK | FLD_SPI_ENABLE;
+	reg_spi_ctrl |= FLD_SPI_MASTER_MODE_EN; //0x09: bit1 enables master mode
+	reg_spi_inv_clk	&= (~FLD_SPI_MODE_WORK_MODE); // clear spi working mode
+	reg_spi_inv_clk |= SPI_MODE;// select SPI mode, surpport four modes
+
+	reg_pin_i2c_spi_out_en |= (FLD_PIN_PBGROUP_SPI_EN|FLD_PIN_PDGROUP_SPI_EN);
+	reg_pin_i2c_spi_en |= (FLD_PIN_PD7_SPI_EN);
+	reg_pin_i2c_spi_en &= ~(FLD_PIN_PD7_I2C_EN);
+
+	gpio_set_func(GPIO_PB7, AS_SPI);
+	gpio_set_func(GPIO_PD7, AS_SPI);
+	u8 * pd = &utxb.start;
+	do {
+    	reg_spi_data = *pd++;
+        while(reg_spi_ctrl & FLD_SPI_BUSY); //wait writing finished
+    } while(pd <= &utxb.end);
+	BM_SET(reg_gpio_func(GPIO_PB7), GPIO_PB7 & 0xff);
+    reg_clk_en0 &= ~(FLD_CLK0_SPI_EN); // disable spi clock
+}
+#endif // Hardware SPI
+
+#else
 // UART 38400 BAUD
 #define UART_BAUD 38400
 #if CLOCK_SYS_CLOCK_HZ == 16000000
@@ -172,6 +270,8 @@ void lcd_send_uart(u8 *p) {
 	// set low/off power UART
 	reg_uart_clk_div = 0;
 }
+
+#endif
 
 _attribute_ram_code_
 void send_to_lcd(void){
@@ -254,7 +354,11 @@ void send_to_lcd(void){
 		}
 		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 	} else {
+#if LCD_B16_SPI
+		lcd_send_spi(p);
+#else
 		lcd_send_uart(p);
+#endif
 	}
 }
 
@@ -282,14 +386,18 @@ void init_lcd(void){
 		}
 		return;
 	}
-	// B1.6 (UART), lcd_i2c_addr = 0
+	memset(display_buff, 0, sizeof(display_buff));
+	// B1.6 (UART/SPI)
 	// utxb.dma_len = 0;
 	// utxb.head = 0;
 	utxb.start = 0xAA;
 	// utxb.data = {0};
 	utxb.end = 0x55;
-	memset(display_buff, 0, sizeof(display_buff));
+#if LCD_B16_SPI
+	lcd_send_spi(display_buff);
+#else
 	lcd_send_uart(display_buff);
+#endif
 }
 
 /* 0x00 = "  "
