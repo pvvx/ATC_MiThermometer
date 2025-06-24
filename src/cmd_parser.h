@@ -107,10 +107,6 @@ typedef struct __attribute__((packed)) _blk_mi_keys_t {
 } blk_mi_keys_t, * pblk_mi_keys_t;
 extern blk_mi_keys_t keybuf;
 
-#if (DEV_SERVICES & SERVICE_OTA_EXT)  // Compatible BigOTA
-	void clear_ota_area(void);
-#endif
-
 u32 find_mi_keys(u16 chk_id, u8 cnt);
 
 u8 mi_key_stage;

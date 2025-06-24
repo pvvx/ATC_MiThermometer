@@ -37,9 +37,9 @@ enum {
 } EXT_OTA_ENUM;
 
 typedef struct _ext_ota_t {
-	u32 start_addr;
+	u32 start_addr; // >= BIG_OTA2_FADDR
 	u32 ota_size; // in kbytes
-	u32 check_addr;
+	u32 check_addr; // start clear: = start_addr, end clear: =  start_addr + (ota_size << 10)
 } ext_ota_t;
 
 extern ext_ota_t ext_ota;

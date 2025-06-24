@@ -62,7 +62,7 @@ RAM adv_buf_t adv_buf;
 
 void app_enter_ota_mode(void) {
 #if (DEV_SERVICES & SERVICE_OTA_EXT)
-	if(wrk.ota_is_working != OTA_EXTENDED)
+	if(!wrk.ota_is_working)
 #endif
 	{
 		wrk.ota_is_working = OTA_WORK;

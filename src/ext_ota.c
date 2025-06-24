@@ -244,12 +244,23 @@ u32 check_sector_clear(u32 addr) {
 }
 
 void ota_result_cb(int result) {
-	u32 boot_id;
-	if(result == OTA_SUCCESS && wrk.ota_is_working == OTA_WAIT) {
+	if(result == OTA_SUCCESS
+		&& wrk.ota_is_working == OTA_WAIT
+		&& ext_ota.start_addr == BIG_OTA2_FADDR) {
 		// clear the "bootable" identifier on the current work segment
-		boot_id = 0;
-		flash_write_page(OTA1_FADDR_ID, 1, (unsigned char *) &boot_id);
-		flash_write_page(OTA2_FADDR_ID, 1, (unsigned char *) &boot_id);
+#if 0 // big size flash
+		flash_read_page(OTA1_FADDR_ID, 1, (unsigned char *) &boot_id);
+		if(boot_id != 0xff) {
+			flash_write_page(OTA1_FADDR_ID, 1, (unsigned char *) &z_byte);
+		}
+		flash_read_page(OTA2_FADDR_ID, 1, (unsigned char *) &boot_id);
+		if(boot_id != 0xff) {
+			flash_write_page(OTA2_FADDR_ID, 1, (unsigned char *) &z_byte);
+		}
+#else // optimize size flash
+		check_sector_clear(OTA1_FADDR_ID);
+		check_sector_clear(OTA2_FADDR_ID);
+#endif
 	}
 }
 
@@ -263,10 +274,9 @@ u8 check_ext_ota(u32 ota_addr, u32 ota_size) {
 		return EXT_OTA_BUSY;
 	if(wrk.ota_is_working)
 		return EXT_OTA_WORKS;
-	if(ota_addr < BIG_OTA2_FADDR && ota_size <= 128)
+	if(ota_addr <= BIG_OTA2_FADDR && ota_size <= 128)
 		return EXT_OTA_OK;
-	if(ota_size >= 208
-		|| ota_size < 4
+	if(ota_size >= 208 || ota_size < 4
 		|| (ota_addr & (FLASH_SECTOR_SIZE-1)))
 		return EXT_OTA_ERR_PARM;
 	wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT);
@@ -274,28 +284,32 @@ u8 check_ext_ota(u32 ota_addr, u32 ota_size) {
 	ext_ota.start_addr = ota_addr;
 	ext_ota.check_addr = ota_addr;
 	ext_ota.ota_size = (ota_size + 3) & 0xfffffc;
-	bls_ota_registerResultIndicateCb(ota_result_cb);
 	bls_pm_setManualLatency(3);
 	SHOW_OTA_SCREEN();
 	return EXT_OTA_BUSY;
 }
 
+// call if(wrk.ota_is_working == OTA_EXTENDED)
 void clear_ota_area(void) {
 	struct __attribute__((packed)) {
 		u16 id_ok;
 		u32 start_addr;
 		u32 ota_size;
 	} msg;
-//	if(bls_pm_getSystemWakeupTick() - clock_time() < 512*CLOCK_16M_SYS_TIMER_CLK_1MS)
-//		return;
-	if(bls_ll_requestConnBrxEventDisable() < 256 || ext_ota.check_addr == 0)
+	if(bls_ll_requestConnBrxEventDisable() < 256)
 		return;
 	if (ext_ota.check_addr >= ext_ota.start_addr + (ext_ota.ota_size << 10)) {
+#if 0 // big size flash
+			bls_ota_set_fwSize_and_fwBootAddr(ext_ota.ota_size, ext_ota.start_addr);
+#else // optimize size flash
 			ota_firmware_size_k = ext_ota.ota_size;
 			ota_program_offset = ext_ota.start_addr;
+#endif
+			// send notify
 			msg.id_ok = (EXT_OTA_READY << 8) + CMD_ID_SET_OTA;
 			msg.start_addr = ext_ota.start_addr;
 			msg.ota_size = ext_ota.ota_size;
+			bls_ota_registerResultIndicateCb(ota_result_cb);
 			if(bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (u8 *)&msg, sizeof(msg)) == BLE_SUCCESS) {
 				ext_ota.check_addr = 0;
 				wrk.ota_is_working = OTA_WAIT; // flag ext.ota wait
@@ -305,6 +319,7 @@ void clear_ota_area(void) {
 			bls_ll_disableConnBrxEvent();
 			ext_ota.check_addr = check_sector_clear(ext_ota.check_addr);
 			bls_ll_restoreConnBrxEvent();
+			// send notify
 			msg.id_ok = (EXT_OTA_EVENT << 8) + CMD_ID_SET_OTA;
 			msg.start_addr = ext_ota.check_addr;
 			msg.ota_size = 0;

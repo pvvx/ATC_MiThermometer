@@ -75,7 +75,6 @@ const u8 lcd_init_b19[]	=	{
 
 typedef struct __attribute__((packed)) _dma_uart_buf_t {
 	volatile u32 dma_len;
-	u32 head;
 	u8 start;
 	u8 data[6];
 	u8 chk;
@@ -112,12 +111,9 @@ static _attribute_ram_code_ u8 reverse(u8 revByte) {
    return revByte;
 }
 
-#define LCD_B16_SPI 	0
-#if LCD_B16_SPI
-
+//---------------------
+// new B1.6 (SPI LCD)
 #define CLK_DELAY_US	24 // 48 -> 10 kHz
-#define GPIO_LCD_CLK GPIO_PD7
-#define GPIO_LCD_SDO GPIO_PB7
 
 _attribute_ram_code_
 void lcd_send_spi_byte(u8 b) {
@@ -125,9 +121,9 @@ void lcd_send_spi_byte(u8 b) {
 	for(int i = 0; i < 8; i++) {
 		BM_CLR(reg_gpio_out(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // CLK down
 		if(x & 0x01)
-			BM_SET(reg_gpio_out(GPIO_LCD_SDO), GPIO_LCD_SDO & 0xff); // data "1"
+			BM_SET(reg_gpio_out(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // data "1"
 		else
-			BM_CLR(reg_gpio_out(GPIO_LCD_SDO), GPIO_LCD_SDO & 0xff); // data "0"
+			BM_CLR(reg_gpio_out(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // data "0"
 		sleep_us(CLK_DELAY_US);
 		BM_SET(reg_gpio_out(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // CLK Up
 		sleep_us(CLK_DELAY_US);
@@ -136,25 +132,15 @@ void lcd_send_spi_byte(u8 b) {
 	sleep_us(CLK_DELAY_US);
 }
 
+// send spi buffer (new B1.6 (SPI LCD))
 _attribute_ram_code_
-void lcd_send_spi(u8 *p) {
-	// B1.5, B1.6 (UART LCD)
-	utxb.data[5] = *p++;
-	utxb.data[4] = *p++;
-	utxb.data[3] = *p++;
-	utxb.data[2] = *p++;
-	utxb.data[1] = *p++;
-	utxb.data[0] = *p;
-	utxb.chk = utxb.data[0]^utxb.data[1]^utxb.data[2]^utxb.data[3]^utxb.data[4]^utxb.data[5];
-
+void lcd_send_spi(void) {
+	BM_SET(reg_gpio_oen(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // SDI output enable
 	u8 * pd = &utxb.start;
 	do {
 		lcd_send_spi_byte(*pd++);
 	} while(pd <= &utxb.end);
-
-	// Set end out "1"
-	BM_SET(reg_gpio_out(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff);
-	BM_SET(reg_gpio_out(GPIO_LCD_SDO), GPIO_LCD_SDO & 0xff);
+	BM_CLR(reg_gpio_oen(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // SDI output disable
 }
 
 #if 0 /* Hardware SPI
@@ -209,7 +195,10 @@ void lcd_send_spi(u8 *p) {
 }
 #endif // Hardware SPI
 
-#else
+#define LCD_UART_RX_ENABLE	1
+
+//-----------------------
+// B1.5, B1.6 UART LCD
 // UART 38400 BAUD
 #define UART_BAUD 38400
 #if CLOCK_SYS_CLOCK_HZ == 16000000
@@ -227,51 +216,59 @@ void lcd_send_spi(u8 *p) {
 #endif
 
 _attribute_ram_code_
-void lcd_send_uart(u8 *p) {
+int lcd_send_uart(void) {
+	int ret = 0;
 	// B1.5, B1.6 (UART LCD)
-	utxb.data[5] = *p++;
-	utxb.data[4] = *p++;
-	utxb.data[3] = *p++;
-	utxb.data[2] = *p++;
-	utxb.data[1] = *p++;
-	utxb.data[0] = *p;
-	utxb.chk = utxb.data[0]^utxb.data[1]^utxb.data[2]^utxb.data[3]^utxb.data[4]^utxb.data[5];
 	utxb.dma_len = sizeof(utxb) - sizeof(utxb.dma_len);
 	// init uart
 	reg_clk_en0 |= FLD_CLK0_UART_EN;
 	///reg_clk_en1 |= FLD_CLK1_DMA_EN;
 	uart_reset();
+
+	// reg_dma1_addr/reg_dma1_ctrl
+	REG_ADDR32(0xC04) = (unsigned short)((u32)(&utxb)) //set tx buffer address
+		| 	(((sizeof(utxb)+15)>>4) << 16); //set tx buffer size
+	///reg_dma1_addrHi = 0x04; (in sdk init?)
+
 	// reg_uart_clk_div/reg_uart_ctrl0
 	REG_ADDR32(0x094) = MASK_VAL(FLD_UART_CLK_DIV, uartCLKdiv, FLD_UART_CLK_DIV_EN, 1)
 		|	((MASK_VAL(FLD_UART_BPWC, bwpc)	| (FLD_UART_TX_DMA_EN)) << 16) // set bit width, enable UART DMA mode
 			| ((MASK_VAL(FLD_UART_CTRL1_STOP_BIT, 0)) << 24) // 00: 1 bit, 01: 1.5bit 1x: 2bits;
 		;
-	// reg_dma1_addr/reg_dma1_ctrl
-	REG_ADDR32(0xC04) = (unsigned short)((u32)(&utxb)) //set tx buffer address
-		| 	(((sizeof(utxb)+15)>>4) << 16); //set tx buffer size
-	///reg_dma1_addrHi = 0x04; (in sdk init?)
 	reg_dma_chn_en |= FLD_DMA_CHN_UART_TX;
 	///reg_dma_chn_irq_msk |= FLD_DMA_IRQ_UART_TX;
 
 	// GPIO_PD7 set TX UART pin
 	REG_ADDR8(0x5AF) = (REG_ADDR8(0x5AF) &  (~(BIT(7)|BIT(6)))) | BIT(7);
-	BM_CLR(reg_gpio_func(UART_TX_PD7), UART_TX_PD7 & 0xff);
-	/// gpio_set_input_en(UART_TX_PD7, 1); ???
-
+	BM_CLR(reg_gpio_func(GPIO_LCD_URX), GPIO_LCD_URX & 0xff);
+	// GPIO_PDB set RX UART pin
+	REG_ADDR8(0x5AB) = (REG_ADDR8(0x5AB) &  (~(BIT(7)|BIT(6)))) | BIT(7);
+	BM_CLR(reg_gpio_func(GPIO_LCD_UTX), GPIO_LCD_UTX & 0xff);
 	// start send DMA
 	reg_dma_tx_rdy0 |= FLD_DMA_CHN_UART_TX; // start tx
-	// wait send (3.35 ms), sleep?
+	// wait send 9 tx + 1 rx bytes * 10 bits / 38400 baud = 0.002604166 sec = 2.605 ms
 	if(wrk.ota_is_working)
-		sleep_us(3330);
+		sleep_us(2600); // power ~3.5 mA
 	else
-		pm_wait_us(3330); // 13 bytes * 10 bits / 38400 baud = 0.0033854 sec = 3.4 ms power ~3 mA
-	//while (reg_dma_tx_rdy0 & FLD_DMA_CHN_UART_TX); ?
+		pm_wait_us(2600); // power ~3.1 mA
+
+	while (reg_dma_tx_rdy0 & FLD_DMA_CHN_UART_TX);
 	while (!(reg_uart_status1 & FLD_UART_TX_DONE));
+
+	/* wait rx 1 bytes ok = 0xAA */
+	// Time rx 1 bytes * 10 bits / 38400 baud = 0.0002604166 sec = 260.5 us power ~3.6 mA
+	u32 wt = clock_time();
+	do
+	{
+		if(reg_uart_buf_cnt & FLD_UART_RX_BUF_CNT) {
+			ret = reg_uart_data_buf0;
+			break;
+		}
+	} while(!clock_time_exceed(wt, 512));
 	// set low/off power UART
 	reg_uart_clk_div = 0;
+	return ret;
 }
-
-#endif
 
 _attribute_ram_code_
 void send_to_lcd(void){
@@ -279,7 +276,7 @@ void send_to_lcd(void){
 	u8 * p = display_buff;
 	if(cfg.flg2.screen_off)
 		return;
-	if (lcd_i2c_addr) {
+	if (lcd_i2c_addr > N16_I2C_ADDR) {
 		if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 			init_i2c();
 		else {
@@ -353,12 +350,19 @@ void send_to_lcd(void){
 #endif
 		}
 		while (reg_i2c_status & FLD_I2C_CMD_BUSY);
-	} else {
-#if LCD_B16_SPI
-		lcd_send_spi(p);
-#else
-		lcd_send_uart(p);
-#endif
+	}
+	else {
+		utxb.data[5] = *p++;
+		utxb.data[4] = *p++;
+		utxb.data[3] = *p++;
+		utxb.data[2] = *p++;
+		utxb.data[1] = *p++;
+		utxb.data[0] = *p;
+		utxb.chk = utxb.data[0]^utxb.data[1]^utxb.data[2]^utxb.data[3]^utxb.data[4]^utxb.data[5];
+		if (lcd_i2c_addr) // N16_I2C_ADDR -> new B1.6 SPI
+			lcd_send_spi();
+		else // UART B1.5, B1.6
+			lcd_send_uart();
 	}
 }
 
@@ -393,11 +397,15 @@ void init_lcd(void){
 	utxb.start = 0xAA;
 	// utxb.data = {0};
 	utxb.end = 0x55;
-#if LCD_B16_SPI
-	lcd_send_spi(display_buff);
-#else
-	lcd_send_uart(display_buff);
-#endif
+
+	// Test SPI/UART ?
+	gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLDOWN_100K);
+	sleep_us(512);
+	if(!BM_IS_SET(reg_gpio_in(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff)) { // SPI/UART ?
+		lcd_i2c_addr = N16_I2C_ADDR; // SPI
+	}
+	gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLUP_1M);
+	send_to_lcd();
 }
 
 /* 0x00 = "  "

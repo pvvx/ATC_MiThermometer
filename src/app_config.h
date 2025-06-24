@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x52	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x53	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 // DevID:
@@ -462,12 +462,12 @@ extern "C" {
 // GPIO_PA6 - DP, free, pcb mark "P8" (RDS)
 // GPIO_PA7 - SWS, free, pcb mark "P14", (debug TX)
 // GPIO_PB6 - used LCD, set "1"
-// GPIO_PB7 - free, pcb mark "B1" (TRG2)
+// GPIO_PB7 - free [B1.4, ..], SPI-CLK LCD [B1.6], pcb mark "P11" (TRG2)
 // GPIO_PC2 - SDA, used I2C, pcb mark "P12"
 // GPIO_PC3 - SCL, used I2C, pcb mark "P15"
 // GPIO_PC4 - free, pcb mark "P9" (TRG)
 // GPIO_PD2 - CS/PWM, free
-// GPIO_PD7 - free [B1.4], UART TX LCD [B1.6], pcb mark "P7"
+// GPIO_PD7 - free [B1.4, ..], UART-TX/SPI-CLK LCD [B1.6], pcb mark "P7"
 #define DEV_SERVICES ( SERVICE_OTA \
 		| SERVICE_OTA_EXT \
 		| SERVICE_PINCODE \
@@ -563,6 +563,10 @@ extern "C" {
 
 #define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX (B1.6)
 
+#define GPIO_LCD_URX 		UART_TX_PD7  // UART RX LCD old B1.6
+#define GPIO_LCD_UTX 		UART_RX_PB7  // UART TX LCD old B1.6
+#define GPIO_LCD_CLK 		GPIO_PD7  //(not change!) SPI-CLK LCD new B1.6
+#define GPIO_LCD_SDI 		GPIO_PB7  //(not change!) SPI-SDI LCD new B1.6
 
 #define PD7_INPUT_ENABLE	1
 #define PD7_DATA_OUT		1
@@ -571,12 +575,8 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PB7	PM_PIN_PULLUP_1M // SPI CLK (B1.6 new)
 #define PB7_INPUT_ENABLE	1
 #define PB7_DATA_OUT		1
-#define PB7_OUTPUT_ENABLE	1
+#define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
-
-
-//#define PD7_INPUT_ENABLE	1
-//#define PD7_FUNC			AS_UART
 
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 
