@@ -157,6 +157,9 @@ void tuya_zigbee_ota(void) {
  * Flash LYWSD03MMC B1.9:
  * 00055000:  42 31 2E 39 46 31 2E 30 2D 43 46 4D 4B 2D 4C 42  B1.9F1.0-CFMK-LB
  * 00055010:  2D 46 4C 44 2D 2D 2D 2D FF FF FF FF FF FF FF FF  -FLD----
+ * Flash LYWSD03MMC B1.6(2025):
+ * 00055000:  42 31 2E 36│46 32 2E 30│2D 33 2D 46│59 2D 4E 46  B1.6F2.0-3-FY-NF
+ * 00055010:  2D 53 2D 47│2D 4A 48 2D│FF FF FF FF│FF FF FF FF  -S-G-JH-
  * Flash LYWSD03MMC B2.0:
  * 00055000:  42 32 2E 30 46 31 2E 30 2D 43 46 4D 4B 2D 4C 42  B2.0F1.0-CFMK-LB
  * 00055010:  2D 4D 4A 44 5A 2D 2D 2D FF FF FF FF FF FF FF FF  -MJDZ---
@@ -174,6 +177,7 @@ static const u8 _mi_hw_vers[] = "F2.0-CFMK-LB-TMDZ---";
 static const u8 _mi_hw_vers[] = "F2.0-JY-LB-TMDZ-HW--";
 #elif (DEVICE_TYPE == DEVICE_LYWSD03MMC)
 static const u8 _mi_hw_vers[] = "F1.0-CFMK-LB-ZCXTJ--";
+static const u8 _mi_hw_vers2[] = "F2.0-3-FY-NF-S-G-JH-";
 #elif (DEVICE_TYPE == DEVICE_MHO_C401)
 static const u8 _mi_hw_vers[] = "G-19-000000000000000";
 #elif (DEVICE_TYPE == DEVICE_MJWSD06MMC)
@@ -208,7 +212,14 @@ void set_SerialStr(void) {
 	u32 hw[6];
 	flash_read_page(MI_HW_SAVE_FADDR, sizeof(hw), (unsigned char *) &hw);
 	if(hw[0] == 0xffffffff) {
-		memcpy(my_SerialStr, _mi_hw_vers, sizeof(my_SerialStr));
+#if (DEVICE_TYPE == DEVICE_LYWSD03MMC)
+		if(lcd_i2c_addr == N16_I2C_ADDR) {
+			memcpy(my_SerialStr, _mi_hw_vers2, sizeof(my_SerialStr));
+		} else
+#endif
+		{
+			memcpy(my_SerialStr, _mi_hw_vers, sizeof(my_SerialStr));
+		}
 #if (DEVICE_TYPE == DEVICE_MHO_C401)
 		hw[0] = 0x34315F56; // "V_14" -  56 5F 31 34
 #elif (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)

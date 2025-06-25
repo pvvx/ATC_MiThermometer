@@ -316,7 +316,7 @@ RAM external_data_t ext;
 	14 - LYWSD03MMC NB1.6 &7=6 */
 static const u8 id2hwver[8] = {
 		//0  1   2   3   4   5   6   7
-		'4','0','5','9','6','7','6','0'
+		'4','0','5','9','6','7','1','0'
 };
 #endif // DEVICE_TYPE == DEVICE_LYWSD03MMC
 

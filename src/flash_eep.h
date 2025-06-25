@@ -26,7 +26,7 @@ extern "C" {
 #define EEP_ID_DVN (0x0DB5) // EEP ID device name
 #define EEP_ID_TIM (0x0ADA) // EEP ID time adjust
 #define EEP_ID_KEY (0xBEAC) // EEP ID bkey
-#define EEP_ID_HWV (0x1234) // EEP ID Mi HW version
+#define EEP_ID_HWV (0x1234) // EEP ID Mi HW version ("B1.4","B1.5",...)
 #define EEP_ID_VER (0x5555) // EEP ID blk: unsigned int = minimum supported version
 //-----------------------------------------------------------------------------
 #define FLASH_BASE_ADDR			0x00000000

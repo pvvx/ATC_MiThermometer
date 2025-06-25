@@ -25,7 +25,10 @@
 //#define BOARD_LYWSD03MMC_B15		10 // number used for BLE firmware
 #define BOARD_LYWSD03MMC			10
 #define BOARD_MHO_C122				11
-// 13..15 - number used for BLE firmware - https://github.com/pvvx/ATC_MiThermometer
+#define BOARD_MJWSD06MMC			12
+#define BOADR_MJWSD05MMC_EN			13
+//#define BOARD_LYWSD03MMC_B16		14 // number used for BLE firmware
+// 15 - reserved
 #define BOARD_TB03F					16 // DIY TB-03F-Kit
 #define BOARD_TS0201_TZ3000			17
 #define BOARD_TNKS					18 // Water tank controller (not yet published at the moment)
