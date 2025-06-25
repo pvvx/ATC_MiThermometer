@@ -17,7 +17,8 @@
 | 11 | 0x020B | [MHO-C122](https://pvvx.github.io/MHO_C122) | MHO_C122 |
 | 12 | 0x020C | [MJWSD05MMC(en)](https://pvvx.github.io/MJWSD05MMC) | BTE |
 | 13 | 0x020D | [MJWSD06MMC](https://pvvx.github.io/MJWSD06MMC) | MJ6 |
-| 14..15 | 0x020E,0x020F | BLE reserved | |
+| 14 | 0x020E =0x020A | LYWSD03MMC-B1.6(new) | ATC |
+| 15 | 0x020F | reserved | |
 | 16 | 0x0210 | TB03F | TB03F | 
 | 17 | 0x0211 | TS0201 [TS0201_TZ3000](https://pvvx.github.io/TS0201_TZ3000) | TS0201 |
 | 18 | 0x0212 | TNKS | TNKS |
