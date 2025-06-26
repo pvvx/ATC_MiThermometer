@@ -153,12 +153,12 @@ void lcd_send_spi_byte(u8 b) {
 // send spi buffer (new B1.6 (SPI LCD))
 _attribute_ram_code_
 void lcd_send_spi(void) {
-	BM_SET(reg_gpio_oen(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // SDI output enable
+	BM_CLR(reg_gpio_oen(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // SDI output enable
 	u8 * pd = &utxb.start;
 	do {
 		lcd_send_spi_byte(*pd++);
 	} while(pd <= &utxb.end);
-	BM_CLR(reg_gpio_oen(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // SDI output disable
+	BM_SET(reg_gpio_oen(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // SDI output disable
 }
 
 #if 0 /* Hardware SPI
@@ -398,20 +398,22 @@ void init_lcd(void){
 	// B1.6 (UART/SPI)
 	// Test SPI/UART ?
 	gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLDOWN_100K);
-	sleep_us(1024);
+	sleep_us(256);
 	if(BM_IS_SET(reg_gpio_in(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff) == 0) { // SPI/UART ?
 		gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLUP_1M);
-		lcd_i2c_addr = N16_I2C_ADDR;
-		lcd_send_spi();
-		return;
+		lcd_i2c_addr = N16_I2C_ADDR; // SPI
 	} else {
+		// lcd_i2c_addr = 0
 		gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLUP_1M);
 		lcd_send_uart();
-		if(utxb.end != 0xAA) {
-			lcd_i2c_addr = N16_I2C_ADDR; // SPI
-			lcd_send_spi();
-		}
+		if(utxb.end == 0xAA)
+			return; // UART LCD
+		BM_SET(reg_gpio_func(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // GPIO_PB7 set GPIO pin
+		BM_SET(reg_gpio_func(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // GPIO_PD7 set GPIO pin
 	}
+	lcd_i2c_addr = N16_I2C_ADDR; // SPI LCD
+	pm_wait_us(1024);
+	lcd_send_spi();
 }
 
 /* 0x00 = "  "
