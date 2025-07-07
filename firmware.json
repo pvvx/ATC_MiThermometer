@@ -1,36 +1,7 @@
-{"version": 82, "betaver": 83, 
+{"version": 83, "betaver": 84, 
 "zbjson": "https://raw.githubusercontent.com/pvvx/ZigbeeTLc/master/firmware_z.json",
 "zbdjson": "https://raw.githubusercontent.com/pvvx/ZigbeeTLc/master/firmware_zb.json",
 "custom":[
-"bin/ATC_v52.bin",
-"bin/MHO_C401_v52.bin",
-"bin/CGG1_v52.bin",
-"bin/ATC_v52.bin",
-"bin/ATC_v52.bin",
-"bin/ATC_v52.bin",
-"bin/CGDK2_v52.bin",
-"bin/CGG1M_v52.bin",
-"bin/MHO_C401N_v52.bin",
-"bin/BTH_v52.bin",
-"bin/ATC_v52.bin",
-"bin/MHO_C122_v52.bin",
-"bin/BTE_v52.bin",
-"bin/MJ6_v52.bin","?","?",
-"bin/TB03F_v52.bin",
-"bin/TS0201_v52.bin",
-"bin/TNK01_v52.bin","?","?","?",
-"bin/TH03Z_v52.bin","?","?","?","?",
-"bin/ZTH01_v52.bin",
-"bin/ZTH02_v52.bin",
-"bin/PLM1_v52.bin",
-"bin/TH03_v52.bin",
-"bin/LKTMZL02_v52.bin","?",
-"bin/ZTH05_v52.bin","?","?","?",
-"bin/ZYZTH02_v52.bin",
-"bin/ZYZTH02P_v52.bin",
-"bin/ZG227Z_v52.bin"
-],
-"betafw":[
 "bin/ATC_v53.bin",
 "bin/MHO_C401_v53.bin",
 "bin/CGG1_v53.bin",
@@ -113,5 +84,4 @@
 "?",
 "?"
 ]}
-
 
