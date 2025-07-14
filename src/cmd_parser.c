@@ -820,11 +820,20 @@ void cmd_parser(void * p) {
 			memcpy(send_buf, &req->dat, 4);
 			olen = 18+4;
 		} else if (cmd == CMD_ID_LR_RESET) { // Reset Long Range
-			cfg.flg2.longrange = 0;
-			cfg.flg2.bt5phy = 0;
+			u8 tmp = ((u8 *)&cfg.flg2)[0];
+			if (len == 1 && req->dat[1] == 0x01) {
+				cfg.flg2.longrange = 1;
+				cfg.flg2.bt5phy = 1;
+			} else {
+				cfg.flg2.longrange = 0;
+				cfg.flg2.bt5phy = 0;
+			}
+			tmp ^= ((u8 *)&cfg.flg2)[0];
+			if(tmp & MASK_FLG2_REBOOT) { // (cfg.flg2.bt5phy || cfg.flg2.ext_adv)
+				wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
+			}
 			flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 			ble_send_cfg();
-			wrk.ble_connected |= BIT(CONNECTED_FLG_RESET_OF_DISCONNECT); // reset device on disconnect
 #if USE_RH_SENSOR
 		} else if (cmd == 0xDF) {
 			if(len) {

@@ -74,9 +74,10 @@ void app_enter_ota_mode(void) {
 }
 
 void ble_disconnect_callback(u8 e, u8 *p, int n) {
-	if (wrk.ble_connected & BIT(CONNECTED_FLG_RESET_OF_DISCONNECT)) // reset device on disconnect?
+	if (wrk.ble_connected & BIT(CONNECTED_FLG_RESET_OF_DISCONNECT)) { // reset device on disconnect?
+		analog_write(DEEP_ANA_REG0, 0x55);
 		start_reboot();
-
+	}
 	wrk.ble_connected = 0;
 	wrk.ota_is_working = OTA_NONE;
 	mi_key_stage = 0;

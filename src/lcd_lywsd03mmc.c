@@ -111,12 +111,11 @@ static _attribute_ram_code_ u8 reverse(u8 revByte) {
    return revByte;
 }
 
-RAM u8 lcd_uart_response;
 
 //---------------------
 // B1.6 (UART/SPI)
 _attribute_ram_code_
-void lcd_set_buf_uart_spi(u8 *p) {
+static void lcd_set_buf_uart_spi(u8 *p) {
 	utxb.start = 0xAA;
 	utxb.data[5] = *p++;
 	utxb.data[4] = *p++;
@@ -134,7 +133,7 @@ void lcd_set_buf_uart_spi(u8 *p) {
 #define CLK_DELAY_US	24 // 48 -> 10 kHz
 
 _attribute_ram_code_
-void lcd_send_spi_byte(u8 b) {
+static void lcd_send_spi_byte(u8 b) {
 	u32 x = b;
 	for(int i = 0; i < 8; i++) {
 		BM_CLR(reg_gpio_out(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // CLK down
@@ -152,7 +151,7 @@ void lcd_send_spi_byte(u8 b) {
 
 // send spi buffer (new B1.6 (SPI LCD))
 _attribute_ram_code_
-void lcd_send_spi(void) {
+static void lcd_send_spi(void) {
 	BM_CLR(reg_gpio_oen(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // SDI output enable
 	u8 * pd = &utxb.start;
 	do {
@@ -205,8 +204,6 @@ void lcd_send_spi(void) {
 }
 #endif // Hardware SPI
 
-#define LCD_UART_RX_ENABLE	1
-
 //-----------------------
 // B1.5, B1.6 UART LCD
 // UART 38400 BAUD
@@ -227,7 +224,7 @@ void lcd_send_spi(void) {
 
 // B1.5, B1.6 (UART LCD)
 _attribute_ram_code_
-void lcd_send_uart(void) {
+static void lcd_send_uart(void) {
 	// init uart
 	reg_clk_en0 |= FLD_CLK0_UART_EN;
 	///reg_clk_en1 |= FLD_CLK1_DMA_EN;
@@ -372,8 +369,7 @@ void send_to_lcd(void){
 //const u8 lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // sleep all 9.4 uA
 
 void init_lcd(void){
-	memset(display_buff, 0xff, sizeof(display_buff));
-	lcd_set_buf_uart_spi(display_buff);
+	memset(display_buff, BIT(1), sizeof(display_buff)); // display off "--- ---"
 	lcd_i2c_addr = (u8) scan_i2c_addr(B14_I2C_ADDR << 1);
 	if (lcd_i2c_addr) { // B1.4, B1.7, B2.0
 // 		GPIO_PB6 set in app_config.h!
@@ -398,6 +394,7 @@ void init_lcd(void){
 	// B1.6 (UART/SPI)
 	// Test SPI/UART ?
 	gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLDOWN_100K);
+	lcd_set_buf_uart_spi(display_buff);
 	sleep_us(256);
 	if(BM_IS_SET(reg_gpio_in(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff) == 0) { // SPI/UART ?
 		gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLUP_1M);
