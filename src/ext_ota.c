@@ -285,7 +285,7 @@ u8 check_ext_ota(u32 ota_addr, u32 ota_size) {
 		return EXT_OTA_BUSY;
 	if(wrk.ota_is_working)
 		return EXT_OTA_WORKS;
-	if(ota_addr <= BIG_OTA2_FADDR && ota_size <= 128)
+	if(ota_addr <= BIG_OTA2_FADDR)
 		return EXT_OTA_OK;
 	if(ota_size >= 208 || ota_size < 4
 		|| (ota_addr & (FLASH_SECTOR_SIZE-1)))

@@ -302,7 +302,7 @@ In case you want to go back to the original firmware, you can download them here
 
 ### Reading Measurements from Flash
 
-[GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html)
+[GraphMemo.html](https://pvvx.github.io/ATC_MiThermometer/GraphMemo.html) or [Mi Thermo Reader Android App](https://github.com/panmari/mi_thermo_reader)
 
 To record the measurement results, a cyclic buffer in the flash memory for 20000 measurements is used.
 The recording step interval is set in the interface.
