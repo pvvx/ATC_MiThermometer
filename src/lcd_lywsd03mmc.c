@@ -391,10 +391,14 @@ void init_lcd(void){
 		}
 		return;
 	}
+	lcd_set_buf_uart_spi(display_buff);
+	if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) { // B1.5 (UART)
+		lcd_send_uart();
+		return;
+	}
 	// B1.6 (UART/SPI)
 	// Test SPI/UART ?
 	gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLDOWN_100K);
-	lcd_set_buf_uart_spi(display_buff);
 	sleep_us(256);
 	if(BM_IS_SET(reg_gpio_in(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff) == 0) { // SPI/UART ?
 		gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLUP_1M);

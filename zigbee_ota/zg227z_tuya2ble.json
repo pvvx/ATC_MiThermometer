@@ -1,10 +1,10 @@
 [
     {
         "fileVersion": 278409217,
-        "fileSize": 75554,
+        "fileSize": 75538,
         "manufacturerCode": 4742,
         "imageType": 515,
-        "sha512": "13d2ede9d3e648fc1b78f085b6ba8fc9171f113a0a1426ea39d3b9483ae15cf521ba5e776efb323629b5f7743457f3907133eaa5f42045ef54501a79053e5eae",
+        "sha512": "80a2e6c6d1725d1153c8ff65f295a0435de0d20e34f81857c79a87c48bbff11bb0ae503abd0aff5d717bc27d92d2a6b346467c6c9411e7971f8194cef54edaef",
         "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1286-0203-10983001-ZG227ZBLE_v53.zigbee"
     }
 ]

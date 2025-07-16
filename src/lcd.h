@@ -5,6 +5,8 @@
 
 #if (DEV_SERVICES & SERVICE_SCREEN)
 
+#include "sensor.h"
+
 typedef struct _lcd_flg_t {
 	u32 chow_ext_ut; // count chow ext.vars validity time, in sec
 #if  !((DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN))
