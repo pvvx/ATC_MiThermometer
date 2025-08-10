@@ -554,6 +554,8 @@ At the same time, take into account that the chip can be powered from the TX out
 
 For successful flashing, it is necessary to connect 3.3V power to +Vbat and TX to SWS, and during "activation" connect the GND wire to -Vbat.
 
+(If the RTS or DTR connection is used with the chip's RST, then the GND to -Vbat connection does not require switching, since the "activation" is done automatically.)
+
 Alternative programmers:
 
 1. [TLSR825xComFlasher.py](https://github.com/pvvx/TlsrComSwireWriter) - partial simulation of `Telink 1-Wire` on a USB-UART adapter.
