@@ -550,7 +550,9 @@ In difficult cases, when the chip contains an unknown FW, it is necessary to use
 
 ![atime.png](https://github.com/pvvx/ATC_MiThermometer/blob/master/img/atime.png)
 
-At the same time, take into account that the chip can be powered from the TX output. This is solved by connecting TX and +Vbat during "activation".
+At the same time, take into account that the chip can be powered from the TX output.
+
+For successful flashing, it is necessary to connect 3.3V power to +Vbat and TX to SWS, and during "activation" connect the GND wire to -Vbat.
 
 Alternative programmers:
 
