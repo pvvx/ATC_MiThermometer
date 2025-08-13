@@ -83,6 +83,14 @@ typedef struct __attribute__((packed)) _adv_atc_enc_t {
 	u8		mic[4];		//@8..11
 } adv_atc_enc_t, * padv_atc_enc_t;
 
+typedef struct __attribute__((packed)) {
+	u8  size;   // = 1 (type) + 2 (UUID) = 3
+	u8  type;   // 0x02 = incomplete list of 16-bit UUIDs, 0x03 = complete list of 16-bit UUIDs
+	u16 uuid;   // 16-bit UUID
+} adv_uuid16_1_t;
+
+#define GAP_ADTYPE_16BIT_INCOMPLETE 0x02
+#define GAP_ADTYPE_16BIT_COMPLETE 0x03
 
 void pvvx_data_beacon(void);
 void atc_data_beacon(void);
