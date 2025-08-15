@@ -86,7 +86,6 @@ void pvvx_encrypt_data_beacon(void) {
 					   (u8 *)&p->data,
 					   p->mic, 4);
 }
-
 #endif
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
@@ -94,7 +93,17 @@ void pvvx_encrypt_data_beacon(void) {
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void pvvx_data_beacon(void) {
-	padv_custom_t p = (padv_custom_t)&adv_buf.data;
+ 	u8 *d = (u8 *)&adv_buf.data;
+
+	// AD struct #1: Incomplete List of 16-bit Service UUIDs
+	adv_uuid16_1_t *u = (adv_uuid16_1_t *)d;
+	u->size = 1 + 2; // type + uuid
+	u->type = GAP_ADTYPE_16BIT_INCOMPLETE;
+	u->uuid = ADV_CUSTOM_UUID16; // GATT Service 0x181A Environmental Sensing (little-endian)
+	d += sizeof(*u);
+
+	// AD struct #2: Service Data
+	padv_custom_t p = (padv_custom_t)d;
 	memcpy(p->MAC, mac_public, 6);
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 	p->size = sizeof(adv_custom_t) - 1;
@@ -115,6 +124,9 @@ void pvvx_data_beacon(void) {
 #if (DEV_SERVICES & SERVICE_TH_TRG)
 	p->flags = trg.flg_byte;
 #endif
+
+	// total AD payload length = UUID-list element + Service-Data element
+	adv_buf.data_size = (u8)((u8*)d - (u8*)&adv_buf.data) + (p->size + 1);
 }
 #endif
 
