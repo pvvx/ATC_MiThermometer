@@ -429,8 +429,8 @@ void test_config(void) {
 		wrk.tx_measures = 0xff; // always notify
 	if (cfg.advertising_interval == 0) // 0 ?
 		cfg.advertising_interval = 1; // 1*62.5 = 62.5 ms
-	else if (cfg.advertising_interval > 160) // max 160 : 160*62.5 = 10000 ms
-		cfg.advertising_interval = 160; // 160*62.5 = 10000 ms
+	else if (cfg.advertising_interval > 960) // max 960 : 960*62.5 = 60000 ms
+		cfg.advertising_interval = 960; // 960*62.5 = 60000 ms
 	wrk.adv_interval_delay = cfg.flg3.adv_interval_delay;
 	wrk.adv_interval = cfg.advertising_interval * 100; // Tadv_interval = adv_interval * 62.5 ms , adv_interval in 0.625 ms
 
@@ -469,7 +469,10 @@ void test_config(void) {
 		wrk.connection_timeout = 100;	//x10 ms,  1 sec
 
 	if (!cfg.connect_latency) {
-		my_periConnParameters.intervalMin =	(cfg.advertising_interval * 625	/ 30) - 1; // Tmin = 20*1.25 = 25 ms, Tmax = 3333*1.25 = 4166.25 ms
+		// @TODO: add more precise min-max range checks
+		// The connection interval can range from 7.5ms to 4.0s
+		// 160 is used for  backward compatibility
+		my_periConnParameters.intervalMin = ( min(160, cfg.advertising_interval) * 625 / 30) - 1; // Tmin = 20*1.25 = 25 ms, Tmax = 3333*1.25 = 4166.25 ms
 		my_periConnParameters.intervalMax = my_periConnParameters.intervalMin + 5;
 		my_periConnParameters.latency = 0;
 	} else {

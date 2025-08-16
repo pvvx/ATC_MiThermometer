@@ -126,7 +126,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	} flg3;
 	u8 event_adv_cnt;		// min value = 5
 #endif
-	u8 advertising_interval; // multiply by 62.5 for value in ms (1..160,  62.5 ms .. 10 sec)
+	u16 advertising_interval; // multiply by 62.5 for value in ms (1..160,  62.5 ms .. 60 sec)
 	u8 measure_interval; // measure_interval = advertising_interval * x (2..25)
 	u8 rf_tx_power; // RF_POWER_N25p18dBm .. RF_POWER_P3p01dBm (130..191)
 	u8 connect_latency; // +1 x0.02 sec ( = connection interval), Tmin = 1*20 = 20 ms, Tmax = 256 * 20 = 5120 ms
