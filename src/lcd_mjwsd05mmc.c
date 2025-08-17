@@ -708,12 +708,12 @@ static void show_clock_s1(void) {
 #endif
 }
 
-static void show_data_s2(u8 flg) {
+static void show_data_s2(u8 flg_wd, u8 date_ddmm) {
 	u8 mh, ml, dh, dl;
 	clear_s2();
 	display_buff[5] = BIT(0); // "/"
 	display_buff[4] &= BIT(4); // s1: "1"
-	if(!flg) {
+	if(!flg_wd) {
 		display_buff[4] |= sb_dnd[rtc.weekday];
 	}
 
@@ -730,10 +730,17 @@ static void show_data_s2(u8 flg) {
 		dl -= 10;
 		dh++;
 	}
-	lcd_set_digit(display_buff, mh, sb_s2[0]);
-	lcd_set_digit(display_buff, ml, sb_s2[1]);
-	lcd_set_digit(display_buff, dh, sb_s2[2]);
-	lcd_set_digit(display_buff, dl, sb_s2[3]);
+	if(date_ddmm) {
+		lcd_set_digit(display_buff, dh, sb_s2[0]);
+		lcd_set_digit(display_buff, dl, sb_s2[1]);
+		lcd_set_digit(display_buff, mh, sb_s2[2]);
+		lcd_set_digit(display_buff, ml, sb_s2[3]);
+	} else {
+		lcd_set_digit(display_buff, mh, sb_s2[0]);
+		lcd_set_digit(display_buff, ml, sb_s2[1]);
+		lcd_set_digit(display_buff, dh, sb_s2[2]);
+		lcd_set_digit(display_buff, dl, sb_s2[3]);
+	}
 }
 
 static void show_battery_s1(u8 level) {
@@ -857,8 +864,8 @@ void lcd(void) {
 				show_s3_number_x10(measured_data.temp_x01, LCD_SYM_C);
 			show_s4_number_x10(measured_data.humi_x01, LCD_SYM_P);
 	}
-	display_buff[3] &= ~(BIT(0));
-	display_buff[2] &= ~(BIT(0));
+	display_buff[3] &= ~(BIT(0)); // PM
+	display_buff[2] &= ~(BIT(0)); // AM
 	if(cfg.flg.time_am_pm) {
 		if(rtc.hours >= 12) {
 			display_buff[2] |= BIT(0);
@@ -872,7 +879,7 @@ void lcd(void) {
 		else
 			show_smiley(LCD_SYM_SMILEY_NONE);
 	}
-	show_data_s2(cfg.flg3.not_day_of_week);
+	show_data_s2(cfg.flg3.not_day_of_week, cfg.flg3.date_ddmm);
 }
 
 

@@ -31,6 +31,9 @@
 "bin/ZYZTH02P_v53.bin",
 "bin/ZG227Z_v53.bin"
 ],
+"betafw":[
+"?","?","?","?","?","?","?","?","?","?","?","?","bin/BTE_v54.bin"
+],
 "original":[
 "bin/Original/Original_OTA_Xiaomi_LYWSD03MMC_v1.0.0_0130.bin",
 "bin/Original/Original_OTA_Xiaomi_MHO_C401_v1.0.0_0010.bin",

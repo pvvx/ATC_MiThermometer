@@ -121,7 +121,8 @@ typedef struct __attribute__((packed)) _cfg_t {
 
 	struct __attribute__((packed)) {
 		u8 adv_interval_delay	: 4; // 0..15,  in 0.625 ms, a pseudo-random value in the range from 0 to X ms is added to a fixed advInterval so that advertising events change over time.
-		u8 reserved				: 3;
+		u8 reserved				: 2;
+		u8 date_ddmm			: 1; // display mm:dd (MJWSD05MMC en)
 		u8 not_day_of_week		: 1; // do not display day of week (MJWSD05MMC)
 	} flg3;
 	u8 event_adv_cnt;		// min value = 5

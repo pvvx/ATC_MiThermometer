@@ -22,7 +22,7 @@
 #endif
 
 RAM sensor_cfg_t sensor_cfg;
-const sensor_def_cfg_t sensor_ina226_def_cfg = {
+const sensor_def_cfg_t sensor_ina3221_def_cfg = {
 		.coef[0].val1_k = 3277, // current_k (163.8/0.1)*65536/0x7fff = 3276.8
 		.coef[0].val2_k = 65535, // voltage_k 32760*65536/0x7ff8 = 65536
 		.coef[0].val1_z = 0, // current_z
@@ -101,9 +101,9 @@ void init_sensor(void) {
 			send_i2c_addr_word(sensor_cfg.i2c_addr, INA3221_REG_PVL | (U16_LO(4800) << 16) | (U16_HI(4800) << 8));
 			send_i2c_addr_word(sensor_cfg.i2c_addr, INA3221_REG_PVU | (U16_LO(4900) << 16) | (U16_HI(4900) << 8));
 			if(!sensor_cfg.coef[0].val1_k) {
-				memcpy(&sensor_cfg.coef, &sensor_ina226_def_cfg.coef, sizeof(sensor_cfg.coef));
+				memcpy(&sensor_cfg.coef, &sensor_ina3221_def_cfg.coef, sizeof(sensor_cfg.coef));
 			}
-			sensor_cfg.sensor_type = sensor_ina226_def_cfg.sensor_type;
+			sensor_cfg.sensor_type = sensor_ina3221_def_cfg.sensor_type;
 			break;
 		}
 		test_addr++;
