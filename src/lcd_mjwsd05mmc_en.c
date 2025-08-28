@@ -709,12 +709,12 @@ void show_clock_s1(void) {
 #endif
 }
 
-void show_data_s2(u8 flg) {
+void show_data_s2(u8 flg_wd, u8 date_ddmm) {
 	u8 mh, ml, dh, dl;
 	clear_s2();
 	display_buff[6] = BIT(4); // "/"
 	display_buff[4] &= BIT(4); // s1: "1"
-	if(!flg) {
+	if(!flg_wd) {
 		display_buff[4] |= sb_dnd[rtc.weekday];
 	}
 
@@ -731,10 +731,17 @@ void show_data_s2(u8 flg) {
 		dl -= 10;
 		dh++;
 	}
-	lcd_set_digit(display_buff, mh, sb_s2[0]);
-	lcd_set_digit(display_buff, ml, sb_s2[1]);
-	lcd_set_digit(display_buff, dh, sb_s2[2]);
-	lcd_set_digit(display_buff, dl, sb_s2[3]);
+	if(date_ddmm) {
+		lcd_set_digit(display_buff, dh, sb_s2[0]);
+		lcd_set_digit(display_buff, dl, sb_s2[1]);
+		lcd_set_digit(display_buff, mh, sb_s2[2]);
+		lcd_set_digit(display_buff, ml, sb_s2[3]);
+	} else {
+		lcd_set_digit(display_buff, mh, sb_s2[0]);
+		lcd_set_digit(display_buff, ml, sb_s2[1]);
+		lcd_set_digit(display_buff, dh, sb_s2[2]);
+		lcd_set_digit(display_buff, dl, sb_s2[3]);
+	}
 }
 
 void show_battery_s1(u8 level) {
@@ -873,7 +880,7 @@ void lcd(void) {
 		else
 			show_smiley(LCD_SYM_SMILEY_NONE);
 	}
-	show_data_s2(cfg.flg3.not_day_of_week);
+	show_data_s2(cfg.flg3.not_day_of_week, cfg.flg3.date_ddmm);
 }
 
 
