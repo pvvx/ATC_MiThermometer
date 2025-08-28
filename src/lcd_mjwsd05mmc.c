@@ -708,7 +708,7 @@ static void show_clock_s1(void) {
 #endif
 }
 
-static void show_data_s2(u8 flg_wd, u8 date_ddmm) {
+static void show_data_s2(u8 flg_wd) { //, u8 date_ddmm) {
 	u8 mh, ml, dh, dl;
 	clear_s2();
 	display_buff[5] = BIT(0); // "/"
@@ -730,12 +730,15 @@ static void show_data_s2(u8 flg_wd, u8 date_ddmm) {
 		dl -= 10;
 		dh++;
 	}
+/*
 	if(date_ddmm) {
 		lcd_set_digit(display_buff, dh, sb_s2[0]);
 		lcd_set_digit(display_buff, dl, sb_s2[1]);
 		lcd_set_digit(display_buff, mh, sb_s2[2]);
 		lcd_set_digit(display_buff, ml, sb_s2[3]);
-	} else {
+	} else 
+*/	
+	{
 		lcd_set_digit(display_buff, mh, sb_s2[0]);
 		lcd_set_digit(display_buff, ml, sb_s2[1]);
 		lcd_set_digit(display_buff, dh, sb_s2[2]);
@@ -879,7 +882,7 @@ void lcd(void) {
 		else
 			show_smiley(LCD_SYM_SMILEY_NONE);
 	}
-	show_data_s2(cfg.flg3.not_day_of_week, cfg.flg3.date_ddmm);
+	show_data_s2(cfg.flg3.not_day_of_week); // , cfg.flg3.date_ddmm);
 }
 
 
