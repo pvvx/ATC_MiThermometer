@@ -563,7 +563,10 @@ Alternative programmers:
 2. [TlsrComProg](https://github.com/pvvx/TlsrComProg825x) - uses a bootloader with the transition to working via the UART protocol.
 3. [TLSRPGM](https://github.com/pvvx/TLSRPGM) - full hardware option Telink 1-Wire up to 2 mbit/s
 
-#### Chipset LYWSD03MMC HW:B1.4
+#### Chipset LYWSD03MMC
+
+ HW:B1.4
+
 > * TLSR8251F512ET24 (TLSR8258 in 24-pin TQFN). SoC: TC32 32-bit MCU 48Mhz, 64 KiB SRAM, 512 KiB Flash (GD25LE40C), Bluetooth 5.0: Mesh, 6LoWPAN, Zigbee, RF4CE, HomeKit, Long Range, Operating temperature: -40°C to +85°C, Power supply: 1.8V to 3.6V.
 > * SHTV3 sensor. Measurement range: Temperature -40°C to +125°C, Humidity 0 to 100 %RH. Power supply: 1.8V to 3.6V
 > * IST3055NA0 LCD controller 
@@ -571,6 +574,8 @@ Alternative programmers:
 [LYWSD03MMC B1.4 B1.5 BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
 
 ![TabPins](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout/TabPins.gif)
+
+#### HW versions LYWSD03MMC
 
 For LYWSD03MMC, the HW version is determined by the display and sensor addresses on I2C:
 
@@ -586,6 +591,7 @@ For LYWSD03MMC, the HW version is determined by the display and sensor addresses
 
 Version 1.7 or 2.0 is determined at first run by reading the HW line written in Flash.
 Display matrices or controllers are different for all versions, except B1.7 = B2.0.
+To eliminate the confusion created by Xiaomi with identical HW numbers, the internal number B1.1 is used for new B1.6 versions in the alternative firmware.
 
 #### Building the firmware
 
