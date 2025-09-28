@@ -246,10 +246,10 @@ static void lcd_send_uart(void) {
 	///reg_dma_chn_irq_msk |= FLD_DMA_IRQ_UART_TX;
 
 	// GPIO_PD7 set TX UART pin
-	REG_ADDR8(0x5AF) = (REG_ADDR8(0x5AF) &  (~(BIT(7)|BIT(6)))) | BIT(7);
+	REG_ADDR8(0x5AF) = (REG_ADDR8(0x5AF) &  (~BIT(6))) | BIT(7);
 	BM_CLR(reg_gpio_func(GPIO_LCD_URX), GPIO_LCD_URX & 0xff);
-	// GPIO_PDB set RX UART pin
-	REG_ADDR8(0x5AB) = (REG_ADDR8(0x5AB) &  (~(BIT(7)|BIT(6)))) | BIT(7);
+	// GPIO_PB7 set RX UART pin
+	REG_ADDR8(0x5AB) = (REG_ADDR8(0x5AB) &  (~BIT(6))) | BIT(7);
 	BM_CLR(reg_gpio_func(GPIO_LCD_UTX), GPIO_LCD_UTX & 0xff);
 	// start send DMA
 	reg_dma_tx_rdy0 |= FLD_DMA_CHN_UART_TX; // start tx

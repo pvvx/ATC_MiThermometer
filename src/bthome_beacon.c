@@ -42,6 +42,10 @@ static u32 set_bthome_data1(padv_bthome_data1_t p) {
 		p->h_id = BtHomeID_humidity;
 		p->humidity = measured_data.humi; // x0.01 %
 #endif
+#if (DEV_SERVICES & SERVICE_PLM) && (USE_SENSOR_PWMRH == 2)
+		p->m_id = BtHomeID_moisture16;
+		p->moisture = measured_data.mois; // x0.01 %
+#endif
 #if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
 		p->u_co2 = BtHomeID_co2;
 		p->co2 = ens160.co2;

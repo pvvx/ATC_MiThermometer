@@ -60,12 +60,14 @@ extern "C" {
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 //#define DEVICE_TS0202_PIR1	40 // Tuya TS0202_TZ3000_6ygjfyll PIR
 //#define DEVICE_TS0202_PIR2	41 // Tuya TS0202_TZ3040_bb6xaihh PIR
-//#define DEVICE_MINTAGF2		42 // https://github.com/pvvx/THB2
+//#define DEVICE_HDP16		42 // MiniTag-F2-YY-v2 https://www.ednchina.com/technews/26425.html
+//#define DEVICE_TN_6ATAG3	43 // TN-6ATAG3-V01, key
+#define DEVICE_ZG303Z		44  // ZG-303Z Plant monitor, 2xAAA, AHT20
 
 //#define TEST_PLM1 			1  // TB03F My Plant monitor
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_LYWSD03MMC
+#define DEVICE_TYPE			DEVICE_ZG303Z
 #endif
 
 // supported services by the device (bits)
@@ -575,7 +577,7 @@ extern "C" {
 #define PB7_DATA_OUT		1
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB7	PM_PIN_PULLUP_1M // SPI CLK (B1.6 new)
+#define PULL_WAKEUP_SRC_PB7	PM_PIN_PULLUP_1M // SPI CLK (B1.6 new), UART RX
 
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 
@@ -2455,6 +2457,102 @@ extern "C" {
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PB7 RDS1_PULLUP
+
+#elif DEVICE_TYPE == DEVICE_ZG303Z
+
+// TLSR8258, Flash: 1MB
+
+// GPIO_PA0 - LED
+// GPIO_PA7 - J1 pin3, SWS
+// GPIO_PB1 - J1 pin4, TX
+// GPIO_PB4 - PWM
+// GPIO_PB5 - RH_IN
+// GPIO_PB7 - J1 pin5, RX
+// GPIO_PC0 - I2C_SDA
+// GPIO_PC1 - I2C_SCK
+// GPIO_PD4 - KEY
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_THS \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+		| SERVICE_PLM \
+		| SERVICE_RDS \
+)
+
+#define USE_EPD					0 // min update time ms
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		1
+#define USE_SENSOR_AHT20_30		1
+#define USE_SENSOR_SHT4X		1
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		1
+
+#define I2C_MAX_SPEED 		400000 // 400 kHz (LCD AIP31620)
+#define I2C_SDA 			GPIO_PC0
+#define I2C_SCL 			GPIO_PC1
+#define I2C_GROUP 			I2C_GPIO_GROUP_C0C1
+
+#define SENSOR_SLEEP_MEASURE	1
+
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define GPIO_KEY2			GPIO_PD4
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD4	PM_PIN_PULLUP_10K
+
+#define GPIO_LED			GPIO_PA0
+#define LED_ON				0
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		1
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+//#define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLUP_1M
+
+#define GPIO_TRG			GPIO_PB1
+#define PB1_INPUT_ENABLE	1
+#define PB1_DATA_OUT		0
+#define PB1_OUTPUT_ENABLE	0
+#define PB1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_10K
+#define GPIO_RDS1 			GPIO_PB7
+#define PB7_INPUT_ENABLE	1
+#define PB7_DATA_OUT		0
+#define PB7_OUTPUT_ENABLE	0
+#define PB7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB7 RDS1_PULLUP
+
+#define USE_SENSOR_PWMRH	2
+// PWM
+#define PWM_PIN			GPIO_PB4
+#define AS_PWMx			AS_PWM4
+#define PWM_ID			PWM4_ID
+// ADC
+#define GPIO_RHI		GPIO_PB5
+#define CHNL_RHI		6 //B5P
+
+#define USE_AVERAGE_BATTERY 1  // =0 - Off, =1 - On
+#define USE_AVERAGE_TH_SHL  2  // 1<<2 = 4, 1<<3 = 8, ...
+
+#define USE_FLASH_SERIAL_UID	1
 
 #else // DEVICE_TYPE
 #error ("DEVICE_TYPE = ?")

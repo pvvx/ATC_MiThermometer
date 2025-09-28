@@ -5,7 +5,7 @@
  *      Author: pvvx
  */
 #include "tl_common.h"
-#if (DEV_SERVICES & SERVICE_PLM) // USE_SENSOR_PWMRH
+#if (DEV_SERVICES & SERVICE_PLM) &&  (USE_SENSOR_PWMRH == 1)
 #include "drivers.h"
 #include "battery.h"
 #include "sensor.h"

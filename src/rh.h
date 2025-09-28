@@ -36,6 +36,34 @@
 */
 #if (DEV_SERVICES & SERVICE_PLM)
 
+#if (USE_SENSOR_PWMRH == 2)
+
+typedef struct _sensor_rh_coef_t {
+	u32 k;
+	u16 z;
+	u16 d;
+} sensor_rh_coef_t;
+
+typedef struct _sensor_rh_t {
+	sensor_rh_coef_t coef;
+	u16 adc_rh;
+	u16 adc_d;
+#ifdef USE_AVERAGE_TH_SHL
+	u32 summ_rh;
+	u16 cnt_summ;
+#endif
+} sensor_rh_t;
+
+extern sensor_rh_t sensor_rh;
+
+void init_rh_sensor(void);
+int	read_rh_sensor(void);
+
+int calibrate_rh_0(void);
+int calibrate_rh_100(void);
+
+#else // USE_SENSOR_PWMRH == 1
+
 typedef struct _thsensor_coef_t {
 	u32 val1_k;	// temp_k / current_k
 	u32 val2_k;	// humi_k / voltage_k
@@ -43,13 +71,6 @@ typedef struct _thsensor_coef_t {
 	s16 val2_z;		// humi_z / voltage_z
 } sensor_coef_t; // [12]
 
-/*
-typedef struct _sensor_def_cfg_t {
-	sensor_coef_t coef;
-	u32 measure_timeout;
-	u8 sensor_type; // SENSOR_TYPES
-} sensor_def_cfg_t;
-*/
 
 typedef struct _sensor_cfg_t {
 	sensor_coef_t coef;
@@ -69,14 +90,19 @@ typedef struct _sensor_cfg_t {
 extern sensor_cfg_t sensor_cfg;
 #define sensor_cfg_send_size 18 //max 19
 
-#endif
+int calibrate_rh_0(void);
+int calibrate_rh_100(void);
+
+void init_sensor(void);
+int	read_sensor_cb(void);
+
+#endif // USE_SENSOR_PWMRH == x
 
 #ifdef USE_AVERAGE_TH_SHL
 void clr_rh_summ(void);
 #endif
-void init_sensor(void);
-int calibrate_rh_0(void);
-int calibrate_rh_100(void);
-int	read_sensor_cb(void);
+
+#endif // (DEV_SERVICES & SERVICE_PLM)
+
 
 #endif /* RH_H_ */

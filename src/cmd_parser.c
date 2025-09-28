@@ -758,18 +758,24 @@ void cmd_parser(void * p) {
 					send_buf[1] = calibrate_rh_100();
 				else if(req->dat[1] == 0)
 					send_buf[1] = calibrate_rh_0();
-				else
-					send_buf[1] = 0xff; // Error cmd
+				else {
+					send_buf[1] = 0xff; // 0xff; // Error cmd
+				}
 			} else {
-//#ifdef USE_AVERAGE_TH_SHL
-				//clr_rh_summ();
-//#endif
 				send_buf[1] = 2;
 			}
+#if (USE_SENSOR_PWMRH == 2)
+			memcpy(&send_buf[2], &sensor_rh.adc_rh, 4);
+#else
 			memcpy(&send_buf[2], &sensor_cfg.adc_rh, 4);
+#endif
 			olen = 5 + 1;
 		} else if (cmd == CMD_ID_RH_CAL) { // Calibrate sensor RH
+#if (USE_SENSOR_PWMRH == 2)
+			memcpy(&send_buf[1], &sensor_rh.adc_rh, 4);
+#else
 			memcpy(&send_buf[1], &sensor_cfg.adc_rh, 4);
+#endif
 			olen = 4 + 1;
 #endif
 #if (DEV_SERVICES & SERVICE_SCANTIM)

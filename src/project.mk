@@ -34,6 +34,7 @@ $(OUT_PATH)/src/rds_count.o \
 $(OUT_PATH)/src/app_att.o \
 $(OUT_PATH)/src/battery.o \
 $(OUT_PATH)/src/rh.o \
+$(OUT_PATH)/src/rh2.o \
 $(OUT_PATH)/src/ble.o \
 $(OUT_PATH)/src/i2c.o \
 $(OUT_PATH)/src/cmd_parser.o \

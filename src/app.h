@@ -220,6 +220,9 @@ typedef struct _measured_data_t {
 	u16		voltage; // x 1 mV
 #endif
 #endif
+#if (DEV_SERVICES & SERVICE_PLM) && (USE_SENSOR_PWMRH == 2)
+	u16		mois;
+#endif
 	u16 	count;
 	// end send part (MEASURED_MSG_SIZE)
 #if (DEV_SERVICES & SERVICE_PRESSURE)

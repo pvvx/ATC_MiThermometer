@@ -277,7 +277,15 @@ const cfg_t def_cfg = {
 #if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
-
+#elif (DEVICE_TYPE == DEVICE_ZG303Z)
+		.flg2.adv_flags = true,
+		.advertising_interval = 80, // multiply by 62.5 ms = 5 sec
+		.flg.comfort_smiley = true,
+		.measure_interval = 4, // * advertising_interval = 20 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 90, // * measure_interval = 20 * 180 = 1800 sec = 30 minutes
+#endif
 #else
 #error "DEVICE_TYPE = ?"
 #endif
@@ -563,6 +571,9 @@ void read_sensors(void) {
 			measured_data.humi = get_adc_mv(CHL_ADC2);
 #endif
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
+#if USE_SENSOR_PWMRH == 2
+			read_rh_sensor();
+#endif
 			measured_data.temp_x01 = (measured_data.temp + 5)/ 10;
 			measured_data.humi_x01 = (measured_data.humi + 5)/ 10;
 			measured_data.humi_x1 = (measured_data.humi + 50)/ 100;
@@ -866,6 +877,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 	// start_tst_battery(); // step 2
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 	init_sensor();
+#endif
+#if (DEV_SERVICES & SERVICE_PLM) && (USE_SENSOR_PWMRH == 2)
+	init_rh_sensor();
 #endif
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
 	hx71x_get_data(HX71XMODE_A128); // Start measure

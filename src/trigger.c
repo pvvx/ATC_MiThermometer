@@ -74,7 +74,11 @@ void test_trg_on(void) {
 #define measured_val2	measured_data.xtemp[0]
 #else
 #define measured_val1	measured_data.temp
+#if (DEV_SERVICES & SERVICE_PLM) && (USE_SENSOR_PWMRH == 2)
+#define measured_val2	measured_data.mois
+#else
 #define measured_val2	measured_data.humi
+#endif
 #endif
 #elif (DEV_SERVICES & SERVICE_18B20)
 #if USE_SENSOR_HT && USE_SENSOR_MY18B20 == 1 

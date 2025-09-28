@@ -71,6 +71,7 @@
 #define DEVICE_ZYZTH02		37  // Tuya ZY-ZTH02 Zigbee, 2 x AAA, SHT30/CHT832x
 #define DEVICE_ZYZTH01		38  // Tuya ZY-ZTH02Pro Zigbee LCD, 2 x AAA, SHT30/CHT832x
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
+#define DEVICE_ZG303Z		44  // ZG-303Z Plant monitor, 2xAAA, AHT20
 
 
 #if 0 // not used in this code!
