@@ -103,20 +103,24 @@ void clr_rh_summ(void) {
 #endif
 
 int calibrate_rh_0(void) {
+	// @TODO
+	clr_rh_summ();
 	get_rh(); // save final RH ADC measurement
 	return 1;
 }
 
 int calibrate_rh_100(void) {
+	// @TODO
+	clr_rh_summ();
 	get_rh(); // save final RH ADC measurement
 	return 1;
 }
 
 void init_rh_sensor(void) {
-	clr_rh_summ();
-	if(sensor_rh.coef.k == 0) {
+	if(flash_read_cfg(&sensor_rh.coef, EEP_ID_CRH, sizeof(sensor_rh.coef)) != sizeof(sensor_rh.coef)) {
 		memcpy(&sensor_rh.coef, &rh_coef_def, sizeof(sensor_rh.coef));
 	}
+	clr_rh_summ();
 }
 
 int	read_rh_sensor(void) {

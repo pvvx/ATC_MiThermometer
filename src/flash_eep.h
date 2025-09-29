@@ -15,6 +15,7 @@ extern "C" {
 // EEPROM IDs
 #define EEP_ID_CFG (0x0CFC) // EEP ID config data
 #define EEP_ID_CFS (0x0CF5) // EEP ID sensor TH coefficients
+#define EEP_ID_CRH (0x2CF5) // EEP ID sensor RH coefficients
 #define EEP_ID_CMY (0x0B20) // EEP ID sensor MY18B20 coefficients
 #define EEP_ID_TRG (0x0DFE) // EEP ID trigger data
 #define EEP_ID_RPC (0x0DF5) // EEP ID reed switch pulse counter

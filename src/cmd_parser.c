@@ -752,7 +752,18 @@ void cmd_parser(void * p) {
 			olen = sizeof(hx71x.cfg) + 4 + 1;
 #endif
 #if (DEV_SERVICES & SERVICE_PLM)
+#if (USE_SENSOR_PWMRH == 2)
 		} else if (cmd == CMD_ID_RH) { // Get/Set sensor RH config
+			if (len) {
+				if (len > sizeof(sensor_rh.coef))
+					len = sizeof(sensor_rh.coef);
+				memcpy(&sensor_rh.coef, &req->dat[1], len);
+				flash_write_cfg(&sensor_rh.coef, EEP_ID_CRH, sizeof(sensor_rh.coef));
+			}
+			memcpy(&send_buf[1], &sensor_rh, sizeof(sensor_rh.coef) + 4); // + adc_rh, adc_d
+			olen = sizeof(sensor_rh.coef) + 4 + 1;
+#endif
+		} else if (cmd == CMD_ID_RH_CAL) { // Calibrate sensor RH
 			if (len) {
 				if(req->dat[1] == 100)
 					send_buf[1] = calibrate_rh_100();
@@ -770,13 +781,6 @@ void cmd_parser(void * p) {
 			memcpy(&send_buf[2], &sensor_cfg.adc_rh, 4);
 #endif
 			olen = 5 + 1;
-		} else if (cmd == CMD_ID_RH_CAL) { // Calibrate sensor RH
-#if (USE_SENSOR_PWMRH == 2)
-			memcpy(&send_buf[1], &sensor_rh.adc_rh, 4);
-#else
-			memcpy(&send_buf[1], &sensor_cfg.adc_rh, 4);
-#endif
-			olen = 4 + 1;
 #endif
 #if (DEV_SERVICES & SERVICE_SCANTIM)
 		} else if (cmd == CMD_ID_SCAN_CFG) { // Get/Set Scan Config parameters
