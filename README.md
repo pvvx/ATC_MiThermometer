@@ -26,7 +26,7 @@ Access to github is already slowing down. Most Internet information resources ha
 
 **Key features**
 
-* Extended battery life (over a year)
+* Extended battery life (CR2032 - more than one year, CR2450 - more than three years)
 * Improved measurement accuracy and extended format in 0.01 units
 * Full support Home Assistant ['BTHome integration'](https://bthome.io/), ['Passive BLE Monitor'](https://github.com/custom-components/ble_monitor) and other.
 * Supports [encrypted connections using **PIN-code**](https://github.com/pvvx/ATC_MiThermometer/issues/174#issuecomment-1003987084) and encrypted **bindkey** beacon
