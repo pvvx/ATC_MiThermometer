@@ -17,8 +17,6 @@ _Support for ZigbeeTLc and ZBdevice firmware is in the [ZigbeeTLc](https://githu
 
 _Support for BLE-Zigbee firmware is in the [BZdevice](https://github.com/pvvx/BZdevice) repository._<br>
 
-_There is an alternative firmware from [Ivan Belokobylskij](https://github.com/devbis) for [LYWSD03MMC to work in Zigbee 3.0 mode](https://github.com/devbis/z03mmc)._
-
 The custom firmware can be flashed _via a modern browser_ and _over-the-air (OTA)_ without opening the device and unlocks several customization options. You can go back to the original firmware at any time. OTA and configuration main page - [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
 Due to unclear sanctions from English-speaking countries, this and related projects will most likely be closed to English-speaking users. Or provided on a paid basis.
@@ -298,7 +296,7 @@ In case you want to go back to the original firmware, you can download them here
 |     5.1 | Added settings: "pseudo-random value in the range from 0 to X ms is added to the fixed advInterval so that ad events change over time", "number of transmitted beacons per event". Changed calculation of average battery voltage. Added MJWSD06MMC. |
 |     5.2 | Fix symbol "1" MHO-C401N, fix command "Delete all records", correct fw numbers. Added PLM1 |
 |     5.3 | Correction of OTA operation for Zigbee firmware. Optimization of work with Uart LCD for LYWSD03MMC HW: B1.5, B1.6. Added test version for LYWSD03MMC with new HW (3.2025) |
-|     5.4 beta | MJWSD05MMC(en) date MM/DD or DD/MM. Added [ZG-303Z](https://pvvx.github.io/ZG-303Z/) |
+|     5.4 beta | MJWSD05MMC(en) date MM/DD or DD/MM. Added [ZG-303Z](https://pvvx.github.io/ZG-303Z/), ZBEACON-TH01 |
 |     --- |  |
 |     6.0 | Starting with version 6.0, support for non-standard and unregistered in Bluetooth SIG UUIDs and BLE advertising formats will be discontinued. Only [BTHome ver 2](https://bthome.io/) will be supported! |
 

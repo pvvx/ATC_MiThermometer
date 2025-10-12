@@ -99,6 +99,9 @@ python3 utils\zb_bin_ota.py ZG227Z%SWVER%.bin zigbee_ota\ZG227ZBLE%SWVER% -m0x12
 make -s -j PROJECT_NAME=ZG303Z%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZG303Z"
 @if not exist "ZG303Z%SWVER%.bin" goto :error
 @rem python3 utils\zb_bin_ota.py ZG303Z%SWVER%.bin zigbee_ota\ZG303ZBLE%SWVER% -m0x1286 -i0x0203 -v0x10983001 -s"Tuya to BLE"
+@del /Q "ZBTH01%SWVER%.bin"
+make -s -j PROJECT_NAME=ZBTH01%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZBEACON_TH01"
+@if not exist "ZBTH01%SWVER%.bin" goto :error
 cd .\zigbee_ota\zigpy_ota
 call update.cmd %SWVER%
 cd ..\..

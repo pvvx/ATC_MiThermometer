@@ -10,7 +10,7 @@ PROJECT_PATH := ./src
 OUT_PATH :=./out
 ZBO_PATH :=./zigbee_ota
 
-PGM_PORT?=COM9
+PGM_PORT?=COM6
 
 ifneq ($(TEL_PATH)/components/drivers/8258/gpio_8258.c, $(wildcard $(TEL_PATH)/components/drivers/8258/gpio_8258.c))
 $(error "Please check SDK Path and set TEL_PATH.")
@@ -99,7 +99,7 @@ build: pre-build main-build
 
 
 flash: $(BIN_FILE)
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t150 -a2750 -m -w we 0 $(BIN_FILE)
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z11 -a-70 -m -w we 0 $(BIN_FILE)
 
 # test restore from Zigbee
 flash_zbr: $(BIN_FILE)
@@ -119,7 +119,7 @@ stop:
 go:
 	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -w -m
 
-TADDR?=0x844000
+TADDR?=0x8450bc
 TLEN?=128
 test_damp:
 	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z11 -c -g ds $(TADDR) $(TLEN)
@@ -150,8 +150,7 @@ $(BIN_FILE): $(ELF_FILE)
 	@echo ' '
 	@echo 'Create Zigbee OTA image'
 	@mkdir -p $(ZBO_PATH)
-	@$(PYTHON) $(zb_OTA) $(BIN_FILE) -p $(PWD)/zigbee_ota
-	@echo "Zigbee OTA file created in $(PWD)/zigbee_ota"
+	@$(PYTHON) $(zb_OTA) $(BIN_FILE) -p $(ZBO_PATH)
 	@echo ' '
 
 sizedummy: $(ELF_FILE)
