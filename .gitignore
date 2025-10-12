@@ -6,3 +6,8 @@ out/*
 python-interface/atc_mi_interface.egg-info/*
 python-interface/build/*
 python-interface/dist/*
+ATC_MiThermometer.code-workspace
+ATC_Thermometer.bin
+TLSR825xComFlasher.py
+ZBEACON_TH01_v54.bin
+zbeacon_ff_recovery.bin

@@ -63,6 +63,7 @@ extern "C" {
 //#define DEVICE_HDP16		42 // MiniTag-F2-YY-v2 https://www.ednchina.com/technews/26425.html
 //#define DEVICE_TN_6ATAG3	43 // TN-6ATAG3-V01, key
 #define DEVICE_ZG303Z		44  // ZG-303Z Plant monitor, 2xAAA, AHT20
+#define DEVICE_ZBEACON_TH01	45  // Tuya ZBEACON-TH01, 2xAAA , SHT4X
 
 //#define TEST_PLM1 			1  // TB03F My Plant monitor
 
@@ -2288,6 +2289,89 @@ extern "C" {
 #define PA0_OUTPUT_ENABLE	0
 #define PA0_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA0 RDS1_PULLUP
+
+#elif (DEVICE_TYPE == DEVICE_ZBEACON_TH01)
+
+// TLSR8250F512ET32 512K Flash
+// GPIO_B4 - SCL
+// GPIO_A0 - SDA
+// GPIO_C3 - LED
+// GPIO_B5 - KEY
+
+#define DEV_SERVICES ( SERVICE_OTA \
+        | SERVICE_OTA_EXT \
+        | SERVICE_PINCODE \
+        | SERVICE_BINDKEY \
+        | SERVICE_HISTORY \
+        | SERVICE_LE_LR \
+        | SERVICE_THS \
+        | SERVICE_RDS \
+        | SERVICE_KEY \
+        | SERVICE_TIME_ADJUST \
+        | SERVICE_TH_TRG \
+        | SERVICE_LED \
+)
+
+#define ZIGBEE_TUYA_OTA   1
+#define USE_EPD            0 // min update time ms
+
+#define USE_SENSOR_CHT8305      0
+#define USE_SENSOR_CHT8215      0
+#define USE_SENSOR_AHT20_30     0
+#define USE_SENSOR_SHT4X        1
+#define USE_SENSOR_SHTC3        0
+#define USE_SENSOR_SHT30        0
+
+#define SHL_ADC_VBAT        1  // "B0P" in adc.h
+#define GPIO_VBAT           GPIO_PB0 // missing pin on TLSR8253F512ET32
+#define PB0_INPUT_ENABLE    1
+#define PB0_DATA_OUT        1
+#define PB0_OUTPUT_ENABLE   1
+#define PB0_FUNC            AS_GPIO
+
+#define I2C_MAX_SPEED       200000 // 700 kHz
+#define I2C_SCL             GPIO_PB4
+#define PB4_INPUT_ENABLE    1
+#define PB4_DATA_OUT        0
+#define PB4_OUTPUT_ENABLE   0
+#define PULL_WAKEUP_SRC_PB4 PM_PIN_PULLUP_10K
+
+#define I2C_SDA             GPIO_PA0
+#define PA0_INPUT_ENABLE    1
+#define PA0_DATA_OUT        0
+#define PA0_OUTPUT_ENABLE   0
+#define PULL_WAKEUP_SRC_PA0 PM_PIN_PULLUP_10K
+
+#define GPIO_KEY2           GPIO_PB5
+#define PB5_INPUT_ENABLE    1
+#define PB5_DATA_OUT        0
+#define PB5_OUTPUT_ENABLE   0
+#define PB5_FUNC            AS_GPIO
+#define PULL_WAKEUP_SRC_PB5 PM_PIN_PULLUP_10K
+
+#define GPIO_LED            GPIO_PC3
+#define LED_ON              1
+#define PC3_INPUT_ENABLE    1
+#define PC3_DATA_OUT        1
+#define PC3_OUTPUT_ENABLE   0
+#define PC3_FUNC            AS_GPIO
+
+#define GPIO_TRG            GPIO_PB1
+#define PB1_INPUT_ENABLE    1
+#define PB1_DATA_OUT        0
+#define PB1_OUTPUT_ENABLE   0
+#define PB1_FUNC            AS_GPIO
+#define PULL_WAKEUP_SRC_PB1 PM_PIN_PULLDOWN_100K
+
+#define RDS1_PULLUP         PM_PIN_PULLUP_1M
+#define GPIO_RDS1           GPIO_PB7
+#define PB7_INPUT_ENABLE    1
+#define PB7_DATA_OUT        0
+#define PB7_OUTPUT_ENABLE   0
+#define PB7_FUNC            AS_GPIO
+#define PULL_WAKEUP_SRC_PB7 RDS1_PULLUP
+
+
 
 #elif (DEVICE_TYPE == DEVICE_ZG_227Z)
 

@@ -545,6 +545,11 @@ void ble_set_name(void) {
 		ble_name[3] = 'G';
 		ble_name[4] = '2';
 		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_ZBEACON_TH01
+		ble_name[2] = 'T';
+		ble_name[3] = 'H';
+		ble_name[4] = '1';
+		ble_name[5] = '-';
 #elif DEVICE_TYPE == DEVICE_MJWSD06MMC
 		ble_name[2] = 'M';
 		ble_name[3] = 'J';

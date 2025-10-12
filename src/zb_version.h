@@ -72,7 +72,7 @@
 #define DEVICE_ZYZTH01		38  // Tuya ZY-ZTH02Pro Zigbee LCD, 2 x AAA, SHT30/CHT832x
 #define DEVICE_ZG_227Z		39  // Tuya ZG-227Z, CR2450, AHT20
 #define DEVICE_ZG303Z		44  // ZG-303Z Plant monitor, 2xAAA, AHT20
-
+#define DEVICE_ZBEACON_TH01	45  // Tuya ZBEACON-TH01, 2xAAA , SHT4X
 
 #if 0 // not used in this code!
 #define DEVICE_03MMC_DEVBIS	 3  // https://github.com/devbis/z03mmc
