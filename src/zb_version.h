@@ -98,7 +98,6 @@
 #define CHIP_TYPE_8258_1M						0x03
 #define CHIP_TYPE_8278							0x04
 #define CHIP_TYPE_B91							0x05
-#define CHIP_TYPE_8250							0x06
 
 #define MANUFACTURER_CODE_TELINK           	0x1141 // Telink ID
 
