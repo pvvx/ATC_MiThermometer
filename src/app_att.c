@@ -279,7 +279,7 @@ static const u8 my_ManStr[] = {"Tuya"};
 static const u8 my_ModelStr[] = {"ZBEACON-TH01"};
 static const u8 my_HardStr[4] = {"V1.1"};
 #if !USE_FLASH_SERIAL_UID
-static const u8 my_SerialStr[] = {"0000-0000-0000-0013"}; // "0000-0000-0000-00000"
+static const u8 my_SerialStr[] = {"0000-0000-0000-0015"}; // "0000-0000-0000-00000"
 #endif
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"Tuya"};

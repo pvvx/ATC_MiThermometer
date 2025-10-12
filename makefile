@@ -150,7 +150,8 @@ $(BIN_FILE): $(ELF_FILE)
 	@echo ' '
 	@echo 'Create Zigbee OTA image'
 	@mkdir -p $(ZBO_PATH)
-	@$(PYTHON) $(zb_OTA) $(BIN_FILE) -p $(ZBO_PATH)
+	@$(PYTHON) $(zb_OTA) $(BIN_FILE) -p $(PWD)/zigbee_ota
+	@echo "Zigbee OTA file created in $(PWD)/zigbee_ota"
 	@echo ' '
 
 sizedummy: $(ELF_FILE)
