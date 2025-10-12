@@ -267,6 +267,16 @@ const cfg_t def_cfg = {
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 
+#elif (DEVICE_TYPE == DEVICE_ZBEACON_TH01)
+		.flg2.adv_flags = true,
+		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
+		.flg.comfort_smiley = true,
+		.measure_interval = 4, // * advertising_interval = 10 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
+#endif
+
 #elif DEVICE_TYPE == DEVICE_MJWSD06MMC
 		.flg2.adv_flags = true,
 		.advertising_interval = 80, // multiply by 62.5 ms = 5 sec
