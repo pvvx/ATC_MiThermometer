@@ -296,7 +296,7 @@ In case you want to go back to the original firmware, you can download them here
 |     5.1 | Added settings: "pseudo-random value in the range from 0 to X ms is added to the fixed advInterval so that ad events change over time", "number of transmitted beacons per event". Changed calculation of average battery voltage. Added MJWSD06MMC. |
 |     5.2 | Fix symbol "1" MHO-C401N, fix command "Delete all records", correct fw numbers. Added PLM1 |
 |     5.3 | Correction of OTA operation for Zigbee firmware. Optimization of work with Uart LCD for LYWSD03MMC HW: B1.5, B1.6. Added test version for LYWSD03MMC with new HW (3.2025) |
-|     5.4 beta | MJWSD05MMC(en) date MM/DD or DD/MM. Added [ZG-303Z](https://pvvx.github.io/ZG-303Z/), ZBEACON-TH01. Add CHT8215 to ZTH01 |
+|     5.4 | MJWSD05MMC(en) date MM/DD or DD/MM. Added [ZG-303Z](https://pvvx.github.io/ZG-303Z/), ZBEACON-TH01. Add CHT8215 to ZTH01. Display auto-detection update for LYWSD03MMC B1.6. |
 |     --- |  |
 |     6.0 | Starting with version 6.0, support for non-standard and unregistered in Bluetooth SIG UUIDs and BLE advertising formats will be discontinued. Only [BTHome ver 2](https://bthome.io/) will be supported! |
 

@@ -39,9 +39,12 @@
 
 ### From [devbis Zigbee](https://github.com/devbis/z03mmc) firmware to BLE:
 
-db15-0203-99993001-ATC_vxx.zigbee
+db15-0203-99993001-ATC_vxx.zigbee New version devbis Zigbee to BLE
+
+1141-0203-99993001-ATC_vxx.zigbee Old version devbis Zigbee to BLE
 
 * Index file: devbis2ble.json
+
 
 ### TS0201-TZ3000 From Tuya Zigbee firmware to BLE:
 
@@ -78,4 +81,11 @@ db15-0203-99993001-ATC_vxx.zigbee
 1286-0203-10983001-ZG227ZBLE_xxx.zigbee Tuya ZG-227Z Zigbee to BLE
 
 * Index file: zg227z_tuya2ble.json
+
+### ZBTH01 From Tuya Zigbee firmware to BLE:
+
+1286-0202-10533607-ZBTH01BLE_vxx.zigbee  Tuya ZBTH01 Zigbee to BLE
+
+* Index file: zbth01_tuya2ble.json
+
 

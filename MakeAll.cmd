@@ -102,6 +102,7 @@ make -s -j PROJECT_NAME=ZG303Z%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZG303Z"
 @del /Q "ZBTH01%SWVER%.bin"
 make -s -j PROJECT_NAME=ZBTH01%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZBEACON_TH01"
 @if not exist "ZBTH01%SWVER%.bin" goto :error
+python3 utils\zb_bin_ota.py ZBTH01%SWVER%.bin zigbee_ota\ZBTH01BLE%SWVER% -m0x1286 -i0x0202 -v0x10533607 -s"Tuya to BLE"
 cd .\zigbee_ota\zigpy_ota
 call update.cmd %SWVER%
 cd ..\..

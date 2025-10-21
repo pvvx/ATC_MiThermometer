@@ -20,6 +20,9 @@ echo [] > index.json
 for %%a in (../db15-0203-99993001-*.zigbee) do (
 start /wait node scripts/add.js ../%%a
 )
+for %%a in (../1141-0203-99993001-ATC_*.zigbee) do (
+start /wait node scripts/add.js ../%%a
+)
 copy /Y index.json ..\devbis2ble.json
 
 echo [] > index.json
@@ -45,6 +48,14 @@ for %%a in (../1002-0203-60993001-ZYZTH02PBLE_*.zigbee) do (
 start /wait node scripts/add.js ../%%a
 )
 copy /Y index.json ..\zyzth02p_tuya2ble.json
+
+echo [] > index.json
+for %%a in (../1286-0202-10533607-ZBTH01BLE_*.zigbee) do (
+start /wait node scripts/add.js ../%%a
+)
+copy /Y index.json ..\zbth01_tuya2ble.json
+
+
 
 del *.zigbee
 del index.json

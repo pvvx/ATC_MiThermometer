@@ -1,7 +1,7 @@
 
 ## ID numbers of alternative firmware.
 
-| HW ID | Zigbee Image Type | Device | BLE FW Name |
+| HW ID | Zigbee Image Type | Device | BLE FW Name (bin files) |
 |--|--|--|--|
 |  0 | 0x0200 =0x020A | LYWSD03MMC-B1.4 | ATC |
 |  1 | 0x0201 | [MHO-C401(old)](https://pvvx.github.io/MHO_C401) | MHO_C401 |
