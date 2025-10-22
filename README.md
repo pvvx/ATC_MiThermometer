@@ -87,7 +87,7 @@ Access to github is already slowing down. Most Internet information resources ha
 
 | Tuya ZigBee<br> [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) | Tuya BLE ["Plant monitor" SGS01](https://pvvx.github.io/PLANT-MON/) | [ZG-303Z](https://pvvx.github.io/ZG-303Z/) HOBEIAN/Sonoff Tuya ZigBee Soil moisture sensor | Tuya Zigbee [ZBEACON-TH01](https://pvvx.github.io/Zbeacon-TH01) |
 |:--:|:--:|:--:|:--:|
-| <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> | <img src="https://pvvx.github.io/PLANT-MON/img/sgs01.jpg" width="40"/> | <img src="https://pvvx.github.io/ZG-303Z/img/ZG-303Zx.jpg" width="40"/> | <img src="https://pvvx.github.io/Zbeacon-TH01/img/ZBeaconTH01.jpg" width="40"/> |
+| <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> | <img src="https://pvvx.github.io/PLANT-MON/img/sgs01.jpg" width="40"/> | <img src="https://pvvx.github.io/ZG-303Z/img/ZG-303Zx.jpg" width="40"/> | <img src="https://pvvx.github.io/Zbeacon-TH01/img/ZBeaconTH01.jpg" width="120"/> |
 | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | modification required |  Programmator/Zigbee OTA |  Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 | ZG227Z_vNN.bin | PLM1_vNN.bin | ZG303Z_vNN.bin | ZBTH01_vNN.bin |
