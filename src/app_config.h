@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x54	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x55	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 // DevID:
@@ -2315,12 +2315,12 @@ extern "C" {
 #define ZIGBEE_TUYA_OTA   1
 #define USE_EPD            0 // min update time ms
 
-#define USE_SENSOR_CHT8305      0
+#define USE_SENSOR_CHT8305      1
 #define USE_SENSOR_CHT8215      0
-#define USE_SENSOR_AHT20_30     0
+#define USE_SENSOR_AHT20_30     1
 #define USE_SENSOR_SHT4X        1
 #define USE_SENSOR_SHTC3        0
-#define USE_SENSOR_SHT30        0
+#define USE_SENSOR_SHT30        1
 
 #define SHL_ADC_VBAT        1  // "B0P" in adc.h
 #define GPIO_VBAT           GPIO_PB0 // missing pin on TLSR8253F512ET32

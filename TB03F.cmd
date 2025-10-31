@@ -1,5 +1,5 @@
 @Path=E:\Telink\SDK;E:\Telink\SDK\jre\bin;E:\Telink\SDK\opt\tc32\tools;E:\Telink\SDK\opt\tc32\bin;E:\Telink\SDK\usr\bin;E:\Telink\SDK\bin;%PATH%
-@set SWVER=_v54
+@set SWVER=_v55
 @set FW_NAME=TB_INA226%SWVER%
 @del /Q "%FW_NAME%.bin"
 make -s -j PROJECT_NAME=%FW_NAME% POJECT_DEF="-DDEVICE_TYPE=DEVICE_TB03F -DUSE_SENSOR_INA226=1"
