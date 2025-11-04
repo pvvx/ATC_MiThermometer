@@ -3,7 +3,8 @@
 **Warning:** 
 * [Firmware version 2.1.1_0159 requires registration in MI-Home and obtaining IDs](https://github.com/pvvx/ATC_MiThermometer/issues/602#issue-2786915630).
 * Xiaomi LYWSD03MMC version B1.6 released since 2025.03 are not recommended for purchase due to [high current consumption](https://github.com/pvvx/ATC_MiThermometer/issues/664#issuecomment-3092344109
-) and [low-contrast display](https://github.com/pvvx/ATC_MiThermometer/discussions/663#discussioncomment-13440647).
+) and [low-contrast display](https://github.com/pvvx/ATC_MiThermometer/discussions/663#discussioncomment-13440647). 
+New Xiaomi LYWSD03MMC with HW B1.6 use the original firmware, which is incompatible with all older HW versions. Follow the [instructions](https://github.com/pvvx/ATC_MiThermometer/issues/602) for the first OTA update.
 
 Please post questions about using and setting up [Home Assistant](https://www.home-assistant.io/) integrations on the appropriate resources!
 
