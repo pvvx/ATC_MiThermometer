@@ -86,12 +86,12 @@ Access to github is already slowing down. Most Internet information resources ha
 |TS0201_vNN.bin | TH03Z_vNN.bin | ZTH01_vNN.bin | ZTH02_vNN.bin | ZYZTH02_vNN.bin |
 
 
-| Tuya ZigBee<br> [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) | Tuya BLE ["Plant monitor" SGS01](https://pvvx.github.io/PLANT-MON/) | [ZG-303Z](https://pvvx.github.io/ZG-303Z/) HOBEIAN/Sonoff Tuya ZigBee Soil moisture sensor | Tuya Zigbee [ZBEACON-TH01](https://pvvx.github.io/Zbeacon-TH01) |
-|:--:|:--:|:--:|:--:|
-| <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> | <img src="https://pvvx.github.io/PLANT-MON/img/sgs01.jpg" width="40"/> | <img src="https://pvvx.github.io/ZG-303Z/img/ZG-303Zx.jpg" width="40"/> | <img src="https://pvvx.github.io/Zbeacon-TH01/img/ZBeaconTH01.jpg" width="120"/> |
-| Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | modification required |  Programmator/Zigbee OTA |  Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
-| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
-| ZG227Z_vNN.bin | PLM1_vNN.bin | ZG303Z_vNN.bin | ZBTH01_vNN.bin |
+| Tuya ZigBee<br> [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) | Tuya BLE ["Plant monitor" SGS01](https://pvvx.github.io/PLANT-MON/) | [ZG-303Z](https://pvvx.github.io/ZG-303Z/) HOBEIAN/Sonoff Tuya ZigBee Soil moisture sensor | Tuya Zigbee [ZBEACON-TH01](https://pvvx.github.io/Zbeacon-TH01) | Tuya Zigbee [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC) |
+|:--:|:--:|:--:|:--:|:--:|
+| <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> | <img src="https://pvvx.github.io/PLANT-MON/img/sgs01.jpg" width="40"/> | <img src="https://pvvx.github.io/ZG-303Z/img/ZG-303Zx.jpg" width="40"/> | <img src="https://pvvx.github.io/Zbeacon-TH01/img/ZBeaconTH01.jpg" width="100"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/refs/heads/master/ZY-ZTH02/img/ZY-ZTH02.jpg" width="100"/> |
+| Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | modification required |  Programmator/Zigbee OTA |  Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
+| BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
+| ZG227Z_vNN.bin | PLM1_vNN.bin | ZG303Z_vNN.bin | ZBTH01_vNN.bin | ZB_MC_vNN.bin |
 
 * Tuya devices (SOC PHY62x2)
 
@@ -298,7 +298,7 @@ In case you want to go back to the original firmware, you can download them here
 |     5.2 | Fix symbol "1" MHO-C401N, fix command "Delete all records", correct fw numbers. Added PLM1 |
 |     5.3 | Correction of OTA operation for Zigbee firmware. Optimization of work with Uart LCD for LYWSD03MMC HW: B1.5, B1.6. Added test version for LYWSD03MMC with new HW (3.2025) |
 |     5.4 | MJWSD05MMC(en) date MM/DD or DD/MM. Added [ZG-303Z](https://pvvx.github.io/ZG-303Z/), ZBEACON-TH01. Add CHT8215 to ZTH01. Display auto-detection update for LYWSD03MMC B1.6. |
-|     beta 5.5 | ZBEACON-TH01 add CHT8305 |
+|     beta 5.5 | Added ZBEACON-MC |
 |     --- |  |
 |     6.0 | [Starting with version 6.0](https://github.com/pvvx/ATC_MiThermometer/issues/727), support for non-standard and unregistered in Bluetooth SIG UUIDs and BLE advertising formats will be discontinued. Only [BTHome ver 2](https://bthome.io/) will be supported! |
 
