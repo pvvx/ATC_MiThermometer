@@ -45,4 +45,6 @@
 | 39 | 0x0227 | [ZG-227Z](https://pvvx.github.io/ZG-227Z) TS0601_TZE200_a8sdabtg | ZG227Z |
 | 44 | 0x022C | [ZG-303Z](https://pvvx.github.io/ZG-303Z) - HOBEIAN ZG-303Z Sonoff/Tuya ZigBee Soil moisture sensor | ZG303Z |
 | 45 | 0x022D | [ZBEACON-TH01](https://pvvx.github.io/Zbeacon-TH01) | ZBTH01 |
+| 46 | 0x022E | [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC) | ZB_MC |
+
 
