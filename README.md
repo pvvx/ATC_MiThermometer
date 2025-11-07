@@ -88,7 +88,7 @@ Access to github is already slowing down. Most Internet information resources ha
 
 | Tuya ZigBee<br> [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) | Tuya BLE ["Plant monitor" SGS01](https://pvvx.github.io/PLANT-MON/) | [ZG-303Z](https://pvvx.github.io/ZG-303Z/) HOBEIAN/Sonoff Tuya ZigBee Soil moisture sensor | Tuya Zigbee [ZBEACON-TH01](https://pvvx.github.io/Zbeacon-TH01) | Tuya Zigbee [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC) |
 |:--:|:--:|:--:|:--:|:--:|
-| <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> | <img src="https://pvvx.github.io/PLANT-MON/img/sgs01.jpg" width="40"/> | <img src="https://pvvx.github.io/ZG-303Z/img/ZG-303Zx.jpg" width="40"/> | <img src="https://pvvx.github.io/Zbeacon-TH01/img/ZBeaconTH01.jpg" width="100"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/refs/heads/master/ZY-ZTH02/img/ZY-ZTH02.jpg" width="100"/> |
+| <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> | <img src="https://pvvx.github.io/PLANT-MON/img/sgs01.jpg" width="40"/> | <img src="https://pvvx.github.io/ZG-303Z/img/ZG-303Zx.jpg" width="40"/> | <img src="https://pvvx.github.io/Zbeacon-TH01/img/ZBeaconTH01.jpg" width="80"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/refs/heads/master/ZY-ZTH02/img/ZY-ZTH02.jpg" width="100"/> |
 | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | modification required |  Programmator/Zigbee OTA |  Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 | ZG227Z_vNN.bin | PLM1_vNN.bin | ZG303Z_vNN.bin | ZBTH01_vNN.bin | ZB_MC_vNN.bin |
@@ -571,7 +571,7 @@ Alternative programmers:
 > * SHTV3 sensor. Measurement range: Temperature -40°C to +125°C, Humidity 0 to 100 %RH. Power supply: 1.8V to 3.6V
 > * IST3055NA0 LCD controller 
 
-[LYWSD03MMC B1.4 B1.5 BoardPinout](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout)
+[LYWSD03MMC B1.4 B1.5](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout) [B1.6](https://pvvx.github.io/ATC_MiThermometer/) BoardPinout
 
 ![TabPins](https://github.com/pvvx/ATC_MiThermometer/blob/master/BoardPinout/TabPins.gif)
 
@@ -591,13 +591,13 @@ For LYWSD03MMC, the HW version is determined by the display and sensor addresses
 
 Version 1.7 or 2.0 is determined at first run by reading the HW line written in Flash.
 Display matrices or controllers are different for all versions, except B1.7 = B2.0.
-To eliminate the confusion created by Xiaomi with identical HW numbers, the internal number B1.1 is used for new B1.6 versions in the alternative firmware.
+To eliminate the confusion created by Xiaomi with identical HW numbers, the internal number B1.1 is used for [new B1.6 versions](https://github.com/pvvx/ATC_MiThermometer/issues/664) in the alternative firmware.
 
 #### Building the firmware
 
 Windows:
 
-1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and get the IDE for TLSR8 Chips.
+1. Go to [wiki.telink-semi.cn](http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/) and get the [Telink IDE](https://wiki.telink-semi.cn/tools_and_sdk/Tools/IDE/Telink_IDE.zip) for TLSR8 Chips.
 2. Install the IDE and import the 'ATC_MiThermometer' project
 3. Compile the project
 
