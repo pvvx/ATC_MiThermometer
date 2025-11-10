@@ -71,7 +71,7 @@ const u8 display_numbers[] = {
 const u8 display_small_numbers[] = {
         //76543210
 		0b11111010, // 0
-		0b00001010, // 1
+		0b01100000, // 1
 		0b11010110, // 2
 		0b11110100, // 3
 		0b01101100, // 4
