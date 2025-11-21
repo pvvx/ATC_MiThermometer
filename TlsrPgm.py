@@ -16,16 +16,16 @@ import io
 
 __progname__ = 'TLSR82xx TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '27.04.25'
+__version__ = '20.11.25'
 
 DEFAULT_UART_BAUD = 230400
 
 FLASH_SECTOR_SIZE = 4096
 
-def signal_handler(signal, frame):
-	print()
-	print('Keyboard Break!')
-	sys.exit(1)
+sws_flg = 2
+sws_addr = 0
+sws_enable = False
+pgm = {}
 
 crctable = (
 0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
@@ -122,6 +122,7 @@ class TLSRPGM:
 	CMD_SWIRE_FIFO_FWRITE = 12
 	CMD_FLASH_WRRD = 13
 	CMD_FLASH_RDCRC = 14 # FW ver >= 0.0.0.3
+	CMD_SDI_PRINTF = 15 # FW ver >= 0.0.0.4
 
 	CMDF_GET_VERSION = 0
 	CMDF_MCU_REBOOT = 1
@@ -312,6 +313,8 @@ class TLSRPGM:
 			self.pgm_clk = 32
 			self.pgm_chip = '?'
 		print('PGM: ChipID: 0x%04x (%s), ver:' % (self.pgm_cid, self.pgm_chip), bcd2str(self.pgm_version))
+		if self.pgm_ver_int < 4:
+			print('Attention: this program requires PGM version 0.0.0.4 or higher!')
 		self.pgm_swsps = self.pgm_clk/5/self.pgm_swdiv
 		print('swdiv %d, addrlen %d, swbuf [%s], ' % (self.pgm_swdiv, self.pgm_swaddrlen, hex2str(self.pgm_swbuf)), end = '')
 		if self.pgm_pwr != 0:
@@ -886,6 +889,59 @@ class TLSRPGM:
 			print('\r\nError unlock Flash!') 
 			return None
 		return ret
+	def SwsPrintf(self, offset = 0, flg = 1):
+		offset &= 0xffffff
+		if flg == 0:
+			wdata = 0xff
+			s = 'Close '
+		elif flg == 1:
+			wdata = 0
+			s = 'Open '
+		elif flg == 2:
+			s = 'Continue '
+			flg = 2
+		else:
+			s = 'Next '
+			flg = 3
+		sws_addr = offset
+		sws_flg = flg
+		if flg < 2:
+			print('%sSWS Printf at SRAM address 0x%06x...' % (s, offset), end = '')
+			data = self.command(struct.pack('<BBHB', self.CMD_SDI_PRINTF, offset & 0xff, (offset>>8) & 0xffff, wdata), 6)
+			if data == None or self.wcnt != 1:
+				print('error!', flush=True)
+				return False
+			print('ok')
+			if flg == 0:
+				return True
+		if flg == 2:
+			print('%sSWS Printf at SRAM address 0x%06x...' % (s, offset), end = '')
+			data = self.command(struct.pack('<BBH', self.CMD_SDI_PRINTF, offset & 0xff, (offset>>8) & 0xffff), 6)
+			if data == None or self.wcnt != 0:
+				print('error!', flush=True)
+				return False
+			print('ok')
+			if flg == 0:
+				return True
+		self._port.timeout = 0.01
+		sws_enable = True
+		while sws_enable: #TODO
+			try:
+				rblk = self._port.read(254)
+			except:
+				#print('Error read %s!' % (self.port))
+				return False
+			if len(rblk) != 0:
+				#ascii_string = rblk.decode(errors='ignore')
+				print(rblk.decode(errors='ignore'), end = '', flush=True)
+		return True
+
+def signal_handler(signal, frame):
+	print()
+	print('Keyboard Break!')
+	sws_enable = False #TODO
+	sys.exit(1)
+
 #============================= 
 # main()
 #============================= 
@@ -1005,8 +1061,26 @@ def main():
 	parser_write_flash = subparsers.add_parser(
 			'ws',
 			help='Write file to Swire addres')
-	parser_write_flash.add_argument('address', help='Start address', type=arg_auto_int)
+	parser_write_flash.add_argument('address', help='Starting address for write', type=arg_auto_int)
 	parser_write_flash.add_argument('filename', help='Name of binary file')
+
+	parser_write_flash = subparsers.add_parser(
+			'wsb',
+			help='Write byte to Swire addres')
+	parser_write_flash.add_argument('address', help='Write address', type=arg_auto_int)
+	parser_write_flash.add_argument('value', help='byte (8 bits)', type=arg_auto_int)
+
+	parser_write_flash = subparsers.add_parser(
+			'wsw',
+			help='Write 16-bit word to Swire address')
+	parser_write_flash.add_argument('address', help='Write address', type=arg_auto_int)
+	parser_write_flash.add_argument('value', help='short word (16 bits)', type=arg_auto_int)
+
+	parser_write_flash = subparsers.add_parser(
+			'wsd',
+			help='Write 32-bit word to Swire address')
+	parser_write_flash.add_argument('address', help='Write address', type=arg_auto_int)
+	parser_write_flash.add_argument('value', help='word (32 bits)', type=arg_auto_int)
 
 	parser_read_flash = subparsers.add_parser(
 			'ra',
@@ -1043,6 +1117,10 @@ def main():
 			help='Show uit32 register or SRAM addres')
 	parser_read_flash.add_argument('address', help='address (PC - 0x6bc)', type=arg_auto_int)
 	parser_read_flash.add_argument('time', help='time (sec)', type=arg_auto_int)
+	parser_read_flash = subparsers.add_parser(
+			'sws',
+			help='SWS Printf (PGM version >= 0.0.0.4 is used)')
+	parser_read_flash.add_argument('address', help='SRAM address, (Ctrl-C - exit)', type=arg_auto_int)
 
 	args = parser.parse_args()
 	print('=======================================================')
@@ -1263,6 +1341,34 @@ def main():
 		#	sys.exit(1)
 		#print('ok')
 		if not pgm.TestDebugPC(args.time, args.address):
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'sws':
+		if not pgm.SwsPrintf(args.address):
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'wsb':
+		offset = args.address & 0x00ffffff
+		b = args.value & 0xff
+		print('Write byte 0x%02x to 0x%06x...' % (b, offset))
+		ret = pgm.WriteRegsData(offset, struct.pack("<B", b))
+		if ret == None:
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'wsw':
+		offset = args.address & 0x00ffffff
+		sw = args.value & 0xffff
+		print('Write 16 bits word 0x%04x to 0x%06x...' % (sw, offset))
+		ret = pgm.WriteRegsData(offset, struct.pack("<H", sw))
+		if ret == None:
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'wsd':
+		offset = args.address & 0x00ffffff
+		dw = args.value & 0xffffffff
+		print('Write 32 bits word 0x%08x to 0x%06x...' % (dw, offset))
+		ret = pgm.WriteRegsData(offset, struct.pack("<I", dw))
+		if ret == None:
 			pgm.close()
 			sys.exit(1)
 	else:

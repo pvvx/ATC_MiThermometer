@@ -531,15 +531,15 @@ Setting the "Connect" option has several functions:
 
 ### The USB-COM adapter writes the firmware in explorer. Web version.
 
-[USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html) - Uses a partial imitation of the `Telink 1-Wire` protocol on a USB-UART adapter, but only for transmission to the chip.
+[USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html) - Uses a partial imitation of the [Telink SWire](https://github.com/pvvx/TLSRPGM/tree/main/TelinkSWire) protocol on a USB-UART adapter, but only for transmission to the chip.
 
-For programming and debugging, the chip uses a special hardware protocol `Telink 1-Wire` (not even close to UART!).
+For programming and debugging, the chip uses a special hardware protocol [Telink SWire](https://github.com/pvvx/TLSRPGM/tree/main/TelinkSWire) (not even close to UART!).
 
 To match the frequencies of the Telink 1-Wite bus, no change in Baud-rate is required.
 
 While the chip is sleeping and when the SWS pin is reassigned, there is no access to programming.
 
-You can restore communication via “Telink 1-Wire” by rebooting the chip and sending a command to stop the CPU. This is called "Activation".
+You can restore communication via [Telink SWire](https://github.com/pvvx/TLSRPGM/tree/main/TelinkSWire) by rebooting the chip and sending a command to stop the CPU. This is called "Activation".
 
 The [USBCOMFlashTx.html](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html) program does not have feedback - it does not receive data from the chip. This is a simplified version and only works if all connections are made correctly.
 
@@ -592,6 +592,12 @@ For LYWSD03MMC, the HW version is determined by the display and sensor addresses
 Version 1.7 or 2.0 is determined at first run by reading the HW line written in Flash.
 Display matrices or controllers are different for all versions, except B1.7 = B2.0.
 To eliminate the confusion created by Xiaomi with identical HW numbers, the internal number B1.1 is used for [new B1.6 versions](https://github.com/pvvx/ATC_MiThermometer/issues/664) in the alternative firmware.
+
+Currently, of all LYWSD03MMC hardware versions, only B1.4, B1.7, B1.9, and B2.0 are considered normal. Versions B1.5 and B1.6 are defective, with a non-standard display controller and increased power consumption.
+The ability to turn off the display with a significant reduction in power consumption is only possible on version B1.9.
+The remaining variants do not have sleep commands for the display controller.
+
+LYWSD03MMC is no longer recommended for purchase due to low display contrast and the increasing number of defective Xiaomi hygrometers on sale.
 
 #### Building the firmware
 
