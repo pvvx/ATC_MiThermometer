@@ -38,6 +38,8 @@
 
 * [Full table](https://github.com/pvvx/pvvx.github.io/blob/master/README.md)
 
+* [ZigbeeTLc Index Configurator for Zigbee OTA](https://pvvx.github.io/ATC_MiThermometer/ZigbeeTlcIdxOTA.html)
+
 ### From [devbis Zigbee](https://github.com/devbis/z03mmc) firmware to BLE:
 
 db15-0203-99993001-ATC_vxx.zigbee New version devbis Zigbee to BLE

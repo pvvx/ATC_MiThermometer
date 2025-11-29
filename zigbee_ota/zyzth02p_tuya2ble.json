@@ -5,6 +5,7 @@
         "manufacturerCode": 4098,
         "imageType": 515,
         "sha512": "ea36740c76605fa3919e245257e40023027e25790a58b79c0ba57b5386e172cff8ce413ef895f08310af3bcaea39fbea4960fe026cacfe1c871bb9ed0fcad77c",
+        "otaHeaderString": "Tuya to BLE",
         "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1002-0203-60993001-ZYZTH02PBLE_v55.zigbee"
     }
 ]

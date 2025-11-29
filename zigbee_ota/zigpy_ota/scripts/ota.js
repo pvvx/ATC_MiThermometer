@@ -21,7 +21,7 @@ function parseImage(rawBuffer) {
         imageType: buffer.readUInt16LE(12),
         fileVersion: buffer.readUInt32LE(14),
         zigbeeStackVersion: buffer.readUInt16LE(18),
-        otaHeaderString: buffer.toString('utf8', 20, 52),
+        otaHeaderString: buffer.toString('utf8', 20, 52).split('\u0000')[0],
         totalImageSize: buffer.readUInt32LE(52),
     };
     let headerPos = 56;

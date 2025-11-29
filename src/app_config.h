@@ -69,7 +69,7 @@ extern "C" {
 //#define TEST_PLM1 			1  // TB03F My Plant monitor
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_ZB_MC
+#define DEVICE_TYPE			DEVICE_TB03F
 #endif
 
 // supported services by the device (bits)
@@ -1529,7 +1529,7 @@ extern "C" {
 		| SERVICE_BINDKEY \
 		| SERVICE_HISTORY \
 		| SERVICE_LE_LR \
-		| SERVICE_THS \
+ 		| SERVICE_THS \
 		| SERVICE_TH_TRG \
 		| SERVICE_RDS \
 		| SERVICE_KEY \
@@ -1537,6 +1537,8 @@ extern "C" {
 		| SERVICE_LED \
 		| SERVICE_18B20 \
 )
+
+//#define SENSOR_SLEEP_MEASURE	0
 
 #elif USE_SENSOR_ENS160 || USE_SENSOR_SCD41
 
@@ -1620,12 +1622,14 @@ extern "C" {
 
 #define USE_EPD					0 // min update time ms
 
+#if (DEV_SERVICES & SERVICE_THS)
 #define USE_SENSOR_CHT8305		1
 #define USE_SENSOR_CHT8215		1
 #define USE_SENSOR_AHT20_30		1
 #define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		0	// = 0!
 #define USE_SENSOR_SHT30		1
+#endif
 
 #define USE_CUSTOM_BEACON	0	// = 0!
 #define USE_BTHOME_BEACON	1 	// = 1 BTHome v2 https://bthome.io/

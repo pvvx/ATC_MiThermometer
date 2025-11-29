@@ -138,13 +138,13 @@ $(ELF_FILE): $(OBJS) $(USER_OBJS)
 
 $(LST_FILE): $(ELF_FILE)
 	@echo 'Invoking: TC32 Create Extended Listing'
-	@$(TC32_PATH)tc32-elf-objdump -x -D -l -S  $(ELF_FILE)  > $(LST_FILE)
+	@$(TC32_PATH)tc32-elf-objdump -x -D -l -S  $(ELF_FILE) > $(LST_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 $(BIN_FILE): $(ELF_FILE)
 	@echo 'Create Flash image (binary format)'
-	@$(TC32_PATH)tc32-elf-objcopy -v -O binary $(ELF_FILE)  $(BIN_FILE)
+	@$(TC32_PATH)tc32-elf-objcopy -v -O binary $(ELF_FILE) $(BIN_FILE)
 	@$(PYTHON) $(TL_Check) $(BIN_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '

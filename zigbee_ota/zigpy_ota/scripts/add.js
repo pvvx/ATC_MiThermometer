@@ -2,10 +2,9 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const tls = require('tls');
-const ota = require('../lib/ota');
+const ota = require('./ota');
 const filenameOrURL = process.argv[2];
-const modelId = process.argv[3];
-const baseURL = 'https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota';
+const baseURL = process.argv[3];
 const caCerts = './cacerts.pem';
 
 const manufacturerNameLookup = {
@@ -37,12 +36,12 @@ const manufacturerNameLookup = {
     4742: 'Sonoff',
     4747: 'NodOn',
     4919: 'Datek',
-    10132: 'ClimaxTechnology',
-    26214: 'Sprut.device',
     4877: 'thirdreality',
     4636: 'Aurora',
-    56085: 'DIY',
     5127: '3R',
+    26214: 'Sprut.device',
+    10132: 'ClimaxTechnology',
+    60000: 'Telink-pvvx',
 };
 
 const main = async () => {
@@ -114,6 +113,9 @@ const main = async () => {
 
         const hash = crypto.createHash('sha512');
         hash.update(buffer);
+        const hdString = parsed.header.otaHeaderString;
+        const hdmanufacturer = [hdString.split(':')[0]];
+        const modelId = hdString.split(':')[1];
 
         const entry = {
             fileVersion: parsed.header.fileVersion,
@@ -121,10 +123,13 @@ const main = async () => {
             manufacturerCode: parsed.header.manufacturerCode,
             imageType: parsed.header.imageType,
             sha512: hash.digest('hex'),
+            otaHeaderString: hdString,
+            //manufacturerName: manufacturerName,
         };
 
         if (modelId) {
             entry.modelId = modelId;
+            entry.manufacturerName = hdmanufacturer;
         }
 
         if (isURL) {
