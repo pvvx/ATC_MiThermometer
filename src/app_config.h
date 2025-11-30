@@ -69,7 +69,7 @@ extern "C" {
 //#define TEST_PLM1 			1  // TB03F My Plant monitor
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_TB03F
+#define DEVICE_TYPE			DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
@@ -565,21 +565,19 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PA6 RDS1_PULLUP
 
 #define GPIO_LCD_URX 		UART_TX_PD7  // UART RX LCD old B1.6
+#define GPIO_LCD_CLK 		GPIO_PD7  	 // SPI-CLK LCD new B1.6
 #define GPIO_LCD_UTX 		UART_RX_PB7  // UART TX LCD old B1.6
-#define GPIO_LCD_CLK 		GPIO_PD7  //(not change!) SPI-CLK LCD new B1.6
-#define GPIO_LCD_SDI 		GPIO_PB7  //(not change!) SPI-SDI LCD new B1.6
+#define GPIO_LCD_SDI 		GPIO_PB7  	 // SPI-SDI LCD new B1.6
 
 #define PD7_INPUT_ENABLE	1
-#define PD7_DATA_OUT		1
-#define PD7_OUTPUT_ENABLE	1
+#define PD7_DATA_OUT		0
+#define PD7_OUTPUT_ENABLE	0
 #define PD7_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX (B1.6)
 
 #define PB7_INPUT_ENABLE	1
-#define PB7_DATA_OUT		1
+#define PB7_DATA_OUT		0
 #define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
-#define PULL_WAKEUP_SRC_PB7	PM_PIN_PULLUP_1M // SPI CLK (B1.6 new), UART RX
 
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 
