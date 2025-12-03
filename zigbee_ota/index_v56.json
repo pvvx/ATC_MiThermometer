@@ -1,0 +1,245 @@
+[
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83986,
+        "manufacturerCode": 4417,
+        "imageType": 513,
+        "sha512": "f81144a54fcdde9512ac3e20bfc50c023ec7e40e135fdd6ebb60940428bbb931631fe20115f5b63e04370a90c0b1fdffd225a961d55216ff0837c3ebbd6aef84",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0201-99993001-MHO_C401_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 84162,
+        "manufacturerCode": 4417,
+        "imageType": 514,
+        "sha512": "fc193a834eadc284b2db0ff5bac17c0540a847ecd097d30555dac87d210f8b41a77c6208c733bb2ca430758ac23c78cc654122bbb958238cc6d8d274a49ecc44",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0202-99993001-CGG1_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 86786,
+        "manufacturerCode": 4417,
+        "imageType": 515,
+        "sha512": "73561a1fe7bb5854c5f27783808a8e96727fe48b6b1418e805dbd3b05f273ed6a841cd9a09eb87e661850f385e756179ea39268397fe17232a4ef6550377879d",
+        "otaHeaderString": "Zigbee devis to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0203-99993001-ATC_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 82994,
+        "manufacturerCode": 4417,
+        "imageType": 518,
+        "sha512": "5097011e26532339eee22da503052a1667ca0b2ca7b3c4562ce4663cea711846a0325b971343d0fc80f598083503725172840540b10bfad40b0142d5221c16a4",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0206-99993001-CGDK2_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83362,
+        "manufacturerCode": 4417,
+        "imageType": 519,
+        "sha512": "84d0b8def0b17ac2bf5581ec5eddacd0e79857ba1e06ec7928df71098e5433dcec761913655f1f5e39ea34f4a21726f74c92c577c65693ba99b343c36564e502",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0207-99993001-CGG1M_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 83202,
+        "manufacturerCode": 4417,
+        "imageType": 520,
+        "sha512": "1b5c0eeb809c797b7cf71af5ce01028ce8a9c91da418be33df27ccb042fa70e67edeae11b8331aed8f48800b804347c94b1604c165598e74352698a20631b283",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0208-99993001-MHO_C401N_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 86066,
+        "manufacturerCode": 4417,
+        "imageType": 521,
+        "sha512": "6f517dff699ef73a8d9017316ce665eafc4f008402ea6487918a238e67ce4281a5189a111764adfe242bc8a51f035b46bc804cf84d8f66439c2dacd968605ce7",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0209-99993001-BTH_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 86786,
+        "manufacturerCode": 4417,
+        "imageType": 522,
+        "sha512": "f0cb8625257dfff57b8582eb245d6c1a2452c863c27ecf01438c14863db590ba2145384f0279f271083c8202b63a4d49411247486441685aa682d55991c20720",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-020a-99993001-ATC_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 82610,
+        "manufacturerCode": 4417,
+        "imageType": 523,
+        "sha512": "0582a7023eb28d44388d7095a40fa1b3e946c7c687e0300e102db5ce8bc53d1c5a27aff6f9697486e6f8cf7d6812847977bd9fe6cc4230a95ddd20a36a3037ac",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-020b-99993001-MHO_C122_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 85826,
+        "manufacturerCode": 4417,
+        "imageType": 524,
+        "sha512": "da0e6f737d494e16749a2f999f4d34b5a9ebb228e8007011fa33dd2af7b62638ca1449fedde40a0d9dcca481492018d051a2945ffc649c061d3655e6a0e2773f",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-020c-99993001-BTE_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 81538,
+        "manufacturerCode": 4417,
+        "imageType": 525,
+        "sha512": "ab618941ca92da77cf114a9d1b5089e414588a720a2d88eb1f06ddf9b2f1626a138da43c35a91ee46eaf289e758f1cb61eea070478f122fdd244742e55aab2c6",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-020d-99993001-MJ6_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 74546,
+        "manufacturerCode": 4417,
+        "imageType": 528,
+        "sha512": "06283e50fbcf7f74c068e5c671615b50028ad7c022025a4845292998c2ba8483d52519e700d5323f695a548bccde1f2687c994d485bbbc66218f74974aa11b18",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0210-99993001-TB_SCD41_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79538,
+        "manufacturerCode": 4417,
+        "imageType": 529,
+        "sha512": "6a04c1949f99cad7fdf7a287be93bf08b39601f3ff2084c159aa4d536b5fe2fef667c5ab40ffcbd4fecc650d78d02e9f18f5e4b725dcd9f9ca18830bc67dbf0b",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0211-99993001-TS0201_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 76290,
+        "manufacturerCode": 4417,
+        "imageType": 530,
+        "sha512": "b1a7dbe6ea923d0cb02e6da33c76562cda34c0555508ff9320331f7c62f491cc8b0e9441865b79b9d2b40a64381f7af710b29351d8ec6e5b97250fd40845584a",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0212-99993001-TNK01_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79538,
+        "manufacturerCode": 4417,
+        "imageType": 534,
+        "sha512": "a1540938e53f93618804c138195b19526ad83b076061fc7b053827d7b3f731278cd3642f5633c73cb3ce4af8ee4b2d4e468585319588e88bc2483596eb0b2db5",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0216-99993001-TH03Z_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79634,
+        "manufacturerCode": 4417,
+        "imageType": 539,
+        "sha512": "515937cb7fbb0e6b9e71f44187c0e7a6dc5d717c20b90372c69d61b64f89a6de24a0081f3b1f774dbf4e8d4205e1600a0460c600d95b165b4458a3b1a39105bd",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021b-99993001-ZTH01_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79634,
+        "manufacturerCode": 4417,
+        "imageType": 540,
+        "sha512": "6fb7a30e4d0081f8c24e041a2a8406e5522daf5d4541cfa57046a371c2f62386d89e871bd18d785262e3f3cff88cc2fc3795e26ce6f8ea658d99c9ccd564f585",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021c-99993001-ZTH02_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 74146,
+        "manufacturerCode": 4417,
+        "imageType": 541,
+        "sha512": "98e6605ccd72cc53a38f16221c9ef76da72b77edc793b5a8dbee3aad7ead39604148d6c5232ec21259cb63d6dad5416b24b509c8382347c93e7ddf1fe3214a4d",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021d-99993001-TB_PLM_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 80482,
+        "manufacturerCode": 4417,
+        "imageType": 542,
+        "sha512": "402ccf396883f306c939bc3002a287227c89d9c2a8ac96a37d0ab5a2fe118977c31243eee348df6851e28e2166c6e3477e474cec711ed8354d0cc422843550cf",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021e-99993001-TH03_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 80786,
+        "manufacturerCode": 4417,
+        "imageType": 543,
+        "sha512": "1413f45171c66939499cbf2f760f51eaf1500b1bcfcc751edfa025e2d91be39bca96ecacdba570550a8e53a00fdde45cf832938390da7c1656c1615df231a229",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-021f-99993001-LKTMZL02_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 80898,
+        "manufacturerCode": 4417,
+        "imageType": 545,
+        "sha512": "829e62e3fcbaecad9db56de2032b44870c095d41ee2cf7a2fd6a17dcb0befc043bd6409eb476e7d5ed9b8abe0f97e5da011ffc2ff104441aea5560bd1ba5c863",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0221-99993001-ZTH05_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 77186,
+        "manufacturerCode": 4417,
+        "imageType": 549,
+        "sha512": "934cc2d1d2822bc851ee0d755317f0d62355e6be893b5a78786e03f27fe7f754e0bcbb62f7994790eea764c4afe033459f68b592ef81dfd6188e1ec1740f73e0",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0225-99993001-ZYZTH02_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79650,
+        "manufacturerCode": 4417,
+        "imageType": 550,
+        "sha512": "14ce8f325b05c2c42c1bd04419b63f8a3fff4492a3bd92cdca4622bd79d7c50c4291a32e7ce273c2c77c087379ac5de9228261b5100001003ec044f488c5e1bb",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0226-99993001-ZYZTH02P_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 75538,
+        "manufacturerCode": 4417,
+        "imageType": 551,
+        "sha512": "9abed69558d0e4e6a7121c300d766e0afcbed21a323fc96205457ae1ef66f30c7d91c76cba033fccb1b0f7d515b58669fb6cf3abada9219c3818bedca3f4667a",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0227-99993001-ZG227Z_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 79906,
+        "manufacturerCode": 4417,
+        "imageType": 556,
+        "sha512": "36405fd11c8cb1e3b1d5e7c4b4be1a0e66c4780dfaba9bdf489e5487239621a7f4bbc6bd335d7143134a8e0f1b3b715a6064c241c441e7c0787b7a5f4ec13744",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-022c-99993001-ZG303Z_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 76994,
+        "manufacturerCode": 4417,
+        "imageType": 557,
+        "sha512": "1b8a3848331adac4c9b8bb8abf3e215090b457657226f71febd6aa3e12fef608ebc2ea75523bde7cc8c4785f7e8b5b9caf1c5c08e685b824c7c04f864aa1ec2a",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-022d-99993001-ZBTH01_v56.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 75842,
+        "manufacturerCode": 4417,
+        "imageType": 558,
+        "sha512": "f73e92e053fb26826c106620b75187794a07716492134e986a044df8bd538facaf7cf05e9d1bd3563edb6fb64fd6d0f48b82e2db70378cb4424bb57ad828ab41",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-022e-99993001-ZB_MC_v56.zigbee"
+    }
+]

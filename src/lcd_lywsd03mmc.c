@@ -79,10 +79,10 @@ typedef struct __attribute__((packed)) _dma_uart_buf_t {
 #if OLD_VER_B16
 	u32 head;
 #endif
-	u8 start;
+	u8 start;  // = 0xAA
 	u8 data[6];
 	u8 chk;
-	u8 end;
+	u8 end;    // = 0x55
 } dma_uart_buf_t;
 
 RAM dma_uart_buf_t utxb;
@@ -156,7 +156,6 @@ static void lcd_send_spi_byte(u8 b) {
 // send spi buffer (new B1.6 (SPI LCD))
 _attribute_ram_code_
 static void lcd_send_spi(void) {
-	BM_CLR(reg_gpio_out(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // CLK down
 	BM_CLR(reg_gpio_oen(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // CLK output enable
 	BM_CLR(reg_gpio_oen(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // SDI output enable
 	unsigned char r = irq_disable();
@@ -164,56 +163,8 @@ static void lcd_send_spi(void) {
 	do {
 		lcd_send_spi_byte(*pd++);
 	} while(pd <= &utxb.end);
-	BM_SET(reg_gpio_oen(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // SDI output disable
-//	gpio_setup_up_down_resistor(GPIO_LCD_CLK, PM_PIN_PULLDOWN_100K); // = GPIO_LCD_URX
-	BM_SET(reg_gpio_oen(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // CLK output disable
 	irq_restore(r);
 }
-
-#if 0 /* Hardware SPI
- *
- * Minimum SPI Clock Frequencies:
- SYS CLK: 16MHz -  SPI: 62.5 kHz
- SYS CLK: 24MHz -  SPI: 93.75 kHz
- SYS CLK: 32MHz -  SPI: 125 kHz
- SYS CLK: 48MHz -  SPI: 187.5 kHz */
-#define SPI_DIV_CLK		0x7F
-/* SPI Mode:
- bit0: CPOL-Clock Polarity
- bit1: CPHA-Clock Phase
- MODE0: CPOL = 0 , CPHA =0
- MODE1: CPOL = 0 , CPHA =1
- MODE2: CPOL = 1 , CPHA =0
- MODE3: CPOL = 1 , CPHA =1 */
-#define SPI_MODE	3
-
-_attribute_ram_code_
-void lcd_send_spi(void) {
-	// B1.5, B1.6 (UART LCD)
-	reg_clk_en0 |= FLD_CLK0_SPI_EN;//enable spi clock
-	// bit0~bit6 set spi clock ; spi clock=system clock/((DivClock+1)*2)
-	// bit7 enables spi function mode
-	reg_spi_sp = SPI_DIV_CLK | FLD_SPI_ENABLE;
-	reg_spi_ctrl |= FLD_SPI_MASTER_MODE_EN; //0x09: bit1 enables master mode
-	reg_spi_inv_clk	&= (~FLD_SPI_MODE_WORK_MODE); // clear spi working mode
-	reg_spi_inv_clk |= SPI_MODE;// select SPI mode, surpport four modes
-
-	reg_pin_i2c_spi_out_en |= (FLD_PIN_PBGROUP_SPI_EN|FLD_PIN_PDGROUP_SPI_EN);
-	reg_pin_i2c_spi_en |= (FLD_PIN_PD7_SPI_EN);
-	reg_pin_i2c_spi_en &= ~(FLD_PIN_PD7_I2C_EN);
-
-	gpio_set_func(GPIO_PB7, AS_SPI);
-	gpio_set_func(GPIO_PD7, AS_SPI);
-	u8 * pd = &utxb.start;
-	do {
-    	reg_spi_data = *pd++;
-        while(reg_spi_ctrl & FLD_SPI_BUSY); //wait writing finished
-    } while(pd <= &utxb.end);
-	BM_SET(reg_gpio_func(GPIO_PB7), GPIO_PB7 & 0xff);
-    reg_clk_en0 &= ~(FLD_CLK0_SPI_EN); // disable spi clock
-}
-#endif // Hardware SPI
-
 //-----------------------
 // B1.5, B1.6 UART LCD
 // UART 38400 BAUD
@@ -234,7 +185,8 @@ void lcd_send_spi(void) {
 
 // B1.5, B1.6 (UART LCD)
 _attribute_ram_code_
-static void lcd_send_uart(int flg_rx) {
+static unsigned char lcd_send_uart(int flg_rx) {
+	unsigned char ret = 0;
 	// init uart
 	reg_clk_en0 |= FLD_CLK0_UART_EN;
 	///reg_clk_en1 |= FLD_CLK1_DMA_EN;
@@ -287,13 +239,14 @@ static void lcd_send_uart(int flg_rx) {
 		do
 		{
 			if(reg_uart_buf_cnt & FLD_UART_RX_BUF_CNT) {
-				utxb.end = reg_uart_data_buf0;
+				ret = reg_uart_data_buf0;
 				break;
 			}
 		} while(!clock_time_exceed(wt, 512));
 	}
 	// set low/off power UART
 	reg_uart_clk_div = 0;
+	return ret;
 }
 
 _attribute_ram_code_
@@ -411,48 +364,34 @@ void init_lcd(void){
 		}
 		return;
 	}
-	// B1.6 (UART/SPI)
 	// Test SPI/UART
 	lcd_set_buf_uart_spi(display_buff);
-	if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) { // B1.5 (UART)
-		gpio_setup_up_down_resistor(GPIO_LCD_UTX, PM_PIN_PULLUP_1M); // = GPIO_LCD_UTX
-		gpio_setup_up_down_resistor(GPIO_LCD_URX, PM_PIN_PULLUP_1M); // = GPIO_LCD_CLK
+	// B1.5 (UART) ?
+	if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
+		// B1.5 (UART)
 		lcd_send_uart(0);
 		return;
 	}
-	// B1.6 (UART/SPI)
+	// B1.6/B1.1 (UART/SPI)
 	// Test SPI/UART ?
-	gpio_setup_up_down_resistor(GPIO_LCD_URX, PM_PIN_PULLDOWN_100K); // = GPIO_LCD_SDI
-	BM_SET(reg_gpio_func(GPIO_LCD_URX), GPIO_LCD_URX & 0xff); // GPIO_PB7 set GPIO pin
-	BM_SET(reg_gpio_oen(GPIO_LCD_URX), GPIO_LCD_URX & 0xff); // LCD_SDI/LCD_URX output disable
-	sleep_us(256);
-	// UART GPIO RX = "0"?
-	if(BM_IS_SET(reg_gpio_in(GPIO_LCD_URX), GPIO_LCD_URX & 0xff) == 0) { // SPI/UART ?
-		// UART GPIO RX = "0"
-		// SPI LCD
-		// gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_PULLUP_1M); // = GPIO_LCD_UTX
-	} else {
-		// UART GPIO RX = "1"
-		for(int i = 0; i < 3; i++) {
-			lcd_send_uart(1);
-			if(utxb.end == 0xAA) {
-				// UART LCD
-				gpio_setup_up_down_resistor(GPIO_LCD_UTX, PM_PIN_PULLUP_1M); // = GPIO_LCD_SDI
-				gpio_setup_up_down_resistor(GPIO_LCD_URX, PM_PIN_PULLUP_1M); // = GPIO_LCD_CLK
-				return; // B1.6, UART LCD
-			}
-			utxb.end = 0x55;
-			sleep_us(512);
+	for(int i = 0; i < 3; i++) {
+		if(lcd_send_uart(1) == 0xAA) {
+			// UART LCD
+			return; // B1.6, UART LCD
 		}
-		// SPI LCD. Restore gpio func for SPI
-		BM_SET(reg_gpio_func(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // GPIO_PB7 set GPIO pin, = GPIO_LCD_UTX
-		BM_SET(reg_gpio_func(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // GPIO_PD7 set GPIO pin, = GPIO_LCD_URX
+		sleep_us(512);
 	}
-	gpio_setup_up_down_resistor(GPIO_LCD_CLK, PM_PIN_PULLDOWN_100K); // = GPIO_LCD_URX
-	gpio_setup_up_down_resistor(GPIO_LCD_SDI, PM_PIN_UP_DOWN_FLOAT); // = GPIO_LCD_UTX
+	// SPI LCD. Restore gpio func for SPI
 	lcd_i2c_addr = N16_I2C_ADDR; // SPI LCD
+	BM_SET(reg_gpio_func(GPIO_LCD_SDI), GPIO_LCD_SDI & 0xff); // GPIO_PB7 set GPIO pin, = GPIO_LCD_UTX
+	BM_SET(reg_gpio_func(GPIO_LCD_CLK), GPIO_LCD_CLK & 0xff); // GPIO_PD7 set GPIO pin, = GPIO_LCD_URX
 	// SPI LCD
-	pm_wait_us(512);
+	// A minimum timeout of 30 ms is required!
+	if(!wrk.ble_connected) {
+		pm_wait_ms(30);
+	} else {
+		sleep_us(512); // next lcd_send_spi() not work...
+	}
 	lcd_send_spi();
 }
 

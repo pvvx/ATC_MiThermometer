@@ -299,6 +299,7 @@ In case you want to go back to the original firmware, you can download them here
 |     5.3 | Correction of OTA operation for Zigbee firmware. Optimization of work with Uart LCD for LYWSD03MMC HW: B1.5, B1.6. Added test version for LYWSD03MMC with new HW (3.2025) |
 |     5.4 | MJWSD05MMC(en) date MM/DD or DD/MM. Added [ZG-303Z](https://pvvx.github.io/ZG-303Z/), ZBEACON-TH01. Add CHT8215 to ZTH01. Display auto-detection update for LYWSD03MMC B1.6. |
 |     5.5 | Added [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC). For LYWSD03MMC B1.6(B1.1) LCD SPI speed has been reduced. Modified initialization of LCD displays for Xiaomi LYWSD03MMC B1.1, B1.5, B1.6. |
+|     5.6 beta | Fix LCD LYWSD03MMC B1.6. |
 |     --- |  |
 |     6.0 | [Starting with version 6.0](https://github.com/pvvx/ATC_MiThermometer/issues/727), support for non-standard and unregistered in Bluetooth SIG UUIDs and BLE advertising formats will be discontinued. Only [BTHome ver 2](https://bthome.io/) will be supported! |
 

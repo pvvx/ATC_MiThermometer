@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x55	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x56	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 // DevID:
@@ -570,14 +570,12 @@ extern "C" {
 #define GPIO_LCD_SDI 		GPIO_PB7  	 // SPI-SDI LCD new B1.6
 
 #define PD7_INPUT_ENABLE	1
-#define PD7_DATA_OUT		0
-#define PD7_OUTPUT_ENABLE	0
 #define PD7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD7 PM_PIN_PULLUP_1M
 
 #define PB7_INPUT_ENABLE	1
-#define PB7_DATA_OUT		0
-#define PB7_OUTPUT_ENABLE	0
 #define PB7_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB7 PM_PIN_PULLUP_1M
 
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD on low temp needs this, its an unknown pin going to the LCD controller chip
 

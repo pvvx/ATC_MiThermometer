@@ -11,6 +11,7 @@ OUT_PATH :=./out
 ZBO_PATH :=./zigbee_ota
 
 PGM_PORT?=COM6
+PGM_PORT_BAUD?=1500000
 
 ifneq ($(TEL_PATH)/components/drivers/8258/gpio_8258.c, $(wildcard $(TEL_PATH)/components/drivers/8258/gpio_8258.c))
 $(error "Please check SDK Path and set TEL_PATH.")
@@ -99,30 +100,30 @@ build: pre-build main-build
 
 
 flash: $(BIN_FILE)
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z11 -a-70 -m -w we 0 $(BIN_FILE)
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -b$(PGM_PORT_BAUD) -z11 -a-70 -m -w we 0 $(BIN_FILE)
 
 # test restore from Zigbee
 flash_zbr: $(BIN_FILE)
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z11 -a-70 -s es 0 0x40000
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) i
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -m we 0x40000 $(BIN_FILE)
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -b$(PGM_PORT_BAUD) -z11 -a-70 -s es 0 0x40000
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -b$(PGM_PORT_BAUD) i
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -b$(PGM_PORT_BAUD) -m we 0x40000 $(BIN_FILE)
 
 erase:
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -s ea
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -b$(PGM_PORT_BAUD) -t50 -a2750 -s ea
 
 reset:
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -t50 -a2750 -m -w i
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -b$(PGM_PORT_BAUD) -t50 -a2750 -m -w i
 
 stop:
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z11 -a-75 i
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -b$(PGM_PORT_BAUD) -z11 -a-75 i
 
 go:
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -w -m
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -b$(PGM_PORT_BAUD) -w -m
 
 TADDR?=0x8450bc
 TLEN?=128
 test_damp:
-	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -z11 -c -g ds $(TADDR) $(TLEN)
+	@$(PYTHON) $(PROJECT_PATH)/../TlsrPgm.py -p$(PGM_PORT) -b$(PGM_PORT_BAUD) -z11 -c -g ds $(TADDR) $(TLEN)
 
 # Main-build Target
 main-build: $(ELF_FILE) secondary-outputs
