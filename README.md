@@ -299,7 +299,7 @@ In case you want to go back to the original firmware, you can download them here
 |     5.3 | Correction of OTA operation for Zigbee firmware. Optimization of work with Uart LCD for LYWSD03MMC HW: B1.5, B1.6. Added test version for LYWSD03MMC with new HW (3.2025) |
 |     5.4 | MJWSD05MMC(en) date MM/DD or DD/MM. Added [ZG-303Z](https://pvvx.github.io/ZG-303Z/), ZBEACON-TH01. Add CHT8215 to ZTH01. Display auto-detection update for LYWSD03MMC B1.6. |
 |     5.5 | Added [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC). For LYWSD03MMC B1.6(B1.1) LCD SPI speed has been reduced. Modified initialization of LCD displays for Xiaomi LYWSD03MMC B1.1, B1.5, B1.6. |
-|     5.6 beta | Fix LCD LYWSD03MMC B1.6. |
+|     5.6 beta | Fix LCD LYWSD03MMC B1.6. Added new HW version LYWSD03MMC (LCD-SPI/SHTC3). |
 |     --- |  |
 |     6.0 | [Starting with version 6.0](https://github.com/pvvx/ATC_MiThermometer/issues/727), support for non-standard and unregistered in Bluetooth SIG UUIDs and BLE advertising formats will be discontinued. Only [BTHome ver 2](https://bthome.io/) will be supported! |
 
@@ -589,6 +589,7 @@ For LYWSD03MMC, the HW version is determined by the display and sensor addresses
 |B1.9 | 0x3E | 0x44   (SHT4x) |  |
 |B2.0 | 0x3C | 0x44   (SHT4x) | Test   original string HW |
 |B1.6(new) | SPI | 0x44   (SHT4x) | Custom HW: B1.1 |
+|B1.?(new) | SPI | 0x44   (SHTC3) | Custom HW: B1.1 |
 
 Version 1.7 or 2.0 is determined at first run by reading the HW line written in Flash.
 Display matrices or controllers are different for all versions, except B1.7 = B2.0.

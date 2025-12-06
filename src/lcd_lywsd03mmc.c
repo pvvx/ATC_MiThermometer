@@ -366,12 +366,14 @@ void init_lcd(void){
 	}
 	// Test SPI/UART
 	lcd_set_buf_uart_spi(display_buff);
+#if 0
 	// B1.5 (UART) ?
 	if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
 		// B1.5 (UART)
 		lcd_send_uart(0);
 		return;
 	}
+#endif
 	// B1.6/B1.1 (UART/SPI)
 	// Test SPI/UART ?
 	for(int i = 0; i < 3; i++) {

@@ -8,6 +8,7 @@ import sys
 import signal
 import struct
 import serial
+import keyboard
 import platform
 import time
 import argparse
@@ -16,7 +17,7 @@ import io
 
 __progname__ = 'TLSR82xx TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '20.11.25'
+__version__ = '03.12.25'
 
 DEFAULT_UART_BAUD = 230400
 
@@ -122,7 +123,8 @@ class TLSRPGM:
 	CMD_SWIRE_FIFO_FWRITE = 12
 	CMD_FLASH_WRRD = 13
 	CMD_FLASH_RDCRC = 14 # FW ver >= 0.0.0.3
-	CMD_SDI_PRINTF = 15 # FW ver >= 0.0.0.4
+	CMD_SWS_PRINTF = 15 # FW ver >= 0.0.0.4
+	CMD_WAIT_RESP = 16 # FW ver >= 0.0.0.5
 
 	CMDF_GET_VERSION = 0
 	CMDF_MCU_REBOOT = 1
@@ -843,32 +845,115 @@ class TLSRPGM:
 				flgrun = False
 		print()
 		return True
-	# Wait CPU run
-	def WaitCPU(self, twait_sec = 1, offset = 0x6bc):
+	# Fast Wait Response & Write
+	def WaitResp(self, twait_sec = 1, offset = 0x6bc, wraddr = None, wrdata = None):
 		if twait_sec < 1:
 			twait_sec = 1
+		if wraddr != None and wrdata != None:
+			data = self.command(struct.pack('<BBHBH', self.CMD_WAIT_RESP, offset & 0xff, (offset>>8) & 0xffff, wraddr & 0xff, (wraddr>>8) & 0xffff) + wrdata, 6)
+		else:
+			data = self.command(struct.pack('<BBH', self.CMD_WAIT_RESP, offset & 0xff, (offset>>8) & 0xffff), 6)
+		if data == None:
+			print('Error Wait Respone command! (%d)' % self.err) 
+			return False
+		t1 = time.time()
+		te = t1 + twait_sec
+		tt = t1
+		while tt < te:
+			if keyboard.is_pressed("esc"):
+				print()
+				print('Keyboard Break!')
+				break
+			rblk = self.read(10)
+			if rblk == None:
+				print()
+				return False
+			if len(rblk) == 0:
+				tt = time.time()
+				if tt - t1 > 1:
+					print('\rSleep %.0f sec?' % (tt-t1), end = '')
+					t1 == tt
+				continue
+			if len(rblk) < 10 or rblk[0] != self.CMD_WAIT_RESP:
+				print('\r\nError Read response!') 
+				return False
+			if rblk[2] == 4 and rblk[3] == 0 and rblk[1] == 0 and crc_chk(rblk):
+				self.ext_pc = struct.unpack('<I', rblk[4:8])
+				if offset == 0x6bc:
+					print('\rCPU PC=0x%08x          ' % self.ext_pc)
+				else:
+					print('\rReg at 0x%06x=0x%08x   ' % (offset, self.ext_pc))
+				if wraddr != None and wrdata != None:
+					if wraddr == 0x602 and (wrdata == b'\x05' or wrdata == b'\x06'):
+						if wrdata == b'\x05':
+							print('CPU Stopped ([0x0602] = 0x05)')
+						if wrdata == b'\x06':
+							print('CPU Stall ([0x0602] = 0x06)')
+					else:
+						s = hex2str(wrdata)
+						print('Wr [0x%06x] = %s)' %(wraddr, s))
+			else:
+				print('\r\nError Read response!')
+				return False
+			return True
+		print()
+		return False
+	# Wait CPU run
+	def WaitCPU(self, twait_sec = 1, offset = 0x6bc, flg_stop = False, flg_stall = False):
+		if twait_sec < 1:
+			twait_sec = 1
+		if self.pgm_ver_int >= 5:
+			if flg_stop:
+				return self.WaitResp(twait_sec, offset, 0x0602, b'\x05')
+			elif flg_stall:
+				return self.WaitResp(twait_sec, offset, 0x0602, b'\x06')
+			return self.WaitResp(twait_sec, offset)
 		flgsleep = False
 		wblk = struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, 4) 
 		t1 = time.time()
 		t2 = t1
 		te = t1 + twait_sec
 		while t2 < te:
+			if keyboard.is_pressed("esc"):
+				print()
+				print('Keyboard Break!')
+				break
 			self.write(crc_blk(wblk))
 			rblk = self.read(6)
 			t2 = time.time()
-			if rblk == None or len(rblk) < 6 or rblk[0] != wblk[0]:
+			if rblk == None:
+				print()
+				return False
+			if len(rblk) < 6 or rblk[0] != wblk[0]:
 				print('\r\nError Read response!') 
 				return False
 			self.err = rblk[1];
 			self.wcnt = rblk[2] | (rblk[3]<<8)
 			if self.wcnt == 4 and self.err == 0:
-				rblk += self.read(4)
+				rdata = self.read(4)
+				if rdata == None:
+					print()
+					return False
+				rblk += rdata
 				if crc_chk(rblk):
 					if flgsleep:
 						t1 = t2
 						print()
 					self.ext_pc = struct.unpack('<I', rblk[4:8])
-					print('\rCPU PC=0x%08x' % self.ext_pc)
+					if offset == 0x6bc:
+						print('\rCPU PC=0x%08x' % self.ext_pc)
+					else:
+						print('\rReg32 at 0x%06x=0x%08x' % (offset, self.ext_pc))
+					if flg_stop:
+						print('CPU Stop...', end = ' ')
+						if not self.WriteRegsData(0x602, b'\x05'):
+							return False
+						print('ok')
+					if flg_stall:
+						print('CPU Stall...', end = ' ')
+						if not self.WriteRegsData(0x602, b'\x06'):
+							return False
+						print('ok')
 					return True
 				else:
 					print('\r\nError Read response!') 
@@ -907,7 +992,7 @@ class TLSRPGM:
 		sws_flg = flg
 		if flg < 2:
 			print('%sSWS Printf at SRAM address 0x%06x...' % (s, offset), end = '')
-			data = self.command(struct.pack('<BBHB', self.CMD_SDI_PRINTF, offset & 0xff, (offset>>8) & 0xffff, wdata), 6)
+			data = self.command(struct.pack('<BBHB', self.CMD_SWS_PRINTF, offset & 0xff, (offset>>8) & 0xffff, wdata), 6)
 			if data == None or self.wcnt != 1:
 				print('error!', flush=True)
 				return False
@@ -916,7 +1001,7 @@ class TLSRPGM:
 				return True
 		if flg == 2:
 			print('%sSWS Printf at SRAM address 0x%06x...' % (s, offset), end = '')
-			data = self.command(struct.pack('<BBH', self.CMD_SDI_PRINTF, offset & 0xff, (offset>>8) & 0xffff), 6)
+			data = self.command(struct.pack('<BBH', self.CMD_SWS_PRINTF, offset & 0xff, (offset>>8) & 0xffff), 6)
 			if data == None or self.wcnt != 0:
 				print('error!', flush=True)
 				return False
@@ -926,15 +1011,19 @@ class TLSRPGM:
 		self._port.timeout = 0.01
 		sws_enable = True
 		while sws_enable: #TODO
+			if keyboard.is_pressed("esc"):
+				print()
+				print('Keyboard Break!')
+				break
 			try:
 				rblk = self._port.read(254)
 			except:
 				#print('Error read %s!' % (self.port))
 				return False
 			if len(rblk) != 0:
-				#ascii_string = rblk.decode(errors='ignore')
 				print(rblk.decode(errors='ignore'), end = '', flush=True)
 		return True
+		
 
 def signal_handler(signal, frame):
 	print()
@@ -1148,7 +1237,7 @@ def main():
 	if args.trst > 0 or args.act != 0 or args.stopcpu or args.cpustall or args.zw:
 		print('=== PreProcess ========================================')
 	if args.zw: # Wait CPU run
-		if not pgm.WaitCPU(args.zw):
+		if not pgm.WaitCPU(args.zw, 0x6bc, args.stopcpu, args.cpustall):
 			pgm.close()
 			sys.exit(1)
 	if args.trst > 0: # Hard reset (Pin RST set '0')?	
@@ -1189,18 +1278,19 @@ def main():
 		if not pgm.Activate(70): # Activate 70 ms
 			pgm.close()
 			sys.exit(1)
-	if args.stopcpu:	# CPU Stop ?
-		print('CPU Stop...', end = ' ')
-		if not pgm.WriteRegsData(0x602, b'\x05'):
-			pgm.close()
-			sys.exit(1)
-		print('ok')
-	if args.cpustall:	# CPU Stall ?
-		print('CPU Stall...', end = ' ')
-		if not pgm.WriteRegsData(0x602, b'\x06'):
-			pgm.close()
-			sys.exit(1)
-		print('ok')
+	if not args.zw:
+		if args.stopcpu:	# CPU Stop ?
+			print('CPU Stop...', end = ' ')
+			if not pgm.WriteRegsData(0x602, b'\x05'):
+				pgm.close()
+				sys.exit(1)
+			print('ok')
+		if args.cpustall:	# CPU Stall ?
+			print('CPU Stall...', end = ' ')
+			if not pgm.WriteRegsData(0x602, b'\x06'):
+				pgm.close()
+				sys.exit(1)
+			print('ok')
 	# Command Read to File
 	print('=== Process ===========================================')
 	if args.operation == 'rs' \
