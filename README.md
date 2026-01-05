@@ -591,6 +591,8 @@ For LYWSD03MMC, the HW version is determined by the display and sensor addresses
 |PCB Mark: B1.6* (2025) | SPI | 0x4x   (SHT4x/[GXHT40](https://github.com/user-attachments/files/24424893/CZ_SHT40-ad1b_GX_GXCAS_0001.pdf)/other clones...) | Custom HW: B1.1  |
 |PCB Mark: B1.5* (2025) | SPI | 0x7x   (SHTC3/GXHTC3/other clones...) | Custom HW: B1.1 |
 
+* "PCB Mark: B1.6/B1.5" are new variants that went on sale in 2025. These devices use old printed circuit boards from warehouses. They are equipped with clones of cheaper sensors and an SPI-controlled LCD controller.
+
 Version 1.7 or 2.0 is determined at first run by reading the HW line written in Flash.
 Display matrices or controllers are different for all versions, except B1.7 = B2.0.
 To eliminate the confusion created by Xiaomi with identical HW numbers, the internal number B1.1 is used for [new B1.6 versions](https://github.com/pvvx/ATC_MiThermometer/issues/664) in the alternative firmware.
