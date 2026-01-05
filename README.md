@@ -588,8 +588,8 @@ For LYWSD03MMC, the HW version is determined by the display and sensor addresses
 |B1.7 | 0x3C | 0x44   (SHT4x) | Test   original string HW |
 |B1.9 | 0x3E | 0x44   (SHT4x) |  |
 |B2.0 | 0x3C | 0x44   (SHT4x) | Test   original string HW |
-|B1.6(new) | SPI | 0x44   (SHT4x) | Custom HW: B1.1 |
-|B1.?(new) | SPI | 0x44   (SHTC3) | Custom HW: B1.1 |
+|PCB Mark: B1.6* (2025) | SPI | 0x4x   (SHT4x/[GXHT40](https://github.com/user-attachments/files/24424893/CZ_SHT40-ad1b_GX_GXCAS_0001.pdf)/other clones...) | Custom HW: B1.1  |
+|PCB Mark: B1.5* (2025) | SPI | 0x7x   (SHTC3/GXHTC3/other clones...) | Custom HW: B1.1 |
 
 Version 1.7 or 2.0 is determined at first run by reading the HW line written in Flash.
 Display matrices or controllers are different for all versions, except B1.7 = B2.0.
