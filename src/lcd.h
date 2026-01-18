@@ -268,7 +268,9 @@ enum {
 	SCR_TYPE_HUMI,		//2 Humidity
 	SCR_TYPE_BAT_P,		//3 Battery %
 	SCR_TYPE_BAT_V,		//4 Battery V
-	SCR_TYPE_EXT		//5 External number & symbols
+	SCR_TYPE_THERMOSTAT_SMALL, //5 Small thermostat
+	SCR_TYPE_THERMOSTAT_BIG,   //6 Big thermostat
+	SCR_TYPE_EXT		//7 External number & symbols
 } SCR_TYPE_ENUM;
 
 

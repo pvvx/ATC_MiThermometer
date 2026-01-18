@@ -99,6 +99,7 @@ extern "C" {
 #define SERVICE_SCANTIM		0x00800000	// Scan Time (develop, test only!)
 #define SERVICE_ZIGBEE		0x01000000	// BZ-version
 #define SERVICE_PIR			0x02000000	// use PIR sensor
+#define SERVICE_THERMOSTAT	0x04000000	// use thermostat function
 #define SERVICE_EXTENDED	0x80000000  //
 
 /* minimal DEV_SERVICES:
@@ -712,6 +713,7 @@ extern "C" {
 		| SERVICE_HARD_CLOCK \
 		| SERVICE_TH_TRG \
 		| SERVICE_MI_KEYS \
+		| SERVICE_THERMOSTAT \
 )
 
 #define MI_HW_VER_FADDR 0x7D000 // Mi HW version

@@ -859,6 +859,28 @@ void lcd(void) {
 				show_s3_number_x10(measured_data.temp_x01, LCD_SYM_C);
 			show_s4_number_x10(measured_data.humi_x01, LCD_SYM_P);
 			break;
+		case SCR_TYPE_THERMOSTAT_SET:
+			// Display current measured temp/humi on top/middle large digits
+			if (cfg.flg.temp_F_or_C) {
+				if(cfg.flg.x100)
+					show_s1_number_x100(((measured_data.temp / 5) * 9) + 3200, LCD_SYM_F); // convert C to F
+				else
+					show_s1_number_x10(((measured_data.temp_x01 / 5) * 9) + 320, LCD_SYM_F); // convert C to F
+			} else {
+				if(cfg.flg.x100)
+					show_s1_number_x100(measured_data.temp, LCD_SYM_C);
+				else
+					show_s1_number_x10(measured_data.temp_x01, LCD_SYM_C);
+			}
+			// Display target temperature at the bottom (where date/time was)
+			if (cfg.flg.temp_F_or_C)
+				show_s3_number_x10(((cfg.target_temp / 50) * 9) + 320, LCD_SYM_F); // convert C to F
+			else
+				show_s3_number_x10(cfg.target_temp/10, LCD_SYM_C);
+			
+			// Display humidity on the far right bottom (keeping original layout)
+			show_s4_number_x10(measured_data.humi_x01, LCD_SYM_P);
+			break;
 		default: // SCR_TYPE_TIME
 			show_clock_s1();
 			if (cfg.flg.temp_F_or_C)

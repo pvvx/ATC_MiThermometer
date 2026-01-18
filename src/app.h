@@ -134,6 +134,9 @@ typedef struct __attribute__((packed)) _cfg_t {
 	u8 min_step_time_update_lcd; // x0.05 sec, 0.5..12.75 sec (10..255)
 	u8 hw_ver; // read only
 	u8 averaging_measurements; // * measure_interval, 0 - off, 1..255 * measure_interval
+#if (DEV_SERVICES & SERVICE_THERMOSTAT)
+	s16 target_temp; // thermostat target temperature x 0.01 C
+#endif
 }cfg_t;
 extern cfg_t cfg;
 extern const cfg_t def_cfg;
@@ -336,7 +339,10 @@ typedef struct {
 	u32 key_pressed_tik1;   // timer1 key_pressed (in sys tik)
 	u32 key_pressed_tik2;	// timer2 key_pressed (in sys tik)
 #if (DEV_SERVICES & SERVICE_KEY)
+	u8  key1pressed;
 	u8  key2pressed;
+	u8  key1_long_press_sent;
+	u8  key2_long_press_sent;
 #endif
 } ext_key_t;
 extern ext_key_t ext_key; // extension keys
@@ -346,6 +352,9 @@ void set_default_cfg(void);
 #if (DEV_SERVICES & SERVICE_KEY)
 static inline u8 get_key2_pressed(void) {
 	return BM_IS_SET(reg_gpio_in(GPIO_KEY2), GPIO_KEY2 & 0xff);
+}
+static inline u8 get_key1_pressed(void) {
+	return BM_IS_SET(reg_gpio_in(GPIO_KEY1), GPIO_KEY1 & 0xff);
 }
 #endif // (DEV_SERVICES & SERVICE_KEY)
 #endif // (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)

@@ -90,6 +90,9 @@ const cfg_t def_cfg = {
 #if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 90, // * measure_interval = 20 * 90 = 1800 sec = 30 minutes
 #endif
+#if (DEV_SERVICES & SERVICE_THERMOSTAT)
+		.target_temp = 2200, // Default target temperature 22.00 C
+#endif
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 		.flg2.adv_flags = true,
 		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
@@ -740,6 +743,12 @@ void bindkey_init(void) {
 }
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
+#if (DEV_SERVICES & SERVICE_THERMOSTAT)
+void save_thermostat_config(void) {
+	flash_write_cfg(&cfg.target_temp, EEP_ID_THT, sizeof(cfg.target_temp));
+}
+#endif
+
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 void set_default_cfg(void) {
 	memcpy(&cfg, &def_cfg, sizeof(cfg));
@@ -811,6 +820,10 @@ void user_init_normal(void) {//this will get executed one time after power up
 				!= sizeof(hx71x.cfg))
 			memcpy(&hx71x.cfg, &def_hx71x_cfg, sizeof(hx71x.cfg));
 #endif
+#if (DEV_SERVICES & SERVICE_THERMOSTAT)
+		if (flash_read_cfg(&cfg.target_temp, EEP_ID_THT, sizeof(cfg.target_temp)) != sizeof(cfg.target_temp))
+			cfg.target_temp = def_cfg.target_temp; // Use default if read fails
+#endif
 		// if version < 4.2 -> clear cfg.flg2.longrange
 		if (old_ver <= 0x41) {
 			cfg.flg2.longrange = 0;
@@ -829,6 +842,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE) && USE_SENSOR_HX71X
 		memcpy(&hx71x.cfg, &def_hx71x_cfg, sizeof(hx71x.cfg));
+#endif
+#if (DEV_SERVICES & SERVICE_THERMOSTAT)
+		cfg.target_temp = def_cfg.target_temp;
 #endif
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 		if (hw_ver)
@@ -1005,6 +1021,73 @@ void main_loop(void) {
 #endif
 		u32 new = clock_time();
 #if (DEV_SERVICES & SERVICE_KEY)
+
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+	// --- Logic for 2-button device: MJWSD05MMC ---
+	u8 key1_is_pressed = !get_key1_pressed(); // Lower
+	u8 key2_is_pressed = !get_key2_pressed(); // Upper
+
+	// --- Handle Press Events (first detection) ---
+	if (key1_is_pressed && !ext_key.key1pressed) {
+		ext_key.key1pressed = 1;
+		ext_key.key_pressed_tik1 = new;
+		ext_key.key1_long_press_sent = 0;
+	}
+	if (key2_is_pressed && !ext_key.key2pressed) {
+		ext_key.key2pressed = 1;
+		ext_key.key_pressed_tik2 = new;
+		ext_key.key2_long_press_sent = 0;
+	}
+
+	// --- Handle Release Events (Short Press detection) ---
+	if (!key1_is_pressed && ext_key.key1pressed && !ext_key.key1_long_press_sent) {
+		cfg.target_temp -= 50;
+		if (cfg.target_temp < 500) cfg.target_temp = 500;
+		save_thermostat_config();
+		// cfg.flg2.screen_type = SCR_TYPE_THERMOSTAT_SET;
+		// set_adv_con_time(0); // Activate connectable Bluetooth advertising
+		SET_LCD_UPDATE();
+	}
+	if (!key2_is_pressed && ext_key.key2pressed && !ext_key.key2_long_press_sent) {
+		cfg.target_temp += 50;
+		if (cfg.target_temp > 5000) cfg.target_temp = 5000;
+		save_thermostat_config();
+		// cfg.flg2.screen_type = SCR_TYPE_THERMOSTAT_SET;
+		SET_LCD_UPDATE();
+	}
+	
+	// --- Handle Hold Events (Long Press) ---
+	if (ext_key.key1pressed && ext_key.key2pressed) {
+		// --- Both keys are pressed ---
+		if (!ext_key.key1_long_press_sent && (new - ext_key.key_pressed_tik1 > 5 * CLOCK_16M_SYS_TIMER_CLK_1S)) {
+			ext_key.key1_long_press_sent = 1; // Prevent other actions
+			ext_key.key2_long_press_sent = 1;
+			set_default_cfg();
+		}
+	} else if (ext_key.key1pressed) {
+		// --- ONLY Key1 (Lower) is held ---
+		if (!ext_key.key1_long_press_sent && (new - ext_key.key_pressed_tik1 > 2 * CLOCK_16M_SYS_TIMER_CLK_1S)) {
+			set_adv_con_time(0);
+			ext_key.key1_long_press_sent = 1;
+		}
+	} else if (ext_key.key2pressed) {
+		// --- ONLY Key2 (Upper) is held ---
+		if (!ext_key.key2_long_press_sent && (new - ext_key.key_pressed_tik2 > 2 * CLOCK_16M_SYS_TIMER_CLK_1S)) {
+			cfg.flg2.screen_type++;
+			if (cfg.flg2.screen_type > SCR_TYPE_EXT) { // Check for wrap-around
+				cfg.flg2.screen_type = SCR_TYPE_TIME;
+			}
+			SET_LCD_UPDATE();
+			ext_key.key2_long_press_sent = 1;
+		}
+	}
+	
+	// --- Reset flags on release ---
+	if (!key1_is_pressed) { ext_key.key1pressed = 0; }
+	if (!key2_is_pressed) { ext_key.key2pressed = 0; }
+
+#else
+    // --- Original logic for single-button devices ---
 		if(!get_key2_pressed()) {
 			if(!ext_key.key2pressed) {
 				// key2 on
@@ -1029,10 +1112,7 @@ void main_loop(void) {
 			else {
 				if(new - ext_key.key_pressed_tik1 > 1750*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 					ext_key.key_pressed_tik1 = new;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
-					if(++cfg.flg2.screen_type > SCR_TYPE_EXT)
-						cfg.flg2.screen_type = SCR_TYPE_TIME;
-#elif (DEV_SERVICES & SERVICE_SCREEN)
+#if (DEV_SERVICES & SERVICE_SCREEN)
 					cfg.flg.temp_F_or_C ^= 1;
 #endif
 					if(ext_key.rest_adv_int_tad) {
@@ -1085,6 +1165,7 @@ void main_loop(void) {
 #endif
 #endif
 		}
+#endif
 #endif // (DEV_SERVICES & SERVICE_KEY)
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 		if(ext_key.rest_adv_int_tad < -80) {
