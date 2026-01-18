@@ -92,6 +92,7 @@ const cfg_t def_cfg = {
 #endif
 #if (DEV_SERVICES & SERVICE_THERMOSTAT)
 		.target_temp = 2200, // Default target temperature 22.00 C
+		.temp_step = 50, // Default temperature step 0.50 C
 #endif
 #elif DEVICE_TYPE == DEVICE_LYWSD03MMC
 		.flg2.adv_flags = true,
@@ -743,12 +744,6 @@ void bindkey_init(void) {
 }
 #endif // #if (DEV_SERVICES & SERVICE_BINDKEY)
 
-#if (DEV_SERVICES & SERVICE_THERMOSTAT)
-void save_thermostat_config(void) {
-	flash_write_cfg(&cfg.target_temp, EEP_ID_THT, sizeof(cfg.target_temp));
-}
-#endif
-
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 void set_default_cfg(void) {
 	memcpy(&cfg, &def_cfg, sizeof(cfg));
@@ -820,10 +815,6 @@ void user_init_normal(void) {//this will get executed one time after power up
 				!= sizeof(hx71x.cfg))
 			memcpy(&hx71x.cfg, &def_hx71x_cfg, sizeof(hx71x.cfg));
 #endif
-#if (DEV_SERVICES & SERVICE_THERMOSTAT)
-		if (flash_read_cfg(&cfg.target_temp, EEP_ID_THT, sizeof(cfg.target_temp)) != sizeof(cfg.target_temp))
-			cfg.target_temp = def_cfg.target_temp; // Use default if read fails
-#endif
 		// if version < 4.2 -> clear cfg.flg2.longrange
 		if (old_ver <= 0x41) {
 			cfg.flg2.longrange = 0;
@@ -842,9 +833,6 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE) && USE_SENSOR_HX71X
 		memcpy(&hx71x.cfg, &def_hx71x_cfg, sizeof(hx71x.cfg));
-#endif
-#if (DEV_SERVICES & SERVICE_THERMOSTAT)
-		cfg.target_temp = def_cfg.target_temp;
 #endif
 #if defined(MI_HW_VER_FADDR) && (MI_HW_VER_FADDR)
 		if (hw_ver)
@@ -1041,17 +1029,17 @@ void main_loop(void) {
 
 	// --- Handle Release Events (Short Press detection) ---
 	if (!key1_is_pressed && ext_key.key1pressed && !ext_key.key1_long_press_sent) {
-		cfg.target_temp -= 50;
+		cfg.target_temp -= cfg.temp_step;
 		if (cfg.target_temp < 500) cfg.target_temp = 500;
-		save_thermostat_config();
+		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 		// cfg.flg2.screen_type = SCR_TYPE_THERMOSTAT_SET;
 		// set_adv_con_time(0); // Activate connectable Bluetooth advertising
 		SET_LCD_UPDATE();
 	}
 	if (!key2_is_pressed && ext_key.key2pressed && !ext_key.key2_long_press_sent) {
-		cfg.target_temp += 50;
+		cfg.target_temp += cfg.temp_step;
 		if (cfg.target_temp > 5000) cfg.target_temp = 5000;
-		save_thermostat_config();
+		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 		// cfg.flg2.screen_type = SCR_TYPE_THERMOSTAT_SET;
 		SET_LCD_UPDATE();
 	}

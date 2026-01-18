@@ -136,6 +136,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	u8 averaging_measurements; // * measure_interval, 0 - off, 1..255 * measure_interval
 #if (DEV_SERVICES & SERVICE_THERMOSTAT)
 	s16 target_temp; // thermostat target temperature x 0.01 C
+	u8 temp_step;   // thermostat temperature step x 0.01 C
 #endif
 }cfg_t;
 extern cfg_t cfg;

@@ -29,7 +29,6 @@ extern "C" {
 #define EEP_ID_KEY (0xBEAC) // EEP ID bkey
 #define EEP_ID_HWV (0x1234) // EEP ID Mi HW version ("B1.4","B1.5",...)
 #define EEP_ID_VER (0x5555) // EEP ID blk: unsigned int = minimum supported version
-#define EEP_ID_THT (0x0EFE) // EEP ID thermostat target temp
 //-----------------------------------------------------------------------------
 #define FLASH_BASE_ADDR			0x00000000
 #define FLASH_SIZE				(512*1024)
