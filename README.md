@@ -86,7 +86,7 @@ Access to github is already slowing down. Most Internet information resources ha
 |TS0201_vNN.bin | TH03Z_vNN.bin | ZTH01_vNN.bin | ZTH02_vNN.bin | ZYZTH02_vNN.bin |
 
 
-| Tuya ZigBee<br> [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) | Tuya BLE ["Plant monitor" SGS01](https://pvvx.github.io/PLANT-MON/) | [ZG-303Z](https://pvvx.github.io/ZG-303Z/) HOBEIAN/Sonoff Tuya ZigBee Soil moisture sensor | Tuya Zigbee [ZBEACON-TH01](https://pvvx.github.io/Zbeacon-TH01) | Tuya Zigbee [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC) |
+| Tuya ZigBee<br> [ZG_227Z](https://github.com/pvvx/ZigbeeTLc/issues/161) | Tuya BLE ["Plant monitor" SGS01](https://pvvx.github.io/PLANT-MON/) | [ZG-303Z](https://pvvx.github.io/ZG-303Z/) HOBEIAN/Sonoff Tuya ZigBee Soil moisture sensor | Tuya Zigbee [ZBEACON-TH01](https://pvvx.github.io/Zbeacon-TH01)<br>[ZBEACON-TH01-v2.0](https://pvvx.github.io/Zbeacon-TH01-v2.0) | Tuya Zigbee [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC) |
 |:--:|:--:|:--:|:--:|:--:|
 | <img src="https://pvvx.github.io/ZG-227Z/img/ZG-227Z.jpg" width="120"/> | <img src="https://pvvx.github.io/PLANT-MON/img/sgs01.jpg" width="40"/> | <img src="https://pvvx.github.io/ZG-303Z/img/ZG-303Zx.jpg" width="40"/> | <img src="https://pvvx.github.io/Zbeacon-TH01/img/ZBeaconTH01.jpg" width="80"/> | <img src="https://raw.githubusercontent.com/pvvx/pvvx.github.io/refs/heads/master/ZY-ZTH02/img/ZY-ZTH02.jpg" width="100"/> |
 | Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | modification required |  Programmator/Zigbee OTA |  Programmator/Zigbee OTA, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) | Programmator, [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
@@ -299,7 +299,7 @@ In case you want to go back to the original firmware, you can download them here
 |     5.3 | Correction of OTA operation for Zigbee firmware. Optimization of work with Uart LCD for LYWSD03MMC HW: B1.5, B1.6. Added test version for LYWSD03MMC with new HW (3.2025) |
 |     5.4 | MJWSD05MMC(en) date MM/DD or DD/MM. Added [ZG-303Z](https://pvvx.github.io/ZG-303Z/), ZBEACON-TH01. Add CHT8215 to ZTH01. Display auto-detection update for LYWSD03MMC B1.6. |
 |     5.5 | Added [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC). For LYWSD03MMC B1.6(B1.1) LCD SPI speed has been reduced. Modified initialization of LCD displays for Xiaomi LYWSD03MMC B1.1, B1.5, B1.6. |
-|     5.6 beta | Fix LCD LYWSD03MMC B1.6. Added new HW version LYWSD03MMC (LCD-SPI/SHTC3). |
+|     5.6 beta | Fix LCD LYWSD03MMC B1.6. Added new HW version LYWSD03MMC (LCD-SPI/SHTC3). Added [ZBEACON-TH01-v2.0](https://pvvx.github.io/Zbeacon-TH01-v2.0) |
 |     --- |  |
 |     6.0 | [Starting with version 6.0](https://github.com/pvvx/ATC_MiThermometer/issues/727), support for non-standard and unregistered in Bluetooth SIG UUIDs and BLE advertising formats will be discontinued. Only [BTHome ver 2](https://bthome.io/) will be supported! |
 

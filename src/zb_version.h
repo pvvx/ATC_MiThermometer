@@ -74,6 +74,7 @@
 #define DEVICE_ZG303Z		44  // ZG-303Z Plant monitor, 2xAAA, AHT20
 #define DEVICE_ZBEACON_TH01	45  // Tuya ZBEACON-TH01, 2xAAA , SHT4X
 #define DEVICE_ZB_MC		46  // ZigBee-MC, 2xAAA, CHT8305
+#define DEVICE_ZBEACON2TH01	47  // Tuya ZBEACON-TH01 v2.0, 2xAAA , SHT4X/G40
 
 #if 0 // not used in this code!
 #define DEVICE_03MMC_DEVBIS	 3  // https://github.com/devbis/z03mmc

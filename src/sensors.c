@@ -401,7 +401,7 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 #else
 	u8 crc; // calculated checksum
 	u8 data;
-	i = 512;
+	i = 512; // max ~17 ms
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
 		init_i2c();
 #if (I2C_MAX_SPEED > 400000)

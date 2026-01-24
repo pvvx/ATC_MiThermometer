@@ -314,6 +314,16 @@ static const u8 my_SerialStr[] = {"0000-0000-0000-0014"};
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
 static const u8 my_ManStr[] = {"HOBEIAN"};
 
+#elif DEVICE_TYPE == DEVICE_ZBEACON2TH01
+
+static const u8 my_ModelStr[] = {"ZBEACON2TH01"};
+static const u8 my_HardStr[4] = {"V2.0"};
+#if !USE_FLASH_SERIAL_UID
+static const u8 my_SerialStr[] = {"0000-0000-0000-002e"}; // "0000-0000-0000-00000"
+#endif
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0109"
+static const u8 my_ManStr[] = {"Sonoff"};
+
 #else
 #error "DEVICE_TYPE = ?"
 #endif

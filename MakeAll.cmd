@@ -94,18 +94,22 @@ python3 utils\zb_bin_ota.py ZYZTH02P%SWVER%.bin zigbee_ota\ZYZTH02PBLE%SWVER% -m
 @del /Q "ZG227Z%SWVER%.bin"
 make -s -j PROJECT_NAME=ZG227Z%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZG_227Z"
 @if not exist "ZG227Z%SWVER%.bin" goto :error
-python3 utils\zb_bin_ota.py ZG227Z%SWVER%.bin zigbee_ota\ZG227ZBLE%SWVER% -m0x1286 -i0x0203 -v0x10983001 -s"Tuya to BLE"
+python3 utils\zb_bin_ota.py ZG227Z%SWVER%.bin zigbee_ota\ZG227ZBLE%SWVER% -m0x1286 -i0x0203 -v0x10983001 -s"Sonoff to BLE"
 @del /Q "ZG303Z%SWVER%.bin"
 make -s -j PROJECT_NAME=ZG303Z%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZG303Z"
 @if not exist "ZG303Z%SWVER%.bin" goto :error
-@rem python3 utils\zb_bin_ota.py ZG303Z%SWVER%.bin zigbee_ota\ZG303ZBLE%SWVER% -m0x1286 -i0x0203 -v0x10983001 -s"Tuya to BLE"
+@rem python3 utils\zb_bin_ota.py ZG303Z%SWVER%.bin zigbee_ota\ZG303ZBLE%SWVER% -m0x1286 -i0x0203 -v0x10983001 -s"Sonoff to BLE"
 @del /Q "ZBTH01%SWVER%.bin"
 make -s -j PROJECT_NAME=ZBTH01%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZBEACON_TH01"
 @if not exist "ZBTH01%SWVER%.bin" goto :error
-python3 utils\zb_bin_ota.py ZBTH01%SWVER%.bin zigbee_ota\ZBTH01BLE%SWVER% -m0x1286 -i0x0202 -v0x10533607 -s"Tuya to BLE"
+python3 utils\zb_bin_ota.py ZBTH01%SWVER%.bin zigbee_ota\ZBTH01BLE%SWVER% -m0x1286 -i0x0202 -v0x10533607 -s"Sonoff to BLE"
 @del /Q "ZB_MC%SWVER%.bin"
 make -s -j PROJECT_NAME=ZB_MC%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZB_MC"
 @if not exist "ZB_MC%SWVER%.bin" goto :error
+@del /Q "ZB2TH01%SWVER%.bin"
+make -s -j PROJECT_NAME=ZB2TH01%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZBEACON2TH01"
+@if not exist "ZB2TH01%SWVER%.bin" goto :error
+python3 utils\zb_bin_ota.py ZB2TH01%SWVER%.bin zigbee_ota\ZB2TH01BLE%SWVER% -m0x1286 -i0x0202 -v0x10533607 -s"Sonoff to BLE"
 cd .\zigbee_ota\zigpy_ota
 call update.cmd %SWVER%
 cd ..\..

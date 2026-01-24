@@ -436,7 +436,7 @@ class TLSRPGM:
 		if data == None:
 			print('\rError Write Flash Status! (%d)' % self.err) 
 			return None
-		if not self.WaitingFlashReady(5):
+		if not self.WaitingFlashReady(10):
 			return None
 		#data = self.command(struct.pack('<BBHHB', self.CMD_FLASH_WRRD, 0, 0, 1, 5), 7)
 		#if data == None:
@@ -1468,13 +1468,13 @@ def main():
 	# Commands / flags post main processing
 	if args.run:
 		print('CPU Run...', end = ' ')
-		if not pgm.WriteRegsData(0x602, b'\x88'):
+		if not pgm.WriteRegsData(0x602, b'\x88'): # CPU ReBoot
 			pgm.close()
 			sys.exit(1)
 		print('ok')
 	if args.go:
 		print('CPU Go...', end = ' ')
-		if not pgm.WriteRegsData(0x602, b'\x08'):
+		if not pgm.WriteRegsData(0x602, b'\x08'): # CPU Go
 			pgm.close()
 			sys.exit(1)
 		print('ok')

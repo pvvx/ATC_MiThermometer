@@ -267,7 +267,7 @@ const cfg_t def_cfg = {
 		.averaging_measurements = 180, // * measure_interval = 10 * 180 = 1800 sec = 30 minutes
 #endif
 
-#elif (DEVICE_TYPE == DEVICE_ZBEACON_TH01) || (DEVICE_TYPE == DEVICE_ZB_MC)
+#elif (DEVICE_TYPE == DEVICE_ZBEACON_TH01) || (DEVICE_TYPE == DEVICE_ZBEACON2TH01) || (DEVICE_TYPE == DEVICE_ZB_MC)
 		.flg2.adv_flags = true,
 		.advertising_interval = 40, // multiply by 62.5 ms = 2.5 sec
 		.flg.comfort_smiley = true,
