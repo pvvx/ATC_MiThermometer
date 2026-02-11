@@ -1,7 +1,14 @@
 #ifndef _SENSORS_H_
 #define _SENSORS_H_
 
-#if defined(USE_SENSOR_BME280) && USE_SENSOR_BME280
+#ifndef USE_SENSOR_BMP280
+#define USE_SENSOR_BMP280	0
+#endif
+#ifndef USE_SENSOR_BME280
+#define USE_SENSOR_BME280	0
+#endif
+
+#if USE_SENSOR_BME280 || USE_SENSOR_BMP280
 #include "bme280.h"
 #endif
 
@@ -47,12 +54,11 @@ enum {
 	IU_SENSOR_INA3221,	// 13
 	IU_SENSOR_SCD41,	// 14
 	IU_SENSOR_BME280,	// 15
-	TH_SENSOR_TYPE_MAX // 16
+	IU_SENSOR_BMP280,	// 16
+	TH_SENSOR_TYPE_MAX // 17
 } TH_SENSOR_TYPES;
 
-#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS))
-
-#if !USE_SENSOR_BME280
+#if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS)) && !USE_SENSOR_BME280
 
 typedef struct _thsensor_coef_t {
 	u32 val1_k;	// temp_k / current_k
@@ -95,10 +101,8 @@ typedef struct _sensor_cfg_t {
 extern sensor_cfg_t sensor_cfg;
 #define sensor_cfg_send_size 18 //max 19
 
-#endif // !USE_SENSOR_BME280
-
 void init_sensor(void);
-void start_measure_sensor_deep_sleep(void);
+int start_measure_sensor_deep_sleep(void);
 int read_sensor_cb(void);
 
 #endif

@@ -307,6 +307,9 @@ void cmd_parser(void * p) {
 #else
 			p->dev_spec_data |= IU_SENSOR_MY18B20 << 8;
 #endif
+#if USE_SENSOR_BMP280
+			p->dev_spec_data |= IU_SENSOR_BMP280 << 8;
+#endif
 #elif (DEV_SERVICES & SERVICE_PLM)
 			p->dev_spec_data = IU_SENSOR_NTC;
 #endif

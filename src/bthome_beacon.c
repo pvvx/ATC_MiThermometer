@@ -23,6 +23,9 @@
 #endif
 #include "bthome_beacon.h"
 #include "ccm.h"
+#if USE_SENSOR_BMP280
+#include "sensor.h"
+#endif
 
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 static u32 set_bthome_data1(padv_bthome_data1_t p) {
@@ -39,6 +42,10 @@ static u32 set_bthome_data1(padv_bthome_data1_t p) {
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_PLM))
 		p->t_id = BtHomeID_temperature;
 		p->temperature = measured_data.temp; // x0.01 C
+#if USE_SENSOR_BMP280
+		p->t1_id = BtHomeID_temperature;
+		p->temperature1 = sensor_bmx280.temp; // x0.01 C
+#endif
 		p->h_id = BtHomeID_humidity;
 		p->humidity = measured_data.humi; // x0.01 %
 #endif
@@ -57,7 +64,7 @@ static u32 set_bthome_data1(padv_bthome_data1_t p) {
 		p->co2 = measured_data.co2;
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
-#if defined(USE_SENSOR_HX71X) && USE_SENSOR_HX71X
+#if USE_SENSOR_HX71X
 		p->l_id = BtHomeID_volume32;
 		p->volume = measured_data.pressure * 10UL; // 0.001 L
 #else

@@ -4,6 +4,10 @@
 
 #include "battery.h"
 
+#ifndef ADC_BAT_VREF_MV
+#define ADC_BAT_VREF_MV		1175 // default ADC ref voltage (unit:mV)
+#endif
+
 u8 adc_hw_initialized = 0;
 #define ADC_BUF_COUNT	8
 
@@ -76,17 +80,11 @@ u16 get_adc_mv(u32 p_ain) { // ADC_InputPchTypeDef
 	adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4]
 				+ adc_sample[5]);
 #if (DEV_SERVICES & SERVICE_PLM)
-	if(p_ain != SHL_ADC_VBAT)
+	if(p_ain != SHL_ADC_VBAT) {
 		return adc_average;
-	else
-		return (adc_average * 1175) >> 12; // adc_vref default: 1175 (mV)
-#else
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
-	return (adc_average * 1686) >> 12; // adc_vref default: 1175 (mV)
-#else
-	return (adc_average * 1175) >> 12; // adc_vref default: 1175 (mV)
+	} else
 #endif
-#endif
+	return (adc_average * ADC_BAT_VREF_MV) >> 12; // adc_vref default: 1175 (mV)
 }
 
 // 2200..3000 mv - 0..100%

@@ -158,7 +158,7 @@ typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 	u8	t_id;	// = BtHomeID_temperature
 	s16	temperature; // x 0.01 degree
 #endif
-#if (DEV_SERVICES & SERVICE_18B20)
+#if (DEV_SERVICES & SERVICE_18B20) || USE_SENSOR_BMP280
 	u8	t1_id;	// = BtHomeID_temperature
 	s16	temperature1; // x 0.01 degree
 #if	(USE_SENSOR_MY18B20 == 2)
@@ -175,7 +175,7 @@ typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 	u16	moisture; // x 0.01 %
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
-#if defined(USE_SENSOR_HX71X) && USE_SENSOR_HX71X
+#if USE_SENSOR_HX71X
 	u8	l_id;	// = BtHomeID_volume16_01 // BtHomeID_pressure
 	u32	volume; // x 0.001 l
 #else
@@ -323,7 +323,7 @@ typedef struct __attribute__((packed)) _adv_bthome_d2_t {
 	adv_bthome_data2_t data; // max 28 - 13 = 15 bytes
 	u32	count_id;
 	u8	mic[4];
-} adv_bthome_d2_t, * padv_bthome_d2_t;
+} adv_bthome_d2_t, * padv_bthome_d2_t; // flag[3]+h[13]+data[x]
 
 // BTHOME event1, security
 typedef struct __attribute__((packed)) _adv_bthome_ev1_t {
@@ -332,7 +332,7 @@ typedef struct __attribute__((packed)) _adv_bthome_ev1_t {
 	adv_bthome_event1_t data;
 	u32	count_id;
 	u8	mic[4];
-} adv_bthome_ev1_t, * padv_bthome_ev1_t;
+} adv_bthome_ev1_t, * padv_bthome_ev1_t; // flag[3]+h[13]+data[x]
 
 void bthome_beacon_init(void);
 void bthome_encrypt_data_beacon(void);

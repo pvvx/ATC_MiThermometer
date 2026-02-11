@@ -382,7 +382,6 @@ void set_hw_version(void) {
     } else if (lcd_i2c_addr == N16_I2C_ADDR) {
 		hwver = HW_VER_LYWSD03MMC_NB16; // HW:B1.6 SPI
 	} else { // UART
-		// if(cfg.hw_cfg.shtc3)
 		if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3)
 			hwver = HW_VER_LYWSD03MMC_B15; // HW:B1.5
 		else
@@ -645,7 +644,7 @@ static void suspend_exit_cb(u8 e, u8 *p, int n) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 }
 
-#if !defined(SET_NO_SLEEP_MODE) && ( DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)   || (USE_SENSOR_HX71X && SENSOR_HX71X_WAKEAP)
+#if !defined(SET_NO_SLEEP_MODE) && ( DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) || (USE_SENSOR_HX71X && SENSOR_HX71X_WAKEAP)
 _attribute_ram_code_
 static void suspend_enter_cb(u8 e, u8 *p, int n) {
 	(void) e; (void) p; (void) n;
@@ -798,8 +797,9 @@ void user_init_normal(void) {//this will get executed one time after power up
 #endif
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
 		if (flash_read_cfg(&sensor_cfg.coef, EEP_ID_CFS, sizeof(sensor_cfg.coef))
-				!= sizeof(sensor_cfg.coef))
+				!= sizeof(sensor_cfg.coef)) {
 			memset(&sensor_cfg.coef, 0, sizeof(sensor_cfg.coef));
+		}
 #endif
 #if (DEV_SERVICES & SERVICE_18B20)
 		if (flash_read_cfg(&my18b20.coef, EEP_ID_CMY, sizeof(my18b20.coef))
@@ -1105,18 +1105,18 @@ void main_loop(void) {
 			check_battery();
 			WakeupLowPowerCb(0);
 #else
-			check_battery();
 			start_measure_sensor_deep_sleep();
 			sensor_cfg.time_measure = clock_time() | 1;
+			check_battery();
 #if (DEV_SERVICES & SERVICE_PRESSURE) && USE_SENSOR_HX71X
 			measured_data.pressure = hx71x_get_volume();
 #endif
-			if(cfg.flg.lp_measures == 0
+			if((cfg.flg.lp_measures == 0 && sensor_cfg.time_measure) // =1 Sensor measurements in "Low Power" mode
 #if USE_SENSOR_SHTC3
 				|| sensor_cfg.sensor_type == TH_SENSOR_SHTC3
 #endif
 				) {
-				if(clock_time() - sensor_cfg.time_measure > sensor_cfg.measure_timeout - 3)
+				if(clock_time() - sensor_cfg.time_measure >= sensor_cfg.measure_timeout)
 					WakeupLowPowerCb(0);
 				else {
 					bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
@@ -1131,8 +1131,8 @@ void main_loop(void) {
 #endif
 		if (wrk.start_measure) {
 			wrk.start_measure = 0;
-			check_battery();
 			read_sensors();
+			check_battery();
 #if (DEV_SERVICES & SERVICE_THS) && (!USE_SENSOR_SHTC3) && !USE_SENSOR_SCD41
 			start_measure_sensor_deep_sleep();
 #endif
@@ -1260,8 +1260,7 @@ void main_loop(void) {
 				SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
 #endif
 	}
-#if (DEV_SERVICES & SERVICE_SCREEN)
-#if (USE_EPD)
+#if (DEV_SERVICES & SERVICE_SCREEN) && (USE_EPD)
 	if (stage_lcd) {
 		if (task_lcd()) {
 			if(!gpio_read(EPD_BUSY)) {
@@ -1278,6 +1277,5 @@ void main_loop(void) {
 			cpu_set_gpio_wakeup(EPD_BUSY, Level_High, 0);  // pad high wakeup deepsleep disable
 		}
 	}
-#endif
-#endif // (DEV_SERVICES & SERVICE_SCREEN)
+#endif // (DEV_SERVICES & SERVICE_SCREEN) && (USE_EPD)
 }

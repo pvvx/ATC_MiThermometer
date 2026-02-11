@@ -5,8 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 OUT_DIR += /src
 
-OBJS += \
-$(OUT_PATH)/src/cstartup_825x.o
+OBJS += $(OUT_PATH)/src/cstartup_825x.o
 
 BOOT_FLAG := -DMCU_STARTUP_825X
 

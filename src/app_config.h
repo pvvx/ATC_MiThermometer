@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x56	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x57	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 // DevID:
@@ -70,7 +70,7 @@ extern "C" {
 //#define TEST_PLM1 			1  // TB03F My Plant monitor
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_ZBEACON2TH01
+#define DEVICE_TYPE			DEVICE_TS0201
 #endif
 
 // supported services by the device (bits)
@@ -765,8 +765,9 @@ extern "C" {
 
 #define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX
 
-#define SHL_ADC_VBAT	6  // "B5P" in adc.h
-#define GPIO_VBAT	GPIO_PB5 // R5 -> +Vbat
+#define SHL_ADC_VBAT		6  // "B5P" in adc.h
+#define GPIO_VBAT			GPIO_PB5 // R5 -> +Vbat
+#define ADC_BAT_VREF_MV		1686
 //#define PULL_WAKEUP_SRC_PB5 PM_PIN_PULLUP_1M
 //#define PB5_INPUT_ENABLE	1
 //#define PB5_DATA_OUT		1
@@ -887,6 +888,12 @@ extern "C" {
 #ifndef USE_SENSOR_MY18B20
 #define USE_SENSOR_MY18B20	0
 #endif
+#ifndef USE_SENSOR_BME280
+#define USE_SENSOR_BME280	0
+#endif
+#ifndef USE_SENSOR_BMP280
+#define USE_SENSOR_BMP280	0
+#endif
 
 // TLSR825x 1M Flash (ZTU)
 // GPIO_PA7 - SWS, free, (debug TX)
@@ -913,6 +920,21 @@ extern "C" {
 		| SERVICE_TH_TRG \
 		| SERVICE_LED \
 		| SERVICE_18B20 \
+)
+#elif (USE_SENSOR_BME280 || USE_SENSOR_BMP280)
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+		| SERVICE_PRESSURE \
 )
 #else
 #define DEV_SERVICES ( SERVICE_OTA\
@@ -1234,13 +1256,14 @@ extern "C" {
 )
 
 #define USE_EPD					0 // min update time ms
-
+#if (DEV_SERVICES & SERVICE_THS)
 #define USE_SENSOR_CHT8305		0
 #define USE_SENSOR_CHT8215		0
 #define USE_SENSOR_AHT20_30		1
-#define USE_SENSOR_SHT4X		0
+#define USE_SENSOR_SHT4X		1
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
+#endif
 
 #define USE_CUSTOM_BEACON	0
 #define USE_BTHOME_BEACON	1 	// = 1 BTHome v2 https://bthome.io/
@@ -1502,6 +1525,9 @@ extern "C" {
 #ifndef USE_SENSOR_BME280
 #define USE_SENSOR_BME280		0
 #endif
+#ifndef USE_SENSOR_BMP280
+#define USE_SENSOR_BMP280		0
+#endif
 
 #define USE_SDM_OUT	0 // Enable Sigma-Delta Modulation DAC, Set work only if use SCD41/ENS160
 
@@ -1584,7 +1610,7 @@ extern "C" {
 		| SERVICE_IUS \
 )
 
-#elif USE_SENSOR_BME280
+#elif (USE_SENSOR_BME280 || USE_SENSOR_BMP280)
 
 #define DEV_SERVICES ( SERVICE_OTA\
 		| SERVICE_OTA_EXT \
@@ -1600,6 +1626,7 @@ extern "C" {
 		| SERVICE_LED \
 		| SERVICE_PRESSURE \
 )
+
 #else
 
 #define DEV_SERVICES ( SERVICE_OTA\
@@ -2508,7 +2535,7 @@ GPIO_D7 - SDA
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
 
-#define I2C_MAX_SPEED 		200000 // 700 kHz
+#define I2C_MAX_SPEED 		200000 // 200 kHz
 #define I2C_SCL 			GPIO_PC4
 #define PC4_INPUT_ENABLE	1
 #define PC4_DATA_OUT		0
@@ -2598,12 +2625,18 @@ GPIO_D7 - SDA
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#ifdef USE_RC_VBAT // Vbat (+V-R/RC-GND)
+#define GPIO_VBAT			GPIO_PC4 // Vbat (+V-R/RC-GND)
+#define SHL_ADC_VBAT		9  // "C4P" in adc.h
+#define ADC_BAT_VREF_MV		1686
+#else
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
+#endif
 
 #define I2C_MAX_SPEED 		400000 // 400 kHz (LCD AIP31620)
 #define I2C_SDA 			GPIO_PC2
@@ -2895,6 +2928,9 @@ GPIO_D7 - SDA
 #ifndef USE_SENSOR_HX71X
 #define USE_SENSOR_HX71X	0
 #endif
+#ifndef USE_SENSOR_BMP280
+#define USE_SENSOR_BMP280	0
+#endif
 #ifndef USE_SENSOR_BME280
 #define USE_SENSOR_BME280	0
 #endif
@@ -2910,20 +2946,17 @@ GPIO_D7 - SDA
 #ifndef USE_SENSOR_SCD41
 #define	USE_SENSOR_SCD41	0
 #endif
-#ifndef USE_SENSOR_BME280
-#define USE_SENSOR_BME280	0
-#endif
 #ifndef USE_SENSOR_PWMRH
 #define	USE_SENSOR_PWMRH	0
 #endif
 
 #define USE_SENSOR_HT (USE_SENSOR_CHT8305 | USE_SENSOR_AHT20_30 | USE_SENSOR_SHT4X | USE_SENSOR_SHTC3 | USE_SENSOR_SHT30)
 
-#if USE_SENSOR_HX71X && USE_SENSOR_BME280
+#if USE_SENSOR_HX71X && (USE_SENSOR_BME280 || USE_SENSOR_BMP280)
 #error "Only 1 sensor!"
 #endif
 
-#if (USE_SENSOR_INA226 + USE_SENSOR_INA3221 + USE_SENSOR_SCD41 + USE_SENSOR_BME280) > 1
+#if (USE_SENSOR_INA226 + USE_SENSOR_INA3221 + USE_SENSOR_SCD41 + USE_SENSOR_BME280 + USE_SENSOR_BMP280) > 1
 #error "Only 1 sensor!"
 #endif
 
