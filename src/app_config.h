@@ -715,6 +715,7 @@ extern "C" {
 		| SERVICE_HARD_CLOCK \
 		| SERVICE_TH_TRG \
 		| SERVICE_MI_KEYS \
+		| SERVICE_SCANTIM \
 )
 
 #define MI_HW_VER_FADDR 0x7D000 // Mi HW version
