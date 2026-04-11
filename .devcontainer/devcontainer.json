@@ -10,7 +10,7 @@
 	],
 	"postStartCommand": "/usr/bin/git config --global --add safe.directory \"*\";",
 	"customizations": {
-		"vscode": {
+		"vscode": 
 			"extensions": [
 				"ms-vscode.cpptools",
 				"ms-vscode.cpptools-extension-pack",
@@ -23,4 +23,4 @@
 	},
 	"workspaceMount": "source=${localWorkspaceFolder},target=/workdir,type=bind,consistency=delegated",
 	"workspaceFolder": "/workdir"
-}
+}
