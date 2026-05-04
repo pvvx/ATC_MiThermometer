@@ -240,9 +240,9 @@ void init_my18b20(void) {
 	onewire_bus_low();
 	my18b20.type =
 #if USE_SENSOR_MY18B20 == 2
-	 IU_SENSOR_MY18B20x2;
+	 ID_SENSOR_MY18B20x2;
 #else
-	 IU_SENSOR_MY18B20;
+	 ID_SENSOR_MY18B20;
 #endif
 	my18b20.stage = 0; // init
 	my18b20.rd_ok = 0;

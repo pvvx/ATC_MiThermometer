@@ -44,7 +44,7 @@ const sensor_def_cfg_t def_thcoef_shtc3 = {
 #if SENSOR_SLEEP_MEASURE
 		.measure_timeout = SHTC3_MEASURING_TIMEOUT,
 #endif
-		.sensor_type = TH_SENSOR_SHTC3
+		.sensor_type = ID_SENSOR_SHTC3
 };
 
 //==================================== SHT4x
@@ -77,7 +77,7 @@ const sensor_def_cfg_t def_thcoef_sht4x = {
 #if SENSOR_SLEEP_MEASURE
 		.measure_timeout = SHT4x_MEASURING_TIMEOUT,
 #endif
-		.sensor_type = TH_SENSOR_SHT4x
+		.sensor_type = ID_SENSOR_SHT4x
 };
 
 //==================================== SHT30/GXHT3x/CHT832x
@@ -111,7 +111,7 @@ const sensor_def_cfg_t def_thcoef_sht30 = { // = shtc3
 #if SENSOR_SLEEP_MEASURE
 		.measure_timeout = SHT30_MEASURING_TIMEOUT,
 #endif
-		.sensor_type = TH_SENSOR_SHT30
+		.sensor_type = ID_SENSOR_SHT30
 };
 
 //==================================== AHT20-30
@@ -133,6 +133,9 @@ initialize the 0x1B, 0x1C, 0x1E registers, details Please refer to our official 
 the initialization process; if they are equal, proceed to the next step.*/
 #define AHT2x_DATA_LPWR		0x0800 // go into low power mode
 
+//#define WCHT20_CMD_INIT		0x0008BE // Initialization Command
+const u8 wht20_init[] = {	0xBE, 0x08, 0x00 };  // Initialization Command
+
 /* After power-on, the sensor needs less than 100ms stabilization time (SCL is
 high at this time) to reach the idle state and it is ready to receive commands sent by the host
 (MCU).*/
@@ -151,7 +154,7 @@ const sensor_def_cfg_t def_thcoef_aht2x = {
 #if SENSOR_SLEEP_MEASURE
 		.measure_timeout = AHT2x_MEASURING_TIMEOUT,
 #endif
-		.sensor_type = TH_SENSOR_AHT2x
+		.sensor_type = ID_SENSOR_AHT2x
 };
 
 //==================================== CHT8305
@@ -205,7 +208,7 @@ const sensor_def_cfg_t def_thcoef_cht8305 = {
 #if SENSOR_SLEEP_MEASURE
 		.measure_timeout = CHT8305_MEASURING_TIMEOUT,
 #endif
-		.sensor_type = TH_SENSOR_CHT8305
+		.sensor_type = ID_SENSOR_CHT8305
 };
 
 //==================================== CHT8215/CHT8310
@@ -267,7 +270,7 @@ const sensor_def_cfg_t def_thcoef_cht8215 = {
 #if SENSOR_SLEEP_MEASURE
 		.measure_timeout = CHT8215_MEASURING_TIMEOUT,
 #endif
-		.sensor_type = TH_SENSOR_CHT8215
+		.sensor_type = ID_SENSOR_CHT8215
 };
 
 //===================================
@@ -483,18 +486,18 @@ static int read_sensor_sht30_shtc3_sht4x(void) {
 				// read data ok
 				sensor_calk_th(_temp, _humi);
 #if USE_SENSOR_SHTC3
-				if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
+				if (sensor_cfg.sensor_type == ID_SENSOR_SHTC3) {
 					ret = send_i2c_word(sensor_cfg.i2c_addr, SHTC3_GO_SLEEP) == 0; // Sleep command of the sensor
 				} else
 #endif
 #if !SENSOR_SLEEP_MEASURE
 #if USE_SENSOR_SHT4X
-				if(sensor_cfg.sensor_type == TH_SENSOR_SHT4x) {
+				if(sensor_cfg.sensor_type == ID_SENSOR_SHT4x) {
 					ret = send_i2c_byte(sensor_cfg.i2c_addr, SHT4x_MEASURE_HI) == 0; // start measure T/H
 				} else
 #endif // USE_SENSOR_SHT4X
 #if USE_SENSOR_SHT30
-				if(sensor_cfg.sensor_type == TH_SENSOR_SHT30) {
+				if(sensor_cfg.sensor_type == ID_SENSOR_SHT30) {
 					ret = send_i2c_word(sensor_cfg.i2c_addr, SHT30_HIMEASURE) == 0; // start measure T/H
 				} else
 #endif //USE_SENSOR_SHT30
@@ -526,7 +529,7 @@ static int check_sensor(void) {
 #endif
 	u8 buf[8];
 	sensor_def_cfg_t *ptabinit = NULL;
-	sensor_cfg.sensor_type = TH_SENSOR_NONE;
+	sensor_cfg.sensor_type = ID_SENSOR_NONE;
 #if SENSOR_SLEEP_MEASURE
 	sensor_cfg.measure_timeout = 16384*CLOCK_16M_SYS_TIMER_CLK_1US;
 #endif
@@ -558,7 +561,8 @@ static int check_sensor(void) {
 	 if ((sensor_cfg.i2c_addr = (u8) scan_i2c_addr(AHT2x_I2C_ADDR << 1)) != 0) {
 		// AHT2x..30
 		// pm_wait_us(AHT2x_POWER_TIMEOUT_us);
-		if(!send_i2c_byte(sensor_cfg.i2c_addr, AHT2x_CMD_RST)) { // Soft reset command
+		if(!send_i2c_buf(sensor_cfg.i2c_addr, (unsigned char *)wht20_init, 3) // WHT20_CMD_INI
+		 && !send_i2c_byte(sensor_cfg.i2c_addr, AHT2x_CMD_RST)) { // Soft reset command
 			pm_wait_us(AHT2x_SOFT_RESET_us);
 			// test cmd: 0401017071 -> I2C addres 0x70, write 1 bytes, read 1 bytes: 0x18
 			//if(!read_i2c_byte_addr(sensor_cfg.i2c_addr, AHT2x_RD_STATUS, buf, 1)) { // buf[0] = 0x18
@@ -604,7 +608,7 @@ static int check_sensor(void) {
 #endif
 #if USE_SENSOR_CHT8215
 						if(sensor_cfg.id == ((CHT8215_VID << 16) | CHT8215_MID)) {
-							//sensor_cfg.sensor_type = TH_SENSOR_CHT8215;
+							//sensor_cfg.sensor_type = ID_SENSOR_CHT8215;
 							if(wrk.measurement_step_time >= 5000 * CLOCK_16M_SYS_TIMER_CLK_1MS) { // > 5 sec
 								// Set conversion ratio 5 sec
 								buf[0] = CHT8215_REG_CRT;
@@ -708,22 +712,22 @@ int read_sensor_cb(void) {
 #endif
 	if (sensor_cfg.i2c_addr != 0) {
 #if USE_SENSOR_CHT8305
-		if(sensor_cfg.sensor_type == TH_SENSOR_CHT8305) {
+		if(sensor_cfg.sensor_type == ID_SENSOR_CHT8305) {
 			if (read_sensor_cht8305()) return 1;
 		} else
 #endif
 #if USE_SENSOR_CHT8215
-		if(sensor_cfg.sensor_type == TH_SENSOR_CHT8215) {
+		if(sensor_cfg.sensor_type == ID_SENSOR_CHT8215) {
 			if (read_sensor_cht8215()) return 1;
 		} else
 #endif
 #if USE_SENSOR_AHT20_30
-		if(sensor_cfg.sensor_type == TH_SENSOR_AHT2x) {
+		if(sensor_cfg.sensor_type == ID_SENSOR_AHT2x) {
 			if (read_sensor_aht2x()) return 1;
 		} else
 #endif
 #if (USE_SENSOR_SHT4X || USE_SENSOR_SHTC3 || USE_SENSOR_SHT30)
-		if(sensor_cfg.sensor_type != TH_SENSOR_NONE) {
+		if(sensor_cfg.sensor_type != ID_SENSOR_NONE) {
 			if (read_sensor_sht30_shtc3_sht4x()) return 1;
 		} else
 #endif
@@ -744,18 +748,18 @@ int start_measure_sensor_deep_sleep(void) {
 #endif
 	if (sensor_cfg.i2c_addr != 0) {
 #if USE_SENSOR_CHT8305
-		if(sensor_cfg.sensor_type == TH_SENSOR_CHT8305) {
+		if(sensor_cfg.sensor_type == ID_SENSOR_CHT8305) {
 			scan_i2c_addr(sensor_cfg.i2c_addr); // wakeup?
 			ret = send_i2c_byte(sensor_cfg.i2c_addr, CHT8305_REG_TMP); // start measure T/H
 		} else
 #endif // USE_SENSOR_CHT8305
 #if USE_SENSOR_AHT20_30
-		if(sensor_cfg.sensor_type == TH_SENSOR_AHT2x) {
+		if(sensor_cfg.sensor_type == ID_SENSOR_AHT2x) {
 			ret = start_measure_aht2x();
 		} else
 #endif // USE_SENSOR_AHT20_30
 #if USE_SENSOR_SHTC3
-		if(sensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
+		if(sensor_cfg.sensor_type == ID_SENSOR_SHTC3) {
 			send_i2c_word(sensor_cfg.i2c_addr, SHTC3_WAKEUP); // Wake-up command of the sensor
 			sleep_us(SHTC3_WAKEUP_us - 5);	// 240 us
 #if (DEVICE_TYPE == DEVICE_CGDK2)
@@ -770,12 +774,12 @@ int start_measure_sensor_deep_sleep(void) {
 		} else
 #endif	// USE_SENSOR_SHTC3
 #if USE_SENSOR_SHT4X
-		if(sensor_cfg.sensor_type == TH_SENSOR_SHT4x) {
+		if(sensor_cfg.sensor_type == ID_SENSOR_SHT4x) {
 			ret = send_i2c_byte(sensor_cfg.i2c_addr, SHT4x_MEASURE_HI); // start measure T/H
 		} else
 #endif // USE_SENSOR_SHT4X
 #if USE_SENSOR_SHT30
-		if(sensor_cfg.sensor_type == TH_SENSOR_SHT30) {
+		if(sensor_cfg.sensor_type == ID_SENSOR_SHT30) {
 			ret = send_i2c_word(sensor_cfg.i2c_addr, SHT30_HIMEASURE); // start measure T/H
 		} else
 #endif //USE_SENSOR_SHT30

@@ -37,7 +37,9 @@
 #if USE_SDM_OUT
 #include "sdm_out.h"
 #endif
-
+#if USE_SENSOR_XBR818
+#include "xbr818.h"
+#endif
 
 #define _flash_read(faddr,len,pbuf) flash_read_page(FLASH_BASE_ADDR + (u32)faddr, len, (u8 *)pbuf)
 
@@ -297,24 +299,24 @@ void cmd_parser(void * p) {
 			p->dev_spec_data = sensor_cfg.sensor_type;
 
 #else
-			p->dev_spec_data = TH_SENSOR_NONE;
+			p->dev_spec_data = ID_SENSOR_NONE;
 #endif
 #if	(DEV_SERVICES & SERVICE_HARD_CLOCK)
-			p->dev_spec_data |= IU_SENSOR_PCF85163 << 8;
+			p->dev_spec_data |= ID_SENSOR_PCF85163 << 8;
 #endif
 #if USE_SENSOR_HX71X
-			p->dev_spec_data |= IU_SENSOR_HX71X << 8;
+			p->dev_spec_data |= ID_SENSOR_HX71X << 8;
 #elif (DEV_SERVICES & SERVICE_18B20)
 #if USE_SENSOR_MY18B20 == 2
-			p->dev_spec_data |= IU_SENSOR_MY18B20x2 << 8;
+			p->dev_spec_data |= ID_SENSOR_MY18B20x2 << 8;
 #else
-			p->dev_spec_data |= IU_SENSOR_MY18B20 << 8;
+			p->dev_spec_data |= ID_SENSOR_MY18B20 << 8;
 #endif
 #if USE_SENSOR_BMP280
-			p->dev_spec_data |= IU_SENSOR_BMP280 << 8;
+			p->dev_spec_data |= ID_SENSOR_BMP280 << 8;
 #endif
 #elif (DEV_SERVICES & SERVICE_PLM)
-			p->dev_spec_data = IU_SENSOR_NTC;
+			p->dev_spec_data = ID_SENSOR_NTC;
 #endif
 			p->services = DEV_SERVICES;
 			olen = sizeof(dev_id_t);
@@ -729,6 +731,40 @@ void cmd_parser(void * p) {
 		} else if (cmd == CMD_ID_SEN_ID) { // Get sensor ID
 			memcpy(&send_buf[1], &sensor_cfg.id, sizeof(sensor_cfg.id));
 			olen = sizeof(sensor_cfg.id) + 1;
+#endif
+#if USE_SENSOR_XBR818
+		} else if (cmd == CMD_ID_XBR818) {
+			if (len) {
+				if (len > sizeof(xbr818_cfg))
+					len = sizeof(xbr818_cfg);
+				memcpy(&xbr818_cfg, &req->dat[1], len);
+				xbr818_set_cfg();
+				flash_write_cfg(&xbr818_cfg, EEP_ID_MTN, sizeof(xbr818_cfg));
+			}
+			memcpy(&send_buf[1], &xbr818_cfg, sizeof(xbr818_cfg));
+			olen = sizeof(xbr818_cfg) + 1;
+#if 1 // debug
+		} else if (cmd == 0x0e) {
+			if(len > 1) {
+				xbr818_activate();
+				send_buf[1] = (u8)xbr818_write_regs(req->dat[1], &req->dat[2], len-1);
+			} else {
+				send_buf[1] = 0xff; // Error
+			}
+			olen = 2;
+		} else if (cmd == 0x0f) {
+			xbr818_activate();
+			if(len >= 2
+				&& req->dat[2]
+				&& req->dat[2] < 19
+				&& xbr818_read_regs(req->dat[1], &send_buf[2], req->dat[2]) == 0) {
+					send_buf[1] = req->dat[1];
+					olen = req->dat[2] + 2;
+			} else {
+				send_buf[1] = 0xff; // Error
+				olen = 2;
+			}
+#endif // debug
 #endif
 #if (DEV_SERVICES & SERVICE_18B20)
 		} else if (cmd == CMD_ID_CFB20) {	// Get/Set sensor MY18B20 config

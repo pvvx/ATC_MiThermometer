@@ -24,7 +24,7 @@ const sensor_def_cfg_t sensor_ina226_def_cfg = {
 		.coef.val2_k = 81923, // voltage_k 40960*65536/0x7fff = 81922.500
 		.coef.val1_z = 0, // current_z
 		.coef.val2_z = 0, // voltage_z
-		.sensor_type = IU_SENSOR_INA226
+		.sensor_type = ID_SENSOR_INA226
 };
 
 #define INA226_I2C_ADDR	0x40
@@ -51,7 +51,7 @@ void init_sensor(void) {
 		u32 ud;
 	} buf;
 	sensor_cfg.i2c_addr = 0;
-	sensor_cfg.sensor_type = TH_SENSOR_NONE;
+	sensor_cfg.sensor_type = ID_SENSOR_NONE;
 
 	// send_i2c_byte(0, 0x06); // Reset command using the general call address
 

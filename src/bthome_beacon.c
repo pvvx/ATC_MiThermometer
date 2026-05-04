@@ -49,6 +49,12 @@ static u32 set_bthome_data1(padv_bthome_data1_t p) {
 		p->h_id = BtHomeID_humidity;
 		p->humidity = measured_data.humi; // x0.01 %
 #endif
+#if (DEV_SERVICES & SERVICE_ILLUMI)
+		p->i_id = BtHomeID_illuminance;
+		p->illuminance_lo = (u8)measured_data.illumi; // lx
+		p->illuminance_md = (measured_data.illumi>>8);
+		p->illuminance_hi = (measured_data.illumi>>16);
+#endif
 #if (DEV_SERVICES & SERVICE_PLM) && (USE_SENSOR_PWMRH == 2)
 		p->m_id = BtHomeID_moisture16;
 		p->moisture = measured_data.mois; // x0.01 %

@@ -8,23 +8,30 @@ import sys
 import signal
 import struct
 import serial
-import keyboard
 import platform
 import time
 import argparse
 import os
 import io
 
+try:
+ import keyboard
+except ImportError:
+ class keyboard:
+  @staticmethod
+  def is_pressed(*args, **kwargs):
+   return False
+
 __progname__ = 'TLSR82xx TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '08.03.26'
+__version__ = '26.04.26'
 
 DEFAULT_UART_BAUD = 230400
 
 FLASH_SECTOR_SIZE = 4096
 
-sws_flg = 2
-sws_addr = 0
+#sws_flg = 2
+#sws_addr = 0
 sws_enable = False
 pgm = {}
 
@@ -133,14 +140,14 @@ class TLSRPGM:
 	CMDF_SWIRE_ACTIVATE = 4
 	CMDF_UART_BAUD = 5
 
-	ERR_NONE = 0
-	ERR_FUNC = 1
-	ERR_LEN  = 2
-	ERR_READ = 3
-	ERR_BUSY = 4
-	ERR_CRC  = 5
-	ERR_BAUD = 6
-	ERR_MAX  = 7
+	ERR_NONE = 0 # Errors None                               
+	ERR_FUNC = 1 # Function number error                     
+	ERR_LEN  = 2 # Data length error                         
+	ERR_READ = 3 # Swire read timeout                        
+	ERR_BUSY = 4 # Timeout flag while reading analog register
+	ERR_CRC  = 5 # Error CRC                                 
+	ERR_BAUD = 6 # Invalid baud rate number                  
+	ERR_MAX  = 7 
 
 	ERR_RETRY_COUNT = 3
 
@@ -179,8 +186,8 @@ class TLSRPGM:
 	pgm_clk = 24
 	pgm_swdiv = 5
 	pgm_swaddrlen = 3
-	pgm_swbuf = [b'\x5a\x00\x06\x02\x00\x05']
-	
+	pgm_swbuf = b'\x5a\x00\x06\x02\x00\x05'
+	ext_chip = None
 	pgm_chip = '?'
 	#-----------------------------------------------
 	# Functions for an PGM device
@@ -229,9 +236,14 @@ class TLSRPGM:
 			#if len(rblk) < rdlen:
 			#	rblk += self._port.read(rdlen - len(rblk))
 		except:
-			print('\rError read %s!' % (self.port))
+			print('\rError read %s!' % (self.port), file=sys.stderr)
 			return None
 		return rblk
+	def error_msg(self):
+		err = self.err & 0xff
+		if err >= self.ERR_MAX:
+			return 'Unknown error!'
+		return 	tab_err[err]
 	def command(self, wblk, rdlen = None):
 		w = self.write(crc_blk(wblk))
 		if w != len(wblk)+2:
@@ -269,7 +281,7 @@ class TLSRPGM:
 				print('Set Speed UART PGM board %d bits/s...' % (baud), end = ' ')
 				data = self.command(struct.pack('<BBH', self.CMD_FUNCS, self.CMDF_UART_BAUD, i), 6)
 				if data == None:
-					print('Error(%d)', self.err)
+					print('Error(%d)', self.err, file=sys.stderr)
 					return False
 				print('ok')
 				if self._port.baudrate != baud:
@@ -283,14 +295,14 @@ class TLSRPGM:
 	def SetPinRST(self, out = 1):
 		data = self.command(struct.pack('<BBH', self.CMD_FUNCS, self.CMDF_EXT_POWER, out), 7)
 		if data == None:
-			print('\rError[%d] Set pin RST/Power!' % self.err)
+			print('\rError(%d) Set pin RST/Power!' % self.err, file=sys.stderr)
 			return False
 		return True
 	# Get version pgm board
 	def GetVersion(self):
 		data = self.command(struct.pack('<BBH', self.CMD_FUNCS, self.CMDF_GET_VERSION, 0), 19)
 		if data == None:
-			print('\rError[%d] Read PGM Version and Config!' % self.err)
+			print('\rError(%d) Read PGM Version and Config!' % self.err)
 			return False
 		self.pgm_version = [data[5], data[4]]
 		self.pgm_ver_int = (data[5] << 8) | data[4]
@@ -311,6 +323,9 @@ class TLSRPGM:
 		elif self.pgm_cid == 0x5327:
 			self.pgm_chip = 'TLSR8269'
 			self.pgm_clk = 32
+		elif self.pgm_cid == 0x5591:
+			self.pgm_chip = 'TLSR8208'
+			self.pgm_clk = 32
 		else:
 			self.pgm_clk = 32
 			self.pgm_chip = '?'
@@ -325,6 +340,14 @@ class TLSRPGM:
 			print('pfr Off')
 		print('SWire bit rate: %.4f Mbits/s' % self.pgm_swsps)
 		return True
+	# Set ext addr  
+	def setextadr(self, eaddr = 0):
+		swbuf = struct.pack('<BBBBBB',0x5a,0,6,2,eaddr & 0xff,5)
+		data = self.command(struct.pack('<BBHBB', self.CMD_FUNCS, self.CMDF_SWIRE_CFG, 0, self.pgm_swdiv, self.pgm_swaddrlen) + swbuf, 14)
+		if data == None:
+			print('Error(%d) Set PGM Config!' % self.err, file=sys.stderr)
+			return False
+		return True
 	# Set Speed SWM pgm board
 	def SetPgmConfig(self, swdiv = None, swaddrlen = None, swbuf = None):
 		if swdiv == None:
@@ -335,7 +358,7 @@ class TLSRPGM:
 			swbuf = self.pgm_swbuf;
 		data = self.command(struct.pack('<BBHBB', self.CMD_FUNCS, self.CMDF_SWIRE_CFG, 0, swdiv, swaddrlen) + swbuf, 14)
 		if data == None:
-			print('Error[%d] Set PGM Config!' % self.err)
+			print('Error(%d) Set PGM Config!' % self.err, file=sys.stderr)
 			return False
 		(self.pgm_swdiv, self.pgm_swaddrlen) = struct.unpack('<BB', data[4:6])
 		self.pgm_swbuf = data[6:12]
@@ -359,7 +382,7 @@ class TLSRPGM:
 		data = self.command(struct.pack('<BBH', self.CMD_FUNCS, self.CMDF_SWIRE_ACTIVATE, count), 10)
 		self._port.timeout = t
 		if data == None:
-			print('Activate Error[%d]!' % self.err)
+			print('Activate Error(%d)!' % self.err)
 			return False
 		print('ok')
 		self.ext_pc = struct.unpack('<I', data[4:8])
@@ -389,12 +412,12 @@ class TLSRPGM:
 			return False
 		if self.err != self.ERR_NONE:
 			if self.err >= len(self.tab_err):
-				print('\r\nError[%d]: Unknown error!' % (self.err))
+				print('\r\nError(%d): Unknown error!' % (self.err), file=sys.stderr)
 			else:
 				if self.err == self.ERR_READ:
 					print('Error!')
-					print('Check SWM<->SWS connection or Reset/Activation time!')
-				print('\r\nError[%d]: %s' % (self.err, self.tab_err[self.err]))
+					print('Check SWM<->SWS connection or Reset/Activation time!', file=sys.stderr)
+				print('\r\nError(%d): %s' % (self.err, self.tab_err[self.err]), file=sys.stderr)
 			return False
 		if len(rblk) >= 10:
 			self.ext_pc = struct.unpack('<I', rblk[4:8])
@@ -411,7 +434,7 @@ class TLSRPGM:
 	def ReadFlashStatus(self):
 		data = self.command(struct.pack('<BBH', self.CMD_FLASH_GET_STATUS, 0, 0), 7)
 		if data == None or self.wcnt != 1:
-			print('\rError get Flash Status! (%d)' % self.err) 
+			print('\rError get Flash Status! (%d)' % self.err, file=sys.stderr) 
 			return None
 		print('Flash Status Register: 0x%02x' % data[4])
 		return data[4]
@@ -420,7 +443,7 @@ class TLSRPGM:
 		while count > 0:
 			data = self.command(struct.pack('<BBH', self.CMD_FLASH_GET_STATUS, 0, 0), 7)
 			if data == None or self.wcnt != 1:
-				print('\rError get Flash Status! (%d)' % self.err) 
+				print('\rError get Flash Status! (%d)' % self.err, file=sys.stderr) 
 				return False
 			if (data[4] & 0x01) == 0:
 				#print('Flash status 0x%02x, cnt %d' % (data[4], count))
@@ -432,13 +455,13 @@ class TLSRPGM:
 	def WriteFlashStatus(self, fstatus = 0):
 		data = self.command(struct.pack('<BBHHB', self.CMD_FLASH_WRRD, 0, 0, 0, 6), 6)
 		if data == None:
-			print('\rError Write Flash Status! (%d)' % self.err) 
+			print('\rError Write Flash Status! (%d)' % self.err, file=sys.stderr) 
 			return None
 		data = self.command(struct.pack('<BBHHBB', self.CMD_FLASH_WRRD, 0, 0, 0, 1, fstatus&0xff), 6)
 		if data == None:
-			print('\rError Write Flash Status! (%d)' % self.err) 
+			print('\rError Write Flash Status! (%d)' % self.err, file=sys.stderr)
 			return None
-		if not self.WaitingFlashReady(10):
+		if not self.WaitingFlashReady():
 			return None
 		#data = self.command(struct.pack('<BBHHB', self.CMD_FLASH_WRRD, 0, 0, 1, 5), 7)
 		#if data == None:
@@ -452,36 +475,48 @@ class TLSRPGM:
 		offset = 0x6bc
 		data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
 		if data == None or self.wcnt != rdsize:
-			print('\rError Read SWire data! (%d)' % self.err) 
+			print('\rError Read SWire data! (%d)' % self.err, file=sys.stderr) 
 			return False
 		self.ext_pc = struct.unpack('<I', data[4:8])
 		rdsize = 0x1
 		offset = 0x602
 		data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
 		if data == None or self.wcnt != rdsize:
-			print('\rError Read SWire data! (%d)' % self.err) 
+			print('\rError Read SWire data! (%d)' % self.err, file=sys.stderr) 
 			return False
 		print('CPU PC=0x%08x' % self.ext_pc, '([0x0602] = 0x%02x)' % data[4])
 		return True
 	# Dump Ext. Chip regs
-	def DumpChipRegs(self, offset = 0x60, rdsize = 0x20):
-		data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
-		if data == None or self.wcnt != rdsize:
-			print('\rError Read SWire data! (%d)' % self.err) 
-			return False
+	def DumpChipRegs(self, offset = 0x60, size = 0x20):
 		print('-------------------------------------------------------')
 		print('\rREGISTERS:')
-		hex_dump(offset, data[4:rdsize+4])
+		rdsize = self.MAX_BUF_READ_SIZE
+		while size > 0:
+			if rdsize > size:
+				rdsize = size
+			data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
+			if data == None or self.wcnt != rdsize:
+				print('\rError Read SWire data! (%d)' % self.err, file=sys.stderr) 
+				return False
+			hex_dump(offset, data[4:rdsize+4])
+			offset += rdsize
+			size -= rdsize
 		return True
 	# Dump Ext. Chip Flash
-	def DumpChipFlash(self, offset = 0x0, rdsize = 0x20):
-		data = self.command(struct.pack('<BBHH', self.CMD_FLASH_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
-		if data == None or self.wcnt != rdsize:
-			print('\rError Read SWire data! (%d)' % self.err) 
-			return False
+	def DumpChipFlash(self, offset = 0x0, size = 0x20):
 		print('-------------------------------------------------------')
 		print('\rFLASH:')
-		hex_dump(offset, data[4:rdsize+4])
+		rdsize = self.MAX_BUF_READ_SIZE
+		while size > 0:
+			if rdsize > size:
+				rdsize = size
+			data = self.command(struct.pack('<BBHH', self.CMD_FLASH_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
+			if data == None or self.wcnt != rdsize:
+				print('\rError Read SWire data! (%d)' % self.err, file=sys.stderr) 
+				return False
+			hex_dump(offset, data[4:rdsize+4])
+			offset += rdsize
+			size -= rdsize
 		return True
 	# Dump Ext. Chip Ana regs
 	def DumpChipARegs(self, offset = 0x0, rdsize = None):
@@ -494,18 +529,23 @@ class TLSRPGM:
 				rdsize = 0x80
 		data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_AREAD, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
 		if data == None or self.wcnt != rdsize:
-			print('\rError Read SWire data! (%d)' % self.err) 
+			print('\rError Read SWire data! (%d)' % self.err, file=sys.stderr) 
 			return False
 		print('-------------------------------------------------------')
 		print('\rANALOG REGISTERS:')
 		hex_dump(offset, data[4:rdsize+4])
 		return True
 	# Dump Ext. Chip FlashUID
-	def DumpChipFlashUID(self, offset = 0, rdsize = 0x20):
+	def DumpChipFlashUID(self, offset = 0, rdsize = None):
+		if rdsize == None:
+			if self.ext_chip == 'TLSR8208':
+				rdsize = 0x10
+			else:
+				rdsize = 0x20
 		rdsize +=4 # +4 dimmy
 		data = self.command(struct.pack('<BBHHB', self.CMD_FLASH_WRRD, offset & 0xff, (offset>>8) & 0xffff, rdsize, 0x4B), rdsize+6)
 		if data == None or self.wcnt != rdsize + 1:
-			print('\rError Read Flash UID! (%d)' % self.err)
+			print('\rError Read Flash UID! (%d)' % self.err, file=sys.stderr)
 			return False
 		print('-------------------------------------------------------')
 		print('\rFLASH UID:')
@@ -517,7 +557,7 @@ class TLSRPGM:
 		offset = 0x7d
 		data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
 		if data == None or self.wcnt != rdsize:
-			print('\rError get Chip ID! (%d)' % self.err) 
+			print('\rError get Chip ID! (%d)' % self.err, file=sys.stderr) 
 			return False
 		self.ext_cver = data[4]
 		self.ext_cid = data[5] | (data[6]<<8)
@@ -529,6 +569,8 @@ class TLSRPGM:
 			self.ext_chip = 'TLSR8267'
 		elif self.ext_cid == 0x5327:
 			self.ext_chip = 'TLSR8269'
+		elif self.ext_cid == 0x5591:
+			self.ext_chip = 'TLSR8208'
 		else:
 			self.ext_chip = None
 		if self.ext_chip == None:
@@ -555,7 +597,7 @@ class TLSRPGM:
 			print('\rRead from 0x%06x...' % offset, end = '')
 			data = self.command(struct.pack('<BBHH', self.CMD_FLASH_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
 			if data == None or self.wcnt != rdsize:
-				print('\rError Read Flash data at 0x%06x! ' % offset, end = '')
+				print('\rError Read Flash data at 0x%06x! ' % offset, end = '', file=sys.stderr)
 				return False
 			stream.write(data[4:rdsize+4]);
 			size -= rdsize
@@ -572,20 +614,27 @@ class TLSRPGM:
 			print('\rRead from 0x%06x...' % offset, end = '')
 			data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
 			if data == None or self.wcnt != rdsize:
-				print('\rError Read SWire data at 0x%06x! ' % offset, end = '')
+				print('\rError Read SWire data at 0x%06x! ' % offset, end = '', file=sys.stderr)
 				return False
 			stream.write(data[4:rdsize+4]);
 			size -= rdsize
 			offset += rdsize
 		print('\r                               \r',  end = '')
 		return True
+	# Read Reg/Sram Data 
+	def ReadRegsData(self, offset = 0x800000, size = 4):
+		data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, size), size+6)
+		if data == None or self.wcnt != size:
+			print('Error Read SWire data! (%d)' % self.err, file=sys.stderr)
+			return None
+		return data
 	# Write Reg/Sram Data 
 	def WriteRegsData(self, offset = 0x602, wdata = b'\x05'):
 		offset &= 0xffffff
 		wrsize = len(wdata)
 		data = self.command(struct.pack('<BBH', self.CMD_SWIRE_WRITE, offset & 0xff, (offset>>8) & 0xffff) + wdata, 6)
 		if data == None or self.wcnt != wrsize:
-			print('\rError Write SWire data at 0x%06x! ' % offset, end = '')
+			print('\rError Write SWire data at 0x%06x! ' % offset, end = '', file=sys.stderr)
 			return False
 		return True
 	# Write Blocks Reg/Sram from stream
@@ -597,7 +646,7 @@ class TLSRPGM:
 			data = stream.read(wrsize)
 			wrsize = len(data)
 			if not data or wrsize == 0: # end of stream
-				print(' Error Read file!')
+				print(' Error Read file!', file=sys.stderr)
 				return False
 			while 1:
 				print('\rWrite to 0x%06x...' % offset, end = '')
@@ -605,7 +654,7 @@ class TLSRPGM:
 				if rdata == None or self.wcnt != wrsize:
 					cnt_err -= 1
 					if cnt_err == 0:
-						print('\rError Write Swire data at 0x%06x!' % offset)
+						print('\rError Write Swire data at 0x%06x!' % offset, file=sys.stderr)
 						return False
 					print(' Error', cnt_err)
 				else:
@@ -633,7 +682,7 @@ class TLSRPGM:
 			print('\rRead from 0x%06x...' % offset, end = '')
 			data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_AREAD, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
 			if data == None  or self.wcnt != rdsize:
-				print('\rError Read SWire data at 0x%06x! ' % offset, end = '')
+				print('\rError Read SWire data at 0x%06x! ' % offset, end = '', file=sys.stderr)
 				return False
 			stream.write(data[4:rdsize+4]);
 			size -= rdsize
@@ -659,7 +708,7 @@ class TLSRPGM:
 				if rdata == None or self.wcnt != wrsize:
 					cnt_err -= 1
 					if cnt_err == 0:
-						print('\rError Write aregs data at 0x%06x!' % offset)
+						print('\rError Write aregs data at 0x%06x!' % offset, file=sys.stderr)
 						return False
 					print(' Error', cnt_err)
 				else:
@@ -675,7 +724,7 @@ class TLSRPGM:
 		rdsize = 256+4 # 8+4
 		data = self.command(struct.pack('<BBHHB', self.CMD_FLASH_WRRD, offset & 0xff, (offset>>8) & 0xffff, rdsize, 0x4B), rdsize+6)
 		if data == None: # or self.wcnt+1 != rdsize:
-			print('\rError Read Flash UID! (%d)' % self.err)
+			print('\rError Read Flash UID! (%d)' % self.err, file=sys.stderr)
 			return False
 		self.FlashUID = data[8:16]
 		print('Flash UID:' , self.FlashUID)
@@ -695,7 +744,7 @@ class TLSRPGM:
 						return False
 					cnt_err -= 1
 					if cnt_err == 0:
-						print('\rError Erase sector at 0x%06x!' % offset)
+						print('\rError Erase sector at 0x%06x!' % offset, file=sys.stderr)
 						return False
 					print(' Error', cnt_err)
 				else:
@@ -710,7 +759,7 @@ class TLSRPGM:
 	def EraseAllFlash(self):
 		data = self.command(struct.pack('<BBH', self.CMD_FLASH_ALL_ERASE, 0, 0))
 		if data == None:
-			print('\rError Erase All Flash! (%d)' % self.err)
+			print('\rError Erase All Flash! (%d)' % self.err, file=sys.stderr)
 			return False
 		return self.WaitingFlashReady(3000)
 	# Write Blocks Flash from stream
@@ -734,7 +783,7 @@ class TLSRPGM:
 								return False
 							cnt_err -= 1
 							if cnt_err == 0:
-								print('\rError Erase sector at 0x%06x!' % offset)
+								print('\rError Erase sector at 0x%06x!' % offset, file=sys.stderr)
 								return 0
 							print(' Error', cnt_err)
 						else:
@@ -746,7 +795,7 @@ class TLSRPGM:
 			data = stream.read(wrsize)
 			wrsize = len(data)
 			if not data or wrsize == 0: # end of stream
-				print(' Error Read file!')
+				print(' Error Read file!', file=sys.stderr)
 				return False
 			for e in data:
 				if e != 0xff:
@@ -758,7 +807,7 @@ class TLSRPGM:
 								return False
 							cnt_err -= 1
 							if cnt_err == 0:
-								print('\rError Write Flash data at 0x%06x!' % offset)
+								print('\rError Write Flash data at 0x%06x!' % offset, file=sys.stderr)
 								return False
 							print(' Error', cnt_err)
 						else:
@@ -768,7 +817,7 @@ class TLSRPGM:
 								#print('\rGet CRC16 Flash record in 0x%06x...' % offset, end = '')
 								rdata = self.command(struct.pack('<BBHH', self.CMD_FLASH_RDCRC, offset & 0xff, (offset>>8) & 0xffff, wrsize), 6)
 								if rdata == None or rdata[2:4] != crc16(data, len(data)):
-									print('\rFlash CRC16 check error in block at 0x%06x!' % offset)
+									print('\rFlash CRC16 check error in block at 0x%06x!' % offset, file=sys.stderr)
 									return False
 							cnt_err = self.ERR_RETRY_COUNT
 						break
@@ -783,7 +832,7 @@ class TLSRPGM:
 		offset = 0x61
 		data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, rdsize), rdsize+6)
 		if data == None or self.wcnt != rdsize:
-			print('Error Read SWire data! (%d)' % self.err) 
+			print('Error Read SWire data! (%d)' % self.err, file=sys.stderr) 
 			return False
 		x = bytearray(data[4:8])
 		# TLSR825x - bit 3, TLSR826x - bit 1
@@ -792,14 +841,105 @@ class TLSRPGM:
 		else:
 			msk_bit = 0x02
 		if (x[0] & msk_bit) != 0 or (x[3] & msk_bit) == 0:
-			x[0] &= ~msk_bit
-			x[3] |= msk_bit # reg 0x64
+			x[0] &= ~msk_bit # reg 0x61 reg_rst1
+			x[3] |= msk_bit # reg 0x64 reg_clk_en1
 			data = self.command(struct.pack('<BBH', self.CMD_SWIRE_WRITE, offset & 0xff, (offset>>8) & 0xffff) + x, 6)
 			if data == None or self.wcnt != rdsize:
 				#print('Error!') 
-				print('Error Write SWire data! (%d)' % self.err) 
-				print('Error Activate ALGM!')
+				print('Error Write SWire data! (%d)' % self.err, file=sys.stderr) 
+				print('Error Activate ALGM!', file=sys.stderr)
 				return False
+		return True
+	def WaitPC(self, ttime = 1, dw = 0):
+		if ttime < 1:
+			ttime = 1
+		flgsleep = False
+		flgrun = False
+		i = 0
+		offset = 0x6bc
+		dw = dw & 0xffffff
+		#print('Wait PC == 0x%06x...' % dw)
+		wblk = struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, 4) 
+		t1 = time.time()
+		t2 = t1
+		te = t1 + ttime
+		sws_enable = True
+		while t2 < te and sws_enable:
+			if keyboard.is_pressed("esc"):
+				print()
+				print('Keyboard Break!')
+				break
+			self.write(crc_blk(wblk))
+			rblk = self.read(6)
+			t2 = time.time()
+			if rblk == None or len(rblk) < 6 or rblk[0] != wblk[0]:
+				print('\r\nError Read response!', file=sys.stderr) 
+				return False
+			self.err = rblk[1];
+			self.wcnt = rblk[2] | (rblk[3]<<8)
+			if self.wcnt == 4 and self.err == 0:
+				rblk += self.read(4)
+				if crc_chk(rblk):
+					if flgsleep:
+						t1 = t2
+						print()
+					self.ext_reg = struct.unpack('<I', rblk[4:8])
+					print('\rPC: 0x%06x' % self.ext_reg, end = '')
+					if flgrun:
+						print(' (%.3f)' % (t2-t1), end = '')
+					if dw == self.ext_reg[0]:
+						print(' - ok')
+						return True
+					flgsleep = False
+					flgrun = True
+				else:
+					print('\r\nError Read response!', file=sys.stderr)
+					return False
+			else:
+				print('\r\nError CPU sleep!', file=sys.stderr)
+				return False
+		print()
+		return True
+	# Dump CPU registers
+	def DumpCPURegs(self):
+		print('-------------------------------------------------------')
+		if self.pgm_swaddrlen == 2 and self.ext_chip == None:
+			self.ReadChipID()
+		print('CPU registers:')
+		rblk = self.ReadRegsData(0x0680,128)
+		if rblk == None:
+			return False
+		regs = struct.unpack('<IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII', rblk[4:132])
+		print("flg: 0x%08x (psr)" % regs[16])
+		if self.ext_chip == 'TLSR8266':
+			print("r00: 0x%08x ???: 0x%08x" %  (regs[0], regs[17]))
+			print("r01: 0x%08x" %  regs[1])
+			print("r02: 0x%08x s02: 0x%08x" %  (regs[2], regs[18]))
+		else:
+			print("r00: 0x%08x s00: 0x%08x" %  (regs[0], regs[17]))
+			print("r01: 0x%08x" %  regs[1])
+			print("r02: 0x%08x" %  regs[2])
+		for i in range(8):
+			print("r%02d: 0x%08x s%02d: 0x%08x" % (i+3, regs[i+3], i+3, regs[i+19]))
+		print("r11: 0x%08x (fp) 0x%08x" % (regs[11], regs[11+16]))
+		print("r12: 0x%08x (ip) 0x%08x" % (regs[12], regs[12+16]))
+		print("r13: 0x%08x (sp) 0x%08x" % (regs[13], regs[13+16]))
+		print("r14: 0x%08x (lr) 0x%08x" % (regs[14], regs[14+16]))
+		if self.ext_chip == 'TLSR8266':
+			print("r15: 0x%08x (pc)" % (regs[15]))
+		else:
+			print("r15: 0x%08x (pc) 0x%08x" % (regs[15], regs[18]))
+			print("m64: 0x%08x =(mul32*32)>>32" % regs[31]) # 0x6fc = (mul32*32)>>32
+
+		rblk = self.ReadRegsData(regs[13], 48)
+		if rblk == None:
+			return False
+		stek = struct.unpack('<IIIIIIIIIIII', rblk[4:52])
+		print("SP 0x%06x:" % regs[13])
+		print("0x%08x 0x%08x 0x%08x 0x%08x" % (stek[0], stek[1], stek[2], stek[3]))
+		print("0x%08x 0x%08x 0x%08x 0x%08x" % (stek[4], stek[5], stek[6], stek[7]))
+		print("0x%08x 0x%08x 0x%08x 0x%08x" % (stek[8], stek[9], stek[10], stek[11]))
+
 		return True
 	# Test
 	def TestDebugPC(self, ttime = 1, offset = 0x6bc):
@@ -813,12 +953,17 @@ class TLSRPGM:
 		t1 = time.time()
 		t2 = t1
 		te = t1 + ttime
-		while t2 < te:
+		sws_enable = True
+		while t2 < te and sws_enable:
+			if keyboard.is_pressed("esc"):
+				print()
+				print('Keyboard Break!')
+				break
 			self.write(crc_blk(wblk))
 			rblk = self.read(6)
 			t2 = time.time()
 			if rblk == None or len(rblk) < 6 or rblk[0] != wblk[0]:
-				print('\r\nError Read response!') 
+				print('\r\nError Read response!', file=sys.stderr) 
 				return False
 			self.err = rblk[1];
 			self.wcnt = rblk[2] | (rblk[3]<<8)
@@ -835,7 +980,7 @@ class TLSRPGM:
 					flgsleep = False
 					flgrun = True
 				else:
-					print('\r\nError Read response!') 
+					print('\r\nError Read response!', file=sys.stderr) 
 					return False
 			else:
 				if flgrun:
@@ -853,10 +998,13 @@ class TLSRPGM:
 			twait_sec = 1
 		if wraddr != None and wrdata != None:
 			data = self.command(struct.pack('<BBHBH', self.CMD_WAIT_RESP, offset & 0xff, (offset>>8) & 0xffff, wraddr & 0xff, (wraddr>>8) & 0xffff) + wrdata, 6)
-		else:
+		elif wraddr == None and wrdata == None:
 			data = self.command(struct.pack('<BBH', self.CMD_WAIT_RESP, offset & 0xff, (offset>>8) & 0xffff), 6)
+		else:
+			print('Invalid arguments Wait Response command!') 
+			return False
 		if data == None:
-			print('Error Wait Respone command! (%d)' % self.err) 
+			print('Error Wait Respone command! (%d)' % self.err, file=sys.stderr) 
 			return False
 		t1 = time.time()
 		te = t1 + twait_sec
@@ -877,7 +1025,7 @@ class TLSRPGM:
 					t1 == tt
 				continue
 			if len(rblk) < 10 or rblk[0] != self.CMD_WAIT_RESP:
-				print('\r\nError Read response!') 
+				print('\r\nError Read response!', file=sys.stderr) 
 				return False
 			if rblk[2] == 4 and rblk[3] == 0 and rblk[1] == 0 and crc_chk(rblk):
 				self.ext_pc = struct.unpack('<I', rblk[4:8])
@@ -887,15 +1035,33 @@ class TLSRPGM:
 					print('\rReg at 0x%06x=0x%08x   ' % (offset, self.ext_pc))
 				if wraddr != None and wrdata != None:
 					if wraddr == 0x602 and (wrdata == b'\x05' or wrdata == b'\x06'):
+						data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, wraddr & 0xff, (wraddr>>8) & 0xffff, 1), 7)
+						if data == None or self.wcnt != 1:
+							print('\rError Read SWire data! (%d)' % self.err, file=sys.stderr) 
+							return False
 						if wrdata == b'\x05':
+							if data[4] != 5:
+								print('\rError: CPU capture failed! ([0x0602] = 0x%02x)' % data[4], file=sys.stderr) 
+								return False
 							print('CPU Stopped ([0x0602] = 0x05)')
 						if wrdata == b'\x06':
+							if data[4] != 6:
+								print('\rError: CPU capture failed! ([0x0602] = 0x%02x)' % data[4], file=sys.stderr) 
+								return False
 							print('CPU Stall ([0x0602] = 0x06)')
+						offset = 0x6bc
+						data = self.command(struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, 4), 10)
+						if data == None or self.wcnt != 4:
+							print('\rError Read SWire data! (%d)' % self.err, file=sys.stderr) 
+							return False
+						self.ext_pc = struct.unpack('<I', data[4:8])
+						print('CPU PC=0x%08x' % self.ext_pc)
+						return True
 					else:
 						s = hex2str(wrdata)
 						print('Wr [0x%06x] = %s)' %(wraddr, s))
 			else:
-				print('\r\nError Read response!')
+				print('\r\nError Read response!', file=sys.stderr)
 				return False
 			return True
 		print()
@@ -915,7 +1081,8 @@ class TLSRPGM:
 		t1 = time.time()
 		t2 = t1
 		te = t1 + twait_sec
-		while t2 < te:
+		sws_enable = True
+		while t2 < te and sws_enable:
 			if keyboard.is_pressed("esc"):
 				print()
 				print('Keyboard Break!')
@@ -927,7 +1094,7 @@ class TLSRPGM:
 				print()
 				return False
 			if len(rblk) < 6 or rblk[0] != wblk[0]:
-				print('\r\nError Read response!') 
+				print('\r\nError Read response!', file=sys.stderr) 
 				return False
 			self.err = rblk[1];
 			self.wcnt = rblk[2] | (rblk[3]<<8)
@@ -958,7 +1125,7 @@ class TLSRPGM:
 						print('ok')
 					return True
 				else:
-					print('\r\nError Read response!') 
+					print('\r\nError Read response!', file=sys.stderr) 
 					return False
 			else:
 				print('\rCPU sleep? (%.3f sec)' % (t2-t1), end = '')
@@ -973,43 +1140,19 @@ class TLSRPGM:
 			return None
 		ret = self.ReadFlashStatus()
 		if ret == None or ret != 0:
-			print('\r\nError unlock Flash!') 
+			print('\r\nError unlock Flash!', file=sys.stderr) 
 			return None
 		return ret
-	def SwsPrintf(self, offset = 0, flg = 1):
-		offset &= 0xffffff
-		if flg == 0:
-			wdata = 0xff
-			s = 'Close '
-		elif flg == 1:
-			wdata = 0
-			s = 'Open '
-		elif flg == 2:
-			s = 'Continue '
-			flg = 2
-		else:
-			s = 'Next '
-			flg = 3
-		sws_addr = offset
-		sws_flg = flg
-		if flg < 2:
-			print('%sSWS Printf at SRAM address 0x%06x...' % (s, offset), end = '')
-			data = self.command(struct.pack('<BBHB', self.CMD_SWS_PRINTF, offset & 0xff, (offset>>8) & 0xffff, wdata), 6)
-			if data == None or self.wcnt != 1:
-				print('error!', flush=True)
-				return False
-			print('ok')
-			if flg == 0:
-				return True
-		if flg == 2:
-			print('%sSWS Printf at SRAM address 0x%06x...' % (s, offset), end = '')
-			data = self.command(struct.pack('<BBH', self.CMD_SWS_PRINTF, offset & 0xff, (offset>>8) & 0xffff), 6)
-			if data == None or self.wcnt != 0:
-				print('error!', flush=True)
-				return False
-			print('ok')
-			if flg == 0:
-				return True
+	def SwsPrintf(self, offset = 0x84E700):
+		if self.pgm_ver_int < 8:
+			print('Attention: this program requires PGM version 0.0.0.8 or higher!')
+			return False
+		print('Open SWS Printf at SRAM address 0x%06x...' % (offset), end = '')
+		data = self.command(struct.pack('<BBHB', self.CMD_SWS_PRINTF, offset & 0xff, (offset>>8) & 0xffff, 0), 6)
+		if data == None or self.wcnt != 1:
+			print('error!', flush=True)
+			return False
+		print('ok')
 		self._port.timeout = 0.01
 		sws_enable = True
 		while sws_enable: #TODO
@@ -1018,14 +1161,128 @@ class TLSRPGM:
 				print('Keyboard Break!')
 				break
 			try:
-				rblk = self._port.read(254)
+				rblk = self._port.read(253)
 			except:
 				#print('Error read %s!' % (self.port))
 				return False
 			if len(rblk) != 0:
-				print(rblk.decode(errors='ignore'), end = '', flush=True)
+				print(rblk.decode(encoding='ascii', errors='ignore'), end = '', flush=True) # encoding="utf-8" 
 		return True
-		
+	# Dump OTP registers
+	def DumpOTPRegs(self, offset = 0x3fc0, size = None):
+		print('-------------------------------------------------------')
+		print('\rOTP: ')
+		if size == None:
+			size = 0x40
+		if size <= 0:
+			print('Read Size = 0!', file=sys.stderr)
+			return False
+		if self.ext_chip != 'TLSR8208':
+			print('Read OTP only for TLSR8208!', file=sys.stderr)
+			return False
+		regs = self.ReadRegsData(0x80010,2)
+		if regs == None:
+			return False
+		#if not self.WriteRegsData(0x80011, b'\x10'):
+		#	return False
+		if not self.WriteRegsData(0x80011, b'\x30'):
+			return False
+		time.sleep(0.01)
+		if regs[5] != 0x03:
+			if not self.WriteRegsData(0x80010, b'\x03'):
+				return False
+		rdsize = 4
+		tmp = self.ReadRegsData(0x80017, 1) # reg_otp_dat
+		if tmp == None:
+			return False
+		status =  ~tmp[5]
+		addr = offset;
+		data = bytearray()
+		while size > 0:
+			if rdsize > size:
+				rdsize = size
+			if not self.WriteRegsData(0x80014, struct.pack('<H', offset & 0xffff)): # reg_otp_pa = addr;
+				print('\r\nError Read OTP data at 0x%06x! ' % offset, end = '', file=sys.stderr)
+				return False
+			tmp = self.ReadRegsData(0x8001C, 4) # reg_otp_rd_dat
+			if tmp == None:
+				print('\r\nError Read OTP data at 0x%06x! ' % offset, end = '', file=sys.stderr)
+				return False
+			tmp = self.ReadRegsData(0x80017, 1) # reg_otp_dat
+			if (tmp[5] & status) != 0:
+				print('\r\nError Read OTP data at 0x%06x! ' % offset, end = '', file=sys.stderr)
+				return False
+			tmp = self.ReadRegsData(0x8001C, 4) # reg_otp_rd_dat
+			if tmp == None:
+				print('\r\nError Read OTP data at 0x%06x! ' % offset, end = '', file=sys.stderr)
+				return False
+			data += tmp[4:rdsize+4]
+			size -= rdsize
+			offset += rdsize
+			if (size <= 0) or len(data) == 16:
+				hex_dump(addr & 0xffff, data)
+				data = bytearray()
+				addr += 16
+		if not self.WriteRegsData(0x80010, regs[4:6]):
+			return False
+		return True
+
+	# Read Blocks OTP to stream
+	def ReadBlockOTP(self, stream, offset = 0x0000, size = None):
+		if size == None:
+			size = 0x4000
+		if size <= 0:
+			print('\nRead Size = 0!', file=sys.stderr)
+			return False
+		if self.ext_chip != 'TLSR8208':
+			print('\nRead OTP only for TLSR8208!', file=sys.stderr)
+			return False
+		#if not self.EnableClkALGM():
+		#	return False
+		regs = self.ReadRegsData(0x80010,2)
+		if regs == None:
+			return False
+		#if not self.WriteRegsData(0x80011, b'\x10'):
+		#	return False
+		if not self.WriteRegsData(0x80011, b'\x30'):
+			return False
+		time.sleep(0.01)
+		#if regs[5] != 0x03:
+		if not self.WriteRegsData(0x80010, b'\x03'):
+			return False
+		rdsize = 4
+		print('\rRead from 0x%06x...' % offset, end = '')
+		data = self.ReadRegsData(0x80017, 1) # reg_otp_dat
+		if data == None:
+			return False
+		status =  ~data[5]
+		while size > 0:
+			if rdsize > size:
+				rdsize = size
+			if (size & 0x3f) == 0:
+				print('\rRead from 0x%06x...' % offset, end = '')
+			if not self.WriteRegsData(0x80014, struct.pack('<H', offset & 0xffff)): # reg_otp_pa = addr;
+				print('\r\nError Read OTP data at 0x%06x! ' % offset, end = '', file=sys.stderr)
+				return False
+			data = self.ReadRegsData(0x8001C, 4) # reg_otp_rd_dat
+			if data == None:
+				print('\r\nError Read OTP data at 0x%06x! ' % offset, end = '', file=sys.stderr)
+				return False
+			data = self.ReadRegsData(0x80017, 1) # reg_otp_dat
+			if (data[5] & status) != 0:
+				print('\r\nError Read OTP data at 0x%06x! ' % offset, end = '', file=sys.stderr)
+				return False
+			data = self.ReadRegsData(0x8001C, 4) # reg_otp_rd_dat
+			if data == None:
+				print('\r\nError Read OTP data at 0x%06x! ' % offset, end = '', file=sys.stderr)
+				return False
+			stream.write(data[4:rdsize + 4]);
+			size -= rdsize
+			offset += rdsize
+		if not self.WriteRegsData(0x80010, regs[4:6]):
+			return False
+		print('\r                               \r',  end = '')
+		return True
 
 def signal_handler(signal, frame):
 	print()
@@ -1095,17 +1352,22 @@ def main():
 		help='Soft Reset (MCU Reboot) (post main processing)',
 		action="store_true")
 	parser.add_argument(
-		'-w', '--wrktime',
-		help='Show Worked Time',
-		action="store_true")
-	parser.add_argument(
 		'-d', '--div',
 		help='Set the SWire transfer rate divisor',
 		type=arg_auto_int,
 		default = 0)
 	parser.add_argument(
+		'-o', '--osws',
+		help='Open SWS Printf (post main processing)',
+		type=arg_auto_int,
+		default = 0)
+	parser.add_argument(
 		'-u', '--u2b',
 		help='Use 2 bytes swire address (TLSR826x)',
+		action="store_true")
+	parser.add_argument(
+		'-w', '--wrktime',
+		help='Show Worked Time',
 		action="store_true")
 	subparsers = parser.add_subparsers(
 			dest='operation',
@@ -1178,9 +1440,26 @@ def main():
 	parser_write_flash.add_argument('address', help='Write address', type=arg_auto_int)
 	parser_write_flash.add_argument('value', help='word (32 bits)', type=arg_auto_int)
 
+	parser_write_flash = subparsers.add_parser(
+			'bkp',
+			help='Set break-point address (TLSR825x)')
+	parser_write_flash.add_argument('address', help='Write address', type=arg_auto_int)
+
+	parser_write_flash = subparsers.add_parser(
+			'stp',
+			help='CPU Step')
+	parser_write_flash.add_argument('count', help='Step count', type=arg_auto_int)
+
 	parser_read_flash = subparsers.add_parser(
 			'ra',
 			help='Read Analog Registers to binary file')
+	parser_read_flash.add_argument('address', help='Start address', type=arg_auto_int)
+	parser_read_flash.add_argument('size', help='Size of region', type=arg_auto_int)
+	parser_read_flash.add_argument('filename', help='Name of binary file')
+
+	parser_read_flash = subparsers.add_parser(
+			'ro',
+			help='Read TLSR8208 OTP to binary file')
 	parser_read_flash.add_argument('address', help='Start address', type=arg_auto_int)
 	parser_read_flash.add_argument('size', help='Size of region', type=arg_auto_int)
 	parser_read_flash.add_argument('filename', help='Name of binary file')
@@ -1209,6 +1488,11 @@ def main():
 	parser_read_flash.add_argument('address', help='Start address', type=arg_auto_int)
 	parser_read_flash.add_argument('size', help='Size of region', type=arg_auto_int)
 	parser_read_flash = subparsers.add_parser(
+			'do',
+			help='Dump TLSR8208 OTP registers')
+	parser_read_flash.add_argument('address', help='Start address', type=arg_auto_int)
+	parser_read_flash.add_argument('size', help='Size of region', type=arg_auto_int)
+	parser_read_flash = subparsers.add_parser(
 			'dc',
 			help='Show uit32 register or SRAM addres')
 	parser_read_flash.add_argument('address', help='address (PC - 0x6bc)', type=arg_auto_int)
@@ -1231,13 +1515,13 @@ def main():
 	if args.div != 0:
 		swd = args.div
 	if args.u2b:
-		if pgm.pgm_swaddrlen != 2 or pgm.pgm_swdiv != swd:
-			if not pgm.SetPgmConfig(swdiv = swd, swaddrlen=2, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
+		if pgm.pgm_swaddrlen != 2 or pgm.pgm_swdiv != swd or pgm.pgm_swbuf[4] != 0:
+			if not pgm.SetPgmConfig(swdiv = swd, swaddrlen = 2, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
 				pgm.close()
 				sys.exit(1)
 	else:
-		if pgm.pgm_swaddrlen != 3 or pgm.pgm_swdiv != swd:
-			if not pgm.SetPgmConfig(swdiv = swd, swaddrlen=3, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
+		if pgm.pgm_swaddrlen != 3 or pgm.pgm_swdiv != swd or pgm.pgm_swbuf[4] != 0:
+			if not pgm.SetPgmConfig(swdiv = swd, swaddrlen = 3, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
 				pgm.close()
 				sys.exit(1)
 	# set speed up?
@@ -1305,18 +1589,19 @@ def main():
 	print('=== Process ===========================================')
 	if args.operation == 'rs' \
 	or args.operation == 'rf' \
+	or args.operation == 'ro' \
 	or args.operation == 'ra':
 		offset = args.address & 0x00ffffff
 		size = args.size & 0x00ffffff
 		if size == 0:
-			print('\rError: Read size = %d!' % size)
+			print('\rError: Read size = %d!' % size, file=sys.stderr)
 			pgm.close()
 			sys.exit(1)
 		print('Outfile: %s' % args.filename)
 		try:
 			stream = open(args.filename, 'wb')
 		except:
-			print('Error: Not open Outfile file <%s>!' % args.filename)
+			print('Error: Not open Outfile file <%s>!' % args.filename, file=sys.stderr)
 			pgm.close()
 			sys.exit(1)
 		ret = False
@@ -1334,6 +1619,17 @@ def main():
 			offset &= 0x00ff
 			print('Read Analog Registers from 0x%06x to 0x%06x...' % (offset, offset + size))
 			ret = pgm.ReadBlockAnalogRegs(stream, offset, size)
+		elif args.operation == 'ro':
+			if not pgm.ReadChipID():
+				pgm.close()
+				sys.exit(1)
+			if pgm.ext_chip != 'TLSR8208':
+				print('\r\nRead OTP only for TLSR8208!', file=sys.stderr)
+				pgm.close()
+				sys.exit(1)
+			offset &= 0xffff
+			print('Read OTP from 0x%06x to 0x%06x...' % (offset, offset + size))
+			ret = pgm.ReadBlockOTP(stream, offset, size)
 		stream.close
 		if not ret:
 			pgm.close()
@@ -1349,12 +1645,12 @@ def main():
 			stream = open(args.filename, 'rb')
 			size = os.path.getsize(args.filename)
 		except:
-			print('Error: Not open input file <%s>!' % args.fldr)
+			print('Error: Not open input file <%s>!' % args.filename, file=sys.stderr)
 			pgm.close()
 			sys.exit(1)
 		ret = False
 		if size < 1:
-			print('Error: File size = %d!'% size)
+			print('Error: File size = %d!'% size, file=sys.stderr)
 		elif args.operation == 'ws':
 			print('Write Swire register 0x%08x to 0x%08x...' % (offset, offset + size))
 			ret = pgm.WriteBlockRegs(stream, offset, size)
@@ -1422,6 +1718,10 @@ def main():
 		or not pgm.DumpChipRegs():
 			pgm.close()
 			sys.exit(1)
+		if pgm.ext_chip == 'TLSR8208':
+			if not pgm.DumpOTPRegs():
+				pgm.close()
+				sys.exit(1)
 	elif args.operation == 'ds':
 		if not pgm.DumpChipRegs(args.address, args.size):
 			pgm.close()
@@ -1435,12 +1735,18 @@ def main():
 			pgm.close()
 			sys.exit(1)
 	elif args.operation == 'dc':
-		#print('CPU Run...', end = ' ')
-		#if not pgm.WriteRegsData(0x602, b'\x88'):
-		#	pgm.close()
-		#	sys.exit(1)
-		#print('ok')
 		if not pgm.TestDebugPC(args.time, args.address):
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'do':
+		if not pgm.ReadChipID():
+			pgm.close()
+			sys.exit(1)
+		if pgm.ext_chip != 'TLSR8208':
+			print('\r\nRead OTP only for TLSR8208!', file=sys.stderr)
+			pgm.close()
+			sys.exit(1)
+		if not pgm.DumpOTPRegs(args.address, args.size):
 			pgm.close()
 			sys.exit(1)
 	elif args.operation == 'sws':
@@ -1471,10 +1777,56 @@ def main():
 		if ret == None:
 			pgm.close()
 			sys.exit(1)
+	elif args.operation == 'bkp':
+		dw = args.address & 0x00ffffff
+		print('Write break-point adress 0x%06x...' % dw)
+		#pgm.setextadr(0x40)
+		ret = pgm.WriteRegsData(0x610, struct.pack("<IIII", 0, dw  | 0x01000000, 0, 0))
+		#pgm.setextadr(0x00)
+		if ret == None:
+			pgm.close()
+			sys.exit(1)
+		print('CPU Go...', end = ' ')
+		if not pgm.WriteRegsData(0x602, b'\x84'): # CPU Go
+			pgm.close()
+			sys.exit(1)
+		print('ok')
+		if not pgm.WaitPC(3, dw):
+			pgm.close()
+			sys.exit(1)
+		if not pgm.DumpCPURegs():
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'stp':
+		if args.count < 1:
+			print('Error count:', args.count)
+			pgm.close()
+			sys.exit(1)
+		print('CPU Stall...', end = ' ')
+		if not pgm.WriteRegsData(0x602, b'\x06'):
+			pgm.close()
+			sys.exit(1)
+		print('ok')
+		if not pgm.DumpCPURegs():
+			pgm.close()
+			sys.exit(1)
+		cnt = args.count
+		print('-------------------------------------------------------')
+		print('CPU %d Steps...' % cnt, end = '')
+		for i in range(cnt):
+			if not pgm.WriteRegsData(0x613, b'\x80'):
+				pgm.close()
+				sys.exit(1)
+		print('ok')
+		if not pgm.DumpCPURegs():
+			pgm.close()
+			sys.exit(1)
 	else:
 		print('No action assigned.')
-	if args.run or args.go or args.mrst:
+	if args.run or args.go or args.mrst or args.osws != 0:
 		print('=== Post-Process ======================================')
+	else:
+		print('Done')
 	# Commands / flags post main processing
 	if args.run:
 		print('CPU Run...', end = ' ')
@@ -1498,6 +1850,10 @@ def main():
 		# Second time slice
 		t2 = time.time()
 		print(" Worked Time: %.3f sec" % (t2-t1))
+	if args.osws != 0:
+		if not pgm.SwsPrintf(args.osws):
+			pgm.close()
+			sys.exit(1)
 	pgm.close()
 	sys.exit(0)
 

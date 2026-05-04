@@ -38,7 +38,9 @@ _attribute_ram_code_
 void rds_input_off(void) {
 	if (trg.rds.type1 == RDS_NONE) {
 		trg.flg.rds1_input = get_rds1_input();
+#if !USE_SENSOR_XBR818
 		rds1_input_off();
+#endif
 	}
 #ifdef GPIO_RDS2
 	if (trg.rds.type2 == RDS_NONE) {
@@ -59,7 +61,9 @@ void rds_init(void) {
 		if(trg.rds.type1 == RDS_CONNECT)
 			trg.rds.rs1_invert = 1;
 #endif
+#if !USE_SENSOR_XBR818
 		rds1_input_on();
+#endif
 	} else
 		cpu_set_gpio_wakeup(GPIO_RDS1, Level_Low, 0);  // pad wakeup deepsleep disable
 #ifdef GPIO_RDS2

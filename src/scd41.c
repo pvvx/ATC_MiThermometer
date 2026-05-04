@@ -65,7 +65,7 @@ const sensor_def_cfg_t def_thcoef_scd41 = {
 #if SENSOR_SLEEP_MEASURE
 		.measure_timeout = 5000000 * CLOCK_16M_SYS_TIMER_CLK_1US,
 #endif
-		.sensor_type = IU_SENSOR_SCD41
+		.sensor_type = ID_SENSOR_SCD41
 };
 
 RAM sensor_cfg_t sensor_cfg;
@@ -128,7 +128,7 @@ inline int write_cmd_scd41(u16 cmd) {
 
 void init_sensor(void) {
 	sensor_cfg.id = 0;
-	sensor_cfg.sensor_type = TH_SENSOR_NONE;
+	sensor_cfg.sensor_type = ID_SENSOR_NONE;
 	sensor_cfg.i2c_addr = (u8) scan_i2c_addr(SCD41_I2C_ADDR << 1);
 	if (sensor_cfg.i2c_addr) {
 		if (!read_regs16_scd41(SCD4X_GET_SENSOR_VARIANT_RAW_CMD_ID, (u8 *)&sensor_cfg.id, 1)) {

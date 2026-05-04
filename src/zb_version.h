@@ -77,6 +77,8 @@
 #define DEVICE_ZBEACON2TH01	47  // Tuya ZBEACON-TH01 v2.0, 2xAAA , SHT4X/G40
 #define DEVICE_RSH_HS03	    48  // Tuya ZigBee Temperature/Humidity Sensor "TY0201_TZ3000_bjawzodf", PCB designator "RSH-HS03-V2.0-241018"
 #define DEVICE_LYWSD02MMC	49  // EInk display, Clock
+#define DEVICE_ZG204ZL		50  // HOBEIAN ZG-204ZL PIR + LUX sensor
+#define DEVICE_ZG204ZV		51  // HOBEIAN-ZG-204ZV T&H + LUX + Radar Sensor
 
 
 #if 0 // not used in this code!

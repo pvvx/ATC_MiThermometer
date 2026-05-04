@@ -289,7 +289,7 @@ void init_sensor(void) {
 	if(sensor_cfg.coef.val1_k == 0) {
 		memcpy(&sensor_cfg.coef, &rh_ntc_def, sizeof(sensor_cfg.coef));
 	}
-	sensor_cfg.sensor_type = IU_SENSOR_PWMRH;
+	sensor_cfg.sensor_type = ID_SENSOR_PWMRH;
 }
 
 int	read_sensor_cb(void) {

@@ -45,7 +45,9 @@
 #if USE_SDM_OUT
 #include "sdm_out.h"
 #endif
-
+#if USE_SENSOR_XBR818
+#include "xbr818.h"
+#endif
 
 void app_enter_ota_mode(void);
 
@@ -288,6 +290,14 @@ const cfg_t def_cfg = {
 #if (DEV_SERVICES & SERVICE_HISTORY)
 		.averaging_measurements = 120, // * measure_interval = 15 * 120 = 1800 sec = 30 minutes
 #endif
+#elif (DEVICE_TYPE == DEVICE_ZG204ZV)
+		.flg2.adv_flags = true,
+		.advertising_interval = 80, // multiply by 62.5 ms = 5 sec
+		.measure_interval = 4, // * advertising_interval = 20 sec
+		.hw_ver = DEVICE_TYPE,
+#if (DEV_SERVICES & SERVICE_HISTORY)
+		.averaging_measurements = 90, // * measure_interval = 20 * 180 = 1800 sec = 30 minutes
+#endif
 #else
 #error "DEVICE_TYPE = ?"
 #endif
@@ -353,7 +363,7 @@ void set_hw_version(void) {
 	u8 hwver = 0;
 	if (lcd_i2c_addr == (B14_I2C_ADDR << 1)) {
 //		if (cfg.hw_cfg.shtc3) { // sensor SHTC3 ?
-		if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
+		if (sensor_cfg.sensor_type == ID_SENSOR_SHTC3) {
 			hwver = HW_VER_LYWSD03MMC_B14; // HW:B1.4
 		} else { // sensor SHT4x or ?
 			hwver = HW_VER_LYWSD03MMC_B17; // HW:B1.7 or B2.0
@@ -374,7 +384,7 @@ void set_hw_version(void) {
     } else if (lcd_i2c_addr == N16_I2C_ADDR) {
 		hwver = HW_VER_LYWSD03MMC_NB16; // HW:B1.6 SPI
 	} else { // UART
-		if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3)
+		if (sensor_cfg.sensor_type == ID_SENSOR_SHTC3)
 			hwver = HW_VER_LYWSD03MMC_B15; // HW:B1.5
 		else
 			hwver = HW_VER_LYWSD03MMC_B16; // HW:B1.6
@@ -405,7 +415,7 @@ void go_sleep(u32 tik) {
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
 	hx711_go_sleep();
 #endif
-#if	(DEV_SERVICES & RDS)
+#if	(DEV_SERVICES & SERVICE_RDS)
 	rds1_input_off();
 #endif
 #if USE_SENSOR_SHTC3
@@ -535,6 +545,12 @@ void low_vbat(void) {
 	send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
 	send_i2c_byte(0x3E << 1, 0xD0);
 #endif
+#if USE_SENSOR_SHTC3
+	send_i2c_word(SHTC3_I2C_ADDR << 1, 0x98b0);  // Sleep command of the sensor
+#endif
+#if USE_SENSOR_XBR818
+	xbr818_go_sleep();
+#endif
 	go_sleep(180u * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 3 minutes
 }
 
@@ -610,7 +626,9 @@ void read_sensors(void) {
 #if (DEV_SERVICES & SERVICE_RDS)
 		if (trg.rds.type1 == RDS_NONE) {
 			trg.flg.rds1_input = get_rds1_input();
+#if !USE_SENSOR_XBR818
 			rds1_input_off();
+#endif
 		}
 #ifdef GPIO_RDS2
 		if (trg.rds.type2 == RDS_NONE) {
@@ -671,9 +689,21 @@ RAM struct {
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void check_battery(void) {
-	measured_data.battery_mv = get_battery_mv();
-	if (measured_data.battery_mv < END_VBAT_MV) // It is not recommended to write Flash below 2V
+#if USE_NI_ZN_BATTERY
+	u16 bat2, bat1;
+	bat2 = get_adc_mv(SHL_ADC_VBAT2);
+	bat1 = get_battery_mv();
+	bat1 = min(bat1 - bat2, bat2);
+	if(bat1 < END_VBAT2_MV) {
 		low_vbat();
+	}
+	measured_data.battery_mv = bat1 << 1;
+#else
+	measured_data.battery_mv = get_battery_mv();
+	if (measured_data.battery_mv < END_VBAT_MV) { // It is not recommended to write Flash below 2V
+		low_vbat();
+	}
+#endif
 #if USE_AVERAGE_BATTERY
 	bat_average.buf_sum += measured_data.battery_mv;
 	bat_average.count++;
@@ -692,7 +722,18 @@ void check_battery(void) {
 
 __attribute__((optimize("-Os")))
 static void start_tst_battery(void) {
+#if USE_NI_ZN_BATTERY
+	u16 bat2, bat1;
+	bat1 = get_battery_mv();
+	bat2 = get_adc_mv(SHL_ADC_VBAT2);
+	bat1 = min(bat1 - bat2, bat2);
+	if(bat1 < END_VBAT2_MV) {
+		low_vbat();
+	}
+	measured_data.battery_mv = bat1 << 1;
+#else
 	measured_data.battery_mv = get_battery_mv();
+#endif
 	if (measured_data.battery_mv < MIN_VBAT_MV) { // 2.2V
 #if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD06MMC)
 		// Set sleep power < 1 uA
@@ -706,6 +747,9 @@ extern int soft_i2c_send_byte(u8 addr, u8 b);
 #endif
 #if USE_SENSOR_SHTC3
 		send_i2c_word(SHTC3_I2C_ADDR << 1, 0x98b0);  // Sleep command of the sensor
+#endif
+#if USE_SENSOR_XBR818
+		xbr818_go_sleep();
 #endif
 		go_sleep(180u * CLOCK_16M_SYS_TIMER_CLK_1S); // go deep-sleep 3 minutes
 	}
@@ -747,7 +791,7 @@ void set_default_cfg(void) {
 //=========================================================
 //-------------------- user_init_normal -------------------
 void user_init_normal(void) {//this will get executed one time after power up
-	bool next_start = false;
+	bool first_start = false;
 	unsigned int old_ver;
 	blc_ll_initBasicMCU(); //must
 	adc_power_on_sar_adc(0); // - 0.4 mA
@@ -767,8 +811,8 @@ void user_init_normal(void) {//this will get executed one time after power up
 	// Read config
 	if(flash_read_cfg(&old_ver, EEP_ID_VER, sizeof(old_ver)) != sizeof(old_ver))
 		old_ver = 0;
-	next_start = flash_supported_eep_ver(EEP_SUP_VER, VERSION);
-	if (next_start) {
+	first_start = flash_supported_eep_ver((EEP_SUP_VER << 16) | DEVICE_TYPE, (VERSION << 16) | DEVICE_TYPE);
+	if (!first_start) {
 		if (flash_read_cfg(&cfg, EEP_ID_CFG, sizeof(cfg)) != sizeof(cfg))
 			memcpy(&cfg, &def_cfg, sizeof(cfg));
 #if (DEV_SERVICES & SERVICE_SCREEN)
@@ -903,7 +947,14 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if (DEV_SERVICES & SERVICE_BINDKEY)
 	bindkey_init();
 #endif
+#if (DEV_SERVICES & SERVICE_ILLUMI)
+	read_illumi_sensor();
+#else
 	check_battery();
+#endif
+#if USE_SENSOR_XBR818
+	xbr818_init();
+#endif
 #if USE_SENSOR_HX71X && (DEV_SERVICES & SERVICE_PRESSURE)
 	hx71x_task();
 #endif
@@ -911,7 +962,7 @@ void user_init_normal(void) {//this will get executed one time after power up
 #if (!USE_EPD)
 //	update_lcd();
 #endif
-	if (!next_start) { // first start?
+	if (first_start) { // first start?
 		flash_write_cfg(&cfg, EEP_ID_CFG, sizeof(cfg));
 	}
 	test_config();
@@ -1013,7 +1064,7 @@ void main_loop(void) {
 #endif
 #if (DEV_SERVICES & SERVICE_LED)
 				// led on
-				gpio_is_output_en(GPIO_LED);
+				gpio_set_output_en(GPIO_LED, 1);
 #if LED_ON
 				gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLUP_10K);
 #else
@@ -1073,6 +1124,7 @@ void main_loop(void) {
 			ext_key.key_pressed_tik2 = new;
 #if (DEV_SERVICES & SERVICE_LED)
 			// led off
+			gpio_set_output_en(GPIO_LED, 0);
 #if LED_ON
 			gpio_setup_up_down_resistor(GPIO_LED, PM_PIN_PULLDOWN_100K);
 #else
@@ -1097,18 +1149,26 @@ void main_loop(void) {
 			bls_pm_setSuspendMask(SUSPEND_DISABLE);
 
 #if defined(GPIO_ADC1) || defined(GPIO_ADC2)
+#if (DEV_SERVICES & SERVICE_ILLUMI)
+			read_illumi_sensor();
+#else
 			check_battery();
+#endif
 			WakeupLowPowerCb(0);
 #else
 			start_measure_sensor_deep_sleep();
 			sensor_cfg.time_measure = clock_time() | 1;
+#if (DEV_SERVICES & SERVICE_ILLUMI)
+			read_illumi_sensor();
+#else
 			check_battery();
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE) && USE_SENSOR_HX71X
 			measured_data.pressure = hx71x_get_volume();
 #endif
 			if((cfg.flg.lp_measures == 0 && sensor_cfg.time_measure) // =1 Sensor measurements in "Low Power" mode
 #if USE_SENSOR_SHTC3
-				|| sensor_cfg.sensor_type == TH_SENSOR_SHTC3
+				|| sensor_cfg.sensor_type == ID_SENSOR_SHTC3
 #endif
 				) {
 				if(clock_time() - sensor_cfg.time_measure >= sensor_cfg.measure_timeout)
@@ -1127,7 +1187,11 @@ void main_loop(void) {
 		if (wrk.start_measure) {
 			wrk.start_measure = 0;
 			read_sensors();
+#if (DEV_SERVICES & SERVICE_ILLUMI)
+			read_illumi_sensor();
+#else
 			check_battery();
+#endif
 #if (DEV_SERVICES & SERVICE_THS) && (!USE_SENSOR_SHTC3) && !USE_SENSOR_SCD41
 			start_measure_sensor_deep_sleep();
 #endif

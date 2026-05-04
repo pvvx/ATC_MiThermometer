@@ -33,6 +33,7 @@ enum {
 	CMD_ID_RH_CAL	= 0x2A, // Calibrate sensor RH
 	CMD_ID_KZ2 		= 0x2b, // Get/Set sensor KZ2 config
 	CMD_ID_KZ3 		= 0x2c, // Get/Set sensor KZ3 config
+	CMD_ID_XBR818	= 0x2d, // Get/Set sensor XBR818 config
 	CMD_ID_MEASURE  = 0x33, // Start/stop notify measures in connection mode
 	CMD_ID_LOGGER   = 0x35, // Read memory measures
 	CMD_ID_CLRLOG	= 0x36, // Clear memory measures
@@ -85,11 +86,11 @@ typedef struct _dev_services_t{
 
 // CMD_ID_DEV_ID
 typedef struct _dev_id_t{
-	u8 pid;			// packet identifier = CMD_ID_DEVID
-	u8 revision;		// protocol version/revision
-	u16 hw_version;	// hardware version
-	u16 sw_version;	// software version (BCD)
-	u16 dev_spec_data;	// device-specific data (bit0..3: sensor_type)
+	u8 pid;				// packet identifier = CMD_ID_DEVID
+	u8 revision;		// protocol version/revision = 0
+	u16 hw_version;		// hardware version
+	u16 sw_version;		// software version (BCD)
+	u16 dev_spec_data;	// device-specific data (bit0..7: sensor1 type, bit8..15: sensor2 type)
 	u32 services;		// supported services by the device
 } dev_id_t, * pdev_id_t;
 

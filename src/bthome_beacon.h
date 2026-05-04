@@ -170,6 +170,12 @@ typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 	u8	h_id;	// = BtHomeID_humidity
 	u16	humidity; // x 0.01 %
 #endif
+#if (DEV_SERVICES & SERVICE_ILLUMI)
+	u8	i_id;	// = BtHomeID_illuminance
+	u8	illuminance_lo; // lx
+	u8  illuminance_md;
+	u8  illuminance_hi;
+#endif
 #if (DEV_SERVICES & SERVICE_PLM) && (USE_SENSOR_PWMRH == 2)
 	u8	m_id;	// = BtHomeID_moisture16
 	u16	moisture; // x 0.01 %

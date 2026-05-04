@@ -127,7 +127,7 @@ void tuya_zigbee_ota(void) {
 			do {
 				flash_erase_sector(faddrw);
 				faddrw += FLASH_SECTOR_SIZE;
-			} while(faddrw < FMEMORY_SCFG_BASE_ADDR);
+			} while(faddrw < FMEMORY_EEP_BASE_ADDR1);
 			flash_read_page(ZIGBEE_MAC_FADDR, 8, (unsigned char *) &buf_blk);
 			u16 *p = (u16 *)buf_blk;
 			if(p[2] == 0xa4c1)

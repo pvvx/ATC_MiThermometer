@@ -325,11 +325,20 @@ static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; //
 static const u8 my_ManStr[] = {"Sonoff"};
 
 #elif DEVICE_TYPE == DEVICE_LYWSD02MMC
+
 static const u8 my_ModelStr[] = {"LYWSDO2MMC"};
 static const u8 my_HardStr[5] = {"F4_QT"};
 RAM u8 my_SerialStr[20]; // = {"F470003441FFFFFFFF"}
 static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0026"
 static const u8 my_ManStr[] = {"miaomiaoce.com"};
+
+#elif DEVICE_TYPE == DEVICE_ZG204ZV
+
+static const u8 my_ModelStr[] = {"ZG204ZV"};
+static const u8 my_HardStr[5] = {"V0.1"};
+RAM u8 my_SerialStr[20]; // = {"F470003441FFFFFFFF"}
+static const u8 my_SoftStr[] = {'V','0'+(VERSION>>4),'.','0'+(VERSION&0x0f)}; // "0026"
+static const u8 my_ManStr[] = {"Tuya"};
 
 #else
 #error "DEVICE_TYPE = ?"
@@ -463,7 +472,7 @@ static const u8 my_anaCharVal[5] = {
 #endif
 
 //// OTA attribute values
-#define TELINK_SPP_DATA_OTA1 				0x12,0x2B,0x0d,0x0c,0x0b,0x0a,0x09,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00
+#define TELINK_SPP_DATA_OTA1 	0x12,0x2B,0x0d,0x0c,0x0b,0x0a,0x09,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00
 static const u8 my_OtaCharVal[19] = {
 	CHAR_PROP_READ | CHAR_PROP_WRITE_WITHOUT_RSP,
 	U16_LO(OTA_CMD_OUT_DP_H), U16_HI(OTA_CMD_OUT_DP_H),

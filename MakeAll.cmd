@@ -1,5 +1,5 @@
 @Path=E:\Telink\SDK;E:\Telink\SDK\jre\bin;E:\Telink\SDK\opt\tc32\tools;E:\Telink\SDK\opt\tc32\bin;E:\Telink\SDK\usr\bin;E:\Telink\SDK\bin;%PATH%
-@set SWVER=_v57
+@set SWVER=_v58
 @del /Q "ATC%SWVER%.bin"
 make -s -j PROJECT_NAME=ATC%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_LYWSD03MMC"
 @if not exist "ATC%SWVER%.bin" goto :error
@@ -116,6 +116,12 @@ make -s -j PROJECT_NAME=ZB_MC%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZB_MC"
 make -s -j PROJECT_NAME=ZB2TH01%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZBEACON2TH01"
 @if not exist "ZB2TH01%SWVER%.bin" goto :error
 python3 utils\zb_bin_ota.py ZB2TH01%SWVER%.bin zigbee_ota\ZB2TH01BLE%SWVER% -m0x1286 -i0x0202 -v0x10533607 -s"Sonoff to BLE"
+@del /Q "LYWSD02MMC%SWVER%.bin"
+make -s -j PROJECT_NAME=LYWSD02MMC%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_LYWSD02MMC"
+@if not exist "LYWSD02MMC%SWVER%.bin" goto :error
+@del /Q "ZG204ZV%SWVER%.bin"
+make -s -j PROJECT_NAME=ZG204ZV%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZG204ZV"
+@if not exist "ZG204ZV%SWVER%.bin" goto :error
 cd .\zigbee_ota\zigpy_ota
 call update.cmd %SWVER%
 cd ..\..

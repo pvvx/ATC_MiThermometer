@@ -134,7 +134,7 @@ void init_sensor_bmx280(void) {
 					bmx_struct.dig.H4 = (s16)((buf[3] << 8) | (buf[4] & 0x0F) << 4) >> 4;
 					bmx_struct.dig.H5 = (s16)((buf[5] << 8) | (0xF0 & buf[4])) >>  4;
 					bmx_struct.dig.H6 = buf[6];
-					bmx_struct.sensor_type = IU_SENSOR_BME280;
+					bmx_struct.sensor_type = ID_SENSOR_BME280;
 					// MaxMeasureTimeOut: 2.3*(OVERSAMP P+T+H)+1.25+0.575*2 = 9.3 ms
 					bmx_struct.measure_timeout = 10 * CLOCK_16M_SYS_TIMER_CLK_1MS;
 					bmx_struct.time_measure = clock_time() | 1;
@@ -148,7 +148,7 @@ void init_sensor_bmx280(void) {
 				&& !send_i2c_word(bmx_struct.i2c_addr, (BMx280_SET_CONFIG << 8) | BMx280_RA_CONFIG)
 				// read calibrates values
 				&& !read_i2c_byte_addr(bmx_struct.i2c_addr, BMx280_RA_DIG_T1, (u8 *)&bmx_struct.dig.T1, (3+9)*2)) {
-					// bmx_struct.sensor_type = IU_SENSOR_BMP280;
+					// bmx_struct.sensor_type = ID_SENSOR_BMP280;
 					// MaxMeasureTimeOut: 2.3*(OVERSAMP P+T)+1.25+0.575*2 = 9.3 ms
 					if(sensor_cfg.measure_timeout < 10 * CLOCK_16M_SYS_TIMER_CLK_1MS)
 						sensor_cfg.measure_timeout = 10 * CLOCK_16M_SYS_TIMER_CLK_1MS;

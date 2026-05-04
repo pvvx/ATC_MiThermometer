@@ -368,7 +368,7 @@ void init_lcd(void){
 	lcd_set_buf_uart_spi(display_buff);
 #if 0
 	// B1.5 (UART) ?
-	if (sensor_cfg.sensor_type == TH_SENSOR_SHTC3) {
+	if (sensor_cfg.sensor_type == ID_SENSOR_SHTC3) {
 		// B1.5 (UART)
 		lcd_send_uart(0);
 		return;

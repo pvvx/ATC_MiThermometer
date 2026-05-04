@@ -10,7 +10,7 @@ PROJECT_PATH := ./src
 OUT_PATH :=./out
 ZBO_PATH :=./zigbee_ota
 
-PGM_PORT?=COM15
+PGM_PORT?=COM5
 PGM_PORT_BAUD?=1500000
 
 ifneq ($(TEL_PATH)/components/drivers/8258/gpio_8258.c, $(wildcard $(TEL_PATH)/components/drivers/8258/gpio_8258.c))

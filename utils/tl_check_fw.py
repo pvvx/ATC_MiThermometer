@@ -20,6 +20,6 @@ if firmware[6:8] != b'\x5d\x02':
     # Write the new firwmare back to the file
     with open(sys.argv[1], 'wb') as f:
         f.write(firmware)
-    print(f"Firmware patched!")
+    print(f"Firmware for OTA has been adjusted.")
 else:
-    print(f"Firmware already patched!")
+    print(f"Firmware for OTA has already been adjusted!")

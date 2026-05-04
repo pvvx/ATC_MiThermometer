@@ -570,6 +570,11 @@ void ble_set_name(void) {
 		ble_name[3] = '0';
 		ble_name[4] = '2';
 		ble_name[5] = '_';
+#elif DEVICE_TYPE == DEVICE_ZG204ZV
+		ble_name[2] = 'Z';
+		ble_name[3] = 'G';
+		ble_name[4] = 'V';
+		ble_name[5] = '_';
 #else
 		ble_name[2] = 'A';
 		ble_name[3] = 'T';
@@ -836,6 +841,11 @@ void ble_send_measures(void) {
 	*p++ = rds.count1_byte[2];
 	*p++ = rds.count1_byte[3];
 	len += 4;
+#endif
+#if (DEV_SERVICES & SERVICE_ILLUMI)
+	*p++ = (u8)measured_data.illumi;
+	*p++ = (u8)(measured_data.illumi >> 8);
+	len += 2;
 #endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 	*p++ = (u8)measured_data.pressure;

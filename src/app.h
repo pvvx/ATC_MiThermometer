@@ -231,6 +231,9 @@ typedef struct _measured_data_t {
 #endif
 	u16 	count;
 	// end send part (MEASURED_MSG_SIZE)
+#if (DEV_SERVICES & SERVICE_ILLUMI)
+	u32		illumi;
+#endif
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 #if USE_SENSOR_BME280 || USE_SENSOR_BMP280
 	u32	pressure;
@@ -273,7 +276,7 @@ extern measured_data_t measured_data;
 typedef union {
 	u8 all_flgs;
 	struct {
-		u8 send_measure: 1;
+		u8 send_measure : 1;
 		u8 update_lcd	: 1;
 		u8 update_adv	: 1;
 	} b;
@@ -310,7 +313,7 @@ typedef struct _work_flg_t {
 	union {
 		u8 all_flgs;
 		struct {
-			u8 send_measure	: 1;
+			u8 send_measure		: 1;
 			u8 update_lcd		: 1;
 			u8 update_adv		: 1;
 			u8 th_sensor_read	: 1;
@@ -356,6 +359,7 @@ static inline u8 get_key2_pressed(void) {
 #endif // (DEV_SERVICES & SERVICE_KEY)
 #endif // (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS)
 
+void check_battery(void);
 void ev_adv_timeout(u8 e, u8 *p, int n); // DURATION_TIMEOUT Event Callback
 void test_config(void); // Test config values
 void set_hw_version(void);

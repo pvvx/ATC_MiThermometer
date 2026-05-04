@@ -47,5 +47,7 @@
 | 45 | 0x022D | [ZBEACON-TH01](https://pvvx.github.io/Zbeacon-TH01) | ZBTH01 |
 | 46 | 0x022E | [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC) | ZB_MC |
 | 47 | 0x022F | [ZBEACON-TH01-v2.0](https://pvvx.github.io/Zbeacon-TH01-v2.0) | ZB2TH01 |
+| 49 | 0x0231 | LYWSD02MMC | LYWSD02MMC |
+| 51 | 0x0233 | ZG204ZV | ZG204ZV |
 
 
