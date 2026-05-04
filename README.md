@@ -49,6 +49,8 @@ Access to github is already slowing down. Most Internet information resources ha
 
 **Supported models:**
 
+* [Full list of supported devices](https://github.com/pvvx/pvvx.github.io/blob/master/README.md)
+
 (!) It is not recommended to buy Tuya thermometers with CHT8305 sensors and/or BL55028 LCD driver chips. They have increased consumption and are not compatible with battery operation. This is a dummy thermometer from Tuya.
 
 * Thermometers with display
