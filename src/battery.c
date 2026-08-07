@@ -91,20 +91,54 @@ u16 get_adc_mv(u32 p_ain) { // ADC_InputPchTypeDef
 	return (adc_average * ADC_BAT_VREF_MV) >> 12; // adc_vref default: 1175 (mV)
 }
 
-#define VBAT2LEVEL_SHL		(32-8) // max level = 256
-#define VBAT2LEVEL_COEF	    ((100 << VBAT2LEVEL_SHL)/(MAX_VBAT_MV - MIN_VBAT_MV))
+#if !USE_NI_ZN_BATTERY
+// Remaining battery capacity vs. voltage: a piecewise-linear fit of the
+// Energizer CR2450 datasheet typical discharge curve (7.5 kΩ continuous
+// load, 21°C): https://data.energizer.com/pdfs/cr2450.pdf
+// The curve's normalized shape is set by the Li/MnO₂ chemistry, not the cell
+// size, so the same table serves CR2032/CR2477 devices too.
+//
+// Entries are remaining charge in 0.1% units at 50 mV steps, from
+// MIN_VBAT_MV (0%) to MAX_VBAT_MV (100%). Entries must be non-decreasing;
+// the interpolation below assumes it. If MIN_VBAT_MV or MAX_VBAT_MV change,
+// re-sample the datasheet curve at each step to rebuild the table.
+#define VBAT2LEVEL_STEP_MV	50
+static const u16 vbat2level_lut[] = {
+	0, 6, 13, 22, 34, 49, 67, 91, 124, 160, 202, 257, 340, 465, 634, 821, 1000
+};
+STATIC_ASSERT_INT_DIV(MAX_VBAT_MV - MIN_VBAT_MV, VBAT2LEVEL_STEP_MV);
+STATIC_ASSERT(sizeof(vbat2level_lut) / sizeof(vbat2level_lut[0])
+	== (MAX_VBAT_MV - MIN_VBAT_MV) / VBAT2LEVEL_STEP_MV + 1);
+#endif // !USE_NI_ZN_BATTERY
 
-// 2200..3000 mv - 0..100%
+// MIN_VBAT_MV..MAX_VBAT_MV -> 0..1000 (0.1% units)
 _attribute_ram_code_
-u8 get_battery_level(u16 battery_mv) {
-	u8 battery_level = 100;
+u16 get_battery_level_x10(u16 battery_mv) {
+	u16 battery_level_x10 = 1000;
 	if (battery_mv < MAX_VBAT_MV) {
 		if (battery_mv > MIN_VBAT_MV) {
-			battery_level = (u8)((u32)((((u32)battery_mv - (u32)MIN_VBAT_MV)
-				* (u32)VBAT2LEVEL_COEF) >> VBAT2LEVEL_SHL));
+#if USE_NI_ZN_BATTERY
+			// no discharge-curve data for Ni-Zn: linear map, rounded to nearest
+			battery_level_x10 = (u16)((((u32)(battery_mv - MIN_VBAT_MV) * 1000)
+				+ (MAX_VBAT_MV - MIN_VBAT_MV) / 2) / (MAX_VBAT_MV - MIN_VBAT_MV));
+#else
+			u16 d = battery_mv - MIN_VBAT_MV;
+			u16 i = d / VBAT2LEVEL_STEP_MV;
+			u16 f = d - i * VBAT2LEVEL_STEP_MV; // d % step without a second divide
+			u16 lo = vbat2level_lut[i];
+			u16 hi = vbat2level_lut[i + 1];
+			battery_level_x10 = lo + (u16)(((u32)(hi - lo) * f
+				+ VBAT2LEVEL_STEP_MV / 2) / VBAT2LEVEL_STEP_MV);
+#endif
 		} else {
-			battery_level = 0;
+			battery_level_x10 = 0;
 		}
 	}
-	return battery_level;
+	return battery_level_x10;
+}
+
+// MIN_VBAT_MV..MAX_VBAT_MV -> 0..100%
+_attribute_ram_code_
+u8 get_battery_level(u16 battery_mv) {
+	return (u8)((get_battery_level_x10(battery_mv) + 5) / 10);
 }
