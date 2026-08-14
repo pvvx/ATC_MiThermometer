@@ -4,7 +4,7 @@
         "fileSize": 80434,
         "manufacturerCode": 4417,
         "imageType": 54179,
-        "sha512": "3a6a91189aba00bbed2774eb524e9a8766c08b0364f0f8c573e6284f2660a438fea33d09bfd735280f59aca7986158062ccbef5ea99fb1caa3bb596db67a83ab",
+        "sha512": "c1febafec62cfb0021332ad29c805186abd6f47ff24c54ad69f3a8571218bc01899ed971facdaa5200328eb041c83c3a076d68d611e45968f3f719a1af89fa28",
         "otaHeaderString": "Tuya to BLE",
         "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-d3a3-01983001-LKTMZL02BLE_v58.zigbee"
     }

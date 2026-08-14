@@ -277,6 +277,20 @@ int task_lcd(void);
 void show_batt_lyws02(void);
 extern u8 display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 
+#elif (DEVICE_TYPE == DEVICE_TS0201_WING)
+
+void show_ota_screen(void);
+#define SHOW_OTA_SCREEN() show_ota_screen()
+#define SET_LCD_UPDATE() { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define SHOW_CONNECTED_SYMBOL(a) { lcd_flg.update = 1; lcd_flg.update_next_measure = 0; }
+#define POWERUP_SCREEN	0
+void show_reboot_screen(void);
+#define SHOW_REBOOT_SCREEN() show_reboot_screen()
+#define LCD_BUF_SIZE	6
+#define SHOW_SMILEY		0
+extern u8 display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE+1];
+void show_small_number(s16 number, bool percent); // -9 .. 99
+
 #else
 #error "Set DEVICE_TYPE!"
 #endif

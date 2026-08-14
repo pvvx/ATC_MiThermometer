@@ -160,7 +160,6 @@ _attribute_ram_code_ void irq_handler(void) {
 #error "Set CLOCK_SYS_CLOCK_HZ!"
 #endif
 
-
 /**
  * @brief		This is main function
  * @param[in]	none
@@ -169,7 +168,10 @@ _attribute_ram_code_ void irq_handler(void) {
 _attribute_ram_code_ int main (void) {    //must run in ramcode
 	blc_pm_select_internal_32k_crystal(); // or blc_pm_select_external_32k_crystal();
 #if ZIGBEE_TUYA_OTA
-	if(*(u32 *)(0x08008) == ID_BOOTABLE) {
+	// Проверка на старт из Tuya boot_loder
+	if(*(u32 *)(0x08008) == ID_BOOTABLE
+		|| *(u32 *)(0x09008) == ID_BOOTABLE
+		|| *(u32 *)(0x10008) == ID_BOOTABLE) {
 		clock_init(SYS_CLK_TYPE);
 		tuya_zigbee_ota(); // Correct FW OTA address? Reformat Zigbee Boot OTA to Low OTA
 	}

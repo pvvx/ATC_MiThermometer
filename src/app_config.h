@@ -70,12 +70,13 @@ extern "C" {
 #define DEVICE_LYWSD02MMC	49  // EInk display, Clock
 //#define DEVICE_ZG204ZL		50  // HOBEIAN ZG-204ZL PIR + LUX sensor
 #define DEVICE_ZG204ZV		51  // HOBEIAN-ZG-204ZV T&H + LUX + Radar Sensor
+#define DEVICE_TS0201_WING	52  // TS0201_TZ3000_dnpd6ayp, Tuya Zigbee "Temp & Humidity Sensor", Wing TS0201 2xAAA
 
 
 #define TEST_PLM1 			0  // TB03F My Plant monitor
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_TB03F
+#define DEVICE_TYPE			DEVICE_TS0201_WING
 #endif
 
 // supported services by the device (bits)
@@ -2200,7 +2201,7 @@ extern "C" {
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
 
-#define I2C_MAX_SPEED 		200000 // 700 kHz
+#define I2C_MAX_SPEED 		200000 // 200 kHz
 #define I2C_SCL 			GPIO_PC3
 #define PC3_INPUT_ENABLE	1
 #define PC3_DATA_OUT		0
@@ -2839,7 +2840,7 @@ GPIO_D7 - SDA
 #define PB0_OUTPUT_ENABLE   1
 #define PB0_FUNC            AS_GPIO
 
-#define I2C_MAX_SPEED       200000 // 700 kHz
+#define I2C_MAX_SPEED       200000 // 200 kHz
 #define I2C_SCL             GPIO_PD4
 #define PD4_INPUT_ENABLE    1
 #define PD4_DATA_OUT        0
@@ -3013,6 +3014,103 @@ GPIO_D7 - SDA
 #define PA2_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA2	PM_PIN_PULLDOWN_100K
 
+#elif DEVICE_TYPE == DEVICE_ZG204ZL
+
+// TLSR8253F512AT32 512K Flash
+/* https://pvvx.github.io/ZG-204ZL-3.0/
+
+TLSR8253
+
+GPIO_PA1 - KEY
+GPIO_PA7 - SWS, (debug TX)
+GPIO_PB1 - TX
+GPIO_PB7 - RX
+GPIO_PC4 - illuminance Sensor
+GPIO_PD3 - illuminance Sensor Power
+GPIO_PD4 - PIR
+GPIO_PD7 - LED to +Vbat
+*/
+
+#define DEV_SERVICES ( SERVICE_OTA \
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_LE_LR \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_LED \
+		| SERVICE_ILLUMI \
+		| SERVICE_RDS \
+)
+
+#define ZIGBEE_TUYA_OTA 	1
+#define USE_EPD				0 // min update time ms
+
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8253F512ET32
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define USE_NI_ZN_BATTERY	0	// test low bat 2 x 1.3V
+#define SHL_ADC_VBAT2		B7P // GPIO_PB7
+
+#define GPIO_KEY2			GPIO_PA1
+#define PA1_INPUT_ENABLE	1
+#define PA1_DATA_OUT		0
+#define PA1_OUTPUT_ENABLE	0
+#define PA1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA1	PM_PIN_PULLUP_10K
+
+#define GPIO_LED			GPIO_PD7
+#define LED_ON				0
+#define PD7_INPUT_ENABLE	1
+#define PD7_DATA_OUT		1
+#define PD7_OUTPUT_ENABLE	0
+#define PD7_FUNC			AS_GPIO
+//#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLUP_1M
+
+#define GPIO_TRG			GPIO_PB1
+#define PB1_INPUT_ENABLE	1
+#define PB1_DATA_OUT		0
+#define PB1_OUTPUT_ENABLE	0
+#define PB1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB1	PM_PIN_PULLDOWN_100K
+
+#define USE_SENSOR_XBR818	1
+
+#define GPIO_RDS1			GPIO_PD4
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+
+#define SHL_ADC_ILLUMI		B5P // GPIO_PB5
+#define GPIO_ILLUMI			GPIO_PB5
+//#define PULL_WAKEUP_SRC_PB5 PM_PIN_PULLUP_10K
+
+// illuminance sensor
+#define USE_SENSOR_LX		1 // =1 - ADC = Ur, =2 - ADC = Us
+#define GPIO_ADC_PULL		PM_PIN_PULLUP_10K
+
+#define DEF_MIN_LEVEL_ZLX		13000 // ILLUMINANCE_LEVEL_SENSING ~20 lx
+
+#define GPIO_ADC_ILLUMI		GPIO_PC4
+#define SHL_ADC_ILLUMI		C4P // see in adc.h ADC_InputPchTypeDef
+#define PC4_FUNC			AS_GPIO
+#define PC4_OUTPUT_ENABLE	0
+#define PC4_INPUT_ENABLE	1
+//#define PULL_WAKEUP_SRC_PC4	PM_PIN_PULLDOWN_100K
+
+#define GPIO_ILLUMI_ON		GPIO_PD3
+#define ILLUMI_POEWR_ON		1
+#define PD3_DATA_OUT		(!ILLUMI_POEWR_ON)
+#define PD3_OUTPUT_ENABLE	0
+#define PD3_INPUT_ENABLE	1
+#define PD3_FUNC			AS_GPIO
+
 #elif DEVICE_TYPE == DEVICE_ZG204ZV
 
 // TLSR8253F512ET32 512K Flash
@@ -3133,6 +3231,100 @@ GPIO_D7 - SDA
 #define PB6_OUTPUT_ENABLE	0
 #define PB6_FUNC			AS_GPIO
 
+#elif DEVICE_TYPE == DEVICE_TS0201_WING
+
+// TLSR8258
+// GPIO_PA0 - free (Reed Switch, input)
+// GPIO_PA1 - free
+// GPIO_PA7 - SWS, (debug TX)
+// GPIO_PB1 - free
+// GPIO_PB4 - KEY
+// GPIO_PB5 - free
+// GPIO_PB6 - free
+// GPIO_PB7 - free
+// GPIO_PC0 - read
+// GPIO_PC1 - free
+// GPIO_PC2 - free
+// GPIO_PC3 - SCL
+// GPIO_PC4 - free
+// GPIO_PD2 - SDA
+// GPIO_PD3 - free
+// GPIO_PD4 - free
+// GPIO_PD7 - free
+
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_TIME_ADJUST \
+		| SERVICE_TH_TRG \
+		| SERVICE_LED \
+)
+
+#define USE_EPD					0 // min update time ms
+#define ZIGBEE_TUYA_OTA 		1
+//#define USE_FLASH_SERIAL_UID	1
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
+#define USE_SENSOR_AHT20_30		0
+#define USE_SENSOR_SHT4X		0
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		1
+
+#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+
+#define I2C_MAX_SPEED 		200000 // 200 kHz
+#define I2C_SCL 			GPIO_PC3
+#define PC3_INPUT_ENABLE	1
+#define PC3_DATA_OUT		0
+#define PC3_OUTPUT_ENABLE	0
+//#define PULL_WAKEUP_SRC_PC3	PM_PIN_PULLUP_10K
+#define I2C_SDA 			GPIO_PD2
+#define PD2_INPUT_ENABLE	1
+#define PD2_DATA_OUT		0
+#define PD2_OUTPUT_ENABLE	0
+//#define PULL_WAKEUP_SRC_PD2	PM_PIN_PULLUP_10K
+
+#define GPIO_KEY2			GPIO_PB4
+#define PB4_INPUT_ENABLE	1
+#define PB4_DATA_OUT		0
+#define PB4_OUTPUT_ENABLE	0
+#define PB4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB4	PM_PIN_PULLUP_1M
+
+#define GPIO_LED			GPIO_PC2
+#define PC2_INPUT_ENABLE	1
+#define PC2_DATA_OUT		1
+#define PC2_OUTPUT_ENABLE	0
+#define PC2_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PC2	PM_PIN_PULLDOWN_100K
+
+#define GPIO_TRG			GPIO_PA1
+#define PA1_INPUT_ENABLE	1
+#define PA1_DATA_OUT		0
+#define PA1_OUTPUT_ENABLE	0
+#define PA1_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA1	PM_PIN_PULLDOWN_100K
+
+#define RDS1_PULLUP			PM_PIN_PULLUP_1M
+#define GPIO_RDS1 			GPIO_PA0
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA0 RDS1_PULLUP
 
 
 #else // DEVICE_TYPE

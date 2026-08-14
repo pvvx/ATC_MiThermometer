@@ -79,6 +79,7 @@
 #define DEVICE_LYWSD02MMC	49  // EInk display, Clock
 #define DEVICE_ZG204ZL		50  // HOBEIAN ZG-204ZL PIR + LUX sensor
 #define DEVICE_ZG204ZV		51  // HOBEIAN-ZG-204ZV T&H + LUX + Radar Sensor
+#define DEVICE_TS0201_WING	52  // TS0201_TZ3000_dnpd6ayp, Tuya Zigbee "Temp & Humidity Sensor", Wing TS0201 2xAAA
 
 
 #if 0 // not used in this code!

@@ -15,6 +15,7 @@ $(OUT_PATH)/src/lcd_zth03.o \
 $(OUT_PATH)/src/lcd_lktmzl02.o \
 $(OUT_PATH)/src/lcd_zy_zth02pro.o \
 $(OUT_PATH)/src/lcd_zth05z.o \
+$(OUT_PATH)/src/lcd_ts0201_wing.o \
 $(OUT_PATH)/src/epd_cgg1.o \
 $(OUT_PATH)/src/epd_cgg1n.o \
 $(OUT_PATH)/src/epd_mho_c401.o \

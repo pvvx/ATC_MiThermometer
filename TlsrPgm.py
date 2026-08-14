@@ -1563,13 +1563,13 @@ def main():
 			if not pgm.Activate(args.act):
 				pgm.close()
 				sys.exit(1)
-	if args.act < 0: # No Hard reset (Pin RST set '0'), MCU Soft Reset + Activate 70 ms
+	if args.act < 0: # No Hard reset (Pin RST set '0'), MCU Soft Reset + Activate x ms
 		print('MCU Reboot...', end = ' ')
 		if not pgm.WriteRegsData(0x6f, b'\x20'):
 			pgm.close()
 			sys.exit(1)
 		print('ok')
-		if not pgm.Activate(70): # Activate 70 ms
+		if not pgm.Activate(-args.act): # Activate x ms
 			pgm.close()
 			sys.exit(1)
 	if not args.zw:
