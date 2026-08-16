@@ -3244,7 +3244,7 @@ GPIO_PD7 - LED to +Vbat
 // GPIO_PB7 - free
 // GPIO_PC0 - read
 // GPIO_PC1 - free
-// GPIO_PC2 - free
+// GPIO_PC2 - LED
 // GPIO_PC3 - SCL
 // GPIO_PC4 - free
 // GPIO_PD2 - SDA

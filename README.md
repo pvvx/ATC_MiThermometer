@@ -74,7 +74,7 @@ Access to github is already slowing down. Most Internet information resources ha
 
 | Tuya ZigBee<br>[ZY-ZTH02Pro](https://pvvx.github.io/ZY-ZTH02Pro) | Tuya ZigBee<br>[ZY-ZTH03Pro](https://pvvx.github.io/TS0201_TZ3000_v1w2k9dd) | [MJWSD06MMC](https://pvvx.github.io/MJWSD06MMC) | [TS0201_TZ3000_dnpd6ayp](https://pvvx.github.io/TS0201_TZ3000_dnpd6ayp) |
 |:--:|:--:|:--:|:--:|
-| <img src="https://pvvx.github.io/ZY-ZTH02Pro/img/zyzth02p.jpg" alt="ZY-ZTH02Pro" width="120"/> | <img src="https://pvvx.github.io/TS0201_TZ3000_v1w2k9dd/img/zy-zth03pro.jpg" alt="ZY-ZTH03Pro" width="200"/> | <img src="https://pvvx.github.io/MJWSD06MMC/img/MJWSD06MMC.jpg" alt="MJWSD06MMC" width="120"/> | <img src="https://pvvx.github.io/TS0201_TZ3000_dnpd6ayp/img/zth13.jpg" alt="MJWSD06MMC" width="120"/> |
+| <img src="https://pvvx.github.io/ZY-ZTH02Pro/img/zyzth02p.jpg" alt="ZY-ZTH02Pro" width="200"/> | <img src="https://pvvx.github.io/TS0201_TZ3000_v1w2k9dd/img/zy-zth03pro.jpg" alt="ZY-ZTH03Pro" width="200"/> | <img src="https://pvvx.github.io/MJWSD06MMC/img/MJWSD06MMC.jpg" alt="MJWSD06MMC" width="200"/> | <img src="https://pvvx.github.io/TS0201_TZ3000_dnpd6ayp/img/zth13.jpg" alt="MJWSD06MMC" width="80"/> |
 | Zigbee OTA | Zigbee OTA | Programmer | Programmer |
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE |
 | ZYZTH02P_vNN.bin | ZYZTH02P_vNN.bin | MJ6_vNN.bin | TS0201W_vNN.bin |
@@ -305,7 +305,7 @@ In case you want to go back to the original firmware, you can download them here
 |     5.5 | Added [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC). For LYWSD03MMC B1.6(B1.1) LCD SPI speed has been reduced. Modified initialization of LCD displays for Xiaomi LYWSD03MMC B1.1, B1.5, B1.6. |
 |     5.6 | Fix LCD LYWSD03MMC B1.6. Added new HW version LYWSD03MMC (LCD-SPI/SHTC3). Added [ZBEACON-TH01-v2.0](https://pvvx.github.io/Zbeacon-TH01-v2.0) |
 |     5.7 | Fix SHTC3 sensor... |
-|     5.8 | Added ZG-204ZV, LYWSD02MMC, TS0201_TZ3000_dnpd6ayp (ZTH13). Supports WHT20 sensor. The procedure for saving settings in Flash has been changed. A reconfiguration will be required after an update. |
+|     5.8 | Added ZG-204ZV, LYWSD02MMC, TS0201_TZ3000_dnpd6ayp (ZTH13). Supports WHT20 sensor. Modification of the firmware relocation code during startup post Tuya. The procedure for saving settings in Flash has been changed. A reconfiguration will be required after an update! |
 |     --- |  |
 |     6.0 | [Starting with version 6.0](https://github.com/pvvx/ATC_MiThermometer/issues/727), support for non-standard and unregistered in Bluetooth SIG UUIDs and BLE advertising formats will be discontinued. Only [BTHome ver 2](https://bthome.io/) will be supported! |
 
