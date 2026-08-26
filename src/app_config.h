@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define VERSION 0x58	 // BCD format (0x34 -> '3.4')
+#define VERSION 0x59	 // BCD format (0x34 -> '3.4')
 #define EEP_SUP_VER 0x09 // EEP data minimum supported version
 
 // DevID:
@@ -76,7 +76,7 @@ extern "C" {
 #define TEST_PLM1 			0  // TB03F My Plant monitor
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_TS0201_WING
+#define DEVICE_TYPE			DEVICE_MJWSD05MMC_EN
 #endif
 
 // supported services by the device (bits)
@@ -153,7 +153,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -259,7 +259,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -372,7 +372,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8253F512ET32
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -507,7 +507,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -632,7 +632,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8253F512ET32
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -767,7 +767,7 @@ extern "C" {
 // GPIO_PD7 - UART_TX
 
 // scan i2c: 0x7c, 0x88, 0xa2
-
+#define USE_RC_VBAT			1
 #define USE_EPD				0 // min update time ms
 
 #define USE_SENSOR_CHT8305		0
@@ -777,12 +777,18 @@ extern "C" {
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 
-#define SHL_ADC_VBAT		6  // "B5P" in adc.h
+#if  	USE_RC_VBAT // Vbat (+V-R/RC-GND)
+#define SHL_ADC_VBAT		B5P  // "B5P" in adc.h
 #define GPIO_VBAT			GPIO_PB5 // R5 -> +Vbat
-//#define PULL_WAKEUP_SRC_PB5 PM_PIN_PULLUP_1M
-//#define PB5_INPUT_ENABLE	1
-//#define PB5_DATA_OUT		1
-//#define PB5_OUTPUT_ENABLE	1
+#define ADC_BAT_VREF_MV		1686
+#else
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR825x
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+#endif
 
 #define I2C_MAX_SPEED 		400000 // 400 kHz
 #define I2C_SCL 			GPIO_PC1
@@ -792,14 +798,6 @@ extern "C" {
 #define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
 
 #define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX
-
-#define SHL_ADC_VBAT		6  // "B5P" in adc.h
-#define GPIO_VBAT			GPIO_PB5 // R5 -> +Vbat
-#define ADC_BAT_VREF_MV		1686
-//#define PULL_WAKEUP_SRC_PB5 PM_PIN_PULLUP_1M
-//#define PB5_INPUT_ENABLE	1
-//#define PB5_DATA_OUT		1
-//#define PB5_OUTPUT_ENABLE	1
 
 #define GPIO_TRG			GPIO_PA0	// none
 #define PA0_INPUT_ENABLE	1
@@ -860,7 +858,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -990,7 +988,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -1086,7 +1084,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -1185,7 +1183,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -1298,7 +1296,7 @@ extern "C" {
 #define USE_MIHOME_BEACON	0 	// = 1 Compatible with MiHome beacon
 #define USE_ATC_BEACON		0
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -1392,7 +1390,7 @@ extern "C" {
 
 #define SENSOR_SLEEP_MEASURE	0
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -1697,7 +1695,7 @@ extern "C" {
 #define USE_MIHOME_BEACON	0 	// = 0!
 #define USE_ATC_BEACON		0	// = 0!
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -1847,7 +1845,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8253F512ET32
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -1963,7 +1961,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR825x
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -2078,7 +2076,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR825x
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -2194,7 +2192,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -2308,7 +2306,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -2389,7 +2387,7 @@ extern "C" {
 #define USE_SENSOR_SHTC3        0
 #define USE_SENSOR_SHT30        1
 
-#define SHL_ADC_VBAT        1  // "B0P" in adc.h
+#define SHL_ADC_VBAT        B0P  // "B0P" in adc.h
 #define GPIO_VBAT           GPIO_PB0 // missing pin on TLSR8253F512ET32
 #define PB0_INPUT_ENABLE    1
 #define PB0_DATA_OUT        1
@@ -2477,7 +2475,7 @@ GPIO_D7 - SDA
 #define USE_SENSOR_SHTC3        0
 #define USE_SENSOR_SHT30        0
 
-#define SHL_ADC_VBAT        1  // "B0P" in adc.h
+#define SHL_ADC_VBAT        B0P  // "B0P" in adc.h
 #define GPIO_VBAT           GPIO_PB0 // missing pin on TLSR8253F512ET32
 #define PB0_INPUT_ENABLE    1
 #define PB0_DATA_OUT        1
@@ -2565,7 +2563,7 @@ GPIO_D7 - SDA
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8253F512ET32
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -2654,6 +2652,7 @@ GPIO_D7 - SDA
 )
 
 #define USE_EPD				0 // min update time ms
+#define USE_RC_VBAT			0
 
 #define USE_SENSOR_CHT8305		0
 #define USE_SENSOR_CHT8215		0
@@ -2662,13 +2661,13 @@ GPIO_D7 - SDA
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 
-#ifdef USE_RC_VBAT // Vbat (+V-R/RC-GND)
+#if 	USE_RC_VBAT // Vbat (+V-R/RC-GND)
 #define GPIO_VBAT			GPIO_PC4 // Vbat (+V-R/RC-GND)
-#define SHL_ADC_VBAT		9  // "C4P" in adc.h
+#define SHL_ADC_VBAT		C4P // "C4P" in adc.h
 #define ADC_BAT_VREF_MV		1686
 #else
-#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR825x
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
 #define PB0_OUTPUT_ENABLE	1
@@ -2749,7 +2748,7 @@ GPIO_D7 - SDA
 
 #define SENSOR_SLEEP_MEASURE	1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -2833,7 +2832,7 @@ GPIO_D7 - SDA
 #define USE_SENSOR_SHTC3        0
 #define USE_SENSOR_SHT30        1
 
-#define SHL_ADC_VBAT        1  // "B0P" in adc.h
+#define SHL_ADC_VBAT        B0P  // "B0P" in adc.h
 #define GPIO_VBAT           GPIO_PB0 // missing pin on TLSR8253F512ET32
 #define PB0_INPUT_ENABLE    1
 #define PB0_DATA_OUT        1
@@ -2927,7 +2926,7 @@ GPIO_D7 - SDA
 #define USE_SENSOR_SHTC3		1
 #define USE_SENSOR_SHT30		0
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8253F512ET32
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -3047,7 +3046,7 @@ GPIO_PD7 - LED to +Vbat
 #define ZIGBEE_TUYA_OTA 	1
 #define USE_EPD				0 // min update time ms
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8253F512ET32
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -3152,7 +3151,7 @@ GPIO_PD7 - LED to +Vbat
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		0
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8253F512ET32
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1
@@ -3278,7 +3277,7 @@ GPIO_PD7 - LED to +Vbat
 #define USE_SENSOR_SHTC3		0
 #define USE_SENSOR_SHT30		1
 
-#define SHL_ADC_VBAT		1  // "B0P" in adc.h
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
 #define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR8251F512ET24
 #define PB0_INPUT_ENABLE	1
 #define PB0_DATA_OUT		1

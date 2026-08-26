@@ -12,7 +12,7 @@
 #include "drivers/8258/gpio_8258.h"
 #include "app.h"
 #include "sensor.h"
-#include "my18B20.h"
+#include "my18b20.h"
 
 // #define GPIO_ONEWIRE	GPIO_PB1
 
