@@ -528,6 +528,15 @@ Setting the "Connect" option has several functions:
 
 * [For MJWSD05MMC, the 'Connect' function is always configured on the top button](https://github.com/pvvx/ATC_MiThermometer/issues/307).
 
+#### MJWSD05MMC button functions
+
+The MJWSD05MMC has two buttons and its own key handling, which differs from the generic list above:
+
+1. A short press of the "Connect" button (GPIO PB6) enables connectable advertising for about 80 seconds at a 1-second advertising interval. The BLE symbol on the LCD blinks while waiting for a connection. The key press is reported in the flags byte of the "custom" (pvvx) advertising format and by GATT notification, but not in the atc1441, BTHome or Mi formats.
+2. Holding the "Connect" button switches the display page every 1.75 seconds: Time, Temperature, Humidity, Battery %, Battery voltage, External data. On this device a long press does not toggle °C/°F.
+3. Holding the "Connect" button for 5 seconds while also holding the second button (GPIO PC4) resets the settings to default and reboots. The generic 20-second single-button reset does not apply to this device.
+4. The second button is wired to the reed switch input (RDS1) and works in the "Switch" and "Counter" modes; the "Connect" mode cannot be assigned to it on this device (it is automatically reset to "Switch").
+
 ### Interface for receiving and displaying data on the LCD.
 >* LCD shows: 
 > * Big number: -99.5..1999.5 
