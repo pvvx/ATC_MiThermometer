@@ -363,10 +363,10 @@ void show_batt_cgdk2(void) {
 	u16 battery_level = 0;
 #if USE_AVERAGE_BATTERY
 	if (measured_data.average_battery_mv > MIN_VBAT_MV) {
-		battery_level = ((measured_data.average_battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+		battery_level = get_battery_level_x10(measured_data.average_battery_mv);
 #else
 	if (measured_data.battery_mv > MIN_VBAT_MV) {
-		battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+		battery_level = get_battery_level_x10(measured_data.battery_mv);
 #endif
 		if (battery_level > 995)
 			battery_level = 995;
