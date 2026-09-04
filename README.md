@@ -79,6 +79,13 @@ Access to github is already slowing down. Most Internet information resources ha
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 | ZYZTH02P_vNN.bin | ZYZTH02P_vNN.bin | MJ6_vNN.bin | TS0201W_vNN.bin |
 
+| [LYWSD02MMC](https://github.com/pvvx/LYWSD02MMC) |
+|:--:|
+| <img src="https://pvvx.github.io/LYWSD02MMC/img/LYWSD02MMC_orig.jpg" alt="LYWSD02MMC" width="200"/> |
+| Programmer |
+| BLE |
+| LYWSD02MMC_vNN.bin |
+
 * Thermometers without display
 
 | Tuya ZigBee<br>[TS0201 TZ3000](https://pvvx.github.io/TS0201_TZ3000) | Tuya ZigBee<br>[TH03Z](https://pvvx.github.io/TH03Z) | Tuya ZigBee<br>[ZTH01](https://pvvx.github.io/TS0601_TZE200_zth01) | Tuya ZigBee<br>[ZTH02](https://pvvx.github.io/TS0601_TZE200_zth02) | Tuya ZigBee<br>[ZY-ZTH02](https://pvvx.github.io/ZY-ZTH02) |
