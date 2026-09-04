@@ -79,7 +79,7 @@ Access to github is already slowing down. Most Internet information resources ha
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 | ZYZTH02P_vNN.bin | ZYZTH02P_vNN.bin | MJ6_vNN.bin | TS0201W_vNN.bin |
 
-| [LYWSD02MMC](https://github.com/pvvx/LYWSD02MMC) |
+| [LYWSD02MMC](https://pvvx.github.io/LYWSD02MMC) |
 |:--:|
 | <img src="https://pvvx.github.io/LYWSD02MMC/img/LYWSD02MMC_orig.jpg" alt="LYWSD02MMC" width="200"/> |
 | Programmer |
