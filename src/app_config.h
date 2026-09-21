@@ -81,7 +81,9 @@ extern "C" {
 //#define DEVICE_ZG204ZV2		57 // ZigBee only, HOBEIAN-ZG-204ZV without T&H, LUX + Radar Sensor XBR818
 //#define DEVICE_NEXT			58 // ?
 
+#ifndef TEST_PLM1
 #define TEST_PLM1 			0  // TB03F My Plant monitor
+#endif
 
 #ifndef DEVICE_TYPE
 #define DEVICE_TYPE			DEVICE_MJWSD05MMC_EN
@@ -1405,7 +1407,7 @@ extern "C" {
 #define PB0_OUTPUT_ENABLE	1
 #define PB0_FUNC			AS_GPIO
 
-#ifdef TEST_PLM1  // My PLM
+#if TEST_PLM1  // My PLM (TB03F DIY). 0 => ECF-SGS01-A rev1.3 pin map.
 
 #define GPIO_KEY2			GPIO_PD4
 #define PD4_INPUT_ENABLE	1
