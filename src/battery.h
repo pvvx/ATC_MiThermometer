@@ -23,5 +23,6 @@ extern u32 adc_average;
 #define get_battery_mv() get_adc_mv(SHL_ADC_VBAT)	// Channel B0P/B5P
 
 u8 get_battery_level(u16 battery_mv);
+u16 get_battery_level_x10(u16 battery_mv);	// 0..1000, 0.1% units
 
 #endif // _BATTERY_H_
