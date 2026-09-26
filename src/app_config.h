@@ -79,7 +79,8 @@ extern "C" {
 //#define DEVICE_ZG204ZV1		55 // ZigBee only, HOBEIAN-ZG-204ZV T&H + LUX + Radar Sensor XBR818
 //#define DEVICE_ZG204ZV2_TH	56 // ZigBee only, HOBEIAN-ZG-204ZV T&H + LUX + Radar Sensor XBR818 (HOBEIAN GPIO)
 //#define DEVICE_ZG204ZV2		57 // ZigBee only, HOBEIAN-ZG-204ZV without T&H, LUX + Radar Sensor XBR818
-//#define DEVICE_NEXT			58 // ?
+#define DEVICE_ZBEACON2TH01_SHTC3	58  // ZBEACON-TH01 v2.0 PCB variant: SHTC3, SDA/SCL swapped, no TX pad (TS0201_TZ3000_rdhukkmi)
+//#define DEVICE_NEXT			59 // ?
 
 #define TEST_PLM1 			0  // TB03F My Plant monitor
 
@@ -2888,6 +2889,93 @@ GPIO_D7 - SDA
 #define PC0_OUTPUT_ENABLE   0
 #define PC0_FUNC            AS_GPIO
 #define PULL_WAKEUP_SRC_PC0 RDS1_PULLUP
+
+#elif (DEVICE_TYPE == DEVICE_ZBEACON2TH01_SHTC3)
+
+// TLSR8656F512ET32
+// ZBEACON-TH01 v2.0 PCB variant, also sold as TS0201_TZ3000_rdhukkmi
+// (https://github.com/pvvx/ZigbeeTLc/issues/211)
+// Differences from DEVICE_ZBEACON2TH01: SHTC3 sensor, SDA/SCL swapped, no TX pad
+// GPIO_A0 - SCL
+// GPIO_D4 - SDA
+// GPIO_B6 - LED
+// GPIO_B7 - KEY
+
+#define DEV_SERVICES ( SERVICE_OTA \
+        | SERVICE_OTA_EXT \
+        | SERVICE_PINCODE \
+        | SERVICE_BINDKEY \
+        | SERVICE_HISTORY \
+        | SERVICE_LE_LR \
+        | SERVICE_THS \
+        | SERVICE_RDS \
+        | SERVICE_KEY \
+        | SERVICE_TIME_ADJUST \
+        | SERVICE_TH_TRG \
+        | SERVICE_LED \
+)
+
+#define USE_FLASH_SERIAL_UID    1
+#define ZIGBEE_TUYA_OTA         1
+#define USE_EPD                 0
+
+#define USE_SENSOR_CHT8305      0
+#define USE_SENSOR_CHT8215      0
+#define USE_SENSOR_AHT20_30     0
+#define USE_SENSOR_SHT4X        0
+#define USE_SENSOR_SHTC3        1
+#define USE_SENSOR_SHT30        0
+
+#define SHL_ADC_VBAT            B0P
+#define GPIO_VBAT               GPIO_PB0
+#define PB0_INPUT_ENABLE        1
+#define PB0_DATA_OUT            1
+#define PB0_OUTPUT_ENABLE       1
+#define PB0_FUNC                AS_GPIO
+
+#define I2C_MAX_SPEED           200000
+#define I2C_SCL                 GPIO_PA0
+#define PA0_INPUT_ENABLE        1
+#define PA0_DATA_OUT            0
+#define PA0_OUTPUT_ENABLE       0
+#define PULL_WAKEUP_SRC_PA0     PM_PIN_PULLUP_10K
+#define PA0_FUNC            AS_GPIO
+
+#define I2C_SDA                 GPIO_PD4
+#define PD4_INPUT_ENABLE        1
+#define PD4_DATA_OUT            0
+#define PD4_OUTPUT_ENABLE       0
+#define PULL_WAKEUP_SRC_PD4     PM_PIN_PULLUP_10K
+#define PD4_FUNC            AS_GPIO
+
+#define GPIO_KEY2               GPIO_PB7
+#define PB7_INPUT_ENABLE        1
+#define PB7_DATA_OUT            0
+#define PB7_OUTPUT_ENABLE       0
+#define PB7_FUNC                AS_GPIO
+#define PULL_WAKEUP_SRC_PB7     PM_PIN_PULLUP_10K
+
+#define GPIO_LED                GPIO_PB6
+#define LED_ON                  1
+#define PB6_INPUT_ENABLE        1
+#define PB6_DATA_OUT            1
+#define PB6_OUTPUT_ENABLE       0
+#define PB6_FUNC                AS_GPIO
+
+#define GPIO_TRG                GPIO_PB1 // no pad on this PCB
+#define PB1_INPUT_ENABLE        1
+#define PB1_DATA_OUT            0
+#define PB1_OUTPUT_ENABLE       0
+#define PB1_FUNC                AS_GPIO
+#define PULL_WAKEUP_SRC_PB1     PM_PIN_PULLDOWN_100K
+
+#define RDS1_PULLUP             PM_PIN_PULLUP_1M
+#define GPIO_RDS1               GPIO_PC0
+#define PC0_INPUT_ENABLE        1
+#define PC0_DATA_OUT            0
+#define PC0_OUTPUT_ENABLE       0
+#define PC0_FUNC                AS_GPIO
+#define PULL_WAKEUP_SRC_PC0     RDS1_PULLUP
 
 #elif DEVICE_TYPE == DEVICE_LYWSD02MMC
 

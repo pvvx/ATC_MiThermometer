@@ -49,5 +49,6 @@
 | 47 | 0x022F | [ZBEACON-TH01-v2.0](https://pvvx.github.io/Zbeacon-TH01-v2.0) | ZB2TH01 |
 | 49 | 0x0231 | LYWSD02MMC | LYWSD02MMC |
 | 51 | 0x0233 | ZG204ZV | ZG204ZV |
+| 58 | 0x023A | ZBEACON-TH01-v2.0 variant with SHTC3 (SDA/SCL swapped, no TX pad), also sold as TS0201_TZ3000_rdhukkmi | ZB2TH01SHTC3 |
 
 
