@@ -34,11 +34,20 @@
 | 0x022D | [ZBEACON-TH01](https://pvvx.github.io/Zbeacon-TH01) |
 | 0x022E | [ZBEACON-MC](https://pvvx.github.io/Zbeacon-MC) |
 | 0x022F | [ZBEACON-TH01-v2.0](https://pvvx.github.io/Zbeacon-TH01-v2.0) |
+| 0x022F | [ZBEACON-TH01-v2.0](https://pvvx.github.io/Zbeacon-TH01-v2.0) |
 | 0x0230 | [TY0201](https://pvvx.github.io/TY0201_TZ3000_bjawzodf) |
 | 0x0231 | [LYWSD02MMC](https://pvvx.github.io/LYWSD02MMC) |
 | 0x0232 | [ZG-204ZL](https://pvvx.github.io/ZG-204ZL-3.0) |
 | 0x0233 | [ZG-204ZV](https://pvvx.github.io/ZG-204ZV) |
-| 0x0234 | TS0201_TZ3000_dnpd6ayp |
+| 0x0234 | [TS0201_TZ3000_dnpd6ayp](https://pvvx.github.io/TS0201_TZ3000_dnpd6ayp) |
+| 0x0235 | [ZG-223Z](https://pvvx.github.io/ZG-223Z) |
+| 0x0236 | DIY-SCD41 |
+| 0x0237 | [ZG-204ZV1](https://pvvx.github.io/ZG-204ZV) |
+| 0x0238 | [ZG-204ZV2-TH](https://pvvx.github.io/ZG-204ZV) |
+| 0x0239 | [ZG-204ZV2](https://pvvx.github.io/ZG-204ZV) |
+| 0x023A | ZBEACON-TH01-v2 |
+| 0x023B | TH03_ZBPS1.0 |
+
 
 * [Full table](https://github.com/pvvx/pvvx.github.io/blob/master/README.md)
 
@@ -64,7 +73,6 @@ db15-0203-99993001-ATC_vxx.zigbee New version devbis Zigbee to BLE
 1141-d3a3-19983001-TS0201WBLE_xxx.zigbee Tuya TS0201_TZ3000_dnpd6ayp Zigbee to BLE
 
 * Index file: ts0201_tuya2ble.json
-
 
 ### TH03 From Tuya (Sonoff) Zigbee firmware to BLE:
 

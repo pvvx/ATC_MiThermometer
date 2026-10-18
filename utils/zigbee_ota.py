@@ -10,7 +10,10 @@ OTA_MAGIC = b'\x5d\x02'
 
 def main(args):
 	assert args.input_file != args.output
-
+	hs = str.encode(args.header_string)
+	if len(hs) > 31:
+	   print("Error: header_string size is too long!");
+	   exit(2);
 	with (open(args.input_file, 'rb')) as bin_file:
 		bin_file.seek(0, 0)
 		firmware = bytearray(bin_file.read(-1))
@@ -31,10 +34,11 @@ def main(args):
 		header_size = 56
 		firmware_len = len(firmware)
 		total_image_size = firmware_len + header_size + 6
-		manufacturer_code = int.from_bytes(firmware[18:20], byteorder='little')
-		image_type = int.from_bytes(firmware[20:22], byteorder='little')
-		file_version = args.set_version or int.from_bytes(firmware[2:6], byteorder='little')
-		hs = str.encode('ZigbeeTLc to BLE')
+		manufacturer_code = args.manufacturer_id or int.from_bytes(firmware[18:20], byteorder='little')
+		image_type = args.image_type or int.from_bytes(firmware[20:22], byteorder='little')
+		file_version = args.file_version or int.from_bytes(firmware[2:6], byteorder='little')
+		if len(hs) == 0:
+		   hs = str.encode('ZigbeeTLc to BLE')
 		ota_hdr = ota_hdr_s.pack(
 			0xbeef11e,
 			0x100,  # header version is 0x0100
@@ -43,7 +47,7 @@ def main(args):
 			manufacturer_code,  # args.manufacturer,
 			image_type,  # args.image_type,
 			file_version,  # options.File_Version
-			args.ota_version,  # options.stack_version,
+			2,  # options.stack_version,
 			hs + b'\x00' * (32-len(hs)),
 			#b'\x00' * 32,  # OTA_Header_String.encode(),
 			total_image_size,
@@ -56,6 +60,8 @@ def main(args):
 			head, tail = os.path.split(args.input_file)
 			if args.path:
 				head = args.path
+			if args.name:
+				tail = args.name
 			if args.output_title:
 				name = args.output_title
 			else:
@@ -76,11 +82,15 @@ def main(args):
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument("input_file", help="input file")
-	parser.add_argument("-ot", '--output-title', help="replace original file name with the string")
+	parser.add_argument("-t", '--output-title', help="replace original file name with the string")
 	parser.add_argument("-o", '--output', help="output file")
 	parser.add_argument("-p", '--path', help="path to output file")
-	# sync with g_zcl_basicAttrs.stackVersion
-	parser.add_argument("-s", '--ota-version', type=int, help="OTA stack version", default=2)
-	parser.add_argument("-v", '--set-version', type=lambda x: int(x, 0), help="Override version from BIN")
+	parser.add_argument("-n", '--name', help="short name output file")
+	#
+	parser.add_argument("-m", "--manufacturer_id", metavar="MANUFACTURER_ID", type=lambda x: int(x, 0), help="Manufacturer ID")
+	parser.add_argument("-i", "--image_type", metavar="IMAGE_ID", type=lambda x: int(x, 0), help="Image ID")
+	parser.add_argument("-v", "--file_version", metavar="VERSION", type=lambda x: int(x, 0), help="File version")
+	parser.add_argument("-s", "--header_string", metavar="HEADER_STRING", type=str, default="", help="Header String")
+
 	_args = parser.parse_args()
 	main(_args)

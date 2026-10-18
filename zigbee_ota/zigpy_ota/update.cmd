@@ -62,6 +62,12 @@ start /wait node scripts/add.js ../%%a %BASE_URL%
 )
 copy /Y index.json ..\zb2th01_tuya2ble.json
 
+echo [] > index.json
+for %%a in (../1141-d3a3-19983001-TS0201WBLE_*.zigbee) do (
+start /wait node scripts/add.js ../%%a %BASE_URL%
+)
+copy /Y index.json ..\ts0201w_tuya2ble.json
+
 
 del *.zigbee
 del index.json

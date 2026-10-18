@@ -277,5 +277,14 @@
         "sha512": "fce2d07c446f43e7f06e1f28ec6c7104aeb178e823c919d15212a16f824762563ddf93f69f0af280d45e0576bb4c8e4f59d9638f4eb9a0a0451fc81a5f0b815f",
         "otaHeaderString": "ZigbeeTLc to BLE",
         "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-0234-99993001-TS0201W_v59.zigbee"
+    },
+    {
+        "fileVersion": 2576953345,
+        "fileSize": 75634,
+        "manufacturerCode": 4417,
+        "imageType": 570,
+        "sha512": "fa75a3bbad0bc3c8e786b853f93b7ad3a4b074955f35b320d23ed04f1f0c1dbfdf4384f9d134b0c919e8ac2a1f7afe2b3a05493ff9cd1d6ca794056d56649d7b",
+        "otaHeaderString": "ZigbeeTLc to BLE",
+        "url": "https://github.com/pvvx/ATC_MiThermometer/raw/master/zigbee_ota/1141-023a-99993001-ZB2TH01SHTC3_v59.zigbee"
     }
 ]
