@@ -47,21 +47,12 @@
 #define DEVICE_TS0201_WING	52  // TS0201_TZ3000_dnpd6ayp, Tuya Zigbee "Temp & Humidity Sensor", Wing TS0201 2xAAA
 //#define DEVICE_ZG223Z			53 // ZigBee only, HOBEIAN ZG223Z, Zigbee "Raindrop Detection Senser" + Lx, CR123A
 //#define DEVICE_DIY_SCD41		54 // reserved: BLE, DIY module TB03F + SCD41, Li(ion, pol,...) battery >= 800 mAh
-<<<<<<< HEAD
 //#define DEVICE_ZG204ZV1		55 // ZigBee only, HOBEIAN-ZG-204ZV T&H + LUX + Radar Sensor XBR818
 //#define DEVICE_ZG204ZV2_TH	56 // ZigBee only, HOBEIAN-ZG-204ZV T&H + LUX + Radar Sensor XBR818 (HOBEIAN GPIO)
 //#define DEVICE_ZG204ZV2		57 // ZigBee only, HOBEIAN-ZG-204ZV without T&H, LUX + Radar Sensor XBR818
 #define DEVICE_ZBEACON2TH01_SHTC3	58  // ZBEACON-TH01 v2.0 PCB variant: SHTC3, SDA/SCL swapped, no TX pad (TS0201_TZ3000_rdhukkmi)
 //#define DEVICE_TH03_ZBPS		59 // Tuya TH03 Zigbee LCD, PCB TH03_ZBPS1.0, TLSR8656, LCD VKL060, GXHTV4 (SHT4x)
 //#define DEVICE_NEXT			60 // ?
-=======
-//#define DEVICE_ZG204ZV1		55 // ZigBee only, HOBEIAN-ZG-204ZV LUX + Radar Sensor XBR818
-//#define DEVICE_ZG204ZV2_TH	56 // ZigBee only, HOBEIAN-ZG-204ZV v2 T&H + LUX + Radar Sensor XBR818 (HOBEIAN GPIO)
-//#define DEVICE_ZG204ZV2		57 // ZigBee only, HOBEIAN-ZG-204ZV v2 LUX + Radar Sensor XBR818
-#define DEVICE_ZBEACON2TH01_SHTC3 58 // ZBEACON-TH01 v2.0 PCB variant: SHTC3, SDA/SCL swapped, no TX pad (TS0201_TZ3000_rdhukkmi)
-//#define DEVICE_NEXT			59 // ?
-
->>>>>>> 1e04429ba804abbc00a70c713ca3e38034134d90
 
 #if 0 // not used in this code!
 #define DEVICE_03MMC_DEVBIS	 3  // https://github.com/devbis/z03mmc
