@@ -292,7 +292,7 @@ _attribute_ram_code_ __attribute__((optimize("-Os"))) void show_small_number_x10
 void show_batt_cgg1(void) {
 	u16 battery_level = 0;
 	if (measured_data.battery_mv > MIN_VBAT_MV) {
-		battery_level = ((measured_data.battery_mv - MIN_VBAT_MV)*10)/((MAX_VBAT_MV - MIN_VBAT_MV)/100);
+		battery_level = get_battery_level_x10(measured_data.battery_mv);
 		if (battery_level > 995)
 			battery_level = 995;
 	}
