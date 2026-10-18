@@ -394,7 +394,9 @@ void reinit_lcd(void) {
 	init_lcd();
 }
 
-_attribute_ram_code_  __attribute__((optimize("-Os"))) int task_lcd(void) {
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+int task_lcd(void) {
 	if (gpio_read(EPD_BUSY)) {
 		switch (stage_lcd) {
 		case 1: // Update/Init, stage 1

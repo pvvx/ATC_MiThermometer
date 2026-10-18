@@ -313,7 +313,7 @@ In case you want to go back to the original firmware, you can download them here
 |     5.6 | Fix LCD LYWSD03MMC B1.6. Added new HW version LYWSD03MMC (LCD-SPI/SHTC3). Added [ZBEACON-TH01-v2.0](https://pvvx.github.io/Zbeacon-TH01-v2.0) |
 |     5.7 | Fix SHTC3 sensor... |
 |     5.8 | Added ZG-204ZV, LYWSD02MMC, TS0201_TZ3000_dnpd6ayp (ZTH13). Supports WHT20 sensor. Modification of the firmware relocation code during startup post Tuya. The procedure for saving settings in Flash has been changed. A reconfiguration will be required after an update! |
-|     5.9 | Fixed an error that occurred during the initial over-the-air (OTA) firmware download at address 0x40000. |
+|     5.9 | Fixed an error that occurred during the initial over-the-air (OTA) firmware download at address 0x40000. Added ZBEACON-TH01 v2.0 |
 |     --- |  |
 |     6.0 | [Starting with version 6.0](https://github.com/pvvx/ATC_MiThermometer/issues/727), support for non-standard and unregistered in Bluetooth SIG UUIDs and BLE advertising formats will be discontinued. Only [BTHome ver 2](https://bthome.io/) will be supported! |
 
