@@ -49,7 +49,11 @@
 | 47 | 0x022F | [ZBEACON-TH01-v2.0](https://pvvx.github.io/Zbeacon-TH01-v2.0) | ZB2TH01 |
 | 49 | 0x0231 | [LYWSD02MMC](https://pvvx.github.io/LYWSD02MMC) | LYWSD02MMC |
 | 51 | 0x0233 | ZG204ZV | ZG204ZV |
+<<<<<<< HEAD
 | 54 | 0x0236 | DIY-SCD41 | TB_SCD41 |
 | 58 | 0x023A | [ZBEACON-TH01-v2.0](https://github.com/pvvx/ZigbeeTLc/issues/211) variant with SHTC3 (SDA/SCL swapped, no TX pad), also sold as TS0201_TZ3000_rdhukkmi | ZB2TH01SHTC3 |
+=======
+| 58 | 0x023A | ZBEACON-TH01-v2.0 variant with SHTC3 (SDA/SCL swapped, no TX pad), also sold as TS0201_TZ3000_rdhukkmi | ZB2TH01SHTC3 |
+>>>>>>> 1e04429ba804abbc00a70c713ca3e38034134d90
 
 
