@@ -199,6 +199,15 @@ To flash or update the firmware, use a Google Chrome, Microsoft Edge or Opera Br
 
  * [Addition for MJWSD05MMC](https://github.com/pvvx/ATC_MiThermometer/issues/307): Press and hold both buttons for a few seconds until the screen blink (device resets). Next, briefly press the top side button, then briefly press the bottom button. The Bluetooth icon will start flashing.  Next 'Connect' and 'Do Activation' in [TelinkMiFlasher](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
 
+### Updating from Linux without a browser (e.g. Raspberry Pi)
+
+Devices that already run this custom firmware can be updated from the command line with [`utils/ble_ota.py`](utils/ble_ota.py), for example on a Raspberry Pi that collects the measurements. It uses the same OTA as TelinkMiFlasher, reads the hardware version and firmware version of each device, and flashes the release image for that hardware from `firmware.json` only when the device is older. Requires Python 3.8+ and `pip install bleak`; stop other programs scanning on the same Bluetooth adapter while it runs.
+
+    python3 utils/ble_ota.py --check A4:C1:38:0B:F8:E1 A4:C1:38:6F:1D:80   # hardware id and installed version
+    python3 utils/ble_ota.py A4:C1:38:0B:F8:E1 A4:C1:38:6F:1D:80           # update if older than the release
+
+A transfer takes about 4 minutes. If it is interrupted, the device keeps the old firmware. The first flash from the original Xiaomi firmware still needs TelinkMiFlasher (activation). Images larger than 128 KB (Ext.OTA) are not supported.
+
 ### Configuration
 After you have flashed the firmware, the device has changed it's bluetooth name to something like `ATC_F02AED`. Using the [`TelinkMiFlasher.html`](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) you have various configuration options.
 
