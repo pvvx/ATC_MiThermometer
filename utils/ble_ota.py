@@ -129,7 +129,8 @@ async def update(mac, release, image, check, force, sdk=False, result_timeout=20
                 pdu_size = min(80, (write_limit - 4) // 16 * 16)
             if pdu_size < 16 or pdu_size + 4 > write_limit:
                 raise ValueError(f"OTA payload {pdu_size} exceeds negotiated write limit {write_limit}")
-        print(f"  OTA payload {pdu_size} bytes", flush=True)
+        mode = 'with response' if with_response else 'without response'
+        print(f"  OTA payload {pdu_size} bytes, ATT writes {mode}", flush=True)
         await c.write_gatt_char(OTA_CHAR, bytes.fromhex("00ff"), response=with_response)
         command = (struct.pack("<HBB16x", 0xff03, pdu_size, 0) if pdu_size > 16
                    else bytes.fromhex("01ff"))

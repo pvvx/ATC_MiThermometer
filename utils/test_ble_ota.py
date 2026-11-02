@@ -23,7 +23,7 @@ class Client:
     instances=[]
     def __init__(self,device,**kwargs):
         self.services=types.SimpleNamespace(get_characteristic=lambda _:types.SimpleNamespace(properties=self.properties,max_write_without_response_size=self.write_limit))
-        self.writes=[];self.callback=None;self.disconnected=kwargs.get('disconnected_callback');self.instances.append(self)
+        self.writes=[];self.responses=[];self.callback=None;self.disconnected=kwargs.get('disconnected_callback');self.instances.append(self)
     async def __aenter__(self):return self
     async def __aexit__(self,*args):pass
     async def start_notify(self,char,callback):
@@ -35,6 +35,7 @@ class Client:
         assert char==ble_ota.OTA_CHAR
         if 'write' not in self.properties:assert not kwargs.get('response'), 'Write requests are not supported'
         self.writes.append(bytes(data))
+        self.responses.append(kwargs.get('response'))
         if data[:2]==b'\x03\xff' and self.start_result is not None:
             self.callback(char,bytes([6,255,self.start_result,0]))
         if data[:2]==b'\x02\xff':
@@ -81,6 +82,8 @@ class TestSDK(unittest.IsolatedAsyncioTestCase):
         self.assertIn(bytes.fromhex('01ff'),writes)
         self.assertEqual(writes[-1],bytes.fromhex('02ff0100feff'))
         self.assertEqual(writes[-2][2:18],b'\x01'*4+b'\xff'*12)
+        self.assertTrue(all(Client.instances[-1].responses[:-1]))
+        self.assertFalse(Client.instances[-1].responses[-1])  # END triggers reboot
     async def test_write_without_response_only_characteristic(self):
         with patch.object(Client,'properties',['write-without-response']):
             await self.send(0)
