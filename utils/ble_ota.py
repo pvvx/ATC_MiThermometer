@@ -11,9 +11,12 @@ as the web flasher does. Needs `pip install bleak`. Stop other BLE scanners firs
   ./ble_ota.py -df sensors.ini                   # MACs from an ini file ([AA:BB:..] sections)
   ./ble_ota.py --file ATC_v59.bin --force MAC    # flash a given image
   ./ble_ota.py --telink-sdk --file app.bin --max-size-kib 208 DEVICE
+  ./ble_ota.py --telink-sdk --file app.bin --max-size-kib 208 --pdu-size 0 DEVICE
 
 Generic SDK mode also accepts the UUID returned by Bleak on macOS. It requires
 CMD_OTA_RESULT success and a disconnect; this does not prove the new app booted.
+Payload 0 selects Legacy 16 or Extended packets by the negotiated write limit,
+capped at the B85 maximum of 80 bytes. An explicit size must fit that limit.
 """
 import argparse
 import asyncio
@@ -41,12 +44,14 @@ def crc16_modbus(data):
     return crc
 
 
-def ota_packets(fw):
-    """Telink OTA: 16-byte blocks as [index LE16][data][crc16 LE16], then the end marker."""
+def ota_packets(fw, pdu_size=16):
+    """Telink Legacy/Extended PDUs; only the final data is padded to 16 bytes."""
+    if pdu_size not in range(16, 241, 16):
+        raise ValueError("OTA payload must be a multiple of 16 in 16..240")
     fw += b"\xff" * (-len(fw) % 16)
-    n = len(fw) // 16
+    n = (len(fw) + pdu_size - 1) // pdu_size
     for i in range(n):
-        p = struct.pack("<H", i) + fw[i * 16:i * 16 + 16]
+        p = struct.pack("<H", i) + fw[i * pdu_size:(i + 1) * pdu_size]
         yield i, p + struct.pack("<H", crc16_modbus(p))
     yield n, bytes.fromhex("02ff") + struct.pack("<HH", n - 1, ~(n - 1) & 0xFFFF)
 
@@ -69,7 +74,9 @@ def fmt(v):
     return f"V{v >> 4}.{v & 15}" if v is not None else "unknown"
 
 
-async def update(mac, release, image, check, force, sdk=False, result_timeout=20):
+async def update(mac, release, image, check, force, sdk=False, result_timeout=20, pdu_size=16):
+    if pdu_size not in range(0, 241, 16) or (not sdk and pdu_size != 16):
+        raise ValueError("Extended payload requires SDK mode and 0 (auto) or 16..240 in steps of 16")
     from bleak import BleakClient, BleakScanner
     # pvvx advertises every few seconds and is connectable only part of the time: scan first
     rssi = []
@@ -115,11 +122,23 @@ async def update(mac, release, image, check, force, sdk=False, result_timeout=20
                 return
             fw = fetch(path)
             print(f"  flashing {path} ({fmt(want)})")
+        if sdk:
+            write_limit = (c.mtu_size - 3 if with_response
+                           else characteristic.max_write_without_response_size)
+            if pdu_size == 0:
+                pdu_size = min(80, (write_limit - 4) // 16 * 16)
+            if pdu_size < 16 or pdu_size + 4 > write_limit:
+                raise ValueError(f"OTA payload {pdu_size} exceeds negotiated write limit {write_limit}")
+        print(f"  OTA payload {pdu_size} bytes", flush=True)
         await c.write_gatt_char(OTA_CHAR, bytes.fromhex("00ff"), response=with_response)
-        await c.write_gatt_char(OTA_CHAR, bytes.fromhex("01ff"), response=with_response)
+        command = (struct.pack("<HBB16x", 0xff03, pdu_size, 0) if pdu_size > 16
+                   else bytes.fromhex("01ff"))
+        await c.write_gatt_char(OTA_CHAR, command, response=with_response)
         await asyncio.sleep(0.3)
-        start, total = time.time(), -(-len(fw) // 16)
-        for i, p in ota_packets(fw):
+        if sdk and result.done():
+            raise RuntimeError(f"SDK rejected OTA start: OTA result {result.result()}")
+        start, total = time.time(), -(-len(fw) // pdu_size)
+        for i, p in ota_packets(fw, pdu_size):
             if i == total:  # end marker: the device reboots at once, so never gets to answer
                 await c.write_gatt_char(OTA_CHAR, p, response=False)
                 break
@@ -172,11 +191,15 @@ def main():
     ap.add_argument("--force", action="store_true", help="flash even if already up to date")
     ap.add_argument("--telink-sdk", action="store_true", help="standard Telink SDK OTA without thermometer config/status commands; requires --file")
     ap.add_argument("--max-size-kib", type=int, default=128, help="explicit firmware slot limit for --telink-sdk (default: 128 KiB)")
+    ap.add_argument("--pdu-size", type=int, choices=range(0, 241, 16), default=16,
+                    help="SDK OTA payload; 0 selects by negotiated MTU, capped at B85's 80 bytes (default: Legacy 16)")
     a = ap.parse_args()
     if a.telink_sdk and (not a.file or a.check):
         ap.error("--telink-sdk requires --file and cannot be combined with --check")
     if a.max_size_kib != 128 and not a.telink_sdk:
         ap.error("--max-size-kib requires --telink-sdk")
+    if a.pdu_size != 16 and not a.telink_sdk:
+        ap.error("--pdu-size requires --telink-sdk")
 
     names = {m.upper(): "" for m in a.mac}
     if a.devicelistfile:
@@ -201,9 +224,9 @@ def main():
         print(mac, name)
         for attempt in range(3):  # BlueZ connections time out now and then
             try:
-                asyncio.run(update(mac, release, image, a.check, a.force, sdk=a.telink_sdk))
+                asyncio.run(update(mac, release, image, a.check, a.force, sdk=a.telink_sdk, pdu_size=a.pdu_size))
                 break
-            except RuntimeError as e:  # not worth retrying
+            except (RuntimeError, ValueError) as e:  # not worth retrying
                 print(f"  {e}")
                 failed += 1
                 break
