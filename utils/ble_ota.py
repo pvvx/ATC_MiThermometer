@@ -10,6 +10,10 @@ as the web flasher does. Needs `pip install bleak`. Stop other BLE scanners firs
   ./ble_ota.py A4:C1:38:0B:F8:E1 [...]           # flash the latest release if older
   ./ble_ota.py -df sensors.ini                   # MACs from an ini file ([AA:BB:..] sections)
   ./ble_ota.py --file ATC_v59.bin --force MAC    # flash a given image
+  ./ble_ota.py --telink-sdk --file app.bin --max-size-kib 208 DEVICE
+
+Generic SDK mode also accepts the UUID returned by Bleak on macOS. It requires
+CMD_OTA_RESULT success and a disconnect; this does not prove the new app booted.
 """
 import argparse
 import asyncio
@@ -65,7 +69,7 @@ def fmt(v):
     return f"V{v >> 4}.{v & 15}" if v is not None else "unknown"
 
 
-async def update(mac, release, image, check, force):
+async def update(mac, release, image, check, force, sdk=False, result_timeout=20):
     from bleak import BleakClient, BleakScanner
     # pvvx advertises every few seconds and is connectable only part of the time: scan first
     rssi = []
@@ -73,15 +77,32 @@ async def update(mac, release, image, check, force):
         lambda d, adv: d.address.upper() == mac.upper() and not rssi.append(adv.rssi), timeout=60)
     if not dev:
         raise TimeoutError("not heard in 60s")
-    async with BleakClient(dev, timeout=30) as c:
-        reply = asyncio.get_running_loop().create_future()
-        await c.start_notify(CFG_CHAR, lambda _, d: d[:1] == b"\x55" and not reply.done() and reply.set_result(bytes(d)))
-        await c.write_gatt_char(CFG_CHAR, b"\x55", response=True)
-        ver, hw = parse_cfg(await asyncio.wait_for(reply, 10))
-        await c.stop_notify(CFG_CHAR)
-        print(f"  rssi {rssi[-1]} dBm, hardware id {hw}, installed {fmt(ver)}")
-        if check:
-            return
+    disconnected = asyncio.Event()
+    async with BleakClient(dev, timeout=30, disconnected_callback=lambda _: disconnected.set()) as c:
+        result = asyncio.get_running_loop().create_future()
+        with_response = True
+        if sdk:
+            characteristic = c.services.get_characteristic(OTA_CHAR)
+            if characteristic is None:
+                raise RuntimeError("Telink OTA characteristic not found")
+            with_response = "write" in characteristic.properties
+            if not with_response and "write-without-response" not in characteristic.properties:
+                raise RuntimeError("Telink OTA characteristic is not writable")
+        if sdk:
+            def ota_result(_, data):
+                if len(data) >= 3 and data[:2] == b"\x06\xff" and not result.done():
+                    result.set_result(data[2])
+            await c.start_notify(OTA_CHAR, ota_result)
+            print(f"  rssi {rssi[-1]} dBm, standard Telink SDK OTA")
+        else:
+            reply = asyncio.get_running_loop().create_future()
+            await c.start_notify(CFG_CHAR, lambda _, d: d[:1] == b"\x55" and not reply.done() and reply.set_result(bytes(d)))
+            await c.write_gatt_char(CFG_CHAR, b"\x55", response=True)
+            ver, hw = parse_cfg(await asyncio.wait_for(reply, 10))
+            await c.stop_notify(CFG_CHAR)
+            print(f"  rssi {rssi[-1]} dBm, hardware id {hw}, installed {fmt(ver)}")
+            if check:
+                return
         if image:
             fw = image
         else:
@@ -94,22 +115,36 @@ async def update(mac, release, image, check, force):
                 return
             fw = fetch(path)
             print(f"  flashing {path} ({fmt(want)})")
-        await c.write_gatt_char(OTA_CHAR, bytes.fromhex("00ff"), response=True)
-        await c.write_gatt_char(OTA_CHAR, bytes.fromhex("01ff"), response=True)
+        await c.write_gatt_char(OTA_CHAR, bytes.fromhex("00ff"), response=with_response)
+        await c.write_gatt_char(OTA_CHAR, bytes.fromhex("01ff"), response=with_response)
         await asyncio.sleep(0.3)
         start, total = time.time(), -(-len(fw) // 16)
         for i, p in ota_packets(fw):
             if i == total:  # end marker: the device reboots at once, so never gets to answer
                 await c.write_gatt_char(OTA_CHAR, p, response=False)
                 break
-            await c.write_gatt_char(OTA_CHAR, p, response=True)
-            if (i + 1) % 8 == 0:  # same status poll as the web flasher
+            await c.write_gatt_char(OTA_CHAR, p, response=with_response)
+            if not with_response:
+                # Bound the receiver queue when ATT provides no per-write acknowledgement.
+                await asyncio.sleep(0.02)
+            if sdk and result.done() and result.result():
+                raise RuntimeError(f"SDK rejected image: OTA result {result.result()}")
+            if sdk and i % 400 == 399:
+                print(f"  {i * 100 // total}%", flush=True)
+            if not sdk and (i + 1) % 8 == 0:  # thermometer-specific status poll
                 st = await c.read_gatt_char(OTA_CHAR)
                 if st and st[0]:
                     raise RuntimeError(f"OTA error at block {i}: {OTA_ERRORS[st[0]] if st[0] < len(OTA_ERRORS) else st[0]}")
                 if i % 400 == 399:
                     print(f"  {i * 100 // total}%", flush=True)
-        print(f"  sent in {time.time() - start:.0f}s, the device checks the CRC and reboots")
+        if sdk:
+            status = await asyncio.wait_for(result, result_timeout)
+            if status:
+                raise RuntimeError(f"SDK rejected image: OTA result {status}")
+            await asyncio.wait_for(disconnected.wait(), result_timeout)
+            print(f"  server accepted image and disconnected after {time.time() - start:.0f}s; verify the new boot separately")
+        else:
+            print(f"  sent in {time.time() - start:.0f}s, the device checks the CRC and reboots")
 
 
 _cache = {}
@@ -123,8 +158,8 @@ def fetch(path):
     return _cache[path]
 
 
-def check_image(fw):
-    if fw[8:12] != b"KNLT" or len(fw) > MAX_BLE_OTA:  # Telink image signature
+def check_image(fw, max_size=MAX_BLE_OTA):
+    if not 32 <= max_size <= 0xFF00 * 16 or fw[8:12] != b"KNLT" or len(fw) > max_size:  # Telink image signature
         sys.exit("not a Telink firmware image, or too big for BLE OTA")
 
 
@@ -135,7 +170,13 @@ def main():
     ap.add_argument("--check", action="store_true", help="only print model and installed version")
     ap.add_argument("--file", help="local firmware image instead of the latest release for the model")
     ap.add_argument("--force", action="store_true", help="flash even if already up to date")
+    ap.add_argument("--telink-sdk", action="store_true", help="standard Telink SDK OTA without thermometer config/status commands; requires --file")
+    ap.add_argument("--max-size-kib", type=int, default=128, help="explicit firmware slot limit for --telink-sdk (default: 128 KiB)")
     a = ap.parse_args()
+    if a.telink_sdk and (not a.file or a.check):
+        ap.error("--telink-sdk requires --file and cannot be combined with --check")
+    if a.max_size_kib != 128 and not a.telink_sdk:
+        ap.error("--max-size-kib requires --telink-sdk")
 
     names = {m.upper(): "" for m in a.mac}
     if a.devicelistfile:
@@ -149,7 +190,7 @@ def main():
     release, image = None, None
     if a.file:
         image = open(a.file, "rb").read()
-        check_image(image)
+        check_image(image, a.max_size_kib * 1024)
     elif not a.check:
         j = json.load(urllib.request.urlopen(RAW + "firmware.json", timeout=20))
         release = j["version"], j["custom"]
@@ -160,10 +201,11 @@ def main():
         print(mac, name)
         for attempt in range(3):  # BlueZ connections time out now and then
             try:
-                asyncio.run(update(mac, release, image, a.check, a.force))
+                asyncio.run(update(mac, release, image, a.check, a.force, sdk=a.telink_sdk))
                 break
             except RuntimeError as e:  # not worth retrying
                 print(f"  {e}")
+                failed += 1
                 break
             except Exception as e:
                 print(f"  attempt {attempt + 1} failed: {e.__class__.__name__}: {e}")
