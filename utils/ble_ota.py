@@ -74,7 +74,9 @@ def fmt(v):
     return f"V{v >> 4}.{v & 15}" if v is not None else "unknown"
 
 
-async def update(mac, release, image, check, force, sdk=False, result_timeout=20, pdu_size=16):
+async def update(mac, release, image, check, force, sdk=False, result_timeout=20, pdu_size=16, ack_window=1):
+    if ack_window not in (1, 2) or (not sdk and ack_window != 1):
+        raise ValueError("Acknowledgement window requires SDK mode and size 1 or 2")
     if pdu_size not in range(0, 241, 16) or (not sdk and pdu_size != 16):
         raise ValueError("Extended payload requires SDK mode and 0 (auto) or 16..240 in steps of 16")
     from bleak import BleakClient, BleakScanner
@@ -129,8 +131,11 @@ async def update(mac, release, image, check, force, sdk=False, result_timeout=20
                 pdu_size = min(80, (write_limit - 4) // 16 * 16)
             if pdu_size < 16 or pdu_size + 4 > write_limit:
                 raise ValueError(f"OTA payload {pdu_size} exceeds negotiated write limit {write_limit}")
+            if (not with_response or 'write-without-response' not in characteristic.properties
+                    or pdu_size + 4 > characteristic.max_write_without_response_size):
+                ack_window = 1
         mode = 'with response' if with_response else 'without response'
-        print(f"  OTA payload {pdu_size} bytes, ATT writes {mode}", flush=True)
+        print(f"  OTA payload {pdu_size} bytes, ATT writes {mode}, window {ack_window}", flush=True)
         await c.write_gatt_char(OTA_CHAR, bytes.fromhex("00ff"), response=with_response)
         command = (struct.pack("<HBB16x", 0xff03, pdu_size, 0) if pdu_size > 16
                    else bytes.fromhex("01ff"))
@@ -143,7 +148,11 @@ async def update(mac, release, image, check, force, sdk=False, result_timeout=20
             if i == total:  # end marker: the device reboots at once, so never gets to answer
                 await c.write_gatt_char(OTA_CHAR, p, response=False)
                 break
-            await c.write_gatt_char(OTA_CHAR, p, response=with_response)
+            acknowledged = with_response and ((i + 1) % ack_window == 0 or i == total - 1)
+            # An ordered ATT Write Response drains the preceding commands on
+            # the same bearer. Keep the outstanding data window bounded and
+            # drain the final partial window before sending END.
+            await c.write_gatt_char(OTA_CHAR, p, response=acknowledged)
             if not with_response:
                 # Bound the receiver queue when ATT provides no per-write acknowledgement.
                 await asyncio.sleep(0.02)
@@ -194,6 +203,8 @@ def main():
     ap.add_argument("--max-size-kib", type=int, default=128, help="explicit firmware slot limit for --telink-sdk (default: 128 KiB)")
     ap.add_argument("--pdu-size", type=int, choices=range(0, 241, 16), default=16,
                     help="SDK OTA payload; 0 selects by negotiated MTU, capped at B85's 80 bytes (default: Legacy 16)")
+    ap.add_argument("--ack-window", type=int, choices=(1, 2), default=1,
+                    help="SDK data blocks per ATT response; 2 requires both write properties and a receiver queue for two blocks")
     a = ap.parse_args()
     if a.telink_sdk and (not a.file or a.check):
         ap.error("--telink-sdk requires --file and cannot be combined with --check")
@@ -201,6 +212,8 @@ def main():
         ap.error("--max-size-kib requires --telink-sdk")
     if a.pdu_size != 16 and not a.telink_sdk:
         ap.error("--pdu-size requires --telink-sdk")
+    if a.ack_window != 1 and not a.telink_sdk:
+        ap.error("--ack-window requires --telink-sdk")
 
     names = {m.upper(): "" for m in a.mac}
     if a.devicelistfile:
@@ -225,7 +238,7 @@ def main():
         print(mac, name)
         for attempt in range(3):  # BlueZ connections time out now and then
             try:
-                asyncio.run(update(mac, release, image, a.check, a.force, sdk=a.telink_sdk, pdu_size=a.pdu_size))
+                asyncio.run(update(mac, release, image, a.check, a.force, sdk=a.telink_sdk, pdu_size=a.pdu_size, ack_window=a.ack_window))
                 break
             except (RuntimeError, ValueError) as e:  # not worth retrying
                 print(f"  {e}")

@@ -87,6 +87,25 @@ class TestSDK(unittest.IsolatedAsyncioTestCase):
     async def test_write_without_response_only_characteristic(self):
         with patch.object(Client,'properties',['write-without-response']):
             await self.send(0)
+    async def test_acknowledged_window_bounds_queue_and_drains_before_end(self):
+        with patch.object(Client,'properties',['write','write-without-response']):
+            await self.send(0,bytes(range(250))*2,pdu_size=80,ack_window=2)
+        client=Client.instances[-1]
+        queued=0;received=bytearray()
+        for packet,response in zip(client.writes,client.responses):
+            if packet[1]==255:
+                self.assertEqual(queued,0,'Commands must not overtake unacknowledged data')
+                continue
+            queued+=1
+            self.assertLessEqual(queued,2,'Receiver queue exceeded the configured window')
+            received.extend(packet[2:-2])
+            if response:queued=0
+        self.assertEqual(received,bytes(range(250))*2+b'\xff'*12)
+        self.assertEqual(client.responses[2:-1],[False,True,False,True,False,True,True])
+    async def test_window_falls_back_when_unacknowledged_writes_do_not_fit(self):
+        with patch.object(Client,'properties',['write','write-without-response']),patch.object(Client,'write_limit',20):
+            await self.send(0,b'x'*240,pdu_size=80,ack_window=2)
+        self.assertTrue(all(Client.instances[-1].responses[:-1]))
     async def test_rejected_image_is_failure(self):
         with self.assertRaisesRegex(RuntimeError,'7'):await self.send(7)
     async def test_disconnect_without_device_result_is_not_success(self):
