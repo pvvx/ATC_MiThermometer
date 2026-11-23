@@ -79,12 +79,12 @@ Access to github is already slowing down. Most Internet information resources ha
 | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) | BLE and [Zigbee](https://github.com/pvvx/ZigbeeTLc) |
 | ZYZTH02P_vNN.bin | ZYZTH02P_vNN.bin | MJ6_vNN.bin | TS0201W_vNN.bin |
 
-| [LYWSD02MMC](https://pvvx.github.io/LYWSD02MMC) |
-|:--:|
-| <img src="https://pvvx.github.io/LYWSD02MMC/img/LYWSD02MMC_orig.jpg" alt="LYWSD02MMC" width="200"/> |
-| Programmer |
-| BLE |
-| LYWSD02MMC_vNN.bin |
+| [LYWSD02MMC](https://pvvx.github.io/LYWSD02MMC) | [LYWSD07MMC](https://pvvx.github.io/LYWSD07MMC) |
+|:--:|:--:|
+| <img src="https://pvvx.github.io/LYWSD02MMC/img/LYWSD02MMC_orig.jpg" alt="LYWSD02MMC" width="200"/> | <img src="https://github.com/pvvx/pvvx.github.io/blob/master/MJWSD07MMC/img/MJWSD07MMC.jpg" alt="LYWSD07MMC" width="180"/> |
+| Programmer | [OTA](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) |
+| BLE | BLE |
+| LYWSD02MMC_vNN.bin | MC7CH_vNN.bin |
 
 * Thermometers without display
 
