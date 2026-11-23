@@ -92,6 +92,7 @@ typedef struct _dev_id_t{
 	u16 sw_version;		// software version (BCD)
 	u16 dev_spec_data;	// device-specific data (bit0..7: sensor1 type, bit8..15: sensor2 type)
 	u32 services;		// supported services by the device
+	u32 bsensors;		// битовая карта доп. сенсоров...
 } dev_id_t, * pdev_id_t;
 
 #define MI_KEYTBIND_ID  0x10 // id token + bindkey

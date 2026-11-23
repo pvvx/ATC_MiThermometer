@@ -276,7 +276,7 @@ static s32 erase_mikeys(void) {
 
 __attribute__((optimize("-Os")))
 void cmd_parser(void * p) {
-	u8 send_buf[32];
+	u8 send_buf[32]; // MTU?
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*) p;
 	u32 len = req->l2cap - 3;
 	if (len) {
@@ -318,7 +318,16 @@ void cmd_parser(void * p) {
 #elif (DEV_SERVICES & SERVICE_PLM)
 			p->dev_spec_data = ID_SENSOR_NTC;
 #endif
+			p->bsensors = 0
+#if USE_SENSOR_STCC4
+			| BIT(ID_SENSOR_STCC4)
+#endif
+#if USE_SENSOR_ENS160
+			| BIT(ID_SENSOR_STCC4)
+#endif
+			;
 			p->services = DEV_SERVICES;
+
 			olen = sizeof(dev_id_t);
 		} else if (cmd == CMD_ID_MEASURE) { // Start/stop notify measures in connection mode
 			if(len >= 1)
@@ -337,7 +346,7 @@ void cmd_parser(void * p) {
 					lcd_flg.chow_ext_ut = 0xffffffff;
 				else
 					lcd_flg.chow_ext_ut = wrk.utc_time_sec + ext.vtime_sec;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 				SET_LCD_UPDATE();
 #else
 				lcd_flg.update_next_measure = 0;
@@ -354,7 +363,7 @@ void cmd_parser(void * p) {
 				if (len > sizeof(cfg)) len = sizeof(cfg);
 				memcpy(&cfg, &req->dat[1], len);
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 				SET_LCD_UPDATE();
 #else
 				lcd_flg.update_next_measure = 0;
@@ -646,7 +655,7 @@ void cmd_parser(void * p) {
 			send_buf[1] = 0;
 #endif
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_LKTMZL02) || (DEVICE_TYPE == DEVICE_ZTH05Z) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_ZYZTH01) || (DEVICE_TYPE == DEVICE_MJWSD06MMC))
+#if ((DEVICE_TYPE == DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_LKTMZL02) || (DEVICE_TYPE == DEVICE_ZTH05Z) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_ZYZTH01) || (DEVICE_TYPE == DEVICE_MJWSD06MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC))
 			send_buf[2] = lcd_i2c_addr;
 #else
 			send_buf[2] = 1;	// SPI
@@ -654,7 +663,7 @@ void cmd_parser(void * p) {
 #else
 			send_buf[2] = 0;	// none
 #endif
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 			send_buf[3] = rtc_i2c_addr;
 			olen = 3 + 1;
 #else
@@ -720,13 +729,13 @@ void cmd_parser(void * p) {
 				init_sensor();
 #endif
 			}
-			memcpy(&send_buf[1], &sensor_cfg, sensor_cfg_send_size);
+			memcpy(&send_buf[1], &sensor_cfg.coef, sensor_cfg_send_size);
 #endif
 			olen = sensor_cfg_send_size + 1;
 		} else if (cmd == CMD_ID_CFS_DEF) {	// Get/Set default sensor config
-			memset(&sensor_cfg, 0, sensor_cfg_send_size);
+			memset(&sensor_cfg.coef, 0, sensor_cfg_send_size);
 			init_sensor();
-			memcpy(&send_buf[1], &sensor_cfg, sensor_cfg_send_size);
+			memcpy(&send_buf[1], &sensor_cfg.coef, sensor_cfg_send_size);
 			olen = sensor_cfg_send_size + 1;
 		} else if (cmd == CMD_ID_SEN_ID) { // Get sensor ID
 			memcpy(&send_buf[1], &sensor_cfg.id, sizeof(sensor_cfg.id));

@@ -54,7 +54,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	struct __attribute__((packed)) {
 		u8 advertising_type	: 2; // 0 - atc1441, 1 - Custom (pvvx), 2 - Mi, 3 - BTHome
 		u8 comfort_smiley	: 1;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 		u8 x100				: 1;
 #elif (DEVICE_TYPE == DEVICE_LYWSD02MMC)
 		u8 show_battery			: 1;
@@ -62,7 +62,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 		u8 show_time_smile	: 1; // show clock
 #endif
 		u8 temp_F_or_C		: 1;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)  || (DEVICE_TYPE == DEVICE_LYWSD02MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)  || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 		u8 time_am_pm		: 1;
 #else
 		u8 show_batt_enabled : 1;
@@ -105,7 +105,7 @@ typedef struct __attribute__((packed)) _cfg_t {
 	 * 4 = Battery V
 	 * 5 = External number & symbols
 	 * */
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 		u8 screen_type	: 3;
 #else
 		u8 smiley 		: 3;	// 0..7 (if comfort_smiley == 0)
@@ -147,10 +147,17 @@ extern const cfg_t def_cfg;
 #if (DEV_SERVICES & SERVICE_SCREEN)
 /* Warning: MHO-C401 Symbols: "%", "°Г", "(  )", "." have one control bit! */
 typedef struct __attribute__((packed)) _external_data_t {
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 	s32		number; // -999.50..19995.50, x0.01
 	u16 	vtime_sec; // validity time, in sec
 	struct __attribute__((packed)) {
+#if (DEVICE_TYPE == DEVICE_MJWSD07MMC)
+		/* Off, 1, 2, 3 */
+		u8 busy				: 3;
+		u8 battery			: 1;
+		/* 0 - Off, 1 - °C, 2 - °F, 3 - °E, 4 - =, 5 - ppm, 6 - % */
+		u8 symbol			: 4;
+#else
 		/* 0 = "     " off,
 		 * 1 = " ^-^ "
 		 * 2 = " -^- "
@@ -171,6 +178,7 @@ typedef struct __attribute__((packed)) _external_data_t {
 		 * 0x07 = "°F"
 		 * 0x08 = "%" */
 		u8 temp_symbol		: 4;
+#endif
 	} flg;
 #else
 	s16		big_number; // -995..19995, x0.1
@@ -241,7 +249,7 @@ typedef struct _measured_data_t {
 	u16	pressure;
 #endif
 #endif // (DEV_SERVICES & SERVICE_PRESSURE)
-#if USE_SENSOR_SCD41
+#if USE_SENSOR_SCD41 || USE_SENSOR_STCC4
 	u16		co2; // ppm
 #endif
 #if (DEV_SERVICES & SERVICE_18B20)
@@ -279,8 +287,12 @@ typedef union {
 		u8 send_measure : 1;
 		u8 update_lcd	: 1;
 		u8 update_adv	: 1;
+		u8 th_sensor_read	: 1;
+		u8 co2_sensor_read	: 1;
 	} b;
 } flg_measured_t;
+
+#define FLG_TH_RD_OK	(0b00001011)
 
 // bits: wrk.ble_connected
 enum {
@@ -317,6 +329,7 @@ typedef struct _work_flg_t {
 			u8 update_lcd		: 1;
 			u8 update_adv		: 1;
 			u8 th_sensor_read	: 1;
+			u8 co2_sensor_read	: 1;
 		} b; // bits-flags measurements completed
 	} msc; // flags measurements completed
 	u8 adv_interval_delay; // adv interval + rand delay in 0.625 ms // = 10 or 0

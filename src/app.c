@@ -9,6 +9,9 @@
 #include "lcd.h"
 #include "app.h"
 #include "i2c.h"
+#if USE_SENSOR_STCC4
+#include "stcc4.h"
+#endif
 #include "sensor.h"
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 #include "hx71x.h"
@@ -39,7 +42,7 @@
 #if USE_SYNC_SCAN
 #include "scanning.h"
 #endif
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 #include "ens160.h"
 #endif
 #if USE_SDM_OUT
@@ -84,7 +87,7 @@ const cfg_t def_cfg = {
 		.connect_latency = DEF_CONNECT_LATENCY, // (49+1)*1.25*16 = 1000 ms
 		.event_adv_cnt = 6,
 		.flg3.adv_interval_delay = 10,
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 		.advertising_interval = 80, // multiply by 62.5 ms = 5 sec
 		.measure_interval = 4, // * advertising_interval = 20 sec
 		.hw_ver = HW_VER_MJWSD05MMC,
@@ -317,12 +320,18 @@ RAM cfg_t cfg;
 #if (DEV_SERVICES & SERVICE_SCREEN)
 
 static const external_data_t def_ext = {
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 		.number = 1234500,
 		.vtime_sec = 30, // 30 sec
+#if (DEVICE_TYPE ==	DEVICE_MJWSD07MMC)
+		.flg.busy = 0,
+		.flg.battery = false,
+		.flg.symbol = 0 //LCD_SYM_N // 0 = " ", ... app.h
+#else
 		.flg.smiley = 7, // 7 = "(ooo)"
 		.flg.battery = false,
 		.flg.temp_symbol = 0 //LCD_SYM_N // 0 = " ", ... app.h
+#endif
 #else
 		.big_number = 0,
 		.small_number = 0,
@@ -508,7 +517,7 @@ void test_config(void) {
 	}
 	my_periConnParameters.timeout = wrk.connection_timeout;
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 #else
 #if	USE_EPD
 	if (cfg.min_step_time_update_lcd < USE_EPD) // min 0.5 sec: (10*50ms)
@@ -528,7 +537,7 @@ void test_config(void) {
 void low_vbat(void) {
 #if (DEVICE_TYPE != DEVICE_MJWSD06MMC)
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 	show_low_bat();
 #else
 #if (USE_EPD)
@@ -569,7 +578,11 @@ void low_vbat(void) {
 _attribute_ram_code_
 void WakeupLowPowerCb(int par) {
 	(void) par;
-	if (sensor_cfg.time_measure) {
+	if (sensor_cfg.time_measure
+#if USE_SENSOR_STCC4
+	 || sensor_co2.measure_timeout
+#endif
+	) {
 #else
 _attribute_ram_code_
 void read_sensors(void) {
@@ -585,11 +598,11 @@ void read_sensors(void) {
 		if (read_sensor_cb() && my18b20.rd_ok)
 #else
 		if (read_sensor_cb())
-#endif
+#endif // (DEV_SERVICES & SERVICE_18B20)
 #elif (DEV_SERVICES & SERVICE_18B20)
 		if (my18b20.rd_ok)
-#endif
 #endif // (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_PLM))
+#endif // (defined(CHL_ADC1) || defined(CHL_ADC1))
 		{
 #ifdef CHL_ADC1 // DIY version only!
 			measured_data.temp = get_adc_mv(CHL_ADC1);
@@ -601,37 +614,51 @@ void read_sensors(void) {
 #if USE_SENSOR_PWMRH == 2
 			read_rh_sensor();
 #endif
-			measured_data.temp_x01 = (measured_data.temp + 5)/ 10;
-			measured_data.humi_x01 = (measured_data.humi + 5)/ 10;
-			measured_data.humi_x1 = (measured_data.humi + 50)/ 100;
+#if USE_SENSOR_STCC4
+			if(!sensor_co2.measure_timeout)
+#endif
+			{
+				measured_data.temp_x01 = (measured_data.temp + 5)/ 10;
+				measured_data.humi_x01 = (measured_data.humi + 5)/ 10;
+				measured_data.humi_x1 = (measured_data.humi + 50)/ 100;
 #elif (DEV_SERVICES & SERVICE_18B20)
-			measured_data.temp_x01 = (measured_data.xtemp[0] + 5)/ 10;
+				measured_data.temp_x01 = (measured_data.xtemp[0] + 5)/ 10;
 #if (USE_SENSOR_MY18B20 == 2)
-			// TODO: measured_data.humi_x1 = (measured_data.xtemp[1] + 50)/ 100;
+				// TODO: measured_data.humi_x1 = (measured_data.xtemp[1] + 50)/ 100;
 #endif
 #endif
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 #if !USE_ENS160_INT
-			if (!read_ens160())
+				if (!read_ens160())
 #endif
-				set_th_ens160(measured_data.temp, measured_data.humi);
+					set_th_ens160(measured_data.temp, measured_data.humi);
 #endif
 #if USE_SDM_OUT
-			set_dac();
+				set_dac();
 #endif
+
 #if (DEV_SERVICES & SERVICE_TH_TRG)
-			set_trigger_out();
+				set_trigger_out();
 #endif
 #if (DEV_SERVICES & SERVICE_HISTORY)
-			if (wrk.ota_is_working == 0 && cfg.averaging_measurements) {
-				write_memo();
-			}
+				if (wrk.ota_is_working == 0 && cfg.averaging_measurements) {
+					write_memo();
+				}
 #endif
 #if (DEV_SERVICES & SERVICE_BINDKEY) && USE_MIHOME_BEACON
-			if ((cfg.flg.advertising_type == ADV_TYPE_MI) && cfg.flg2.adv_crypto)
-				mi_beacon_summ();
+				if ((cfg.flg.advertising_type == ADV_TYPE_MI) && cfg.flg2.adv_crypto)
+					mi_beacon_summ();
 #endif
-			wrk.msc.all_flgs = 0xff;
+#if USE_SENSOR_STCC4
+				if(wrk.msc.b.co2_sensor_read) {
+					wrk.msc.all_flgs = 0xff;
+				} else {
+					wrk.msc.all_flgs |= FLG_TH_RD_OK;
+				}
+#else
+				wrk.msc.all_flgs = 0xff;
+#endif
+			}
 		}
 #if (DEV_SERVICES & SERVICE_RDS)
 		if (trg.rds.type1 == RDS_NONE) {
@@ -647,13 +674,16 @@ void read_sensors(void) {
 		}
 #endif
 #endif // (DEV_SERVICES & SERVICE_RDS)
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 		SET_LCD_UPDATE();
 #endif
 #if SENSOR_SLEEP_MEASURE
 		sensor_cfg.time_measure = 0;
 	}
-	bls_pm_setAppWakeupLowPower(0, 0); // clear callback
+#if USE_SENSOR_STCC4
+	if(!sensor_co2.measure_timeout)
+#endif
+		bls_pm_setAppWakeupLowPower(0, 0); // clear callback
 #endif
 }
 #endif // (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS | SERVICE_18B20 | SERVICE_PLM))
@@ -745,7 +775,7 @@ static void start_tst_battery(void) {
 	measured_data.battery_mv = get_battery_mv();
 #endif
 	if (measured_data.battery_mv < MIN_VBAT_MV) { // 2.2V
-#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD06MMC)
+#if (DEVICE_TYPE ==	DEVICE_LYWSD03MMC) || (DEVICE_TYPE == DEVICE_CGDK2) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MHO_C122) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD06MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 		// Set sleep power < 1 uA
 		send_i2c_byte(0x3E << 1, 0xEA); // BU9792AFUV reset
 #if (DEVICE_TYPE == DEVICE_MJWSD06MMC)
@@ -923,13 +953,16 @@ void user_init_normal(void) {//this will get executed one time after power up
 	memcpy(&ext, &def_ext, sizeof(ext));
 #endif
 	init_ble();
+#if SENSOR_SLEEP_MEASURE
+	bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
+#endif
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_EXIT, &suspend_exit_cb);
 #if (DEV_SERVICES & SERVICE_KEY) || (DEV_SERVICES & SERVICE_RDS) || (USE_SENSOR_HX71X)
 #if !defined(SET_NO_SLEEP_MODE)
 	bls_app_registerEventCallback(BLT_EV_FLAG_SUSPEND_ENTER, &suspend_enter_cb);
 #endif
 #endif
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 	//pm_wait_ms(50);
 	init_ens160();
 #endif
@@ -1025,7 +1058,11 @@ void main_loop(void) {
 #if SENSOR_SLEEP_MEASURE
 	if(sensor_cfg.time_measure && (clock_time() - sensor_cfg.time_measure > sensor_cfg.measure_timeout))
 		WakeupLowPowerCb(0);
+#if USE_SENSOR_STCC4
+	if(sensor_co2.measure_timeout && (clock_time() - sensor_co2.time_measure > sensor_co2.measure_timeout))
+		WakeupLowPowerCb(0);
 #endif
+#endif // SENSOR_SLEEP_MEASURE
 #if (DEV_SERVICES & SERVICE_RDS)
 #ifndef GPIO_RDS2
 		if(trg.rds.type1 != RDS_NONE) // rds: switch or counter
@@ -1085,7 +1122,7 @@ void main_loop(void) {
 			else {
 				if(new - ext_key.key_pressed_tik1 > 1750*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 					ext_key.key_pressed_tik1 = new;
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 					if(++cfg.flg2.screen_type > SCR_TYPE_EXT)
 						cfg.flg2.screen_type = SCR_TYPE_TIME;
 #elif (DEV_SERVICES & SERVICE_SCREEN)
@@ -1184,7 +1221,7 @@ void main_loop(void) {
 				if(clock_time() - sensor_cfg.time_measure >= sensor_cfg.measure_timeout)
 					WakeupLowPowerCb(0);
 				else {
-					bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
+					//bls_pm_registerAppWakeupLowPowerCb(WakeupLowPowerCb);
 					bls_pm_setAppWakeupLowPower(sensor_cfg.time_measure + sensor_cfg.measure_timeout, 1);
 				}
 			}
@@ -1288,7 +1325,7 @@ void main_loop(void) {
 					} else
 						lcd_flg.update = 1;
 				}
-#elif !((DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN))
+#elif !((DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD07MMC))
 				if (new - lcd_flg.tim_last_chow >= lcd_flg.min_step_time_update_lcd) {
 					lcd_flg.tim_last_chow = new;
 					lcd_flg.show_stage++;

@@ -28,6 +28,8 @@
 
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 #define measured_val0	measured_data.pressure
+#elif (DEV_SERVICES & SERVICE_CO2)
+#define measured_val0	measured_data.co2
 #elif USE_SENSOR_INA3221
 #define measured_val0	measured_data.voltage[0]
 #else

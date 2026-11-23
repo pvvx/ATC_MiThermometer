@@ -8,6 +8,7 @@ $(OUT_PATH)/src/lcd.o \
 $(OUT_PATH)/src/lcd_lywsd03mmc.o \
 $(OUT_PATH)/src/lcd_cgdk2.o \
 $(OUT_PATH)/src/lcd_mjwsd05mmc.o \
+$(OUT_PATH)/src/lcd_mjwsd07mmc.o \
 $(OUT_PATH)/src/lcd_mjwsd05mmc_en.o \
 $(OUT_PATH)/src/lcd_mjwsd06mmc.o \
 $(OUT_PATH)/src/lcd_mho_c122.o \
@@ -23,6 +24,7 @@ $(OUT_PATH)/src/epd_mho_c401n.o \
 $(OUT_PATH)/src/epd_lywsd02mmc.o \
 $(OUT_PATH)/src/sensors.o \
 $(OUT_PATH)/src/sensor_lx.o \
+$(OUT_PATH)/src/stcc4.o \
 $(OUT_PATH)/src/ens160.o \
 $(OUT_PATH)/src/scd41.o \
 $(OUT_PATH)/src/ina226.o \

@@ -580,6 +580,11 @@ void ble_set_name(void) {
 		ble_name[3] = '2';
 		ble_name[4] = '1';
 		ble_name[5] = '_';
+#elif (DEVICE_TYPE == DEVICE_MJWSD07MMC)
+		ble_name[2] = 'M';
+		ble_name[3] = 'C';
+		ble_name[4] = '7';
+		ble_name[5] = '_';
 #else
 		ble_name[2] = 'A';
 		ble_name[3] = 'T';
@@ -835,7 +840,7 @@ void ble_send_measures(void) {
 	*p++ = trg.flg_byte;
 	len++;
 #endif
-#if USE_SENSOR_SCD41
+#if USE_SENSOR_SCD41 || USE_SENSOR_STCC4
 	*p++ = (u8)measured_data.co2;
 	*p++ = (u8)(measured_data.co2 >> 8);
 	len += 2;

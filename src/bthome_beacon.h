@@ -205,20 +205,20 @@ typedef struct __attribute__((packed)) _adv_bthome_data1_t {
 	s16	current; // x 0.001 A
 #endif
 #endif
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 	u8 u_co2;	// BtHomeID_co2
 	u16 co2;
 	u8 u_tv;	// BtHomeID_tvoc
 	u16 tvoc;
 #endif
-#if defined(USE_SENSOR_SCD41) && USE_SENSOR_SCD41
+#if USE_SENSOR_SCD41 || USE_SENSOR_STCC4
 	u8 u_co2;	// BtHomeID_co2
 	u16 co2;
 #endif
 } adv_bthome_data1_t, * padv_bthome_data1_t; // max 15 bytes!
 
 typedef struct __attribute__((packed)) _adv_bthome_data2_t {
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 	u8 u_aqi;	// BtHomeID_count8 0x09
 	u8 aqi;
 #endif
@@ -243,7 +243,7 @@ typedef struct __attribute__((packed)) _adv_bthome_data2_t {
 	u8	opened2;
 #endif
 #endif
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 	u8 u_vld;	// BtHomeID_heat 0x1d
 	u8 vaidity;
 #endif

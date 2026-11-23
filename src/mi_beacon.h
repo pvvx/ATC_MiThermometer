@@ -33,7 +33,8 @@ enum {
 	XIAOMI_DEV_ID_SJWS01LM       = 0x0863,
 	XIAOMI_DEV_ID_MJWSD05MMC     = 0x2832,
 	XIAOMI_DEV_ID_MJYD02YL       = 0x07F6,
-	XIAOMI_DEV_ID_MJWSD06MMC     = 0x55B5
+	XIAOMI_DEV_ID_MJWSD06MMC     = 0x55B5,
+	XIAOMI_DEV_ID_MJWSD07MMC     = 0x9AB9
 }XIAOMI_DEV_ID;
 
 #if DEVICE_TYPE == DEVICE_LYWSD03MMC
@@ -50,6 +51,8 @@ enum {
 #define	XIAOMI_DID XIAOMI_DEV_ID_CGDK2 			// 0x066F LCD display "Qingping Temp & RH Monitor Lite"
 #elif DEVICE_TYPE == DEVICE_MJWSD06MMC
 #define	XIAOMI_DID XIAOMI_DEV_ID_MJWSD06MMC
+#elif (DEVICE_TYPE == DEVICE_MJWSD07MMC)
+#define	XIAOMI_DID  XIAOMI_DEV_ID_MJWSD07MMC  	//  LCD display MJWSD07MMC
 #else
 #define	XIAOMI_DID  XIAOMI_DEV_ID_LYWSD03MMC
 #endif
@@ -105,7 +108,10 @@ enum { // mijia ble version 5, General attributes
 } XIAOMI_DATA_ID;
 
 enum { // mijia ble version 5, Vendor-defined attributes
-	XIAOMI_VATR_ID_Count			=0x20e1
+	XIAOMI_VATR_ID_Count			=0x20e1, // u32, 4 bytes
+	XIAOMI_VATR_ID_TEMP				=0x5c01, // FLOAT, 4 bytes
+	XIAOMI_VATR_ID_HUMI				=0x5c02, // u8, 1 byte
+	XIAOMI_VATR_ID_CO2PPM			=0x601d  // u16, 2 bytes
 } XIAOMI_VATR_ID;
 
 
@@ -119,11 +125,11 @@ typedef union _adv_mi_fctrl_t { // Frame Control
 		u16 Connected:		1; // reserved text
 		u16 Central:		1; // Keep
 		u16 isEncrypted:	1; // 0: The package is not encrypted; 1: The package is encrypted
-		u16 MACInclude:	1; // 0: Does not include the MAC address; 1: includes a fixed MAC address (the MAC address is included for iOS to recognize this device and connect)
+		u16 MACInclude:		1; // 0: Does not include the MAC address; 1: includes a fixed MAC address (the MAC address is included for iOS to recognize this device and connect)
 		u16 CapabilityInclude:		1; // 0: does not include Capability; 1: includes Capability. Before the device is bound, this bit is forced to 1
 		u16 ObjectInclude:	1; // 0: does not contain Object; 1: contains Object
 		u16 Mesh:			1; // 0: does not include Mesh; 1: includes Mesh. For standard BLE access products and high security level access, this item is mandatory to 0. This item is mandatory for Mesh access to 1.
-		u16 registered:	1; // 0: The device is not bound; 1: The device is registered and bound.
+		u16 registered:		1; // 0: The device is not bound; 1: The device is registered and bound.
 		u16 solicited:		1; // 0: No operation; 1: Request APP to register and bind. It is only valid when the user confirms the pairing by selecting the device on the developer platform, otherwise set to 0. The original name of this item was bindingCfm, and it was renamed to solicited "actively request, solicit" APP for registration and binding
 		u16 AuthMode:		2; // 0: old version certification; 1: safety certification; 2: standard certification; 3: reserved
 		u16 version:		4; // Version number (currently v5)
@@ -142,13 +148,13 @@ typedef struct __attribute__((packed)) _adv_mi_head_t {
 
 typedef struct __attribute__((packed)) _adv_mi_data_t {
 	u16	 id;	// = 0x1004, 0x1006, 0x100a (XIAOMI_DATA_ID)
-	u8		 size;
+	u8	 size;
 	union {
 		s16	 data_i16;
 		u16	 data_u16;
 		u8	 data_u8;
 		struct __attribute__((packed)) {
-			u8		battery_level; // 0..100 %
+			u8	battery_level; // 0..100 %
 		}t0a;
 		struct __attribute__((packed)) {
 			s16	temperature; // x0.1 C
@@ -220,8 +226,6 @@ typedef struct __attribute__((packed)) _adv_mi_cr_ev2_t {
 	u8	cnt[3];
 	u8	mic[4];
 } adv_mi_cr_ev2_t, * padv_mi_cr_ev2_t;
-
-
 
 void mi_beacon_init(void);
 void mi_encrypt_data_beacon(void);

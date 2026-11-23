@@ -129,6 +129,9 @@ python3 utils\zb_bin_ota.py TS0201W%SWVER%.bin zigbee_ota\TS0201WBLE%SWVER% -m0x
 @del /Q "ZB2TH01SHTC3%SWVER%.bin"
 make -s -j PROJECT_NAME=ZB2TH01SHTC3%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_ZBEACON2TH01_SHTC3"
 @if not exist "ZB2TH01SHTC3%SWVER%.bin" goto :error
+@del /Q "MC7CH%SWVER%.bin"
+make -s -j PROJECT_NAME=MC7CH%SWVER% POJECT_DEF="-DDEVICE_TYPE=DEVICE_MJWSD07MMC"
+@if not exist "MC7CH%SWVER%.bin" goto :error
 cd .\zigbee_ota\zigpy_ota
 call update.cmd %SWVER%
 cd ..\..

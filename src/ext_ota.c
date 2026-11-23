@@ -135,6 +135,8 @@ static const u8 _mi_hw_vers2[] = "F2.0-3-FY-NF-S-G-JH-";
 static const u8 _mi_hw_vers[] = "G-19-000000000000000";
 #elif (DEVICE_TYPE == DEVICE_MJWSD06MMC)
 //static const u8 _mi_hw_vers[] = "F3.0-4-FY-LB-S-G-TM-";
+#elif (DEVICE_TYPE == DEVICE_MJWSD07MMC)
+static const u8 _mi_hw_vers[] = "F2.0-5-FY-YF-S-G-TM-";
 #else
 #error "Define MI_HW_VER_FADDR & _mi_hw_vers!"
 #endif
@@ -144,7 +146,7 @@ u32 get_mi_hw_version(void) {
 	flash_read_page(MI_HW_SAVE_FADDR, sizeof(hw[0]), (unsigned char *) &hw);
 	if(hw[0] == 0xffffffff) {
 		flash_read_page(MI_HW_VER_FADDR, sizeof(hw), (unsigned char *) &hw);
-#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD06MMC)
+#if (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD06MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 		if ((hw[0] & 0xf0fff0ff) != 0x302E3056)
 #elif (DEVICE_TYPE == DEVICE_LYWSD03MMC)
 		if ((hw[0] & 0xf0fff0ff) != 0x302E3042)
@@ -177,11 +179,13 @@ void set_SerialStr(void) {
 		hw[0] = 0x34315F56; // "V_14" -  56 5F 31 34
 #elif (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
 		hw[0] = 0x332E3256; // "V2.3" -  56 32 2E 33
+#elif (DEVICE_TYPE == DEVICE_MJWSD07MMC)
+		hw[0] = 0x352E3156; // "V1.5" -  56 31 2E 35
 #endif
 	} else {
 		memcpy(my_SerialStr, &hw[1], sizeof(my_SerialStr));
 	}
-#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN)
+#if (DEVICE_TYPE == DEVICE_MHO_C401) || (DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_MJWSD07MMC)
 	memcpy(my_HardStr, &hw[0], sizeof(my_HardStr));
 #endif
 }

@@ -18,7 +18,7 @@
 #if (DEV_SERVICES & SERVICE_RDS)
 #include "rds_count.h"
 #endif
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 #include "ens160.h"
 #endif
 #include "bthome_beacon.h"
@@ -59,16 +59,16 @@ static u32 set_bthome_data1(padv_bthome_data1_t p) {
 		p->m_id = BtHomeID_moisture16;
 		p->moisture = measured_data.mois; // x0.01 %
 #endif
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if (DEV_SERVICES & SERVICE_CO2)
 		p->u_co2 = BtHomeID_co2;
+#if USE_SENSOR_ENS160
 		p->co2 = ens160.co2;
 		p->u_tv = BtHomeID_tvoc;
 		p->tvoc = ens160.tvoc;
-#endif
-#if defined(USE_SENSOR_SCD41) && USE_SENSOR_SCD41
-		p->u_co2 = BtHomeID_co2;
+#else
 		p->co2 = measured_data.co2;
 #endif
+#endif	// (DEV_SERVICES & SERVICE_CO2)
 #if (DEV_SERVICES & SERVICE_PRESSURE)
 #if USE_SENSOR_HX71X
 		p->l_id = BtHomeID_volume32;
@@ -139,7 +139,7 @@ static u32 set_bthome_data2(padv_bthome_data2_t p) {
 		p->opened2 = trg.flg.rds2_input;
 #endif
 #endif
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 		p->u_vld = BtHomeID_heat;
 		p->vaidity = (ens160.status & 0x0C) == 0;
 		p->u_aqi = BtHomeID_count8;
@@ -193,7 +193,7 @@ static void bthome_encrypt(u8 *pdata, u32 data_size) {
 _attribute_ram_code_ __attribute__((optimize("-Os")))
 void bthome_encrypt_data_beacon(void) {
 	u8 buf[16];
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 	if(!ens160.flg) {
 		padv_bthome_def_t p = (padv_bthome_def_t)p;
 		p->pid = (u8)adv_buf.send_count;
@@ -225,7 +225,7 @@ void bthome_data_beacon(void) {
 	p->head.UUID = ADV_BTHOME_UUID16;
 	p->info = BtHomeID_Info;
 	p->p_id = BtHomeID_PacketId;
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 	if(!ens160.flg) {
 		padv_bthome_def_t p = (padv_bthome_def_t)p;
 		p->pid = (u8)adv_buf.send_count;

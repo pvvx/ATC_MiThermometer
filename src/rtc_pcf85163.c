@@ -12,7 +12,9 @@
 #include "i2c.h"
 #include "rtc.h"
 #include "app.h"
-#define PCF85163_I2C_ADDR 0x51
+
+#define RTC_I2C_ADDR 0x51
+
 RAM u8 rtc_i2c_addr;
 RAM rtc_regs_t rtc_reg;
 RAM rtc_time_t rtc;
@@ -46,7 +48,7 @@ static const u8 rtc_init_b2[7] = { 9, 0x80, 0x80, 0x80, 0x80, 0x03, 0x03 };
 
 void init_rtc(void) {
 	// set regs: control_1, control_2
-	rtc_i2c_addr = (u8) scan_i2c_addr(PCF85163_I2C_ADDR << 1);
+	rtc_i2c_addr = (u8) scan_i2c_addr(RTC_I2C_ADDR << 1);
 	if (rtc_i2c_addr) {
 		// set regs: control_1, control_2
 		rtc_send_i2c_buf(rtc_init_b1, sizeof(rtc_init_b1));

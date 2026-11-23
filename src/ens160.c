@@ -7,7 +7,7 @@
 #include "tl_common.h"
 #include "app_config.h"
 
-#if defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#if USE_SENSOR_ENS160
 
 #include "drivers.h"
 #include "app.h"
@@ -197,4 +197,4 @@ int read_ens160(void) {
 	return 0;
 }
 
-#endif // defined(USE_SENSOR_ENS160) && USE_SENSOR_ENS160
+#endif // USE_SENSOR_ENS160

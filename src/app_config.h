@@ -83,11 +83,11 @@ extern "C" {
 //#define DEVICE_TH03_ZBPS		59 // Tuya TH03 Zigbee LCD, PCB TH03_ZBPS1.0, TLSR8656, LCD VKL060, GXHTV4 (SHT4x)
 //#define DEVICE_ZG204ZS		60 // ZigBee only, HOBEIAN/Tuya ZG-204ZS / ZG-204ZM PIR + mmWave Radar RC2417 + LUX
 //#define DEVICE_KCTW1Z			61 // Tuya KCTW1Z / Moes ZSS-KB-TH, ZigBee LCD, SHT40, CR2032
-//#define DEVICE_MJWSD07MMC		62 // Xiaomi Bloetooth Temp & Humidity & CO2 BLE Sensor
-
+#define DEVICE_MJWSD07MMC		62 // Xiaomi Bloetooth Temp & Humidity & CO2 BLE Sensor
+//#define DEVICE_NEXT			63 // ?
 
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE			DEVICE_ZBEACON2TH01_SHTC3
+#define DEVICE_TYPE			DEVICE_MJWSD07MMC // DEVICE_LYWSD03MMC
 #endif
 
 // supported services by the device (bits)
@@ -118,6 +118,7 @@ extern "C" {
 #define SERVICE_ZIGBEE		0x01000000	// BZ-version
 #define SERVICE_PIR			0x02000000	// use PIR sensor
 #define SERVICE_ILLUMI		0x04000000	// use illuminance sensor
+#define SERVICE_CO2			0x08000000	// use co2 sensor
 #define SERVICE_EXTENDED	0x80000000  //
 
 
@@ -780,6 +781,7 @@ extern "C" {
 // scan i2c: 0x7c, 0x88, 0xa2
 #define USE_RC_VBAT			1
 #define USE_EPD				0 // min update time ms
+#define USE_RTC_PCF85163	1
 
 #define USE_SENSOR_CHT8305		0
 #define USE_SENSOR_CHT8215		0
@@ -817,6 +819,7 @@ extern "C" {
 #define PA0_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLDOWN_100K
 
+#define GPIO_KEY1			GPIO_PC4
 #define RDS1_PULLUP			PM_PIN_PULLUP_1M
 #define GPIO_RDS1			GPIO_PC4
 #define PC4_INPUT_ENABLE	1
@@ -825,7 +828,6 @@ extern "C" {
 #define PC4_FUNC			AS_GPIO
 #define PULL_WAKEUP_SRC_PC4	RDS1_PULLUP
 
-#define GPIO_KEY1			GPIO_PC4
 #define GPIO_KEY2			GPIO_PB6
 #define PB6_INPUT_ENABLE	1
 #define PB6_DATA_OUT		0
@@ -1620,6 +1622,7 @@ extern "C" {
 		| SERVICE_THS \
 		| SERVICE_TH_TRG \
 		| SERVICE_KEY \
+		| SERVICE_CO2 \
 		| SERVICE_TIME_ADJUST \
 		| SERVICE_LED \
 )
@@ -3510,6 +3513,143 @@ GPIO_PD7 - LED to +Vbat
 #define PC0_FUNC                AS_GPIO
 #define PULL_WAKEUP_SRC_PC0     RDS1_PULLUP
 
+
+#elif (DEVICE_TYPE == DEVICE_MJWSD07MMC)
+/* Original Flash markup:
+  0x00000 Old Firmware bin
+  0x40000 OTA New bin storage Area
+  0x66000 ? 5A 5A 00 60 02 00 01 00 00 00 00 00 00 00
+  0x74000 Pair & Security info (CFG_ADR_BIND)
+  0x76000 MAC address (CFG_ADR_MAC) : 54 B2 5B 38 C1 A4 EF 86
+  0x77000 Customize freq_offset adjust cap value (CUST_CAP_INFO_ADDR)
+  0x78000 Mijia key-code
+  0x7D000 MISN: "85822/A6AHDF6WP00581"
+  0x7D000 Ver+SerialStr: "V1.5F2.0-5-FY-YF-S-G-TM-"
+  0x80000 End Flash (FLASH_SIZE)
+ */
+
+//#define USE_SYNC_SCAN 2 // https://github.com/pvvx/ATC_MiThermometer/pull/793
+
+#ifndef USE_SYNC_SCAN
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_HARD_CLOCK \
+		| SERVICE_TH_TRG \
+		| SERVICE_CO2 \
+		| SERVICE_MI_KEYS \
+)
+#else
+#define DEV_SERVICES ( SERVICE_OTA\
+		| SERVICE_OTA_EXT \
+		| SERVICE_PINCODE \
+		| SERVICE_BINDKEY \
+		| SERVICE_HISTORY \
+		| SERVICE_SCREEN \
+		| SERVICE_LE_LR \
+		| SERVICE_THS \
+		| SERVICE_RDS \
+		| SERVICE_KEY \
+		| SERVICE_HARD_CLOCK \
+		| SERVICE_TH_TRG \
+		| SERVICE_CO2 \
+		| SERVICE_MI_KEYS \
+		| SERVICE_SCANTIM \
+)
+#endif
+
+#define USE_CUSTOM_BEACON	0
+#define USE_BTHOME_BEACON	1 	// = 1 BTHome v2 https://bthome.io/
+#define USE_MIHOME_BEACON	0 	// = 1 Compatible with MiHome beacon
+#define USE_ATC_BEACON		0
+
+#define MI_HW_VER_FADDR 0x7D000 // Mi HW version
+// ### TLSR8250F512ET32
+// GPIO_PA0 - SW1
+// GPIO_PA1
+// GPIO_PA7 - "SWS"
+
+// GPIO_PB1 - R1+R7-Vbat
+// GPIO_PB4
+// GPIO_PB5 - "PB5"
+// GPIO_PB6
+// GPIO_PB7 - "RX"
+
+// GPIO_PC0 - SDA, used I2C
+// GPIO_PC1 - SCL, used I2C
+// GPIO_PC2
+// GPIO_PC3 - x-xx?
+// GPIO_PC4 - C13?
+
+// GPIO_PD2
+// GPIO_PD3
+// GPIO_PD4 - SW2
+// GPIO_PD7 - "TX"
+
+#define USE_RC_VBAT			1
+#define USE_EPD				0 // min update time ms
+#define USE_RTC_GX8563		1
+#define USE_SENSOR_STCC4	(DEV_SERVICES & SERVICE_CO2)
+
+#define USE_SENSOR_CHT8305		0
+#define USE_SENSOR_CHT8215		0
+#define USE_SENSOR_AHT20_30		0
+#define USE_SENSOR_SHT4X		1
+#define USE_SENSOR_SHTC3		0
+#define USE_SENSOR_SHT30		0
+
+#if  	USE_RC_VBAT // Vbat (+V-R/RC-GND)
+#define SHL_ADC_VBAT		B1P  // "B1P" in adc.h
+#define GPIO_VBAT			GPIO_PB1 // R1+R7 -> +Vbat
+#define ADC_BAT_VREF_MV		1686
+#else
+#define GPIO_VBAT			GPIO_PB0 // missing pin on case TLSR825x
+#define SHL_ADC_VBAT		B0P  // "B0P" in adc.h
+#define PB0_INPUT_ENABLE	1
+#define PB0_DATA_OUT		1
+#define PB0_OUTPUT_ENABLE	1
+#define PB0_FUNC			AS_GPIO
+#endif
+
+#define I2C_MAX_SPEED 		400000 // 400 kHz
+#define I2C_SCL 			GPIO_PC1
+#define I2C_SDA 			GPIO_PC0
+#define I2C_GROUP 			I2C_GPIO_GROUP_C0C1
+#define PULL_WAKEUP_SRC_PC0	PM_PIN_PULLUP_10K
+#define PULL_WAKEUP_SRC_PC1	PM_PIN_PULLUP_10K
+
+#define PULL_WAKEUP_SRC_PD7	PM_PIN_PULLUP_1M // UART TX
+
+#define GPIO_TRG			GPIO_PB5	// "PB5"
+#define PB5_INPUT_ENABLE	1
+#define PB5_DATA_OUT		0
+#define PB5_OUTPUT_ENABLE	0
+#define PB5_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PB5	PM_PIN_PULLDOWN_100K
+
+#define GPIO_KEY1			GPIO_PD4
+#define RDS1_PULLUP			PM_PIN_PULLUP_1M
+#define GPIO_RDS1			GPIO_PD4
+#define PD4_INPUT_ENABLE	1
+#define PD4_DATA_OUT		0
+#define PD4_OUTPUT_ENABLE	0
+#define PD4_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PD4	RDS1_PULLUP
+
+#define GPIO_KEY2			GPIO_PA0
+#define PA0_INPUT_ENABLE	1
+#define PA0_DATA_OUT		0
+#define PA0_OUTPUT_ENABLE	0
+#define PA0_FUNC			AS_GPIO
+#define PULL_WAKEUP_SRC_PA0	PM_PIN_PULLUP_1M
+
 #else // DEVICE_TYPE
 #error ("DEVICE_TYPE = ?")
 #endif // DEVICE_TYPE == ?
@@ -3610,6 +3750,9 @@ GPIO_PD7 - LED to +Vbat
 #endif
 #ifndef USE_SENSOR_SCD41
 #define	USE_SENSOR_SCD41	0
+#endif
+#ifndef USE_SENSOR_STCC4
+#define	USE_SENSOR_STCC4	0
 #endif
 #ifndef USE_SENSOR_PWMRH
 #define	USE_SENSOR_PWMRH	0

@@ -7,7 +7,7 @@
 #include "tl_common.h"
 #include "app_config.h"
 #if (DEV_SERVICES & SERVICE_SCREEN)
-#if !((DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC))
+#if !((DEVICE_TYPE == DEVICE_MJWSD05MMC) || (DEVICE_TYPE == DEVICE_MJWSD05MMC_EN) || (DEVICE_TYPE == DEVICE_LYWSD02MMC) || (DEVICE_TYPE == DEVICE_MJWSD07MMC))
 #include "drivers.h"
 #include "drivers/8258/gpio_8258.h"
 #include "app.h"

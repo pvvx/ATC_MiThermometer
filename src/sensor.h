@@ -57,7 +57,9 @@ enum {
 	ID_SENSOR_BMP280,	// 16
 	ID_SENSOR_PCF85163,	// 17
 	ID_SENSOR_MCU,		// 18
-	ID_SENSOR_TYPE_MAX // 18
+	ID_SENSOR_STCC4,	// 19
+	ID_SENSOR_ENS160,	// 20
+	ID_SENSOR_TYPE_MAX // 21
 } ID_SENSOR_TYPES;
 
 #if (DEV_SERVICES & (SERVICE_THS | SERVICE_IUS)) && !USE_SENSOR_BME280
@@ -69,7 +71,12 @@ typedef struct _thsensor_coef_t {
 	s16 val2_z;		// humi_z / voltage_z
 } sensor_coef_t; // [12]
 
+typedef 	int (*sensors_start_t)(void);
+typedef 	int (*sensors_read_t)(void);
+
 typedef struct _sensor_def_cfg_t {
+	sensors_start_t start_measure;
+	sensors_read_t read_sensor;
 #if USE_SENSOR_INA3221
 	sensor_coef_t coef[3];
 #else
@@ -82,15 +89,20 @@ typedef struct _sensor_def_cfg_t {
 } sensor_def_cfg_t;
 
 typedef struct _sensor_cfg_t {
+#if USE_SENSOR_HT
+	sensors_start_t start_measure;
+	sensors_read_t read_sensor;
+#endif
 #if USE_SENSOR_INA3221
 	sensor_coef_t coef[3];
 #else
+// start saved
 	sensor_coef_t coef;
 #endif
 	u32 id;
 	u8 i2c_addr;
 	u8 sensor_type; // SENSOR_TYPES
-// not saved
+// end saved
 #if USE_SENSOR_SCD41
 	u32 wait_tik;
 #endif

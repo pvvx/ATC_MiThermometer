@@ -51,5 +51,6 @@
 | 51 | 0x0233 | ZG204ZV | ZG204ZV |
 | 54 | 0x0236 | DIY-SCD41 | TB_SCD41 |
 | 58 | 0x023A | [ZBEACON-TH01-v2.0](https://github.com/pvvx/ZigbeeTLc/issues/211) variant with SHTC3 (SDA/SCL swapped, no TX pad), also sold as TS0201_TZ3000_rdhukkmi | ZB2TH01SHTC3 |
+| 62 | 0x023E | [MJWSD07MMC](https://pvvx.github.io/MJWSD07MMC) | MC7CH |
 
 
